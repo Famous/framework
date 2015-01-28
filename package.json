@@ -1,0 +1,11 @@
+{
+  "name": "mimisbrunnr",
+  "version": "0.0.0",
+  "description": "The well of knowledge and wisdom",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Zack Brown <zack@famo.us>",
+  "license": "Proprietary"
+}
