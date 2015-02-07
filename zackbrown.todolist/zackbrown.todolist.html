@@ -1,5 +1,5 @@
 
-<!-- since this DOM is for populating our virtual render tree and not for rendering directly in clients, we may be able to bypass the traditional rules of what can be rendered in the browser, e.g. by using periods in the tag names.  We need to ensure that selector operations still work within the virtual DOM representations across browsers, because we still use this to attach behaviors to virtual render trees at runtime using querySelectorAll. -->
+<!-- since this DOM is for populating our virtual render tree and not for rendering directly in clients, we may be able to bypass the traditional rules of what can be rendered in the browser, e.g. by using periods in the tag names.  We need to ensure that selector operations still work within the virtual DOM representations across browsers, because we still use this to attach behaviors to virtual render trees at runtime using the querySelectorAll API. -->
 
 <famous.layout.header-footer id="main-layout">
   <header>
@@ -7,8 +7,21 @@
   </header>
   <content>
     <!-- list of todos here -->
-    <zackbrown.todolist.listitem id="repeat-me">
-    </zackbrown.todolist.listitem>
+    <famous.layout.scrollview>
+      <!-- for event-click, `click` could be replaced with any valid
+      HTML5 or DOM3 event (e.g. event-mousedown) as well as any custom
+      defined event -->
+      <zackbrown.todolist.listitem id="repeat-me" event-click="customClickEvent">
+      <!-- Note that famous-click automatically will trigger for *every*
+      click event that comes from this subtree.  This includes GL and DOM
+      events.  The library is responsible for piping these events together
+      for the end developer. (this would be like automatically piping the
+      events from all child surfaces to a scrollview.)  We should also
+      support stopPropagation to allow a user to stop events
+      from bubbling upwards, which is a blacklist vs whitelist model
+      of event piping (probably a bit more maintainable than the Famo.us 0.3 whitelist piping model.) -->
+      </zackbrown.todolist.listitem>
+    </famous.layout.scrollview>
   </content>
   <footer>
     <!-- new todo input here -->

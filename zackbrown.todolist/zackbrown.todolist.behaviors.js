@@ -2,6 +2,7 @@
 //or can module association be handled
 //implicitly based on the context under which
 //this is loaded?
+
 famous.declareBehaviors(
   function(state, helpers){
 
@@ -15,10 +16,12 @@ famous.declareBehaviors(
     //be handed to us unminified, and we perform 
     //minification before passing to the client.
 
-    //as an alternative to static analysis, the DI
-    //can happen at a per-function level, which would
-    //allow us to make better guarantees about
-    //dependencies
+    //as an alternative to static analysis and 'global' DI here
+    //the DI can happen at a per-function level,
+    //which would allow us to make better guarantees about
+    //dependencies and avoid the static analysis step.
+    //Especially if aurelia's DI module fits the bill,
+    //this may be an easier way to start.
 
     return {
       "#repeat-me": {
