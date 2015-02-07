@@ -1,0 +1,16 @@
+
+<!-- since this DOM is for populating our virtual render tree and not for rendering directly in clients, we may be able to bypass the traditional rules of what can be rendered in the browser, e.g. by using periods in the tag names.  We need to ensure that selector operations still work within the virtual DOM representations across browsers, because we still use this to attach behaviors to virtual render trees at runtime using querySelectorAll. -->
+
+<famous.layout.header-footer id="main-layout">
+  <header>
+    <!-- nav here -->
+  </header>
+  <content>
+    <!-- list of todos here -->
+    <zackbrown.todolist.listitem id="repeat-me">
+    </zackbrown.todolist.listitem>
+  </content>
+  <footer>
+    <!-- new todo input here -->
+  </footer>
+</famous.layout.header-footer>
