@@ -4,45 +4,41 @@
 //this is loaded?
 
 famous.declareBehaviors(
-  function(state, helpers){
+  {
+    //these are behaviorHandler declarations, sort of like directive
+    //declarations in AngularJS
+    handlers: {
+      someCustomBehavior: function(element, elementBag, payloadFn){
+        //the role of this function is essentially to manipulate
+        //the element based on the returned value of the invoked
+        //payloadFn.  Any sort of stateful values here can be manipulated
+        //using the elementBag (e.g. for a persistent vector for
+        //transform values so that we don't thrash the GC.)  The elementBag
+        //is associated with the element at the library level by
+        //uniquely ID'ing every element 
+      }
+    },
 
-    //`state` is a DI'd reference to the state bag
-    //for this module, exposing properties strictly
-    //by state.get('stringId');  We can statically
-    //analyze this code to determine the dependencies
-    //for any given behavior.  We do not need to worry
-    //about minification, because we don't need to 
-    //support persisting minified code—all code should
-    //be handed to us unminified, and we perform 
-    //minification before passing to the client.
-
-    //as an alternative to static analysis and 'global' DI here
-    //the DI can happen at a per-function level,
-    //which would allow us to make better guarantees about
-    //dependencies and avoid the static analysis step.
-    //Especially if aurelia's DI module fits the bill,
-    //this may be an easier way to start.
-
-    //helpers is a DI'd list of functional helpers.  An expectation
-    //of helper functions (which any module can register) is that 
-    //they contain no side effects.  This allows, e.g. things like
-    //`map` to be used here.
-
-    return {
+    //these are the standard behavior declarations
+    behaviors: {
       "#repeat-me": {
-        "famous.controlflow.repeat": function(){
-          var data = state.get('listItems');
-          //image data is [1,2,3,4,5];
-
-          var returnData = data.map(function(d, i){
+        //we can do DI below without worrying about minification BECAUSE
+        //we can build the dependency map at upload time:  again,
+        //we do not support the upload of minified code.  We will minify
+        //it before deployment for the end-user, but we will have already
+        //built a map of behaviors -> dependencies at upload-time.
+        "famous.controlflow.repeat": function(listItems){
+          //assume listItems is [1,2,3,4,5];
+          var returnData = listItems.map(function(d, i){
             return {
               id: d,
               text: d //this will be evented to
                       //the child via setState({'text': d});
+                      //(this is an implementation detail of the famous.controlflow.repeat behavior handler.
             }
           })
 
-          return [1, 2, 3, 4, 5];
+          return returnData;
           // ^ array of state injections which will be
           //evented to the child module.  Any time
           //this function is re-evaluated, these
@@ -70,7 +66,10 @@ famous.declareBehaviors(
 
       },
       "#main-layout": {
+        //when values are constant, simply return them, not
+        //wrapped in a function.
         "famous.transform.size": [undefined, undefined],
+
         "headerSize": function(){
           //note that this is actually
           //famous.layout.headerfooter.headerSize,
@@ -84,13 +83,14 @@ famous.declareBehaviors(
           return [undefined, state.get('footerHeight')];
         }
       }
-    }
-  },
-  //these are namespace imports, similar to `using`
-  //statements in C#.  These make the code terser above,
-  //e.g. for setting headerSize instead of famous.layout.headerfooter.headerSize
-  [
-    //"famous.transform", //would allow "famous.transform.size" to be expressed as "size"
-    "famous.layout.headerfooter"
-  ]
+    },
+
+    //these are namespace imports, similar to `using`
+    //statements in C#.  These make the code terser above,
+    //e.g. for setting headerSize instead of famous.layout.headerfooter.headerSize
+    imports: [
+      //"famous.transform", //would allow "famous.transform.size" to be expressed as "size"
+      "famous.layout.headerfooter"
+    ]
+  }
 );
