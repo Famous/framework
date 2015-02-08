@@ -8,11 +8,8 @@
   <content>
     <!-- list of todos here -->
     <famous.layout.scrollview>
-      <!-- for event-click, `click` could be replaced with any valid
-      HTML5 or DOM3 event (e.g. event-mousedown) as well as any custom
-      defined event -->
       <zackbrown.todolist.listitem id="repeat-me" event-click="customClickEvent">
-      <!-- Note that famous-click automatically will trigger for *every*
+      <!-- Note that event-click automatically will trigger for *every*
       click event that comes from this subtree.  This includes GL and DOM
       events.  The library is responsible for piping these events together
       for the end developer. (this would be like automatically piping the
@@ -20,6 +17,9 @@
       support stopPropagation to allow a user to stop events
       from bubbling upwards, which is a blacklist vs whitelist model
       of event piping (probably a bit more maintainable than the Famo.us 0.3 whitelist piping model.) -->
+      <!-- for event-click, `click` could be replaced with any valid
+      HTML5 or DOM3 event (e.g. event-mousedown) as well as any custom
+      defined event -->
       </zackbrown.todolist.listitem>
     </famous.layout.scrollview>
   </content>

@@ -23,6 +23,11 @@ famous.declareBehaviors(
     //Especially if aurelia's DI module fits the bill,
     //this may be an easier way to start.
 
+    //helpers is a DI'd list of functional helpers.  An expectation
+    //of helper functions (which any module can register) is that 
+    //they contain no side effects.  This allows, e.g. things like
+    //`map` to be used here.
+
     return {
       "#repeat-me": {
         "famous.controlflow.repeat": function(){

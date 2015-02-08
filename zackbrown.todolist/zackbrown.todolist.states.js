@@ -1,46 +1,34 @@
+//the state bag is really only stored in memory.
 
+//this list of states and types is essentially a schema, mostly
+//for use by the authoring tool.  Arbitrary states can be set/get
+//from the state bag at runtime, but this declaration allows
+//authoring controls to be exposed.  There may be additional (powerful)
+//things we can do with static analysis based on these annotations.
 
-famous.declareStates(
-  function(eventStream){
+//any numerical state in the state bag can backed by a Transitionable. Any time
+//that a state.set is called, a transition can be passed to make
+//the state tween.  This get/set interface gives the state bag total
+//control over notifying subscribers of changes.
 
-    //should events and states share a closure?  it's convenient
-    //because the standard use-case for events is to mutate state.
-    //that said, the mutation could happen through a setter interface,
-    //which makes our lives even easier for handling recomputations
-    //of behavior binders:  instead of having to use Object.observe, we
-    //can simply keep track of our own sets.
-    //How would we handle transitionables, though?
-    var events = {
-      customClickEvent: function(args, listItemState){
-        //note that this is defined in the template, on the zackbrown.totolist.listitem tag.
-        listItemState.get('');
+//note that type annotations are something we can iterate on; the simplest version
+//of this would be a json blob that is strictly declarations of
+//default values.  We could add annotations optionally and later on.
 
-      },
-      otherEventName: function(args){
-        //handler
-        //should we switch over target?  and break out
-        //behavior accordingly?  and/or should we be able
-        //to specify events more granularly, perhaps
-        //in the template?
+////with annotations:
+// {
+//   listItems: {
+//     type: 'Array<Object>',
+//     defaultValue: []
+//   },
+//   headerTransitionDuration: {
+//     type: "Integer",
+//     defaultValue: 2000
+//   }
+// }
 
-        //yes, specify in the template.  The state bag
-        //exposed by the module to which the event is bound
-        //will be passed as an argument as well as the standard
-        //event args.  This supports, e.g. getting the
-        //index of the clicked item in a repeated list
-        //(since it can be exposed by its state bag.)
-      };
-
-      var states = {
-        x: _x,
-        y: _y,
-        z: _z
-      }
-
-      return states;
-
-    }
-
-
-
-  }
+//without annotations
+{
+  listItems: [],
+  headerTransitionDuration: 2000
+}
