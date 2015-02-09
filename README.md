@@ -28,7 +28,9 @@ Any module is comprised of four pieces:
   3. A "States" component
   3. A "Template" component
 
-The `events` object is a list of event handlers.  EventHandlers are able to get and set state.
+The `events` object is a list of event handlers.
+
+> EventHandlers are given DI'd references to state bags and are able to get and set state values.
 
 The `state` is a simple key-value bag of states.  A default configuration can be applied to a given module (which is essentially what happens via a slider interface)
 
@@ -40,5 +42,17 @@ The `behavior` is a list of functions that take values from state (via DI) and r
 
 The `template` is a tree structure of Famo.us components:  views, primitives/surfaces, and/or other modules.  This could be done with JSON, but DOM is a natural solution for storing this hierarchy since it comes with a robust selector (querying) system, and it would easily extend to integrate with other HTML-based frameworks.
 
->  *Events* can be attached to templates declaratively.  (full circle back to 'events'
-)
+>  *Events* can be attached to templates declaratively.  (full circle back to 'events')
+
+
+### Web workers
+
+Given the event-driven approach to this architecture, web workers should be a natural fit.  Broadly:
+
+```
+ UI events
+ (e.g. DOM)             Almost everything  serialized   Renderers
+--------------  event  ------------------   output     -------------
+| UI Thread  | ------> |   Web Worker   | -----------> | UI Thread |
+--------------         ------------------              -------------
+```
