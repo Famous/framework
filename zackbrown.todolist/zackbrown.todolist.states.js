@@ -30,5 +30,7 @@
 //without annotations
 {
   listItems: [],
-  headerTransitionDuration: 2000
+  headerTransitionDuration: 2000,
+  headerHeight: 50,
+  footerHeight: 50
 }

@@ -1,4 +1,7 @@
 famous.declareEvents({
+
+  //this interface, and how parents and children event to each other, should be fleshed out a bit better
+
   customClickEvent: function(args, moduleState, childState){ //childState is the listitem module's state bag, since that's the element to which the handler is attached
     //note that this is defined in the template, on the zackbrown.totolist.listitem tag.
     var index = childState.get('index');
@@ -22,5 +25,5 @@ famous.declareEvents({
     //event args.  This supports, e.g. getting the
     //index of the clicked item in a repeated list
     //(since it can be exposed by its state bag.)
-  };
+  }
 });

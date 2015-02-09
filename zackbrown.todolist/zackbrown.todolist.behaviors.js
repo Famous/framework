@@ -16,7 +16,13 @@ famous.declareBehaviors(
         //transform values so that we don't thrash the GC.)  The elementBag
         //is associated with the element at the library level by
         //uniquely ID'ing every element 
-      }
+      },
+      
+      //note, this is a very basic version of what the headerHeight declaration might look
+      //like in famous.layouts.header-footer
+      //headerHeight: function(rendernode, elementBag, payloadFn){
+      //  renderNode.setHeight(payloadFn());
+      //}
     },
 
     //these are the standard behavior declarations
@@ -70,17 +76,17 @@ famous.declareBehaviors(
         //wrapped in a function.
         "famous.transform.size": [undefined, undefined],
 
-        "headerSize": function(){
+        "headerSize": function(headerHeight){
           //note that this is actually
           //famous.layout.headerfooter.headerSize,
           //but since famous.layout.headerfooter is imported below,
           //this shorthand can be used.  A static analysis
           //step can be used to determine if there are conflicting
           //"headerSize" definitions, similar to C#
-          return [undefined, state.get('headerHeight')];
+          return [undefined, headerHeight];
         },
-        "footerSize": function(){
-          return [undefined, state.get('footerHeight')];
+        "footerSize": function(footerHeight){
+          return [undefined, footerHeight];
         }
       }
     },
