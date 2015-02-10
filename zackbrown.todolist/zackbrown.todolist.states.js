@@ -32,5 +32,6 @@
   listItems: [],
   headerTransitionDuration: 2000,
   headerHeight: 50,
+  headerToggled: false,
   footerHeight: 50
 }

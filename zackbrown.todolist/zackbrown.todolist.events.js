@@ -12,6 +12,15 @@ famous.declareEvents({
     moduleState.set('selectedIndex', index);
 
   },
+  updateHeaderSize: function(args, moduleState){
+    var headerToggled = moduleState.get('headerToggled');
+    if(headerToggled){
+      headerHeight.set(150, {duration: 1000, curve: 'easeOut'});
+    }else{
+      headerHeight.set(50, {duration: 1000, curve: 'easeOut'});
+    }
+    moduleState.set('headerToggled', !headerToggled);
+  },
   otherEventName: function(args){
     //handler
     //should we switch over target?  and break out
