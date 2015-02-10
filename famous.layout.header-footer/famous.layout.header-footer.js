@@ -2,48 +2,40 @@
 famous.module({
 	name: "famous.layout.header-footer",
 	behaviors: {
-		//binders bind behaviors to the elements of this module's template
-		binders: {
-			"#header": {
-				"famous.core.size": function(headerSize, direction){
-					if(direction === 'VERTICAL'){
-						return [undefined, headerSize];
-					}else{
-						[headerSize, undefined];
-					}
-				},
-				"famous.transform.translate": [0,0,0],
-				"famous.control-flow.pass-through": function(){
-					//this returns a selector (alternatively, returns a filter function of (DOM Elements -> DOM Elements))
-					//that describes which nodes from the PARENT to pass through into this element in this module.
-					return "#header"
+		"#header": {
+			"famous.core.size": function(headerSize, direction){
+				if(direction === 'VERTICAL'){
+					return [undefined, headerSize];
+				}else{
+					[headerSize, undefined];
 				}
 			},
-			"#content": {
-				"famous.core.size": function(headerSize, footerSize, direction, $size){
-					var magnitude = direction === 'VERTICAL' ? $size[1] : $size[0];
-					var contentSize = magnitude - (headerSize + footerSize);
-					return direction === 'VERTICAL' ? [undefined, contentSize] : [contentSize, undefined];
-				},
-				"famous.transform.translate": function(headerSize){
-					return direction === 'VERTICAL' ? [0, headerSize, 0] : [headerSize, 0, 0];
-				},
-				"famous.control-flow.pass-through": "#content"
-			},
-			"#footer": {
-				"famous.core.size": function(footerSize){
-					return direction === 'VERTICAL' ? [undefined, footerSize] : [footerSize, undefined];
-				},
-				"famous.transform.origin": function(direction){
-					return direction === 'VERTICAL' ? [0, 1, 0] : [1, 0, 0]
-				}
-				"famous.control-flow.pass-through": "#footer"
+			"famous.transform.translate": [0,0,0],
+			"famous.control-flow.pass-through": function(){
+				//this returns a selector (alternatively, returns a filter function of (DOM Elements -> DOM Elements))
+				//that describes which nodes from the PARENT to pass through into this element in this module.
+				return "#header"
 			}
 		},
-		//handlers are the public-facing behavior API.
-		//they can be reasoned about as a special case of events.
-		handlers: {
-			
+		"#content": {
+			"famous.core.size": function(headerSize, footerSize, direction, $size){
+				var magnitude = direction === 'VERTICAL' ? $size[1] : $size[0];
+				var contentSize = magnitude - (headerSize + footerSize);
+				return direction === 'VERTICAL' ? [undefined, contentSize] : [contentSize, undefined];
+			},
+			"famous.transform.translate": function(headerSize){
+				return direction === 'VERTICAL' ? [0, headerSize, 0] : [headerSize, 0, 0];
+			},
+			"famous.control-flow.pass-through": "#content"
+		},
+		"#footer": {
+			"famous.core.size": function(footerSize){
+				return direction === 'VERTICAL' ? [undefined, footerSize] : [footerSize, undefined];
+			},
+			"famous.transform.origin": function(direction){
+				return direction === 'VERTICAL' ? [0, 1, 0] : [1, 0, 0]
+			}
+			"famous.control-flow.pass-through": "#footer"
 		}
 	},
 	events: {
