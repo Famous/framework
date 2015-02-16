@@ -5,38 +5,19 @@ BEST (Behavior Event State Template) is a web application architecture that focu
 ###How:
 
   * **Declaration** and **mutation** of the stateful aspects of an application are strictly separated from the **behaviors** that describe UI rendering.
-  * Only events (with immutable payloads) are used to connect modules to each other. (i.e. no shared state.)
-  * A *template* is described declaratively, which defines child module dependencies.
-  * *Behaviors* are relationally joined to template components, allowing the Behavior and Template components to remain separate.
-  * *Behaviors* are strictly functional declarations of module behavior: they can only *read* state, must be deterministic, and they can incur no side effects.
+  * Only **events** (with immutable payloads) are used to connect modules to each other. (i.e. no shared state.)
+  * A **template** is described declaratively, which defines child module dependencies.
+  * **Behaviors** are relationally joined to template components, allowing the Behavior and Template components to remain separate.
+  * **Behaviors** are strictly functional declarations of module behavior: they can only *read* state, must be deterministic, and they can incur no side effects.
 
 
-###By BEST, formal definitions for application modules are defined.
+**By BEST, formal definitions for application modules are defined:**
 
   1. An APPLICATION is a fully bundled unit of code and assets that can be run in a browser. An APPLICATION contains precisely one tree of MODULES with at least a root node.
   2. Let A be a MODULE; let B be another MODULE.  B is a CHILD of A if and only if B is used as a direct dependency in A.
   3. A MODULE has 0 or more CHILD MODULES, 0 or more CHILD ASSETS, and at least 1 of either a CHILD MODULE or CHILD ASSET.
   4. An ASSET is 0 or more static binary or text assets (for web rendering in the immediate scope, for example a collection of HTML, JS, CSS, and image files.)
   5. An ASSET can have no direct child MODULES (it is a leaf node of the APPLICATION tree.)
-
-
-```
-    -----------------        ------------------
-    |               |        |                |
-    |    State      |   -->  |    Behaviors   |
-    |               |        |                |
-    -----------------        ------------------
-
-            ^                        |
-            |                        v
-
-    -----------------        ------------------
-    |               |        |                |
-    |    Events     |   <--  |    Template    |
-    |               |        |                |
-    -----------------        ------------------
-```
-
 
 ##Goals driving BEST
 
@@ -72,3 +53,22 @@ The `template` is a tree structure of child modules, which defines the (sub)tree
 Events are simple javascript events.  Event Handlers describe how a module should respond to events and their stateful payloads.  Events Handlers are both able to read and write from the state bag for the module to which they belong.  They are also able to fire other events to be handled by progeny or progenitor modules
 
 (TODO:  determine if downward broadcasting is desired or useful [or poisonous,] i.e. maybe it is only necessary to event to progenitors.  Certainly, upward emitting is useful (for firing the events that will be caught by progenitor template event triggers).  It may be that `behaviors` are the only necessary downward eventing mechanism and that manual downward broadcasts would encourage 'event soup.')
+
+
+```
+    -----------------        ------------------
+    |               |        |                |
+    |    State      |   -->  |    Behaviors   |
+    |               |        |                |
+    -----------------        ------------------
+
+            ^                        |
+            |                        v
+
+    -----------------        ------------------
+    |               |        |                |
+    |    Events     |   <--  |    Template    |
+    |               |        |                |
+    -----------------        ------------------
+```
+*Figure 1: Topology of a module*
