@@ -1,58 +1,74 @@
-#Mimisbrunnr
+#BEST
 
-Mimisbrunnr is the well of knowledge and wisdom from which the tree of Yggdrasil draws its water.
+BEST (Behavior Event State Template) is a web application architecture that focuses on application extensibility, application modularity, and module configurability.
 
-Mimir, the attendant of the spring, is "The Rememberer."
+###How:
 
-It's an application framework built on top of the rendering engine Yggdrasil.
+  * **Declaration** and **mutation** of the stateful aspects of an application are strictly separated from the **behaviors** that describe UI rendering.
+  * Only events (with immutable payloads) are used to connect modules to each other. (i.e. no shared state.)
+  * A *template* is described declaratively, which defines child module dependencies.
+  * *Behaviors* are relationally joined to template components, allowing the Behavior and Template components to remain separate.
+  * *Behaviors* are strictly functional declarations of module behavior: they can only *read* state, must be deterministic, and they can incur no side effects.
 
-##Goals
 
- * Offer a robust framework, focused around a module system, for developers to build scalable apps
+###By BEST, formal definitions for application modules are defined.
+
+  1. An APPLICATION is a fully bundled unit of code and assets that can be run in a browser. An APPLICATION contains precisely one tree of MODULES with at least a root node.
+  2. Let A be a MODULE; let B be another MODULE.  B is a CHILD of A if and only if B is used as a direct dependency in A.
+  3. A MODULE has 0 or more CHILD MODULES, 0 or more CHILD ASSETS, and at least 1 of either a CHILD MODULE or CHILD ASSET.
+  4. An ASSET is 0 or more static binary or text assets (for web rendering in the immediate scope, for example a collection of HTML, JS, CSS, and image files.)
+  5. An ASSET can have no direct child MODULES (it is a leaf node of the APPLICATION tree.)
+
+
+```
+    -----------------        ------------------
+    |               |        |                |
+    |    State      |   -->  |    Behaviors   |
+    |               |        |                |
+    -----------------        ------------------
+
+            ^                        |
+            |                        v
+
+    -----------------        ------------------
+    |               |        |                |
+    |    Events     |   <--  |    Template    |
+    |               |        |                |
+    -----------------        ------------------
+```
+
+
+##Goals driving BEST
+
+ * Offer a robust framework, focused around a module system, for developers to build scalable, composable, configurable apps
  * Support *module configuration* (visually) at a framework level.
  * Allow *behavior* to live in its own (stateless) layer
  * Allow *state* to live in its own layer, such that a configuration-based authoring system can be supported naturally at the framework level
- * Draw clean abstraction lines between modules such that
- 	* An entire application is comprised of 1 or more modules and 0 or more assets [leaf nodes]
- 	* A module is comprised of 0 or more modules and 0 or more assets, with at least 1 of either a module or an asset.
- 	* Communication between modules occurs stricly via events, possibly with a monadic helper pattern
+
 
 ##High level design
 
-**BEST Architecture**
+Any module is composed of four pieces:
 
-Any module is comprised of four pieces:
+  1. 0 or more "state"ful values
+  2. 0 or more "behavior" declarations
+  3. 0 or more progeny modules declared in a "template."
+  4. 0 or more "event" triggers and handlers
 
-  1. A "Behaviors" component
-  2. An "Events" component
-  3. A "States" component
-  3. A "Template" component
+The `state` is a read/write key-value store that controls state changes via getters/setters and that can thus handle `Object.observe`-like behavior without the performance overhead that comes with `Object.observe`.
 
-The `events` object is a list of event handlers.
+> A *dependency injection* system exposes state values to behavior functions
 
-> EventHandlers are given DI'd references to state bags and are able to get and set state values.
+`behavior`s are functions that return values to be applied to the specified behavior.  `behaviors` list their dependencies (strictly, members of the `state` bag) as function arguments, and they are dependency-injected appropriately.  `translate` or `background-color`, for example, could both be behaviors.
 
-The `state` is a simple key-value bag of states.  A default configuration can be applied to a given module (which is essentially what happens via a slider interface)
+> Consider the case of `background-color`.  Perhaps you have a checkbox and a `div` on screen.  You want that `div`'s background color to be red when the checkbox is selected and yellow when it isn't.  Thus you apply to that `div` a `behavior` that describes the desired background color.  Suppose you have some boolean state, "checkboxChecked".  Formally, that `behavior` is a function with the domain "possible values for checkboxChecked" (let's say boolean) and with the range "valid CSS colors."  This behavior could be written `function(checkboxChecked){return checkboxChecked ? "red" : "yellow";}`.  This approach can be extended robustly to cover more complex behaviors, notably including transform values like `translate`, `rotate`, `scale`, etc.
 
->  A *dependency injection* system exposes state values to behaviors, ideally immutably (implementing the immutable piece will be tricky and is not necessary out of the gate.)
+> Behaviors are relationally joined to template items.  *DOM* and *selectors* are a natural fit for this, since precisely the same model is followed for CSS properties and HTML elements when authoring external stylesheets.  In this case, behavioral functions (like `translate`), instead of CSS properties (like `background-color`) are applied to elements via selectors.
 
-The `behavior` is a list of functions that take values from state (via DI) and return values associated with that behavior.  `translate` or `background-color` could both be behaviors.
+The `template` is a tree structure of child modules, which defines the (sub)tree of an application expressed by a given module.  In addition to the separation-of-concerns benefits of DOM + selctors, DOM is a natural data structure for this hierarchy since it easily extends to integrate with other HTML-based frameworks and static HTML content.
 
->  *Selectors* attach behaviors to template items.  Just like CSS in terms of separation of concerns, but it's javascript.
+>  Events from *lower* in the application tree are triggered (in the sense of "port triggering") by event triggers defined on template elements.  For example, if a child slider component emitted upward some event called `sliderupdate` and you wanted to attach an event handler called `mySliderUpdateHandler` to that `sliderupdate` event inside of a module that is a progenitor of that `sliderupdate` module, you could write in your template: `<your-slider-component on-sliderupdate="mySliderUpdateHandler"></your-slider-component>`.
 
-The `template` is a tree structure of Famo.us components:  views, primitives/surfaces, and/or other modules.  This could be done with JSON, but DOM is a natural solution for storing this hierarchy since it comes with a robust selector (querying) system, and it would easily extend to integrate with other HTML-based frameworks.
+Events are simple javascript events.  Event Handlers describe how a module should respond to events and their stateful payloads.  Events Handlers are both able to read and write from the state bag for the module to which they belong.  They are also able to fire other events to be handled by progeny or progenitor modules
 
->  *Events* can be attached to templates declaratively.  (full circle back to 'events')
-
-
-### Web workers
-
-Given the event-driven approach to this architecture, web workers should be a natural fit.  Broadly:
-
-```
- UI events
- (e.g. DOM)             Almost everything  serialized   Renderers
---------------  event  ------------------   output     -------------
-| UI Thread  | ------> |   Web Worker   | -----------> | UI Thread |
---------------         ------------------              -------------
-```
+(TODO:  determine if downward broadcasting is desired or useful [or poisonous,] i.e. maybe it is only necessary to event to progenitors.  Certainly, upward emitting is useful (for firing the events that will be caught by progenitor template event triggers).  It may be that `behaviors` are the only necessary downward eventing mechanism and that manual downward broadcasts would encourage 'event soup.')
