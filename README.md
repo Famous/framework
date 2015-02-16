@@ -61,10 +61,8 @@ Events are simple javascript events.  Event Handlers describe how a module shoul
     |    State      |   -->  |    Behaviors   |
     |               |        |                |
     -----------------        ------------------
-
             ^                        |
             |                        v
-
     -----------------        ------------------
     |               |        |                |
     |    Events     |   <--  |    Template    |
