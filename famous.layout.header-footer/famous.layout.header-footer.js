@@ -11,10 +11,10 @@ famous.module({
 				}
 			},
 			"famous.transform.translate": [0,0,0],
-			"famous.control-flow.pass-through": function(){
+			"famous.control-flow.yield": function(){
 				//this returns a selector (alternatively, returns a filter function of (DOM Elements -> DOM Elements))
 				//that describes which nodes from the PARENT to pass through into this element in this module.
-				return "#header"
+				return "#header-container"
 			}
 		},
 		"#content": {
@@ -26,7 +26,7 @@ famous.module({
 			"famous.transform.translate": function(headerSize){
 				return direction === 'VERTICAL' ? [0, headerSize, 0] : [headerSize, 0, 0];
 			},
-			"famous.control-flow.pass-through": "#content"
+			"famous.control-flow.yield": "#content-container"
 		},
 		"#footer": {
 			"famous.core.size": function(footerSize){
@@ -35,7 +35,7 @@ famous.module({
 			"famous.transform.origin": function(direction){
 				return direction === 'VERTICAL' ? [0, 1, 0] : [1, 0, 0]
 			}
-			"famous.control-flow.pass-through": "#footer"
+			"famous.control-flow.yield": "#footer-container"
 		}
 	},
 	events: {
