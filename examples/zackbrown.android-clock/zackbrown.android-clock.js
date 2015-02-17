@@ -85,5 +85,6 @@ famous.module({
     ]
   },
   selectedIndex: 0,
+  panelPositionX: 0,
   template: "zackbrown.android-clock.template.html"
 });
