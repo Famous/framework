@@ -2,7 +2,7 @@
 famous.module({
 	name: "famous.layout.header-footer",
 	behaviors: {
-		"#header": {
+		"#header-container": {
 			"famous.core.size": function(headerSize, direction){
 				if(direction === 'VERTICAL'){
 					return [undefined, headerSize];
@@ -14,10 +14,10 @@ famous.module({
 			"famous.control-flow.yield": function(){
 				//this returns a selector (alternatively, returns a filter function of (DOM Elements -> DOM Elements))
 				//that describes which nodes from the PARENT to pass through into this element in this module.
-				return "#header-container"
+				return "#header"
 			}
 		},
-		"#content": {
+		"#content-container": {
 			"famous.core.size": function(headerSize, footerSize, direction, $size){
 				var magnitude = direction === 'VERTICAL' ? $size[1] : $size[0];
 				var contentSize = magnitude - (headerSize + footerSize);
@@ -26,16 +26,16 @@ famous.module({
 			"famous.transform.translate": function(headerSize){
 				return direction === 'VERTICAL' ? [0, headerSize, 0] : [headerSize, 0, 0];
 			},
-			"famous.control-flow.yield": "#content-container"
+			"famous.control-flow.yield": "#content"
 		},
-		"#footer": {
+		"#footer-container": {
 			"famous.core.size": function(footerSize){
 				return direction === 'VERTICAL' ? [undefined, footerSize] : [footerSize, undefined];
 			},
 			"famous.transform.origin": function(direction){
 				return direction === 'VERTICAL' ? [0, 1, 0] : [1, 0, 0]
 			}
-			"famous.control-flow.yield": "#footer-container"
+			"famous.control-flow.yield": "#footer"
 		}
 	},
 	events: {
