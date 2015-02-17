@@ -39,23 +39,23 @@ famous.module({
 		}
 	},
 	events: {
-		//"behavior."-prefixed events are "special" handlers that define the public-facing
+		//"behavior:"-prefixed events are "special" handlers that define the public-facing
 		//API for behaviors.  For example, the declaration of "behavior.header-size" here
 		//means that a <famous.layout.header-footer> element can have its "header-size"
 		//set via a selector + functional behavior.  The "special" piece is that the library handles
 		//knowing when to reevaluate those behaviors and automatically invokes the behavior
-		//function, then fires a "behavior.header-size" event with the result of that function
+		//function, then fires a "behavior:header-size" event with the result of that function
 		//as a member of the event args.
-		"behavior.header-size": function(args, state){
+		"behavior:header-size": function(args, state){
 			state.set('headerSize', args.$payload);
 		},
-		"behavior.content-size": function(args, state){
+		"behavior:content-size": function(args, state){
 			state.set('contentSize', args.$payload);
 		},
-		"behavior.footer-size": function(args, state){
+		"behavior:footer-size": function(args, state){
 			state.set('footerSize', args.$payload);
 		},
-		"behavior.direction": function(args, state){
+		"behavior:direction": function(args, state){
 			var direction = args.$payload;
 			if(direction !== "VERTICAL" && direction !== "HORIZONTAL"){
 				throw new Error("The only acceptable values for a HeaderFooterLayout's Direction are 'VERTICAL' and 'HORIZONTAL'");
