@@ -1,4 +1,11 @@
 
+//This is an implementation of the Android clock application.
+//The user is able to select one of four clock sub-widgets
+//by selecting a header item, which will scroll the content panels
+//to the correct widget.  Alternatively, the user can tap and drag
+//the main content panel to toggle between the clocks.
+//see http://s29.postimg.org/5rfb0pa2f/Screenshot_2013_11_28_21_16_47.png for
+//a static visual example.
 famous.module({
   name: "zackbrown.android-clock",
   behaviors: {
