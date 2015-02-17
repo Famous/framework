@@ -84,6 +84,6 @@ famous.module({
       }
     ]
   },
-  selectedClock: "alarmClock",
+  selectedIndex: 0,
   template: "zackbrown.android-clock.template.html"
 });
