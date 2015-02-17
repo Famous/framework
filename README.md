@@ -17,12 +17,13 @@ BEST (Behavior Event State Template) is a web application architecture that focu
   2. Let A be a MODULE; let B be another MODULE.  B is a CHILD of A if and only if B is used as a direct dependency in A.
   3. A MODULE has 0 or more CHILD MODULES, 0 or more CHILD ASSETS, and at least 1 of either a CHILD MODULE or CHILD ASSET.
   4. An ASSET is 0 or more static binary or text assets (for web rendering in the immediate scope, for example a collection of HTML, JS, CSS, and image files.)
-  5. An ASSET can have no direct child MODULES (it is a leaf node of the APPLICATION tree.)
+  5. An ASSET is a special-case MODULE that can have no direct child MODULES (it is a leaf node of the APPLICATION tree.)
 
 ##Goals driving BEST
 
  * Offer a robust framework, focused around a module system, for developers to build scalable, composable, configurable apps
  * Support *module configuration* (visually) at a framework level.
+ * Enable usability and expressiveness for lo- and no-code customers through config/composition/positioning/animation interfaces
  * Allow *behavior* to live in its own (stateless) layer
  * Allow *state* to live in its own layer, such that a configuration-based authoring system can be supported naturally at the framework level
 
@@ -46,7 +47,7 @@ The `state` is a read/write key-value store that controls state changes via gett
 
 > Behaviors are relationally joined to template items.  *DOM* and *selectors* are a natural fit for this, since precisely the same model is followed for CSS properties and HTML elements when authoring external stylesheets.  In this case, behavioral functions (like `translate`), instead of CSS properties (like `background-color`) are applied to elements via selectors.
 
-The `template` is a tree structure of child modules, which defines the (sub)tree of an application expressed by a given module.  In addition to the separation-of-concerns benefits of DOM + selctors, DOM is a natural data structure for this hierarchy since it easily extends to integrate with other HTML-based frameworks and static HTML content.
+The `template` is a tree structure of child modules, which defines the (sub)tree of an application expressed by a given module.  In addition to the separation-of-concerns benefits of DOM + selectors, DOM is a natural data structure for this hierarchy since it easily extends to integrate with other HTML-based frameworks and static HTML content.
 
 >  Events from *lower* in the application tree are triggered (in the sense of "port triggering") by event triggers defined on template elements.  For example, if a child slider component emitted upward some event called `sliderupdate` and you wanted to attach an event handler called `mySliderUpdateHandler` to that `sliderupdate` event inside of a module that is a progenitor of that `sliderupdate` module, you could write in your template: `<your-slider-component on-sliderupdate="mySliderUpdateHandler"></your-slider-component>`.
 
