@@ -1,5 +1,16 @@
 # BEST
 
+BEST stands for "Behaviors Events States Template". It's an architecture designed for module-oriented, stateful-and-functional applications.
+
+BEST has two overarching goals:
+
+1. Provide a usability layer on top of the rendering engine Yggdrasil
+2. Ensure components are formatted such that there is a natural mapping to slider-/drag-and-drop-based IDE authoring (i.e., in Famo.us Hub)
+
+That is, BEST is the framework that will allow Famo.us (as a company) to provide a vertically integrated set of services that bring lo-/no-coders and hardcore coders together.
+
+Within the BEST universe, *everything* -- from the lowest-level components such as buttons to mid-level widgets like lightboxes to big applications like "twitter" -- are modules. Widgets contain widgets contain widgets.
+
 ## Behaviors
 
 Behaviors describe the visual qualities of the component, for any given state.
@@ -25,25 +36,25 @@ If the selector is just a plain alphanumeric property, it will map to the ID of 
 
     BEST.component({
         behaviors: {
-            '#foo': â€¦ ,
-            '.bar': â€¦ ,
-            '.foo > .bar': â€¦ 
+            '#foo': ... ,
+            '.bar': ... ,
+            '.foo > .bar': ... 
         }
     });
 
 Behaviors, when assigned, can be assigned using either string-based, or nested object-based notation (or a combination thereof). This is for convenience.
 
-    * { think: { mcfly: { think: â€¦ }}}
-    * { 'think.mcfly.think': â€¦ }
-    * { 'think.mcfly': { think: â€¦ }}
+    * { think: { mcfly: { think: ... }}}
+    * { 'think.mcfly.think': ... }
+    * { 'think.mcfly': { think: ... }}
 
 Behaviors can be static or dynamic. Static behaviors are given as _values_ of a valid type for that behavior. Dynamic behaviors are given as _functions_ that return a value of a valid type.
 
     behaviors: {
         marty: {
-            'think.mcfly.think': â€¦ ,
+            'think.mcfly.think': ... ,
             'delorean': function(state) {
-                return â€¦ ;
+                return ... ;
             }
         }
     },
@@ -58,7 +69,7 @@ Dynamic behaviors will be executed on every state change -- unless you assign de
     behaviors: {
         marty: {
             'delorean': function(einstein, emmett, state) {
-                return â€¦ ;
+                return ... ;
             }
         }
     },
@@ -71,50 +82,50 @@ Dependencies for a behavior are defined using the function's arguments. Said arg
 
 Behaviors with explicit dependencies _only_ trigger when those named pieces of the state change. E.g., if I define a behavior with a `'booya'` dependency, that behavior will only run when the state value called `'booya'` changes.
 
-Behavior names aren't just made up. Behavior names either need to match the name of one or more built-in behaviors (see the list below), or the name of an event in one of the child's templates.
+Behavior names aren't just made up. They refer to behaviors that have been (globally) exported by other modules. Note that every behavior name needs to include the global namespace name (e.g. `famous.`).
 
-    behavior                      | type
-    ------------------------------|---------------------
-    context                       | Object
-    context.align                 | Array.Number
-    context.anchor                | Array.Number
-    context.opacity               | Number
-    context.origin                | Array.Number
-    context.size                  | Array.Number
-    context.transform             | Object
-    context.transform.behind      | Boolean
-    context.transform.front       | Boolean
-    context.transform.rotate      | Array.Number
-    context.transform.scale       | Array.Number
-    context.transform.skew        | Array.Number
-    context.transform.translate   | Array.Number
-    control                       | Object
-    control.iff                   | Boolean
-    control.repeat                | Boolean
-    control.yield                 | String|Array.String
-    component                     | Object
-    component.camera              | Object
-    component.camera.far          | Number
-    component.camera.fieldOfView  | Number
-    component.camera.focalDepth   | Number
-    component.camera.near         | Number
-    component.camera.projection   | Number
-    component.element             | Object
-    component.element.attributes  | Object
-    component.element.content     | String
-    component.element.cssClasses  | Array.String
-    component.element.id          | String
-    component.element.styles      | Object
-    component.element.tagName     | String
-    component.element.trueSize    | Boolean
-    component.mesh                | Object
-    component.mesh.baseColor      | Number
-    component.mesh.geometry       | Array.Number
-    component.mesh.glossiness     | Number
-    component.mesh.metallic       | Number
-    component.mesh.normal         | Number
+    behavior                             | type
+    -------------------------------------|---------------------
+    famous.context                       | Object
+    famous.context.align                 | Array.Number
+    famous.context.anchor                | Array.Number
+    famous.context.opacity               | Number
+    famous.context.origin                | Array.Number
+    famous.context.size                  | Array.Number
+    famous.context.transform             | Object
+    famous.context.transform.behind      | Boolean
+    famous.context.transform.front       | Boolean
+    famous.context.transform.rotate      | Array.Number
+    famous.context.transform.scale       | Array.Number
+    famous.context.transform.skew        | Array.Number
+    famous.context.transform.translate   | Array.Number
+    famous.control-flow                  | Object
+    famous.control-flow.iff              | Boolean
+    famous.control-flow.repeat           | Boolean
+    famous.control-flow.yield            | String|Array.String
+    famous.component                     | Object
+    famous.component.camera              | Object
+    famous.component.camera.far          | Number
+    famous.component.camera.fieldOfView  | Number
+    famous.component.camera.focalDepth   | Number
+    famous.component.camera.near         | Number
+    famous.component.camera.projection   | Number
+    famous.component.element             | Object
+    famous.component.element.attributes  | Object
+    famous.component.element.content     | String
+    famous.component.element.cssClasses  | Array.String
+    famous.component.element.id          | String
+    famous.component.element.styles      | Object
+    famous.component.element.tagName     | String
+    famous.component.element.trueSize    | Boolean
+    famous.component.mesh                | Object
+    famous.component.mesh.baseColor      | Number
+    famous.component.mesh.geometry       | Array.Number
+    famous.component.mesh.glossiness     | Number
+    famous.component.mesh.metallic       | Number
+    famous.component.mesh.normal         | Number
 
-If you declare a behavior that is at the namespace level, e.g. `component.mesh`, then that behavior function is expected to return an object whose keys are each of the properties, e.g. `{ baseColor: â€¦ , geometry: â€¦, â€¦ }`.
+If you declare a behavior that is at the namespace level, e.g. `component.mesh`, then that behavior function is expected to return an object whose keys are each of the properties, e.g. `{ baseColor: ... , geometry: ..., ... }`.
 
 ## Events
 
@@ -136,7 +147,7 @@ Behavior events fire after behavior functions are triggered, and receive the out
     behaviors: {
         'sargeant-slaughter': {
             'context.size': function(state) {
-                return â€¦ ;
+                return ... ;
             }
         }
     },
@@ -157,7 +168,7 @@ Command events can be triggered by the component's parent, but not by anyone els
                 // Issue a command for the child component to fire
                 // its matching behavior.
                 'elbow-drop': function(state) {
-                    return â€¦ ;
+                    return ... ;
                 }
             }
         },
@@ -201,9 +212,9 @@ Internal events respond to changes within the component itself -- most commonly 
 Lifecycle events are fired after the component reaches key points within its lifecycle (as an object in the scene graph).
 
     lifecycle: {
-      insert: â€¦ , // Component was added to the scene
-      update: â€¦ , // Component was updated by the engine (?)
-      remove: â€¦  // Component was removed from the scene
+      insert: ... , // Component was added to the scene
+      update: ... , // Component was updated by the engine (?)
+      remove: ...  // Component was removed from the scene
       // Others?
     }
 
@@ -239,6 +250,12 @@ In the case of complex values, additional wrapper methods are provided that conf
     // Let's say the state is { foo: 0.123, bar: [{ baz: 'qux' }] }
     state.get('bar').push({ pow: 'wow' }).pop().get('pow');
 
+State objects also support transitions on `set` operations that apply to _numeric_ scalar and vector values. E.g.:
+
+    state.set('foo', 0.123, {duration: 1000, curve: 'linear'});
+
+Internally, the state bag handles dirty-checking and re-injecting/re-evaluating values that are in transition.
+
 ## Templates
 
 Templates are logicless descriptions of:
@@ -248,19 +265,26 @@ Templates are logicless descriptions of:
 
 Template entities are assigned selectors, similar to CSS selectors, for referencing within component behavior declarations.
 
-Every component has _one_ template. That template can be defined as a string (using an HTML-like syntax), or as an object of nested objects. The following two are equivalent:
+Every component has _one_ template. That template can be defined as an XML string, as an object of nested objects, or as a string that references a local file that contains content in either valid format. The following are equivalent:
 
-    template: `<famous.foo.bar id="foo" events.dom.click="doClick">
+    // XML string
+    template: `<famous.foo.bar id="foo" events.famous.dom.click="doClick">
         <bob.something.something class="lala">
             <p>Hello there</p>
         </bob.something.something>
     </famous.foo.bar>`
 
+    // File reference
+    template: 'babadook.dook.template.html'
+
+    // Object
     template: {
         name: 'famous.foo.bar',
         id: 'foo',
         events: {
-            dom: { click: 'doClick' }
+            'famous.dom.click': function(state) {
+
+            }
         },
         children: [
             {
@@ -278,80 +302,82 @@ I.e., if a string is given, it will be parsed; if an object is given, it's assum
 
 Events that are listened to within the template can be any of the following. Note the namespacing which can give the framework insight into a module's compatibility with events on the deployment environment.
 
-    dom.abort
-    dom.beforeinput
-    dom.blur
-    dom.canplay
-    dom.canplaythrough
-    dom.change
-    dom.click
-    dom.compositionend
-    dom.compositionstart
-    dom.compositionupdate
-    dom.contextmenu
-    dom.cuechange
-    dom.dblclick
-    dom.drag
-    dom.dragend
-    dom.dragenter
-    dom.dragleave
-    dom.dragover
-    dom.dragstart
-    dom.drop
-    dom.durationchange
-    dom.emptied
-    dom.ended
-    dom.error
-    dom.focus
-    dom.focusin
-    dom.focusout
-    dom.input
-    dom.invalid
-    dom.keydown
-    dom.keypress
-    dom.keyup
-    dom.load
-    dom.loadeddata
-    dom.loadedmetadata
-    dom.loadstart
-    dom.mousedown
-    dom.mouseenter
-    dom.mouseleave
-    dom.mousemove
-    dom.mouseout
-    dom.mouseover
-    dom.mouseup
-    dom.mousewheel
-    dom.pause
-    dom.play
-    dom.playing
-    dom.progress
-    dom.ratechange
-    dom.reset
-    dom.resize
-    dom.scroll
-    dom.seeked
-    dom.seeking
-    dom.select
-    dom.show
-    dom.stalled
-    dom.submit
-    dom.suspend
-    dom.timeupdate
-    dom.touchstart
-    dom.touchend
-    dom.touchmove
-    dom.unload
-    dom.volumechange
-    dom.waiting
-    dom.wheel
-    gesture.tap
-    gesture.doubletap
-    gesture.swipe
-    gesture.pinch
-    gesture.twist
-    gesture.spread
-    gesture.nudge
-    device.shake
-    device.accelerate
-    device.rotate
+Note that these names also require global namespacing.
+
+    famous.dom.abort
+    famous.dom.beforeinput
+    famous.dom.blur
+    famous.dom.canplay
+    famous.dom.canplaythrough
+    famous.dom.change
+    famous.dom.click
+    famous.dom.compositionend
+    famous.dom.compositionstart
+    famous.dom.compositionupdate
+    famous.dom.contextmenu
+    famous.dom.cuechange
+    famous.dom.dblclick
+    famous.dom.drag
+    famous.dom.dragend
+    famous.dom.dragenter
+    famous.dom.dragleave
+    famous.dom.dragover
+    famous.dom.dragstart
+    famous.dom.drop
+    famous.dom.durationchange
+    famous.dom.emptied
+    famous.dom.ended
+    famous.dom.error
+    famous.dom.focus
+    famous.dom.focusin
+    famous.dom.focusout
+    famous.dom.input
+    famous.dom.invalid
+    famous.dom.keydown
+    famous.dom.keypress
+    famous.dom.keyup
+    famous.dom.load
+    famous.dom.loadeddata
+    famous.dom.loadedmetadata
+    famous.dom.loadstart
+    famous.dom.mousedown
+    famous.dom.mouseenter
+    famous.dom.mouseleave
+    famous.dom.mousemove
+    famous.dom.mouseout
+    famous.dom.mouseover
+    famous.dom.mouseup
+    famous.dom.mousewheel
+    famous.dom.pause
+    famous.dom.play
+    famous.dom.playing
+    famous.dom.progress
+    famous.dom.ratechange
+    famous.dom.reset
+    famous.dom.resize
+    famous.dom.scroll
+    famous.dom.seeked
+    famous.dom.seeking
+    famous.dom.select
+    famous.dom.show
+    famous.dom.stalled
+    famous.dom.submit
+    famous.dom.suspend
+    famous.dom.timeupdate
+    famous.dom.touchstart
+    famous.dom.touchend
+    famous.dom.touchmove
+    famous.dom.unload
+    famous.dom.volumechange
+    famous.dom.waiting
+    famous.dom.wheel
+    famous.gesture.tap
+    famous.gesture.doubletap
+    famous.gesture.swipe
+    famous.gesture.pinch
+    famous.gesture.twist
+    famous.gesture.spread
+    famous.gesture.nudge
+    famous.device.shake
+    famous.device.accelerate
+    famous.device.rotate
