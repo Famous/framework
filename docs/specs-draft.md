@@ -1,6 +1,6 @@
 # BEST
 
-BEST stands for "Behaviors Events States Template". It's an architecture designed for module-oriented, stateful-and-functional applications.
+BEST stands for "Behavior Event State Template". It's an architecture designed for module-oriented, stateful-and-functional applications.
 
 BEST has two overarching goals:
 
