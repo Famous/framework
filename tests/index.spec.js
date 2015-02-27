@@ -33,16 +33,15 @@ test('StateManager', function(t) {
   t.equal(SM.get('isSleeping'), false);
   t.equal(SM.get('isHungry'), true);
 
-  SM.set('isSleeping', true);
-
   console.log('SETTER');
+  SM.set('isSleeping', true);
   t.equal(SM.get('isSleeping'), true);
 
+
+  console.log('SUBSCRIBE');
   var ageObserver = function(key, value) {
     ageObserverFlag = true;
   }
-
-  console.log('SUBSCRIBE');
   SM.subscribeTo('age', ageObserver);
   t.equal(SM._observers['age'][0], globalObserver);
   t.equal(SM._observers['age'][1], ageObserver);
