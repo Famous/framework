@@ -12,7 +12,7 @@
   },
   "homepage": "https://github.famo.us/framework/best-state-manager",
   "scripts": {
-    "test": "npm run lint && tape tests/*.spec.js | tap-spec",
+    "test": "tape tests/*.spec.js | tap-spec",
     "lint": "eslint lib && jscs lib"
   },
   "authors": [
