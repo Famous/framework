@@ -48,6 +48,8 @@ test('StateManager', function(t) {
   SM.set('age', 5);
   t.equal(globalObserverFlag, true);
   t.equal(ageObserverFlag, true);
+  t.equal(SM._observerExists('age', ageObserver), true);
+  t.equal(SM._observerExists('breed', ageObserver), false);
 
   t.end();
 });
