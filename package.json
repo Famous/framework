@@ -1,22 +1,23 @@
 {
-  "name": "best-compiler",
+  "name": "best-state-manager",
   "version": "0.0.0",
-  "description": "BEST modules compiler",
+  "description": "BEST modules state-manager",
   "main": "lib/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.famo.us/framework/best-compiler.git"
+    "url": "https://github.famo.us/framework/best-state-manager.git"
   },
   "bugs": {
-    "url": "https://github.famo.us/framework/best-compiler/issues"
+    "url": "https://github.famo.us/framework/best-state-manager/issues"
   },
-  "homepage": "https://github.famo.us/framework/best-compiler",
+  "homepage": "https://github.famo.us/framework/best-state-manager",
   "scripts": {
     "test": "npm run lint && tape tests/*.spec.js | tap-spec",
     "lint": "eslint lib && jscs lib"
   },
   "authors": [
-    "Matthew Trost <matthew@famo.us>"
+    "Matthew Trost <matthew@famo.us>",
+    "Imtiaz Majeed <imtiaz@famo.us>"
   ],
   "license": "Proprietary",
   "devDependencies": {
