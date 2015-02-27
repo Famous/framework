@@ -97,5 +97,9 @@ test('StateManager', function(t) {
   SM.operate('cutenessLevel', null, 'triple');
   t.equal(SM.get('cutenessLevel'), 24);
 
+  console.log('CHAINING');
+  SM.multiply('cutenessLevel', 374).add('cutenessLevel', 25);
+  t.equal(SM.get('cutenessLevel'), 9001);;
+
   t.end();
 });
