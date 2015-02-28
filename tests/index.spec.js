@@ -34,7 +34,7 @@ test('StateManager', function(t) {
   t.equal(SM.getState('isHungry'), true);
 
   console.log('SETTER');
-  SM.set('isSleeping', true);
+  SM.setState('isSleeping', true);
   t.equal(SM.getState('isSleeping'), true);
 
 
@@ -47,7 +47,7 @@ test('StateManager', function(t) {
   t.equal(SM._observers['age'][1], ageObserver);
 
   console.log('OBSERVER');
-  SM.set('age', 5);
+  SM.setState('age', 5);
   t.equal(globalObserverFlag, true);
   t.equal(ageObserverFlag, true);
   t.equal(SM._observerExists('age', ageObserver), true);
