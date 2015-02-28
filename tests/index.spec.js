@@ -28,14 +28,14 @@ test('StateManager', function(t) {
   var SM = new StateManager(dogState, globalObserver);
 
   console.log('GETTER');
-  t.equal(SM.get('age'), 4);
-  t.equal(SM.get('breed'), 'Yorkshire Terrier');
-  t.equal(SM.get('isSleeping'), false);
-  t.equal(SM.get('isHungry'), true);
+  t.equal(SM.getState('age'), 4);
+  t.equal(SM.getState('breed'), 'Yorkshire Terrier');
+  t.equal(SM.getState('isSleeping'), false);
+  t.equal(SM.getState('isHungry'), true);
 
   console.log('SETTER');
   SM.set('isSleeping', true);
-  t.equal(SM.get('isSleeping'), true);
+  t.equal(SM.getState('isSleeping'), true);
 
 
   console.log('SUBSCRIBE');
@@ -55,50 +55,54 @@ test('StateManager', function(t) {
 
   console.log('OPERATION');
   SM.add('age', 1);
-  t.equal(SM.get('age'), 6);
+  t.equal(SM.getState('age'), 6);
   SM.subtract('age', 1);
-  t.equal(SM.get('age'), 5);
+  t.equal(SM.getState('age'), 5);
   SM.multiply('age', 2);
-  t.equal(SM.get('age'), 10);
+  t.equal(SM.getState('age'), 10);
   SM.timesPI('age');
-  t.equal(SM.get('age'), 10 * Math.PI);
+  t.equal(SM.getState('age'), 10 * Math.PI);
   SM.divide('age', 2 * Math.PI);
-  t.equal(SM.get('age'), 5);
+  t.equal(SM.getState('age'), 5);
   SM.pow('age', 2);
-  t.equal(SM.get('age'), 25);
+  t.equal(SM.getState('age'), 25);
   SM.sqrt('age');
-  t.equal(SM.get('age'), 5);
+  t.equal(SM.getState('age'), 5);
   SM.multiply('age', -1);
   SM.abs('age');
-  t.equal(SM.get('age'), 5);
+  t.equal(SM.getState('age'), 5);
   SM.sin('age');
-  t.equal(SM.get('age'), Math.sin(5));
+  t.equal(SM.getState('age'), Math.sin(5));
   SM.cos('age');
-  t.equal(SM.get('age'), Math.cos(Math.sin(5)));
+  t.equal(SM.getState('age'), Math.cos(Math.sin(5)));
   SM.tan('age');
-  t.equal(SM.get('age'), Math.tan(Math.cos(Math.sin(5))));
+  t.equal(SM.getState('age'), Math.tan(Math.cos(Math.sin(5))));
   SM.ceil('playfulnessLevel');
-  t.equal(SM.get('playfulnessLevel'), 8);
+  t.equal(SM.getState('playfulnessLevel'), 8);
   SM.ceil('cutenessLevel');
-  t.equal(SM.get('cutenessLevel'), 8);
+  t.equal(SM.getState('cutenessLevel'), 8);
   SM.concat('name', 'Yorkie');
-  t.equal(SM.get('name'), 'YorkieYorkie');
+  t.equal(SM.getState('name'), 'YorkieYorkie');
   SM.substring('name', [0, 6]);
-  t.equal(SM.get('name'), 'Yorkie');
+  t.equal(SM.getState('name'), 'Yorkie');
   SM.toUpper('name');
-  t.equal(SM.get('name'), 'YORKIE');
+  t.equal(SM.getState('name'), 'YORKIE');
   SM.toLower('name');
-  t.equal(SM.get('name'), 'yorkie');
+  t.equal(SM.getState('name'), 'yorkie');
   SM.flip('isHungry');
-  t.equal(SM.get('isHungry'), false);
+  t.equal(SM.getState('isHungry'), false);
   SM.toInt('isHungry');
   SM.addOperator('triple', function (a) { return 3 * a });
   SM.operate('cutenessLevel', null, 'triple');
-  t.equal(SM.get('cutenessLevel'), 24);
+  t.equal(SM.getState('cutenessLevel'), 24);
 
   console.log('CHAINING');
   SM.multiply('cutenessLevel', 374).add('cutenessLevel', 25);
-  t.equal(SM.get('cutenessLevel'), 9001);;
+  t.equal(SM.getState('cutenessLevel'), 9001);;
+
+  console.log('EASY CHAINING');
+  console.log(SM.add('cutenessLevel'), 1);
+  t.equal(SM.getState('cutenessLevel'), 8992);
 
   t.end();
 });
