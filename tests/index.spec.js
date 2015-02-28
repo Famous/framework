@@ -94,11 +94,15 @@ test('StateManager', function(t) {
   SM.get('isHungry').toInt();
   t.equal(SM.getState('isHungry'), 0)
   SM.addOperator('triple', function (a) { return 3 * a });
-  SM.get('cutenessLevel').operate(null, 'triple');
+  SM.get('cutenessLevel').triple();
   t.equal(SM.getState('cutenessLevel'), 24);
 
   console.log('CHAINING');
-  SM.get('cutenessLevel').multiply(374).add(25);
+  SM.get('cutenessLevel')
+    .multiply(374)
+    .add(25)
+    .triple()
+    .divide(3);
   t.equal(SM.getState('cutenessLevel'), 9001);;
 
   t.end();
