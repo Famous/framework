@@ -25,17 +25,11 @@ Run all of the tests with:
 
     $ npm test
 
-## Lint
-
-Remember to lint your code!
-
-    $ npm run lint
-
 ## Docs
 
-Find notes, specs and other assorted info in the `docs` folder.
+See the `docs` folder.
 
-Generated docs are under `docs/generated`.
+API docs are in `docs/generated`.
 
 To regenerate the docs, run:
 
@@ -45,6 +39,9 @@ To regenerate the docs, run:
 
 * [Zack Brown](mailto:zack@famo.us)
 * [Matthew Trost](mailto:matthew@famo.us)
+* [Arkady Pevzner](mailto:arkady@famo.us)
+* [Imtiaz Majeed](mailto:imtiaz@famo.us)
+* [Jordan Papaleo](mailto:jordan@famo.us)
 
 ## Copyright
 

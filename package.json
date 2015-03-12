@@ -1,6 +1,6 @@
 {
   "name": "best",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Behavior Event State Template",
   "main": "lib/index.js",
   "repository": {
@@ -21,7 +21,10 @@
   },
   "authors": [
     "Zack Brown <zack@famo.us>",
-    "Matthew Trost <matthew@famo.us>"
+    "Matthew Trost <matthew@famo.us>",
+    "Arkady Pevzner <arkady@famo.us>",
+    "Imtiaz Majeed <imtiaz@famo.us>",
+    "Jordan Papaleo <engconsult@famo.us>"
   ],
   "license": "Proprietary",
   "testling": {
@@ -46,7 +49,5 @@
     "watchify": "^2.3.0"
   },
   "dependencies": {
-    "htmlparser": "^1.7.7",
-    "famous": "git+ssh://git@github.famo.us:platform/yggdrasil.git#develop"
   }
 }
