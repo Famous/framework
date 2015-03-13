@@ -1,6 +1,6 @@
 # BEST
 
-Implementation of the BEST framework, plus foundational modules.
+Implementation of the BEST framework.
 
 ## About
 
@@ -10,8 +10,9 @@ Implementation of the BEST framework, plus foundational modules.
 
 After cloning the repo ...
 
-    $ npm install -g phantomjs
-    $ npm install
+    $ npm run setup
+    $ npm i -g phantomjs
+    $ npm i
 
 Then start up the development server:
 

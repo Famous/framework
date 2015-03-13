@@ -9,5 +9,8 @@ pids
 *.pid
 *.seed
 
-build/bundle.js
+build/index.bundle.js
+build/.index.bundle.js
 docs/generated/*
+
+vendor/famous

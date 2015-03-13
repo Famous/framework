@@ -12,12 +12,15 @@
   },
   "homepage": "https://github.famo.us/framework/best",
   "scripts": {
+    "setup": "npm run install-famous && npm run upgrade-famous",
+    "install-famous": "./scripts/install-famous.sh",
+    "upgrade-famous": "./scripts/upgrade-famous.sh",
     "develop": "npm run watch & npm run sync",
     "docs": "jsdoc lib/framework/index.js --destination docs/generated",
     "test": "npm run lint && testling '' | tap-spec",
     "lint": "eslint lib && jscs lib",
     "sync": "browser-sync start --server build/ --port 1337 --files 'build/**/*.*'",
-    "watch": "watchify lib/index.js -o build/bundle.js --debug --verbose"
+    "watch": "watchify lib/index.js -t brfs -o build/index.bundle.js --debug --verbose"
   },
   "authors": [
     "Zack Brown <zack@famo.us>",
@@ -34,12 +37,22 @@
   },
   "devDependencies": {
     "babelify": "^5.0.3",
+    "brfs": "^1.1.1",
     "browser-sync": "^2.2.0",
     "browserify": "^8.1.3",
     "eslint": "^0.14.1",
+    "jasmine-core": "^2.2.0",
     "jscs": "^1.11.3",
     "jsdoc": "^3.3.0-beta1",
     "jshint": "^2.6.0",
+    "karma": "^0.12.31",
+    "karma-browserify": "^4.0.0",
+    "karma-chrome-launcher": "^0.1.7",
+    "karma-cli": "0.0.4",
+    "karma-jasmine": "^0.3.5",
+    "karma-jasmine-ajax": "^0.1.12",
+    "karma-phantomjs-launcher": "^0.1.4",
+    "karma-requirejs": "^0.2.2",
     "nodemon": "^1.3.7",
     "serve": "^1.4.0",
     "tap-spec": "^2.2.1",
@@ -49,5 +62,7 @@
     "watchify": "^2.3.0"
   },
   "dependencies": {
+    "best-function-parser": "git+ssh://git@github.famo.us:framework/function-parser#master",
+    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#master"
   }
 }
