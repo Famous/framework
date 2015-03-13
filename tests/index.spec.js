@@ -39,23 +39,46 @@ test('StateManager', function(t) {
   SM.setState('isSleeping', true);
   t.equal(SM.getState('isSleeping'), true, 'should set state');
 
-
-  console.log('SUBSCRIBE');
-  var ageObserver = function(key, value) {
-    ageObserverFlag = true;
+  console.log('SUBSCRIBE TO');
+  var ageObserverValue;
+  var ageObserverFn = function(key, value) {
+    ageObserverValue = value;
   }
-  SM.subscribeTo('age', ageObserver);
-  t.equal(SM._observers['age'][0], globalObserver, 'should add global observer to list of observers');
-  t.equal(SM._observers['age'][1], ageObserver, 'should add subscribed observers to list of observers');
+  SM.subscribeTo('age', ageObserverFn);
+  SM.set('age', SM.get('age'));
+  t.equal(ageObserverValue, 4, 'Subscribe to updates on state set');
+  SM.unsubscribeFrom('age', ageObserverFn);
+  SM.set('age', 10);
+  t.equal(ageObserverValue, 4, 'UnsubscribeFrom stops updates on state set');
+  ageObserverValue = -1;
+  SM.subscribeTo('age', ageObserverFn);
+  SM.set('age', SM.get('age'));
+  SM.unsubscribe(ageObserverFn);
+  SM.set('age', 4);
+  t.equal(ageObserverValue, 10, 'Unsubrice stops updates on state set');
 
-  console.log('OBSERVER');
-  SM.setState('age', 5);
-  t.equal(globalObserverFlag, true, 'should invoke global observer');
-  t.equal(ageObserverFlag, true, 'should invoke subscribed observer');
-  t.equal(SM._observerExists('age', ageObserver), true, 'should return when an observer exists for a given state field');
-  t.equal(SM._observerExists('breed', ageObserver), false, 'should return false when an observer does not exist for a given state field');
+
+
+  console.log('GLOBAL SUBSCRIBE');
+  var count = 0;
+  var globalObserver = function() {
+    count++;
+  };
+  SM.subscribe(globalObserver);
+  SM.chain('points').add(10).subtract(10);
+  SM.chain('age').add(2).subtract(2);
+  t.equal(count, 4, 'Global observer works with state changes that are part of constructor');
+  
+  SM.set('newProperty', 8);
+  t.equal(SM.get('newProperty'), 8, 'StateManager properly sets/retrieves dynamcially added state');
+  t.equal(count, 5, 'Global observer works with state changes on dynamcially added properties');
+
+  SM.unsubscribe(globalObserver);
+  SM.set('newProperty', 10);
+  t.equal(count, 5, 'Global observer properly unsubscribes');
 
   console.log('OPERATION');
+  SM.setState('age', 5);
   SM.chain('age').add(1);
   t.equal(SM.getState('age'), 6, 'should be able to add');
   SM.chain('age').subtract(1);
