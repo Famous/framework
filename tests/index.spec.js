@@ -15,7 +15,9 @@ test('StateManager', function(t) {
     isSleeping: false,
     isHungry: true,
     cutenessLevel: 8.1,
-    playfulnessLevel: 8.8
+    playfulnessLevel: 8.8,
+    size: [100, 200, 300],
+    points: 10
   }
 
   var globalObserverFlag = false;
@@ -93,17 +95,70 @@ test('StateManager', function(t) {
   t.equal(SM.getState('isHungry'), false, 'should be able to flip boolean');
   SM.chain('isHungry').toInt();
   t.equal(SM.getState('isHungry'), 0, 'should be able to convert boolean to integer')
+
+  t.test('Should work with arrays', function(st) {
+    st.test('Array: Should retrieve values', function(stt){
+      stt.plan(3);
+      stt.equal(SM.getState('size')[0], 100);
+      stt.equal(SM.getState('size')[1], 200);
+      stt.equal(SM.getState('size')[2], 300);
+    });
+
+    st.test('Array: Should operate with constant', function(stt){
+      stt.plan(3);
+      SM.chain('size').add(5);
+      stt.equal(SM.getState('size')[0], 105);
+      stt.equal(SM.getState('size')[1], 205);
+      stt.equal(SM.getState('size')[2], 305);
+      SM.chain('size').subtract(5);
+    });
+
+    st.test('Array: Should operate with array', function(stt){
+      SM.chain('size').add([5]);
+      stt.equal(SM.getState('size')[0], 105);
+      stt.equal(SM.getState('size')[1], 200);
+      stt.equal(SM.getState('size')[2], 300);
+      SM.chain('size').subtract(5);
+
+      stt.end();
+    });
+
+    st.end();
+  });
+
+  console.log('ADDING A CUSTOM OPERATOR');
   SM.addOperator('triple', function (a) { return 3 * a });
   SM.chain('cutenessLevel').triple();
   t.equal(SM.getState('cutenessLevel'), 24, 'should be able to add custom operators');
 
+  SM.addOperator('addThenMultiplyBy2', function (a, b) { return (a + b) * 2 });
+  SM.chain('points').addThenMultiplyBy2(5);
+  t.equal(SM.getState('points'), 30, 'should be able to add multiple operators (1/2)');
+  SM.chain('points').triple();
+  t.equal(SM.getState('points'), 90, 'should be able to add multiple operators (2/2)');
+
+
   console.log('CHAINING');
   SM.chain('cutenessLevel')
-    .multiply(374)
-    .add(25)
-    .triple()
+    .multiply(2) //48
+    .add(25) // 73
+    .triple() // 219
+    .multiply(3)
     .divide(3);
-  t.equal(SM.getState('cutenessLevel'), 9001, 'should be able to chain operations');
+  t.equal(SM.getState('cutenessLevel'), 219, 'should be able to chain operations');
+
+  
+  console.log('THROWS ERROR ON NON-STANDARD INPUTS');
+  t.test('Should check for invalid inputs', function(st){
+    st.plan(1);
+
+    try {
+      SM.chain('cutenessLevel').add([1, 2]);
+    }
+    catch(err) {
+      st.ok(err, 'Caught error attempting to add array to integer');
+    }
+  })
 
   t.end();
 });
