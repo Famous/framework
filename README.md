@@ -13,6 +13,30 @@ Implementation of the BEST framework, a.k.a.:
 * _States_ enclose the stateful values of a component in a single place.
 * _Behaviors_ are pure functions that respond to state changes by returning values.
 
+In the implementation here, a BEST component might look like this:
+
+    BEST.component('mario:sprite', {
+        behaviors: {
+            size: function(health) {
+                if (health < 2) return 0.5;
+                else return 1;
+            }
+        },
+        events: {
+            public: {
+                'damage': function(state) {
+                    state.subtract('health', 1);
+                }
+            }
+        },
+        states: {
+            health: 2
+        },
+        tree: '<image tap="damage"></image>'
+    });
+
+(That's just a pretend example to get the basic idea across.)
+
 [For more, see the `docs` folder](docs).
 
 ## Getting started
