@@ -1,20 +1,32 @@
 # BEST
 
-Implementation of the BEST framework.
+Implementation of the BEST framework, a.k.a.:
+
+> A balanced architecture for module-oriented, stateful-and-functional applications
 
 ## About
 
-[See the `docs` folder](docs).
+**BEST** stands for _Behavior - Event - State - Tree_.
+
+* The _tree_ declares the scene graph and channels that route actions to _events_.
+* _Events_ react to UI/program actions, mutating their modules' encapsulated state.
+* _States_ enclose the stateful values of a component in a single place.
+* _Behaviors_ are pure functions that respond to state changes by returning values.
+
+[For more, see the `docs` folder](docs).
 
 ## Getting started
 
-After cloning the repo ...
+After cloning the repo, a few steps to get set up:
 
-    $ npm run setup
+Use `famous-conductor` to install Famous modules into `vendor/famous`.
+
+Install the packages (some of which locally link the Famous modules you just installed):
+
     $ npm i -g phantomjs
     $ npm i
 
-Then start up the development server:
+Then, start up the development server:
 
     $ npm run develop
 
@@ -29,12 +41,6 @@ Run all of the tests with:
 ## Docs
 
 See the `docs` folder.
-
-API docs are in `docs/generated`.
-
-To regenerate the docs, run:
-
-    $ npm run docs
 
 ## Authors
 
