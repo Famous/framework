@@ -12,15 +12,15 @@
   },
   "homepage": "https://github.famo.us/framework/best",
   "scripts": {
-    "setup": "npm run install-famous && npm run upgrade-famous",
-    "install-famous": "./scripts/install-famous.sh",
-    "upgrade-famous": "./scripts/upgrade-famous.sh",
     "develop": "npm run watch & npm run sync",
     "docs": "jsdoc lib/framework/index.js --destination docs/generated",
     "test": "npm run lint && testling '' | tap-spec",
     "lint": "eslint lib && jscs lib",
     "sync": "browser-sync start --server build/ --port 1337 --files 'build/**/*.*'",
-    "watch": "watchify lib/index.js -t brfs -o build/index.bundle.js --debug --verbose"
+    "copy-components": "cp -r components/ build/components",
+    "watch-components": "watch 'npm run copy-components' components",
+    "watch-lib": "watchify lib/index.js -t brfs -s BEST -o build/index.bundle.js --debug --verbose",
+    "watch": "npm run watch-lib & npm run watch-components"
   },
   "authors": [
     "Zack Brown <zack@famo.us>",
@@ -59,6 +59,7 @@
     "tape": "^3.5.0",
     "testling": "^1.7.1",
     "uglify-js": "^2.4.16",
+    "watch": "^0.14.0",
     "watchify": "^2.3.0"
   },
   "dependencies": {
@@ -75,7 +76,6 @@
     "famous-dom-renderables": "./vendor/famous/dom-renderables",
     "famous-stylesheets": "./vendor/famous/stylesheets",
     "famous-router": "./vendor/famous/router",
-    "famous-stylesheets": "./vendor/famous/stylesheets",
     "famous-transitions": "./vendor/famous/transitions",
     "famous-utilities": "./vendor/famous/utilities",
     "famous-webgl-renderables": "./vendor/famous/webgl-renderables",

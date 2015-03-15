@@ -11,4 +11,5 @@ pids
 
 build/index.bundle.js
 build/.index.bundle.js
+build/components
 docs/generated/*
