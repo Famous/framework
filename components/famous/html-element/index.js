@@ -41,13 +41,15 @@ BEST.component('famous:html-element', {
                 state.set('attributes', message);
             },
             'unselectable': function(state, message) {
-                state.set('style', {
-                    '-moz-user-select': '-moz-none',
-                    '-khtml-user-select': 'none',
-                    '-webkit-user-select': 'none',
-                    '-o-user-select': 'none',
-                    'user-select': 'none'
-                });
+                if (message) {
+                    state.set('style', {
+                        '-moz-user-select': '-moz-none',
+                        '-khtml-user-select': 'none',
+                        '-webkit-user-select': 'none',
+                        '-o-user-select': 'none',
+                        'user-select': 'none'
+                    });
+                }
             },
             'true-size': function(state, message) {
                 state.set('trueSize', true);
