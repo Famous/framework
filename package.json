@@ -23,7 +23,7 @@
     "watch-public" : "watch 'npm run copy-public' public",
     "copy-famous": "cp ./vendor/famous-standalone.js build/",
     "copy-public": "cp -r public/ build",
-    "watch": "npm run watch-lib & npm run watch-components & npm run watch-public"
+    "watch": "npm run copy-famous & npm run watch-lib & npm run watch-components & npm run watch-public"
   },
   "authors": [
     "Zack Brown <zack@famo.us>",
