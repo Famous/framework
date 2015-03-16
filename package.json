@@ -21,6 +21,7 @@
     "watch-components": "watch 'npm run copy-components' components",
     "watch-lib": "watchify lib/index.js -t brfs -s BEST -o build/index.bundle.js --debug --verbose",
     "watch-public" : "watch 'npm run copy-public' public",
+    "copy-famous": "cp ./vendor/famous-standalone.js build/",
     "copy-public": "cp -r public/ build",
     "watch": "npm run watch-lib & npm run watch-components & npm run watch-public"
   },
@@ -66,26 +67,6 @@
   },
   "dependencies": {
     "best-function-parser": "git+ssh://git@github.famo.us:framework/function-parser#master",
-    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#master",
-    "famous-components": "./vendor/famous/components",
-    "famous-core": "./vendor/famous/core",
-    "famous-dom-renderers": "./vendor/famous/dom-renderers",
-    "famous-engine": "./vendor/famous/engine",
-    "famous-layouts": "./vendor/famous/layouts",
-    "famous-math": "./vendor/famous/math",
-    "famous-physics": "./vendor/famous/physics",
-    "famous-renderers": "./vendor/famous/renderers",
-    "famous-dom-renderables": "./vendor/famous/dom-renderables",
-    "famous-stylesheets": "./vendor/famous/stylesheets",
-    "famous-router": "./vendor/famous/router",
-    "famous-transitions": "./vendor/famous/transitions",
-    "famous-utilities": "./vendor/famous/utilities",
-    "famous-webgl-renderables": "./vendor/famous/webgl-renderables",
-    "famous-webgl-renderers": "./vendor/famous/webgl-renderers",
-    "famous-webgl-geometries": "./vendor/famous/webgl-geometries",
-    "famous-webgl-materials": "./vendor/famous/webgl-materials",
-    "famous-handlers": "./vendor/famous/handlers",
-    "famous-webgl-shaders": "./vendor/famous/webgl-shaders",
-    "famous-polyfills": "./vendor/famous/polyfills"
+    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#master"
   }
 }
