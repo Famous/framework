@@ -20,7 +20,9 @@
     "copy-components": "cp -r components/ build/components",
     "watch-components": "watch 'npm run copy-components' components",
     "watch-lib": "watchify lib/index.js -t brfs -s BEST -o build/index.bundle.js --debug --verbose",
-    "watch": "npm run watch-lib & npm run watch-components"
+    "watch-public" : "watch 'npm run copy-public' public",
+    "copy-public": "cp -r public/ build",
+    "watch": "npm run watch-lib & npm run watch-components & npm run watch-public"
   },
   "authors": [
     "Zack Brown <zack@famo.us>",
