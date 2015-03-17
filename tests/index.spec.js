@@ -57,8 +57,6 @@ test('StateManager', function(t) {
   SM.set('age', 4);
   t.equal(ageObserverValue, 10, 'Unsubrice stops updates on state set');
 
-
-
   console.log('GLOBAL SUBSCRIBE');
   var count = 0;
   var globalObserver = function() {
@@ -76,6 +74,17 @@ test('StateManager', function(t) {
   SM.unsubscribe(globalObserver);
   SM.set('newProperty', 10);
   t.equal(count, 5, 'Global observer properly unsubscribes');
+
+  console.log('ONCE SUBSCRIBE');
+  var onceValue = 0;
+  var once = function() {
+    onceValue++;
+  }
+  SM.subscribeOnce(once);
+  SM.triggerGlobalChange();
+  t.equal(onceValue, 1, 'subscribeOnce should trigger on first triggerGlobalChange');
+  SM.triggerGlobalChange();
+  t.equal(onceValue, 1, 'subscribeOnce should not trigger on subsequent triggerGlobalChange');
 
   console.log('OPERATION');
   SM.setState('age', 5);
