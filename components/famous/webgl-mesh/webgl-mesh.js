@@ -50,7 +50,8 @@ BEST.component('famous:webgl-mesh', {
         },
         handlers: {
             'color': function($webGLMesh, $payload) {
-                $webGLMesh.setBaseColor($payload);
+                // setBaseColor takes in 4 arguments not in an array
+                $webGLMesh.setBaseColor($payload[0], $payload[1], $payload[2], $payload[3]);
             },
             'normals': function($webGLMesh, $payload) {
                 $webGLMesh.setNormals($payload);
@@ -71,5 +72,13 @@ BEST.component('famous:webgl-mesh', {
                 $webGLMesh.setPositionOffset($payload);
             }
         }
-    }
+    },
+     states: {
+        'color': ['rgb', 0.5, 0.5, 0.5],
+        'normals': [0, 0, 0],
+        'glossiness': 0,
+        'metallness': 0,
+        'flatShading': 0,
+        'positionOffset': [0, 0, 0]
+     }
 });
