@@ -1,0 +1,15 @@
+<famous:view id="flipper-root">
+    <famous:view class="flipper-front">
+        <famous:html-element class="front-surface" famous:events:click="flip-click">
+            <div class="btn-delete">Delete</div>
+        </famous:html-element>
+    </famous:view>
+
+    <famous:view class="flipper-back">
+        <famous:html-element class="back-surface" famous:events:click="flip-click">
+            <p>Are you sure you want to do that?</p>
+            <button class="btn-yes">Yes</button>
+            <button class="btn-no">No</button>
+        </famous:html-element>
+    </famous:view>
+</famous:view>
