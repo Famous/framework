@@ -66,6 +66,27 @@ Run all of the tests with:
 
 See the `docs` folder.
 
+
+## Git Workflow
+We use a `rebase` based workflow approach. The steps are:
+
+- Locally, create a `feature-branch`. Make commits on the `feature-branch`.
+  - **DO NOT** make local commits on to `master` or `develop`. Doing so will force a `merge` whenever you pull down from the remote `master`/`develop`, which is what we would like to avoid.
+- When ready to push up your `feature-branch`:
+  - `git checkout develop`
+  - `git pull origin develop`
+  - `git checkout feature-branch`
+  - `git rebase develop` (fix any conflicts)
+  - `git checkout develop`
+  - `git merge feature-branch`
+  - `git push origin develop`
+- When ready, one of the team members will take responsibility for merging `develop` into `master` and cutting a new SemVer, ensuring that `master` always remains in a stable, documented state.
+- NEVER `merge` `master` into `develop`
+- NEVER `merge` `master`/`develop` into a `feature-branch`
+- ALWAYS `rebase` if you are future along in the "git river"
+- If you accidently end up with a merge commit, deal with the issue locally and make sure it is resolved before pushing up to up to `origin`.
+
+
 ## Authors
 
 * [Zack Brown](mailto:zack@famo.us)
