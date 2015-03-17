@@ -27,12 +27,26 @@ BEST.component('famous-demos:six-surfaces', {
                     'font-family': 'Helvetica',
                     'font-weight': 'bold',
                     'background-color': 'hsla(' + hue + ', 80%, 60%, 0.8)',
-                    'border': '1px solid black'
+                    'border': '1px solid black',
+                    'padding-top': '20px'
                 };
+            }
+        },
+        '#circle-component' : {
+            'handle-click' : function(_circleClickEvent) {
+                return '_circleClickEvent';
+            }
+        }
+    },
+    events: {
+        public: {
+            'circle-click': function(state, event) {
+                state.set('_circleClickEvent', event);
             }
         }
     },
     states: {
-        size: 130
+        size: 130,
+        _circleClickEvent: null
     }
 });

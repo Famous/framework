@@ -1,33 +1,38 @@
 <famous:view id="foo">
     <famous:view class="square">
         <famous:html-element class="surface">
-            <p>do re mi</p>
+            <p>Element 1</p>
         </famous:html-element>
     </famous:view>
     <famous:view class="square">
         <famous:html-element class="surface">
-            <p>do re mi</p>
+            <p>Element 2</p>
         </famous:html-element>
     </famous:view>
     <famous:view class="square">
         <famous:html-element class="surface">
-            <p>do re mi</p>
+            <p>Element 3</p>
         </famous:html-element>
     </famous:view>
     <famous:view class="square">
         <famous:html-element class="surface">
-            <p>do re mi</p>
+            <p>Element 4</p>
         </famous:html-element>
     </famous:view>
     <famous:view class="square">
         <famous:html-element class="surface">
-            <p>do re mi</p>
+            <p>Element 5</p>
         </famous:html-element>
     </famous:view>
-    <famous:view class="square">
-        <famous:html-element class="surface">
-            <p>do re mi</p>
+
+    <famous-demos:circle id="circle-component">
+        <famous:html-element id="circle-surface" famous:events:click="circle-click">
+          <p>
+            Element 6
+            <br>
+            <br>
+            (click me)
+          </p>
         </famous:html-element>
-    </famous:view>
-    <famous-demos:circle class="circle"></famous-demos:circle>
+    </famous-demos:circle>
 </famous:view>
