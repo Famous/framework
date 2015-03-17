@@ -29,5 +29,59 @@ BEST.component('famous:webgl-mesh', {
                 return flatShading;
             }
         }
+    },
+    events: {
+        public: {
+            'size': function(state, size) {
+                state.set('size', size);
+            },
+            'color': function(state, color) {
+                state.set('color', color);
+            },
+            'origin': function(state, origin) {
+                state.set('origin', origin);
+            },
+            'normals': function(state, normals) {
+                state.set('normals', normals);
+            },
+            'geometry': function(state, geometry) {
+                state.set('geometry', geometry);
+            },
+            'glossiness': function(state, glossiness) {
+                state.set('glossiness', glossiness);
+            },
+            'metallness': function(state, metallness) {
+                state.set('metallness', metallness);
+            },
+            'flatShading': function(state, flatShading) {
+                state.set('flatShading', flatShading);
+            }
+        },
+        handlers: {
+            'size': function($webGLMesh, $payload) {
+                $webGLMesh.setSize($payload);
+            },
+            'color': function($webGLMesh, $payload) {
+                $webGLMesh.setBaseColor($payload);
+            },
+            'origin': function($webGLMesh, $payload) {
+                $webGLMesh.setOrigin($payload);
+            },
+            'normals': function($webGLMesh, $payload) {
+                $webGLMesh.setNormals($payload);
+            },
+            'geometry': function($webGLMesh, $payload) {
+                $webGLMesh.setGeometry($payload);
+            },
+            'glossiness': function($webGLMesh, $payload) {
+                $webGLMesh.setGlossiness($payload);
+            },
+            'metallness': function($webGLMesh, $payload) {
+                $webGLMesh.setMetallness($payload);
+            },
+            'flatShading': function($webGLMesh, $payload) {
+                $webGLMesh.setFlatShading($payload);
+            }
+        }
     }
 });
