@@ -39,6 +39,13 @@ test('StateManager', function(t) {
   SM.setState('isSleeping', true);
   t.equal(SM.getState('isSleeping'), true, 'should set state');
 
+  console.log('LATEST STATE CHANGE');
+  SM.setState('age', SM.get('age'));
+  var latest = SM.getLatestStateChange();
+  var stateKey = Object.keys(latest)
+  t.true(stateKey.length === 1 && stateKey[0] === 'age', 'should set key for latest state');
+  t.equal(latest[stateKey], 4, 'should set value for latest state');
+
   console.log('SUBSCRIBE TO');
   var ageObserverValue;
   var ageObserverFn = function(key, value) {
