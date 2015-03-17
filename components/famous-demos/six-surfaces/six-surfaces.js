@@ -19,7 +19,7 @@ BEST.component('famous-demos:six-surfaces', {
             }
         },
         '.surface': {
-            'style': function() {
+            'style': function($every, key, value) {
                 var hue = Math.floor(Math.random() * 240) + 140;
                 return {
                     'color': 'white',
