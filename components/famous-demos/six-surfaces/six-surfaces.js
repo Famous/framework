@@ -43,7 +43,10 @@ BEST.component('famous-demos:six-surfaces', {
                 var xPosition = window.innerWidth * 0.25;
                 var yPosition = window.innerHeight * 0.85;
                 return [xPosition, yPosition];
-            }
+            },
+            'rotation': function($time) {
+                return [$time / 1000, $time / 1000, $time / 1000];
+            },
         },
         '.my-webgl-mesh': {
             'geometry': function(geometry) {
