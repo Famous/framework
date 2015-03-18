@@ -40,7 +40,7 @@ BEST.component('famous-demos:six-surfaces', {
                 return canvasSize;
             },
             'position': function() {
-                var xPosition = window.innerWidth * 0.85;
+                var xPosition = window.innerWidth * 0.25;
                 var yPosition = window.innerHeight * 0.85;
                 return [xPosition, yPosition];
             }
@@ -69,7 +69,7 @@ BEST.component('famous-demos:six-surfaces', {
     states: {
         size: 130,
         color: '#3cf',
-        geometry: 'Box',
+        geometry: 'Torus',
         canvasSize: [200, 200],
         _circleClickEvent: null
     }
