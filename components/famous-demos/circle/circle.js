@@ -17,20 +17,35 @@ BEST.component('famous-demos:circle', {
                 'font-size': '30px'
             }
         },
+
         '#circle-surface': {
             'style': {
-                'color': 'white',
-                'font-weight': 'bold',
-                'font-family': 'monospace',
                 'border-radius': '50%',
                 'background-color': '#666',
-                'text-align': 'center',
-                'margin-top': '36px'
+                'margin-top': '36px',
+                'cursor' : 'pointer'
             },
             'unselectable': true
         },
-        '#label' : {
-            '$yield' : true
+        '#circle-label': {
+            'size' : function() {
+                return [150, 20];
+            },
+            position: [0, 0, 25],
+            align: [0.5, 0.35],
+            'mount-point': [0.5, 0.5],
+            '$yield': true
+        },
+        '.circle-label-surface' : {
+            'style' : {
+                'color': 'white',
+                'font-weight': 'bold',
+                'font-family': 'monospace',
+                'text-align': 'center',
+                'font-size' : '20px',
+                'z-index': 5
+            },
+            'unselectable': true
         }
     },
     events: {

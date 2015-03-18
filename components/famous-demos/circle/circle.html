@@ -3,9 +3,14 @@
         <p>Circle Header</p>
     </famous:html-element>
 
-    <famous:view id="label">
-        <famous:html-element id="circle-surface">
-            <p>Circle Content</p>
+    <famous:view id="circle">
+        <famous:view id="circle-label">
+            <famous:html-element class='circle-label-surface'>
+                <p>Circle Label</p>
+            </famous:html-element>
+        </famous:view>
+
+        <famous:html-element id='circle-surface' famous:events:click='handle-click'>
         </famous:html-element>
     </famous:view>
 </famous:view>
