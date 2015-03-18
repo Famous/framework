@@ -52,7 +52,7 @@ BEST.component('famous:webgl-mesh', {
             'color': function($webGLMesh, $payload) {
                 // setBaseColor takes in 4 arguments not in an array
                 if ($payload instanceof Array)
-                    $webGLMesh.setBaseColor($payload[1], $payload[2], $payload[3]);
+                    $webGLMesh.setBaseColor($payload[0], $payload[1], $payload[2], $payload[3]);
                 else
                     $webGLMesh.setBaseColor($payload);
             },
