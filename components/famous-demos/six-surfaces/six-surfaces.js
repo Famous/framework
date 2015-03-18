@@ -32,16 +32,26 @@ BEST.component('famous-demos:six-surfaces', {
                 };
             }
         },
-        '.my-webgl-mesh': {
+        '.my-mesh-container': {
+            'mount-point': function() {
+                return [0.5, 0.5]
+            },
             'size': function(canvasSize) {
                 return canvasSize;
             },
+            'position': function() {
+                var xPosition = window.innerWidth * 0.85;
+                var yPosition = window.innerHeight * 0.85;
+                return [xPosition, yPosition];
+            }
+        },
+        '.my-webgl-mesh': {
             'geometry': function(geometry) {
                 return geometry;
             },
             'color': function(color) {
                 return color;
-            }
+            },
         },
         '#circle-component' : {
             'handle-click' : function(_circleClickEvent) {
@@ -58,9 +68,9 @@ BEST.component('famous-demos:six-surfaces', {
     },
     states: {
         size: 130,
-        color: '#33ccff',
+        color: '#3cf',
         geometry: 'Box',
-        canvasSize: [500, 500],
+        canvasSize: [200, 200],
         _circleClickEvent: null
     }
 });

@@ -33,8 +33,6 @@ BEST.component('famous:webgl-mesh', {
                 state.set('normals', normals);
             },
             'geometry': function(state, geometry) {
-                console.log('getting to public events: ', geometry);
-                console.log('webGL state: ', state);
                 state.set('geometry', geometry);
             },
             'glossiness': function(state, glossiness) {
@@ -56,7 +54,7 @@ BEST.component('famous:webgl-mesh', {
                 //console.log('setting base color: ', $payload);
                 //console.log('webGLMesh: ', $webGLMesh)
                 if ($payload instanceof Array)
-                    $webGLMesh.setBaseColor($payload[0], $payload[1], $payload[2], $payload[3]);
+                    $webGLMesh.setBaseColor($payload[1], $payload[2], $payload[3]);
                 else
                     $webGLMesh.setBaseColor($payload);
                 //console.log('webGLMesh get geometry: ', $webGLMesh.getGeometry());
@@ -65,8 +63,31 @@ BEST.component('famous:webgl-mesh', {
                 $webGLMesh.setNormals($payload);
             },
             'geometry': function($webGLMesh, $payload) {
-                console.log('getting in to handlers: ', $payload);
-                $webGLMesh.setGeometry($payload);
+                var testGeometry = {
+                    buffers: [
+                        { name: 'pos', data: [-1, 1, 0, 0, -1, 0, 1, 1, 0] },
+                        { name: 'texCoord', data: [0, 0, 0.5, 1, 1, 0], size: 2 },
+                        { name: 'normals', data: [0, 0, 0] },
+                        { name: 'indices', data: [0, 1, 2], size: 1}
+                    ]
+                }
+                var testSpec = {
+                    spec: {
+                        id: 1,
+                        dynamic: false,
+                        type: 'TRIANGLES',
+                        bufferNames: ['pos', 'texCoord', 'normals', 'indices'],
+                        bufferValues: [[-1, 1, 0, 0, -1, 0, 1, 1, 0], [0, 0, 0.5, 1, 1, 0], [0, 0, 0], [0, 1, 2]],
+                        bufferSpacings: [3, 2, 3, 1],
+                        invalidations: [1, 2, 3, 4]
+                    },
+                    options: testGeometry.buffers,
+                    id: 1,
+                    DEFAULT_BUFFER_SIZE: 3
+                }
+                //$webGLMesh.setGeometry($payload);
+                console.log('webGLMesh: ', $webGLMesh);
+                $webGLMesh.setGeometry('Box');
             },
             'glossiness': function($webGLMesh, $payload) {
                 $webGLMesh.setGlossiness($payload);
@@ -84,7 +105,8 @@ BEST.component('famous:webgl-mesh', {
     },
      states: {
         'color': ['rgb', 0.5, 0.5, 0.5],
-        'normals': [0, 0, 0],
+        // bug in setNormals
+        //'normals': [0, 0, 0],
         'glossiness': 0,
         'metallness': 0,
         'flatShading': 0,

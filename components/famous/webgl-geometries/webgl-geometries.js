@@ -9,4 +9,4 @@ BEST.component('famous:webgl-geometries', {
             }
         }
     }
-}
+});
