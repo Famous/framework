@@ -20,7 +20,7 @@ BEST.component('famous:html-element', {
     },
     events: {
         public: {
-            'yield': function(state, message) {
+            '$yield': function(state, message) {
                 var content = '';
                 for (var i = 0; i < message.length; i++) {
                     var outerHTML = message[i].outerHTML;

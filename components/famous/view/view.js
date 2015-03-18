@@ -1,9 +1,7 @@
 BEST.component('famous:view', {
     behaviors: {
         '$self': {
-            'famous:control-flow:yield': function(_surrogates) {
-                return _surrogates;
-            },
+            '$yield' : true,
             'famous:components:align': function(align) {
                 return align;
             },
@@ -92,9 +90,6 @@ BEST.component('famous:view', {
     },
     events: {
         public: {
-            'yield': function(state, message) {
-                state.setState('_surrogates', message);
-            },
             'align': function(state, message) {
                 state.set('align', message);
             },
