@@ -33,6 +33,8 @@ BEST.component('famous:webgl-mesh', {
                 state.set('normals', normals);
             },
             'geometry': function(state, geometry) {
+                console.log('getting to public events: ', geometry);
+                console.log('webGL state: ', state);
                 state.set('geometry', geometry);
             },
             'glossiness': function(state, glossiness) {
@@ -51,12 +53,19 @@ BEST.component('famous:webgl-mesh', {
         handlers: {
             'color': function($webGLMesh, $payload) {
                 // setBaseColor takes in 4 arguments not in an array
-                $webGLMesh.setBaseColor($payload[0], $payload[1], $payload[2], $payload[3]);
+                //console.log('setting base color: ', $payload);
+                //console.log('webGLMesh: ', $webGLMesh)
+                if ($payload instanceof Array)
+                    $webGLMesh.setBaseColor($payload[0], $payload[1], $payload[2], $payload[3]);
+                else
+                    $webGLMesh.setBaseColor($payload);
+                //console.log('webGLMesh get geometry: ', $webGLMesh.getGeometry());
             },
             'normals': function($webGLMesh, $payload) {
                 $webGLMesh.setNormals($payload);
             },
             'geometry': function($webGLMesh, $payload) {
+                console.log('getting in to handlers: ', $payload);
                 $webGLMesh.setGeometry($payload);
             },
             'glossiness': function($webGLMesh, $payload) {

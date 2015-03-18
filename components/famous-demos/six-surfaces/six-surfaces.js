@@ -32,6 +32,17 @@ BEST.component('famous-demos:six-surfaces', {
                 };
             }
         },
+        '.my-webgl-mesh': {
+            'size': function(canvasSize) {
+                return canvasSize;
+            },
+            'geometry': function(geometry) {
+                return geometry;
+            },
+            'color': function(color) {
+                return color;
+            }
+        },
         '#circle-component' : {
             'handle-click' : function(_circleClickEvent) {
                 return '_circleClickEvent';
@@ -47,6 +58,9 @@ BEST.component('famous-demos:six-surfaces', {
     },
     states: {
         size: 130,
+        color: '#33ccff',
+        geometry: 'Box',
+        canvasSize: [500, 500],
         _circleClickEvent: null
     }
 });
