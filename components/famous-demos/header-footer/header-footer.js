@@ -1,4 +1,4 @@
-BEST.component('jordan:header-footer', {
+BEST.component('famous-demos:header-footer', {
     tree: 'header-footer.html',
     behaviors: {
         '#header': {
@@ -14,11 +14,7 @@ BEST.component('jordan:header-footer', {
             'size': function(size) {
                 return size.header;
             },
-            'yield': function(_surrogates) {
-                for(var key in _surrogates) {
-                    if('header' === _surrogates[key].id) return [_surrogates[key]];
-                }
-            }
+            '$yield': '#header'
         },
         '#content': {
             'mount-point': function() {
@@ -35,11 +31,7 @@ BEST.component('jordan:header-footer', {
                 var contentSize = windowHeight - (size.header[1] + size.footer[1]);
                 return [undefined, contentSize];
             },
-            'yield': function(_surrogates) {
-                for(var key in _surrogates) {
-                    if('content' === _surrogates[key].id) return [_surrogates[key]];
-                }
-            }
+            '$yield': '#content'
         },
         '#footer': {
             'mount-point': function() {
@@ -54,18 +46,11 @@ BEST.component('jordan:header-footer', {
             'size': function(size) {
                 return size.footer;
             },
-            'yield': function(_surrogates) {
-                for(var key in _surrogates) {
-                    if('footer' === _surrogates[key].id) return [_surrogates[key]];
-                }
-            }
+            '$yield': '#footer'
         }
     },
     events: {
         public: {
-            'yield': function(state, _surrogates) {
-                state.set('_surrogates', _surrogates);
-            },
             'headerSize': function(state, payload){
                 var size = state.get('size');
                 size.header = payload;

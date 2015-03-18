@@ -1,4 +1,4 @@
-BEST.component('jordan:flipper', {
+BEST.component('famous-demos:flipper', {
     tree: 'flipper.html',
     behaviors: {
         '#flipper-root': {

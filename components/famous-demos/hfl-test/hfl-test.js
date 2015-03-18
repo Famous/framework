@@ -1,4 +1,4 @@
-BEST.component('jordan:hfl-test', {
+BEST.component('famous-demos:hfl-test', {
     tree: 'hfl-test.html',
     behaviors: {
         '#header-footer': {
