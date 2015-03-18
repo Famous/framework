@@ -77,7 +77,6 @@ BEST.component('jordan:header-footer', {
                 state.set('size', size);
             },
             'layoutDirection': function(state, payload) {
-                console.info('layoutDir', payload);
                 state.set('layout-direction', payload);
             }
         }
