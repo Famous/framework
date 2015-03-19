@@ -53,17 +53,9 @@ BEST.component('famous:html-element', {
             },
             'backface-visible': function(state, message) {
                 var style = {
-                    '-webkit-backface-visibility': 'visible',
-                    'backface-visibility': 'visible'
+                    '-webkit-backface-visibility': (message) ? 'visible' : 'hidden',
+                    'backface-visibility': (message) ? 'visible' : 'hidden'
                 };
-
-                if(!message) {
-                    style = {
-                        '-webkit-backface-visibility': 'hidden',
-                        'backface-visibility': 'hidden'
-                    }
-                }
-
                 state.set('style', style);
             },
             'true-size': function(state, message) {
