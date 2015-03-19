@@ -44,6 +44,8 @@
     "esprima": "^2.0.0",
     "estraverse": "^1.9.1",
     "famous": "git+ssh://git@github.famo.us:platform/yggdrasil.git#develop",
+    "famous-core": "git+ssh://git@github.famo.us:platform/core.git#develop",
+    "famous-transitions": "git+ssh://git@github.famo.us:platform/transitions.git#develop",
     "findit": "^2.0.0",
     "highland": "^2.4.0",
     "htmlparser": "^1.7.7",
