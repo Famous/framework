@@ -15,6 +15,9 @@ BEST.component('famous:html-element', {
             },
             '$self:true-size': function(trueSize) {
                 return trueSize;
+            },
+            '$self:locals': function(locals) {
+                return locals;
             }
         }
     },
@@ -53,21 +56,16 @@ BEST.component('famous:html-element', {
             },
             'backface-visible': function(state, message) {
                 var style = {
-                    '-webkit-backface-visibility': 'visible',
-                    'backface-visibility': 'visible'
+                    '-webkit-backface-visibility': (message) ? 'visible' : 'hidden',
+                    'backface-visibility': (message) ? 'visible' : 'hidden'
                 };
-
-                if(!message) {
-                    style = {
-                        '-webkit-backface-visibility': 'hidden',
-                        'backface-visibility': 'hidden'
-                    }
-                }
-
                 state.set('style', style);
             },
             'true-size': function(state, message) {
-                state.set('trueSize', true);
+                state.set('trueSize', !!message);
+            },
+            'template': function(state, locals) {
+                state.set('locals', locals);
             }
         },
         handlers: {
@@ -89,6 +87,18 @@ BEST.component('famous:html-element', {
             },
             'true-size': function($HTMLElement, $payload) {
                 $HTMLElement.trueSize(!!$payload, !!$payload);
+            },
+            'locals': function($mustache, $state, $payload) {
+                if ($state.get('didTemplate')) {
+                    var initialContent = $state.get('initialContent');
+                }
+                else {
+                    var initialContent = $state.get('content');
+                    $state.set('initialContent', initialContent);
+                    $state.set('didTemplate', true);
+                }
+                var templatedContent = $mustache(initialContent, $payload);
+                $state.set('content', templatedContent);
             }
         }
     },
@@ -96,6 +106,9 @@ BEST.component('famous:html-element', {
         'id': null,
         'content': '',
         'style': {},
-        'attributes': {}
+        'attributes': {},
+        'locals': {},
+        'didTemplate': false,
+        'initialContent': ''
     }
 });
