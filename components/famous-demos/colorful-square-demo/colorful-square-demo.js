@@ -1,5 +1,5 @@
-BEST.component('famous-demos:imti', {
-    tree: 'imti.html',
+BEST.component('famous-demos:colorful-square-demo', {
+    tree: 'colorful-square-demo.html',
     behaviors: {
         '.square': {
             'size': function(size) {

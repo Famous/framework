@@ -1,5 +1,5 @@
-BEST.component('famous-demos:imti-square', {
-    tree: 'imti-square.html',
+BEST.component('famous-demos:colorful-square', {
+    tree: 'colorful-square.html',
     behaviors: {
         '.square-container': {
             'origin': function(origin) {
