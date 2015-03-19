@@ -45,21 +45,28 @@ BEST.component('famous:html-element', {
             },
             'unselectable': function(state, message) {
                 if (message) {
-                    state.set('style', {
-                        '-moz-user-select': '-moz-none',
-                        '-khtml-user-select': 'none',
-                        '-webkit-user-select': 'none',
-                        '-o-user-select': 'none',
-                        'user-select': 'none'
-                    });
+                    var style = state.get('style') || {};
+                    style['-moz-user-select'] = '-moz-none';
+                    style['-khtml-user-select'] = 'none';
+                    style['-webkit-user-select'] = 'none';
+                    style['-o-user-select'] = 'none';
+                    style['user-select'] = 'none';
+                    state.set('style', style);
                 }
             },
             'backface-visible': function(state, message) {
-                var style = {
-                    '-webkit-backface-visibility': (message) ? 'visible' : 'hidden',
-                    'backface-visibility': (message) ? 'visible' : 'hidden'
-                };
+                var style = state.get('style') || {};
+                style['-webkit-backface-visibility'] = (message) ? 'visible' : 'hidden';
+                style['backface-visibility'] = (message) ? 'visible' : 'hidden';
                 state.set('style', style);
+            },
+            'box-shadow': function(state, message) {
+                var style = state.get('style') || {};
+                style['-webkit-box-shadow'] = message;
+                style['-moz-box-shadow'] = message;
+                style['box-shadow'] = message;
+                state.set('style', style);
+
             },
             'true-size': function(state, message) {
                 state.set('trueSize', !!message);
