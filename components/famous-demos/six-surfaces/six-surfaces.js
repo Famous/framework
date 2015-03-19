@@ -3,13 +3,17 @@ BEST.component('famous-demos:six-surfaces', {
     behaviors: {
         '.square': {
             'size': function(size, $time) {
-                var chg = (Math.sin($time / 1000) / 2) + 1;
-                return [chg * size, chg * size];
+                    var chg = (Math.sin($time / 1000) / 2) + 1;
+                    return [chg * size, chg * size];
             },
-            'rotation-z': function($time) {
-                return $time / 1000;
+            'rotation': function(_isAnimating, $time) {
+                if (_isAnimating)
+                    return [0, 0, $time / 1000];
+                else
+                    return [$time / 1000, 0, 0];
             },
             'origin': [0.5, 0.5],
+            'mount-point': [0.5, 0.5],
             'position': function() {
                 var wih = window.innerHeight * 0.75;
                 var wiw = window.innerWidth * 0.75;
@@ -43,11 +47,13 @@ BEST.component('famous-demos:six-surfaces', {
         public: {
             'circle-click': function(state, event) {
                 state.set('_circleClickEvent', event);
+                state.chain('_isAnimating').flip();
             }
         }
     },
     states: {
         size: 130,
+        _isAnimating: true,
         _circleClickEvent: null
     }
 });
