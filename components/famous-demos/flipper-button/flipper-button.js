@@ -65,11 +65,10 @@ BEST.component('famous-demos:flipper-button', {
                 window.state = state;
                 state.set('scale', 0.8, {duration: 150, 'curve': 'inCirc'}, function(state){
 
-                    // console.log('callback')
-                    state.set('scale', 5, {duration: 250, curve: 'outBack'});
-                    // setTimeout(function() {
-                    //     state.set('scale', 2, {duration: 250, curve: 'outBack'});
-                    // }, 1)
+                    // Hack --> Bug with implentation of Transitionable in StateManager
+                    setTimeout(function() {
+                        state.set('scale', 1, {duration: 250, curve: 'outBack'});
+                    }, 1);
                 }.bind(null, state));
             }
         }
