@@ -14,6 +14,11 @@ BEST.component('famous-demos:torus', {
                 return [$time / 1000, $time / 1000, $time / 1000];
             },
         },
+        '.my-point-light': {
+            'color': function(lightColor) {
+                return lightColor;
+            }
+        },
         '.my-webgl-mesh': {
             'geometry': function(geometry) {
                 return geometry;
@@ -26,7 +31,8 @@ BEST.component('famous-demos:torus', {
     states: {
         color: '#3cf',
         geometry: 'Torus',
-        position: [window.innerWidth * 0.25, window.innerHeight * 0.80],
+        position: [window.innerWidth * 0.5, window.innerHeight * 0.5],
+        lightColor: 'white',
         canvasSize: [200, 200, 200],
     }
 });
