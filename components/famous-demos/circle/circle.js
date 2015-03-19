@@ -31,8 +31,8 @@ BEST.component('famous-demos:circle', {
             'size' : function() {
                 return [150, 20];
             },
-            position: [0, 0, 25],
-            align: [0.5, 0.35],
+            'position': [0, 0, 25],
+            'align': [0.5, 0.35],
             'mount-point': [0.5, 0.5],
             '$yield': true
         },
@@ -52,7 +52,8 @@ BEST.component('famous-demos:circle', {
     events: {
         public: {
             'handle-click': function(state, message) {
-                state.setState('radius', state.getState('radius') + 50, {duration: 1000, curve: 'outBounce'});
+                var radius = state.getState('radius');
+                state.setState('radius', radius + 50, {duration: 1000, curve: 'outBounce'});
             }
         }
     },

@@ -2,16 +2,13 @@ BEST.component('famous-demos:torus', {
     tree: 'torus.html',
     behaviors: {
         '.my-mesh-container': {
-            'mount-point': function() {
-                return [0.5, 0.5]
-            },
+            'origin': [0.5, 0.5],
+            'mount-point': [0.5, 0.5],
             'size': function(canvasSize) {
                 return canvasSize;
             },
-            'position': function() {
-                var xPosition = window.innerWidth * 0.25;
-                var yPosition = window.innerHeight * 0.85;
-                return [xPosition, yPosition];
+            'position': function(position) {
+                return [position[0], position[1]];
             },
             'rotation': function($time) {
                 return [$time / 1000, $time / 1000, $time / 1000];
@@ -26,10 +23,10 @@ BEST.component('famous-demos:torus', {
             },
         }
     },
-    events: {},
     states: {
         color: '#3cf',
         geometry: 'Torus',
+        position: [window.innerWidth * 0.25, window.innerHeight * 0.80],
         canvasSize: [200, 200, 200],
     }
 });
