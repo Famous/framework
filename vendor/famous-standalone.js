@@ -1233,17 +1233,38 @@ module.exports = {
 
 var Position = require('./Position');
 
+/**
+ * @class Align
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Align component
+ */
+
 function Align(dispatch) {
     Position.call(this, dispatch);
 }
 
+/**
+*
+* stringifies Align
+*
+* @method
+* @return {String} the name of the Component Class: 'Align'
+*/
 Align.toString = function toString() {
-    return 'Align';
+    return Align.toString;
 };
 
 Align.prototype = Object.create(Position.prototype);
 Align.prototype.constructor = Align;
 
+/**
+*
+* If true, component is to be updated on next engine tick
+*
+* @method
+* @return {Boolean}
+*/
 Align.prototype.clean = function clean() {
     var context = this._dispatch._context;
     context.setAlign(this._x.get(), this._y.get(), this._z.get());
@@ -1265,7 +1286,12 @@ function Camera(dispatch) {
     this._dispatch = dispatch;
     this._projectionType = Camera.ORTHOGRAPHIC_PROJECTION;
     this._focalDepth = 0;
+    this._near = 0;
+    this._far = 0;
     this._id = dispatch.addComponent(this);
+    this._viewTransform = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+
+    dispatch.onTransformChange(buildViewTransform.bind(this));
 
     this.setFlat();
 }
@@ -1283,7 +1309,9 @@ Camera.prototype.getState = function getState() {
     return {
         component: this.constructor.toString(),
         projectionType: this._projectionType,
-        focalDepth: this._focalDepth
+        focalDepth: this._focalDepth,
+        near: this._near,
+        far: this._far
     };
 };
 
@@ -1291,22 +1319,36 @@ Camera.prototype.getState = function getState() {
 Camera.prototype.setState = function setState(state) {
     this._dispatch.dirtyComponent(this._id);
     if (state.component === this.constructor.toString()) {
-        this.set(state.projectionType, state.focalDepth);
+        this.set(state.projectionType, state.focalDepth, state.near, state.far);
         return true;
     }
     return false;
 };
 
-Camera.prototype.set = function set(type, depth) {
+Camera.prototype.set = function set(type, depth, near, far) {
     this._dispatch.dirtyComponent(this._id);
     this._projectionType = type;
     this._focalDepth = depth;
+    this._near = near;
+    this._far = far;
 };
 
 Camera.prototype.setDepth = function setDepth(depth) {
     this._dispatch.dirtyComponent(this._id);
     this._projectionType = Camera.PINHOLE_PROJECTION;
     this._focalDepth = depth;
+    this._near = 0;
+    this._far = 0;
+
+    return this;
+};
+
+Camera.prototype.setFrustum = function setFrustum(near, far) {
+    this._dispatch.dirtyComponent(this._id);
+    this._projectionType = Camera.FRUSTUM_PROJECTION;
+    this._focalDepth = 0;
+    this._near = near;
+    this._far = far;
 
     return this;
 };
@@ -1315,6 +1357,8 @@ Camera.prototype.setFlat = function setFlat() {
     this._dispatch.dirtyComponent(this._id);
     this._projectionType = Camera.ORTHOGRAPHIC_PROJECTION;
     this._focalDepth = 0;
+    this._near = 0;
+    this._far = 0;
 
     return this;
 };
@@ -1323,6 +1367,8 @@ Camera.prototype.clean = function clean() {
     switch (this._projectionType) {
         case Camera.FRUSTUM_PROJECTION:
             this._dispatch.sendDrawCommand('FRUSTUM_PROJECTION');
+            this._dispatch.sendDrawCommand(this._near);
+            this._dispatch.sendDrawCommand(this._far);
             break;
         case Camera.PINHOLE_PROJECTION:
             this._dispatch.sendDrawCommand('PINHOLE_PROJECTION');
@@ -1332,22 +1378,111 @@ Camera.prototype.clean = function clean() {
             this._dispatch.sendDrawCommand('ORTHOGRAPHIC_PROJECTION');
             break;
     }
+
+    if (this._viewDirty) {
+        this._viewDirty = false;
+        
+        this._dispatch.sendDrawCommand('CHANGE_VIEW_TRANSFORM');
+        this._dispatch.sendDrawCommand(this._viewTransform[0]);
+        this._dispatch.sendDrawCommand(this._viewTransform[1]);
+        this._dispatch.sendDrawCommand(this._viewTransform[2]);
+        this._dispatch.sendDrawCommand(this._viewTransform[3]);
+
+        this._dispatch.sendDrawCommand(this._viewTransform[4]);
+        this._dispatch.sendDrawCommand(this._viewTransform[5]);
+        this._dispatch.sendDrawCommand(this._viewTransform[6]);
+        this._dispatch.sendDrawCommand(this._viewTransform[7]);
+
+        this._dispatch.sendDrawCommand(this._viewTransform[8]);
+        this._dispatch.sendDrawCommand(this._viewTransform[9]);
+        this._dispatch.sendDrawCommand(this._viewTransform[10]);
+        this._dispatch.sendDrawCommand(this._viewTransform[11]);
+
+        this._dispatch.sendDrawCommand(this._viewTransform[12]);
+        this._dispatch.sendDrawCommand(this._viewTransform[13]);
+        this._dispatch.sendDrawCommand(this._viewTransform[14]);
+        this._dispatch.sendDrawCommand(this._viewTransform[15]);
+    }
     return false;
 };
+
+
+function buildViewTransform(transform) {
+    var a = transform._matrix;
+    this._viewDirty = true;
+    this._dispatch.dirtyComponent(this._id);
+
+    var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
+    a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
+    a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
+    a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15],
+
+    b00 = a00 * a11 - a01 * a10,
+    b01 = a00 * a12 - a02 * a10,
+    b02 = a00 * a13 - a03 * a10,
+    b03 = a01 * a12 - a02 * a11,
+    b04 = a01 * a13 - a03 * a11,
+    b05 = a02 * a13 - a03 * a12,
+    b06 = a20 * a31 - a21 * a30,
+    b07 = a20 * a32 - a22 * a30,
+    b08 = a20 * a33 - a23 * a30,
+    b09 = a21 * a32 - a22 * a31,
+    b10 = a21 * a33 - a23 * a31,
+    b11 = a22 * a33 - a23 * a32,
+
+    det = 1/(b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06);
+
+    this._viewTransform[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+    this._viewTransform[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+    this._viewTransform[2] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+    this._viewTransform[3] = (a22 * b04 - a21 * b05 - a23 * b03) * det;
+    this._viewTransform[4] = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+    this._viewTransform[5] = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+    this._viewTransform[6] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+    this._viewTransform[7] = (a20 * b05 - a22 * b02 + a23 * b01) * det;
+    this._viewTransform[8] = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+    this._viewTransform[9] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+    this._viewTransform[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+    this._viewTransform[11] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
+    this._viewTransform[12] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
+    this._viewTransform[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
+    this._viewTransform[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
+    this._viewTransform[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
+}
 
 module.exports = Camera;
 
 },{}],9:[function(require,module,exports){
 'use strict';
 
+/**
+ * Component to manage general event emission.
+ *
+ * @class EventEmitter
+ * @param {LocalDispatch} dispatch The dispatch with which to register the handler.
+ */
 function EventEmitter(dispatch) {
     this.dispatch = dispatch;
 }
 
+/**
+ * Returns the name of EventEmitter as a string.
+ *
+ * @method toString
+ * @static
+ * @return {String} 'EventEmitter'
+ */
 EventEmitter.toString = function toString() {
     return 'EventEmitter';
 };
 
+/**
+ * Emit an event with a payload.
+ *
+ * @method emit
+ * @param {Object} event The event name.
+ * @param {Object} payload The event payload.
+ */
 EventEmitter.prototype.emit = function emit(event, payload) {
     this.dispatch.emit(event, payload);
     return this;
@@ -1360,6 +1495,13 @@ module.exports = EventEmitter;
 
 var CallbackStore = require('famous-utilities').CallbackStore;
 
+/**
+ * Component to handle general events.
+ *
+ * @class EventHandler
+ * @param {LocalDispatch} dispatch The dispatch with which to register the handler.
+ * @param {Object[]} events An array of event objects specifying .event and .callback properties.
+ */
 function EventHandler (dispatch, events) {
     this.dispatch = dispatch;
     this._events = new CallbackStore();
@@ -1374,21 +1516,48 @@ function EventHandler (dispatch, events) {
     }
 }
 
+/**
+ * Returns the name of EventHandler as a string.
+ *
+ * @method toString
+ * @static
+ * @return {String} 'EventHandler'
+ */
 EventHandler.toString = function toString() {
     return 'EventHandler';
 };
 
+/**
+ * Register a callback to be invoked on an event.
+ *
+ * @method on
+ * @param {String} ev The event name.
+ * @param {Function} cb The callback.
+ */
 EventHandler.prototype.on = function on (ev, cb) {
     this._events.on(ev, cb);
     this.dispatch.registerGlobalEvent(ev, this.trigger.bind(this, ev));
 };
 
+/**
+ * Deregister a callback from an event.
+ *
+ * @method on
+ * @param {String} ev The event name.
+ * @param {Function} cb The callback.
+ */
 EventHandler.prototype.off = function off (ev, cb) {
     this._events.off(ev, cb);
     this.dispatch.deregisterGlobalEvent(ev, this.trigger.bind(this, ev))
 };
 
-
+/**
+ * Trigger the callback associated with an event, passing in a payload.
+ *
+ * @method trigger
+ * @param {String} ev The event name.
+ * @param {Object} payload The event payload.
+ */
 EventHandler.prototype.trigger = function trigger (ev, payload) {
     this._events.trigger(ev, payload);
 };
@@ -1404,11 +1573,22 @@ var Vec2 = require('famous-math').Vec2;
 var VEC_REGISTER = new Vec2();
 
 var gestures = {drag: true, tap: true, rotate: true, pinch: true};
-var callbacks = [processTouchStart, processTouchMove, processTouchEnd];
+var progressbacks = [_processPointerStart, _processPointerMove, _processPointerEnd];
 
 var touchEvents = ['touchstart', 'touchmove', 'touchend'];
+var mouseEvents = ['mousedown', 'mousemove', 'mouseup'];
 var methods = ['preventDefault'];
-var properties = [{targetTouches: {0: ['pageX', 'pageY', 'identifier'], 1: ['pageX', 'pageY', 'identifier']}}];
+var touchProperties = [{targetTouches: {0: ['pageX', 'pageY', 'identifier'], 1: ['pageX', 'pageY', 'identifier']}}];
+var mouseProperties = ['pageX', 'pageY'];
+
+/**
+ * Component to manage gesture events. Will track 'pinch', 'rotate', 'tap', and 'drag' events, on an
+ * as-requested basis.
+ *
+ * @class GestureHandler
+ * @param {LocalDispatch} dispatch The dispatch with which to register the handler.
+ * @param {Object[]} events An array of event objects specifying .event and .callback properties.
+ */
 
 function GestureHandler (dispatch, events) {
     this.dispatch = dispatch;
@@ -1452,9 +1632,11 @@ function GestureHandler (dispatch, events) {
         current: 0
     };
 
-    this.trackedTouchIDs = [-1, -1];
+    this.trackedPointerIDs = [-1, -1];
     this.timeOfPointer = 0;
     this.multiTap = 0;
+
+    this.mice = [];
 
     this.gestures = [];
     this.options = {};
@@ -1474,18 +1656,35 @@ function GestureHandler (dispatch, events) {
 
     var renderables = dispatch.getRenderables();
     for (var i = 0, len = renderables.length; i < len; i++) {
-        for (var j = 0, lenj = touchEvents.length; j < lenj; j++) {
+        for (var j = 0; j < 3; j++) {
             var touchEvent = touchEvents[j];
-            if (renderables[i].on) renderables[i].on(touchEvent, methods, properties);
-            dispatch.registerTargetedEvent(touchEvent, callbacks[j].bind(this));
+            var mouseEvent = mouseEvents[j];
+            if (renderables[i].on) renderables[i].on(touchEvent, methods, touchProperties);
+            dispatch.registerTargetedEvent(touchEvent, progressbacks[j].bind(this));
+            if (renderables[i].on) renderables[i].on(mouseEvent, methods, mouseProperties);
+            dispatch.registerTargetedEvent(mouseEvent, progressbacks[j].bind(this));
         }
+        if (renderables[i].on) renderables[i].on('mouseleave', methods, mouseProperties);
+        dispatch.registerTargetedEvent('mouseleave', _processMouseLeave.bind(this));
     }
 }
 
+/**
+ * Returns the name of GestureHandler as a string.
+ *
+ * @method toString
+ * @static
+ * @return {String} 'GestureHandler'
+ */
 GestureHandler.toString = function toString() {
     return 'GestureHandler';
 };
 
+/**
+ * Trigger gestures in the order they were requested, if they occured.
+ *
+ * @method triggerGestures
+ */
 GestureHandler.prototype.triggerGestures = function() {
     var payload = this.event;
     for (var i = 0, len = this.gestures.length; i < len; i++) {
@@ -1511,20 +1710,40 @@ GestureHandler.prototype.triggerGestures = function() {
     }
 };
 
+/**
+ * Trigger the callback associated with an event, passing in a payload.
+ *
+ * @method trigger
+ * @param {String} ev The event name.
+ * @param {Object} payload The event payload.
+ */
 GestureHandler.prototype.trigger = function trigger (ev, payload) {
     this._events.trigger(ev, payload);
 };
 
-function processTouchStart(e) {
-    var t = e.targetTouches;
+/**
+ * Process up to the first two touch/mouse move events. Exit out if the first two points are already being tracked.
+ *
+ * @method _processPointerStart
+ * @private
+ * @param {Object} e The event object.
+ */
+function _processPointerStart(e) {
+    var t;
+    if (!e.targetTouches) {
+        this.mice[0] = e;
+        t = this.mice;
+        e.identifier = 1;
+    }
+    else t = e.targetTouches;
 
-    if (t[0] && t[1] && this.trackedTouchIDs[0] === t[0].identifier && this.trackedTouchIDs[1] === t[1].identifier) {
+    if (t[0] && t[1] && this.trackedPointerIDs[0] === t[0].identifier && this.trackedPointerIDs[1] === t[1].identifier) {
         return;
     }
 
     this.event.time = Date.now();
 
-    if (this.trackedTouchIDs[0] !== t[0].identifier) {
+    if (this.trackedPointerIDs[0] !== t[0].identifier) {
         if (this.trackedGestures['tap']) {
             var threshold = (this.options['tap'] && this.options['tap'].threshold) || 250;
             if (this.event.time - this.timeOfPointer < threshold) this.event.taps++;
@@ -1535,14 +1754,14 @@ function processTouchStart(e) {
         this.event.current = 1;
         this.event.points = 1;
         var id = t[0].identifier;
-        this.trackedTouchIDs[0] = id;
+        this.trackedPointerIDs[0] = id;
 
         this.last1.set(t[0].pageX, t[0].pageY);
         this.velocity1.clear();
         this.delta1.clear();
         this.event.pointers.push(this.pointer1);
     }
-    if (t[1] && this.trackedTouchIDs[1] !== t[1].identifier) {
+    if (t[1] && this.trackedPointerIDs[1] !== t[1].identifier) {
         if (this.trackedGestures['tap']) {
             var threshold = (this.options['tap'] && this.options['tap'].threshold) || 250;
             if (this.event.time - this.timeOfPointer < threshold) this.multiTap = 2;
@@ -1550,7 +1769,7 @@ function processTouchStart(e) {
         this.event.current = 2;
         this.event.points = 2;
         var id = t[1].identifier;
-        this.trackedTouchIDs[1] = id;
+        this.trackedPointerIDs[1] = id;
 
         this.last2.set(t[1].pageX, t[1].pageY);
         this.velocity2.clear();
@@ -1582,10 +1801,12 @@ function processTouchStart(e) {
         this.centerDelta.clear();
         this.centerVelocity.clear();
         if (this.trackedGestures['pinch']) {
+            this.event.scale = 1;
             this.event.scaleDelta = 0;
             this.event.scaleVelocity = 0;
         }
         if (this.trackedGestures['rotate']) {
+            this.event.rotation = 0;
             this.event.rotationDelta = 0;
             this.event.rotationVelocity = 0;
         }
@@ -1593,8 +1814,23 @@ function processTouchStart(e) {
     this.triggerGestures();
 }
 
-function processTouchMove(e) {
-    var t = e.targetTouches;
+/**
+ * Process up to the first two touch/mouse move events.
+ *
+ * @method _processPointerMove
+ * @private
+ * @param {Object} e The event object.
+ */
+function _processPointerMove(e) {
+    var t;
+    if (!e.targetTouches) {
+        if (!this.event.current) return;
+        this.mice[0] = e;
+        t = this.mice;
+        e.identifier = 1;
+    }
+    else t = e.targetTouches;
+
     var time = Date.now();
     var dt = time - this.event.time;
     if (dt === 0) return;
@@ -1603,7 +1839,7 @@ function processTouchMove(e) {
 
     this.event.current = 1;
     this.event.points = 1;
-    if (this.trackedTouchIDs[0] === t[0].identifier) {
+    if (this.trackedPointerIDs[0] === t[0].identifier) {
         VEC_REGISTER.set(t[0].pageX, t[0].pageY);
         Vec2.subtract(VEC_REGISTER, this.last1, this.delta1);
         Vec2.scale(this.delta1, invDt, this.velocity1);
@@ -1653,10 +1889,12 @@ function processTouchMove(e) {
         this.centerDelta.copy(this.delta1);
         this.centerVelocity.copy(this.velocity1);
         if (this.trackedGestures['pinch']) {
+            this.event.scale = 1;
             this.event.scaleDelta = 0;
             this.event.scaleVelocity = 0;
         }
         if (this.trackedGestures['rotate']) {
+            this.event.rotation = 0;
             this.event.rotationDelta = 0;
             this.event.rotationVelocity = 0;
         }
@@ -1664,27 +1902,40 @@ function processTouchMove(e) {
     this.triggerGestures();
 }
 
-function processTouchEnd(e) {
-    var t = e.targetTouches;
+/**
+ * Process up to the first two touch/mouse end events. Exit out if the two points being tracked are still active.
+ *
+ * @method _processPointerEnd
+ * @private
+ * @param {Object} e The event object.
+ */
+function _processPointerEnd(e) {
+    var t;
+    if (!e.targetTouches) {
+        if (!this.event.current) return;
+        this.mice.pop();
+        t = this.mice;
+    }
+    else t = e.targetTouches;
 
-    if (t[0] && t[1] && this.trackedTouchIDs[0] === t[0].identifier && this.trackedTouchIDs[1] === t[1].identifier) {
+    if (t[0] && t[1] && this.trackedPointerIDs[0] === t[0].identifier && this.trackedPointerIDs[1] === t[1].identifier) {
             return;
     }
 
     this.event.status = 'end';
     if (!t[0]) {
         this.event.current = 0;
-        this.trackedTouchIDs[0] = -1;
-        this.trackedTouchIDs[1] = -1;
+        this.trackedPointerIDs[0] = -1;
+        this.trackedPointerIDs[1] = -1;
         this.triggerGestures();
         this.event.pointers.pop();
         this.event.pointers.pop();
         return;
     }
-    else if(this.trackedTouchIDs[0] !== t[0].identifier) {
-        this.trackedTouchIDs[0] = -1;
+    else if(this.trackedPointerIDs[0] !== t[0].identifier) {
+        this.trackedPointerIDs[0] = -1;
         var id = t[0].identifier;
-        this.trackedTouchIDs[0] = id;
+        this.trackedPointerIDs[0] = id;
 
         this.last1.set(t[0].pageX, t[0].pageY);
         this.velocity1.clear();
@@ -1692,16 +1943,16 @@ function processTouchEnd(e) {
     }
     if (!t[1]) {
         this.event.current = 1;
-        this.trackedTouchIDs[1] = -1;
+        this.trackedPointerIDs[1] = -1;
         this.triggerGestures();
         this.event.points = 1;
         this.event.pointers.pop();
     }
-    else if (this.trackedTouchIDs[1] !== t[1].identifier) {
-        this.trackedTouchIDs[1] = -1;
+    else if (this.trackedPointerIDs[1] !== t[1].identifier) {
+        this.trackedPointerIDs[1] = -1;
         this.event.points = 2;
         var id = t[1].identifier;
-        this.trackedTouchIDs[1] = id;
+        this.trackedPointerIDs[1] = id;
 
         this.last2.set(t[1].pageX, t[1].pageY);
         this.velocity2.clear();
@@ -1716,6 +1967,23 @@ function processTouchEnd(e) {
     }
 }
 
+/**
+ * Treats a mouseleave event as a gesture end.
+ *
+ * @method _processMouseLeave
+ * @private
+ * @param {Object} e The event object.
+ */
+function _processMouseLeave(e) {
+    if (this.event.current) {
+        this.event.status = 'end';
+        this.event.current = 0;
+        this.trackedPointerIDs[0] = -1;
+        this.triggerGestures();
+        this.event.pointers.pop();
+    }
+}
+
 module.exports = GestureHandler;
 
 },{"famous-math":227,"famous-utilities":70}],12:[function(require,module,exports){
@@ -1723,10 +1991,23 @@ module.exports = GestureHandler;
 
 var Position = require('./Position');
 
+/**
+ * @class MountPoint
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the MountPoint component
+ */
 function MountPoint(dispatch) {
     Position.call(this, dispatch);
 }
 
+/**
+*
+* Stringifies MountPoint
+*
+* @method
+* @return {String} the name of the Component Class: 'MountPoint'
+*/
 MountPoint.toString = function toString() {
     return 'MountPoint';
 };
@@ -1734,6 +2015,13 @@ MountPoint.toString = function toString() {
 MountPoint.prototype = Object.create(Position.prototype);
 MountPoint.prototype.constructor = MountPoint;
 
+/**
+*
+* If true, component is to be updated on next engine tick
+*
+* @method
+* @return {Boolean} 
+*/
 MountPoint.prototype.clean = function clean() {
     var context = this._dispatch._context;
     context.setMountPoint(this._x.get(), this._y.get(), this._z.get());
@@ -1747,16 +2035,38 @@ module.exports = MountPoint;
 
 var Transitionable = require('famous-transitions').Transitionable;
 
+
+/**
+ * @class Opacity
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Opacity component
+ */
 function Opacity(dispatch) {
     this._dispatch = dispatch;
     this._id = dispatch.addComponent(this);
     this._value = new Transitionable(1);
 }
 
+/**
+*
+* returns stringified Opacity
+*
+* @method
+* @return {String} the name of the Component Class: 'Opacity'
+*/
 Opacity.toString = function toString() {
     return 'Opacity';
 };
 
+/**
+*
+* Retrieves state of Opacity
+*
+* @method
+* @return {Object} contains component key which holds the stringified constructor 
+* and value key which contains the numeric value
+*/
 Opacity.prototype.getState = function getState() {
     return {
         component: this.constructor.toString(),
@@ -1764,6 +2074,14 @@ Opacity.prototype.getState = function getState() {
     };
 };
 
+/**
+*
+* Setter for Opacity state
+*
+* @method
+* @param {Object} state contains component key, which holds stringified constructor, and a value key, which contains a numeric value used to set opacity if the constructor value matches
+* @return {Boolean} true if set is successful, false otherwise
+*/
 Opacity.prototype.setState = function setState(state) {
     if (this.constructor.toString() === state.component) {
         this.set(state.value);
@@ -1772,18 +2090,53 @@ Opacity.prototype.setState = function setState(state) {
     return false;
 };
 
+/**
+*
+* If true, component is to be updated on next engine tick
+*
+* @method
+* @return {Boolean}
+*/
 Opacity.prototype.clean = function clean() {
     var context = this._dispatch._context;
     context.setOpacity(this._value.get());
     return this._value.isActive();
 };
 
+/**
+*
+* Setter for Opacity with callback
+*
+* @method
+* @param {Number} value value used to set Opacity
+* @param {Object} options options hash
+* @param {Function} callback to be called following Opacity set
+* @chainable
+*/
 Opacity.prototype.set = function set(value, options, callback) {
     this._dispatch.dirtyComponent(this._id);
     this._value.set(value, options, callback);
     return this;
 };
 
+/**
+*
+* Getter for Opacity
+*
+* @method
+* @return {Number}
+*/
+Opacity.prototype.get = function get() {
+    return this._value.get();
+};
+
+/**
+*
+* Stops Opacity transition
+*
+* @method
+* @chainable
+*/
 Opacity.prototype.halt = function halt() {
     this._value.halt();
     return this;
@@ -1796,10 +2149,24 @@ module.exports = Opacity;
 
 var Position = require('./Position');
 
+/**
+ * @class Origin
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Origin component
+ */
 function Origin(dispatch) {
     Position.call(this, dispatch);
 }
 
+
+/**
+*
+* returns stringified Origin
+*
+* @method
+* @return {String} the name of the Component Class: 'Origin'
+*/
 Origin.toString = function toString() {
     return 'Origin';
 };
@@ -1807,6 +2174,13 @@ Origin.toString = function toString() {
 Origin.prototype = Object.create(Position.prototype);
 Origin.prototype.constructor = Origin;
 
+/**
+*
+* If true, component is to be updated on next engine tick
+*
+* @method
+* @return {Boolean}
+*/
 Origin.prototype.clean = function clean() {
     var context = this._dispatch._context;
     context.setOrigin(this._x.get(), this._y.get(), this._z.get());
@@ -1820,6 +2194,12 @@ module.exports = Origin;
 
 var Transitionable = require('famous-transitions').Transitionable;
 
+/**
+ * @class Position
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Position component
+ */
 function Position(dispatch) {
     this._dispatch = dispatch;
     this._id = dispatch.addComponent(this);
@@ -1828,10 +2208,24 @@ function Position(dispatch) {
     this._z = new Transitionable(0);
 }
 
+/** 
+*
+* stringifies Position constructor
+*
+* @method
+* @return {String} the definition of the Component Class: 'Position'
+*/
 Position.toString = function toString() {
     return 'Position';
 };
 
+/**
+*
+* Gets object containing stringified constructor, x, y, z coordinates
+*
+* @method
+* @return {Object}
+*/
 Position.prototype.getState = function getState() {
     return {
         component: this.constructor.toString(),
@@ -1841,6 +2235,14 @@ Position.prototype.getState = function getState() {
     };
 };
 
+/**
+*
+* Setter for position coordinates
+*
+* @method
+* @param {Object} state Object -- component: stringified constructor, x: number, y: number, z: number
+* @return {Boolean} true on success
+*/
 Position.prototype.setState = function setState(state) {
     if (state.component === this.constructor.toString()) {
         this.set(state.x, state.y, state.z);
@@ -1849,38 +2251,139 @@ Position.prototype.setState = function setState(state) {
     return false;
 };
 
-Position.prototype.clean = function clean() {
-    var context = this._dispatch._context;
-    context.setPosition(this._x.get(), this._y.get(), this._z.get());
+/**
+*
+* Getter for X position
+*
+* @method
+* @return {Number}
+*/
+Position.prototype.getX = function getX() {
+    return this._x.get();
+};
+
+/**
+*
+* Getter for Y position
+*
+* @method
+* @return {Number}
+*/
+Position.prototype.getY = function getY() {
+    return this._y.get();
+};
+
+/**
+*
+* Getter for Z position
+*
+* @method
+* @return {Number}
+*/
+Position.prototype.getZ = function getZ() {
+    return this._z.get();
+};
+
+/**
+*
+* Getter for any active coordinates
+*
+* @method
+* @return {Boolean}
+*/
+Position.prototype.isActive = function isActive() {
     return this._x.isActive() || this._y.isActive() || this._z.isActive();
 };
 
+/** 
+*
+* If true, component is to be updated on next engine tick
+*
+* @method
+* @return {Boolean}
+*/
+Position.prototype.clean = function clean() {
+    var context = this._dispatch.getContext();
+    context.setPosition(this._x.get(), this._y.get(), this._z.get());
+    return this.isActive();
+};
+
+/** 
+*
+* Setter for X position
+*
+* @method
+* @param {Number} val used to set x coordinate
+* @param {Object} options options hash
+* @param {Function} callback function to execute after setting X
+* @chainable
+*/
 Position.prototype.setX = function setX(val, options, callback) {
     this._dispatch.dirtyComponent(this._id);
     this._x.set(val, options, callback);
     return this;
 };
 
+/** 
+*
+* Setter for Y position
+*
+* @method
+* @param {Number} val used to set y coordinate
+* @param {Object} options options hash
+* @param {Function} callback function to execute after setting Y
+* @chainable
+*/
 Position.prototype.setY = function setY(val, options, callback) {
     this._dispatch.dirtyComponent(this._id);
     this._y.set(val, options, callback);
     return this;
 };
 
+/** 
+*
+* Setter for Z position
+*
+* @method
+* @param {Number} val used to set z coordinate
+* @param {Object} options options hash
+* @param {Function} callback function to execute after setting Z
+* @chainable
+*/
 Position.prototype.setZ = function setZ(val, options, callback) {
     this._dispatch.dirtyComponent(this._id);
     this._z.set(val, options, callback);
     return this;
 };
 
+
+/**
+*
+* Setter for XYZ position with callback
+*
+* @method
+* @param {Number} x used to set x coordinate
+* @param {Number} y used to set y coordinate
+* @param {Number} z used to set z coordinate
+* @param {Object} options options hash
+* @param {Function} callback function to execute after setting each coordinate
+* @chainable
+*/
 Position.prototype.set = function set(x, y, z, options, callback) {
     this._dispatch.dirtyComponent(this._id);
-    this._x.set(x, options, callback);
-    this._y.set(y, options, callback);
+    this._x.set(x, options);
+    this._y.set(y, options);
     this._z.set(z, options, callback);
     return this;
 };
 
+/**
+*
+* Stops transition of Position component
+*
+* @method
+* @chainable
+*/
 Position.prototype.halt = function halt() {
     this._x.halt();
     this._y.halt();
@@ -1895,10 +2398,23 @@ module.exports = Position;
 
 var Position = require('./Position');
 
+/**
+ * @class Rotation
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Rotation component
+ */
 function Rotation(dispatch) {
     Position.call(this, dispatch);
 }
 
+/**
+*
+* stringifies Rotation
+*
+* @method
+* @return {String} the name of the Component Class: 'Rotation'
+*/
 Rotation.toString = function toString() {
     return 'Rotation';
 };
@@ -1906,6 +2422,13 @@ Rotation.toString = function toString() {
 Rotation.prototype = Object.create(Position.prototype);
 Rotation.prototype.constructor = Rotation;
 
+/**
+*
+* If true, component is to be updated on next engine tick
+*
+* @method
+* @return {Boolean}
+*/
 Rotation.prototype.clean = function clean() {
     var context = this._dispatch._context;
     context.setRotation(this._x.get(), this._y.get(), this._z.get());
@@ -1919,6 +2442,13 @@ module.exports = Rotation;
 
 var Position = require('./Position');
 
+/**
+ * @class Scale
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Scale component
+ */
+
 function Scale(dispatch) {
     Position.call(this, dispatch);
     this._x.set(1);
@@ -1926,6 +2456,13 @@ function Scale(dispatch) {
     this._z.set(1);
 }
 
+/**
+*
+* stringifies Scale
+*
+* @method 
+* @return {String} the name of the Component Class: 'Scale'
+*/
 Scale.toString = function toString() {
     return 'Scale';
 };
@@ -1933,6 +2470,13 @@ Scale.toString = function toString() {
 Scale.prototype = Object.create(Position.prototype);
 Scale.prototype.constructor = Scale;
 
+/**
+*
+* If true, component is to be updated on next engine tick
+*
+* @method
+* @return {Boolean}
+*/
 Scale.prototype.clean = function clean() {
     var context = this._dispatch._context;
     context.setScale(this._x.get(), this._y.get(), this._z.get());
@@ -1946,6 +2490,12 @@ module.exports = Scale;
 
 var Transitionable = require('famous-transitions').Transitionable;
 
+/**
+ * @class Size
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Size component
+ */
 function Size(dispatch) {
     this._dispatch = dispatch;
     this._id = dispatch.addComponent(this);
@@ -1968,10 +2518,23 @@ function Size(dispatch) {
     };
 }
 
+/** 
+* stringifies Size
+*
+* @method
+* @return {String} the name of the Component Class: 'Align' 
+*/
 Size.toString = function toString() {
     return 'Size';
 };
 
+/**
+*
+* Returns state object
+*
+* @method 
+* @return {Object} containing stringified constructor, x, y, z numeric size
+*/
 Size.prototype.getState = function getState() {
     if (this._absoluteMode) {
         return {
@@ -1998,6 +2561,14 @@ Size.prototype.getState = function getState() {
     };
 };
 
+/**
+* 
+* Sets state of size
+*
+* @method
+* @param {Object} state -- component: stringified constructor, x: number, y: number, z: number
+* @return {Boolean} true if component deeply equals stringified constructor, sets position coordinates, else returns false
+*/
 Size.prototype.setState = function setState(state) {
     if (state.component === this.constructor.toString()) {
         this._absoluteMode = state.type === 'absolute';
@@ -2033,6 +2604,13 @@ Size.prototype._cleanAbsoluteZ = function _cleanAbsoluteZ(prop) {
     } else return null;
 };
 
+/**
+*
+* If true, component is to be updated on next engine tick
+*
+* @method
+* @return {Boolean} 
+*/
 Size.prototype.clean = function clean () {
     var context = this._dispatch._context;
     if (this._absoluteMode) {
@@ -2067,6 +2645,18 @@ Size.prototype.clean = function clean () {
     }
 };
 
+/**
+*
+* Sets absolute Size
+*
+* @method
+* @param {Number} x used to set x size
+* @param {Number} y used to set y size
+* @param {Number} z used to set z size
+* @param {Object} options options hash
+* @param {Function} callback function to execute after setting each size
+* @chainable
+*/
 Size.prototype.setAbsolute = function setAbsolute(x, y, z, options, callback) {
     this._dispatch.dirtyComponent(this._id);
     var abs = this._absolute;
@@ -2125,6 +2715,13 @@ Size.prototype.setDifferential = function setDifferential(x, y, z, options, call
     return this;
 };
 
+/**
+*
+* Size getter method
+*
+* @method
+* @return {Array} size
+*/
 Size.prototype.get = function get () {
     return this._dispatch.getContext().getSize();
 };
@@ -2136,25 +2733,47 @@ module.exports = Size;
 
 var CallbackStore = require('famous-utilities').CallbackStore;
 
+/**
+ * Component to manage DOM events. When registering an event, the user may specify .methods and
+ * .properties to preprocess the event object.
+ *
+ * @class UIEventHandler
+ * @param {LocalDispatch} dispatch The dispatch with which to register the handler.
+ * @param {Object[]} events An array of event objects specifying .event and .callback properties.
+ */
 function UIEventHandler (dispatch, events) {
     this._events = new CallbackStore();
     var renderables = dispatch.getRenderables();
     for (var i = 0, len = renderables.length; i < len; i++)
         for (var j = 0, len2 = events.length; j < len2; j++) {
-            var eventName = events[i].event;
-            var methods = events[i].methods;
-            var properties = events[i].properties;
-            var callback = events[i].callback;
+            var eventName = events[j].event;
+            var methods = events[j].methods;
+            var properties = events[j].properties;
+            var callback = events[j].callback;
             this._events.on(eventName, callback);
             if (renderables[i].on) renderables[i].on(eventName, methods, properties);
             dispatch.registerTargetedEvent(eventName, this.trigger.bind(this, eventName));
         }
 }
 
+/**
+ * Returns the name of UIEventHandler as a string.
+ *
+ * @method toString
+ * @static
+ * @return {String} 'UIEventHandler'
+ */
 UIEventHandler.toString = function toString() {
     return 'UIEventHandler';
 };
 
+/**
+ * Trigger the callback associated with an event, passing in a payload.
+ *
+ * @method trigger
+ * @param {String} ev The event name.
+ * @param {Object} payload The event payload.
+ */
 UIEventHandler.prototype.trigger = function trigger (ev, payload) {
     this._events.trigger(ev, payload);
 };
@@ -2265,16 +2884,13 @@ module.exports = CallbackStore;
 },{}],28:[function(require,module,exports){
 'use strict';
 
-/**
- * Module dependencies
- */
 var Transitionable = require('famous-transitions').Transitionable;
 
-
 /**
- * Color
- * Accepts RGB, HSL, HEX and HSV with getters and setters.
- * If no options are provided, RGB is the default setter.
+ * @class Color
+ * @constructor
+ * @component
+ * @param Optional options for setting the color at instantiation.
  */
 var Color = function Color() {
     this._r = new Transitionable(0);
@@ -2284,14 +2900,34 @@ var Color = function Color() {
     if (options.length) this.set(options);
 };
 
+/**
+* Returns the definition of the Class: 'Color'
+*
+* @method toString
+* @return {string} definition
+*/
 Color.toString = function toString() {
     return 'Color';
 };
 
-
 /**
- * GENERAL
- */
+* Sets the color. It accepts an optional options parameter for tweening colors. Its default parameters are
+* in RGB, however, you can also specify different inputs.
+* set(r, g, b, option)
+* set('rgb', 0, 0, 0, option)
+* set('hsl', 0, 0, 0, option)
+* set('hsv', 0, 0, 0, option)
+* set('hex', '#000000', option)
+* set('#000000', option)
+* set('black', option)
+* set(Color)
+* @method set
+* @param {number} r Used to set the r value of Color
+* @param {number} g Used to set the g value of Color
+* @param {number} b Used to set the b value of Color
+* @param {object} options Optional options argument for tweening colors
+* @chainable
+*/
 Color.prototype.set = function set() {
     var options = Color.flattenArguments(arguments);
     var type = this.determineType(options[0]);
@@ -2308,37 +2944,82 @@ Color.prototype.set = function set() {
     return this;
 };
 
+/**
+ * Returns whether Color is still in an animating (tweening) state.
+ *
+ * @method isActive
+ * @returns {boolean} boolean
+ */
 Color.prototype.isActive = function isActive() {
     return this._r.isActive() || this._g.isActive() || this._b.isActive();
 };
 
+/**
+ * Tweens to another color values which can be set with
+ * various inputs: RGB, HSL, Hex, HSV or another Color instance.
+ *
+ * @method changeTo
+ * @param Color values
+ * @chainable
+ */
 Color.prototype.changeTo = function changeTo() {
     var options = Color.flattenArguments(arguments);
     if (options.length) this.set(options);
     return this;
 };
 
+/**
+ * Copies the color values from another Color instance
+ *
+ * @method copy
+ * @param Color instance
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
 Color.prototype.copy = function copy() {
     var values = Color.flattenArguments(arguments);
-    var color = values[0], options = values[1];
+    var color = values[0], options = values[1], cb = values[2];
     if (this.isColorInstance(color)) {
-        this.setRGB(color.getRGB(), options);
+        this.setRGB(color.getRGB(), options, cb);
     }
     return this;
 };
 
+/**
+ * Clone another Color instance
+ *
+ * @method clone
+ * @returns {Color} Color Returns a new Color instance with the same values
+ */
 Color.prototype.clone = function clone() {
     var rgb = this.getRGB();
     return new Color('rgb', rgb[0], rgb[1], rgb[2]);
 };
 
+/**
+ * Sets the color based on static color names
+ *
+ * @method setColor
+ * @param Color name
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
 Color.prototype.setColor = function setColor() {
     var values = Color.flattenArguments(arguments);
-    var color = values[0], options = values[1];
-    this.setHex(colorNames[color], options);
+    var color = values[0], options = values[1], cb = values[2];
+    this.setHex(colorNames[color], options, cb);
     return this;
 };
 
+/**
+ * Returns the color in either RGB or with the requested format.
+ *
+ * @method getColor
+ * @param Optional argument for determining which type of color to get (default is RGB)
+ * @returns Color in either RGB or specific value
+ */
 Color.prototype.getColor = function getColor(option) {
     option = option || 'undefined';
     switch (option.toLowerCase()) {
@@ -2351,10 +3032,24 @@ Color.prototype.getColor = function getColor(option) {
     }
 };
 
+/**
+ * Returns boolean whether the input is a Color instance
+ *
+ * @method isColorInstance
+ * @param Color instance
+ * @returns {Boolean} Boolean
+ */
 Color.prototype.isColorInstance = function isColorInstance(val) {
     return (val instanceof Color);
 };
 
+/**
+ * Parses the given input to the appropriate color configuration
+ *
+ * @method determineType
+ * @param Color type
+ * @returns {string} Appropriate color type
+ */
 Color.prototype.determineType = function determineType(val) {
     if (this.isColorInstance(val)) return 'instance';
     if (Color.isHex(val)) return 'hex';
@@ -2365,50 +3060,113 @@ Color.prototype.determineType = function determineType(val) {
     }
 };
 
+/**
+ * Sets the R of the Color's RGB
+ *
+ * @method setR
+ * @param R component of Color
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.setR = function setR(r, options, cb) {
+    this._r.set(r, options, cb);
+    return this;
+};
 
 /**
- * RGB
+ * Sets the G of the Color's RGB
+ *
+ * @method setG
+ * @param G component of Color
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
  */
-Color.prototype.setR = function setR(r, options) {
-    this._r.set(r, options);
+Color.prototype.setG = function setG(g, options, cb) {
+    this._g.set(g, options, cb);
     return this;
 };
 
-Color.prototype.setG = function setG(g, options) {
-    this._g.set(g, options);
+/**
+ * Sets the B of the Color's RGB
+ *
+ * @method setB
+ * @param B component of Color
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.setB = function setB(b, options, cb) {
+    this._b.set(b, options, cb);
     return this;
 };
 
-Color.prototype.setB = function setB(b, options) {
-    this._b.set(b, options);
-    return this;
-};
-
+/**
+ * Sets RGB
+ *
+ * @method setRGB
+ * @param RGB component of Color
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
 Color.prototype.setRGB = function setRGB() {
     var values = Color.flattenArguments(arguments);
     var options = values[3];
+    var cb = values[4];
     this.setR(values[0], options);
     this.setG(values[1], options);
-    this.setB(values[2], options);
+    this.setB(values[2], options, cb);
     return this;
 };
 
+/**
+ * Returns R of RGB
+ *
+ * @method getR
+ * @returns R of Color
+ */
 Color.prototype.getR = function getR() {
     return this._r.get();
 };
 
+/**
+ * Returns G of RGB
+ *
+ * @method getG
+ * @returns G of Color
+ */
 Color.prototype.getG = function getG() {
     return this._g.get();
 };
 
+/**
+ * Returns B of RGB
+ *
+ * @method getB
+ * @returns B of Color
+ */
 Color.prototype.getB = function getB() {
     return this._b.get();
 };
 
+/**
+ * Returns RGB
+ *
+ * @method getRGB
+ * @returns RGB
+ */
 Color.prototype.getRGB = function getRGB() {
     return [this.getR(), this.getG(), this.getB()];
 };
 
+/**
+ * Returns Normalized RGB
+ *
+ * @method getNormalizedRGB
+ * @returns Normalized RGB
+ */
 Color.prototype.getNormalizedRGB = function getNormalizedRGB() {
     var r = this.getR() / 255.0;
     var g = this.getG() / 255.0;
@@ -2416,6 +3174,12 @@ Color.prototype.getNormalizedRGB = function getNormalizedRGB() {
     return [r, g, b];
 };
 
+/**
+ * Returns the stringified RGB value
+ *
+ * @method getRGBString
+ * @returns Returns the stringified RGB value
+ */
 Color.prototype.getRGBString = function toRGBString() {
     var r = this.getR();
     var g = this.getG();
@@ -2423,38 +3187,81 @@ Color.prototype.getRGBString = function toRGBString() {
     return 'rgb('+ r +', '+ g +', '+ b +');';
 };
 
-Color.prototype.addRGB = function addRGB(r, g, b) {
+/**
+ * Adds the given RGB values to the current RGB.
+ *
+ * @method addRGB
+ * @param RGB values
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.addRGB = function addRGB(r, g, b, options, cb) {
     var r = Color.clamp(this.getR() + r);
     var g = Color.clamp(this.getG() + g);
     var b = Color.clamp(this.getB() + b);
-    this.setRGB(r, g, b);
+    this.setRGB(r, g, b, options, cb);
     return this;
 };
 
-Color.prototype.addScalar = function addScalar(s) {
+/**
+ * Adds a scalar values with the current RGB.
+ *
+ * @method addScalar
+ * @param Scalar value
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.addScalar = function addScalar(s, options, cb) {
     var r = Color.clamp(this.getR() + s);
     var g = Color.clamp(this.getG() + s);
     var b = Color.clamp(this.getB() + s);
-    this.setRGB(r, g, b);
+    this.setRGB(r, g, b, options, cb);
     return this;
 };
 
-Color.prototype.multiplyRGB = function multiplyRGB(r, g, b) {
+/**
+ * Multiplies RGB values with the current RGB.
+ *
+ * @method multiplyRGB
+ * @param RGB values
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.multiplyRGB = function multiplyRGB(r, g, b, options, cb) {
     var r = Color.clamp(this.getR() * r);
     var g = Color.clamp(this.getG() * g);
     var b = Color.clamp(this.getB() * b);
-    this.setRGB(r, g, b);
+    this.setRGB(r, g, b, options, cb);
     return this;
 };
 
-Color.prototype.multiplyScalar = function multiplyScalar(s) {
+/**
+ * Multiplies a scalar values with the current RGB.
+ *
+ * @method multiplyScalar
+ * @param Scalar value
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.multiplyScalar = function multiplyScalar(s, options, cb) {
     var r = Color.clamp(this.getR() * s);
     var g = Color.clamp(this.getG() * s);
     var b = Color.clamp(this.getB() * s);
-    this.setRGB(r, g, b);
+    this.setRGB(r, g, b, options, cb);
     return this;
 };
 
+/**
+ * Determines whether another Color instance equals the current one.
+ *
+ * @method equals
+ * @param Color instance
+ * @returns {Boolean}
+ */
 Color.prototype.equals = function equals(color) {
     if (this.isColorInstance(color)) {
         return  this.getR() === color.getR() &&
@@ -2464,24 +3271,49 @@ Color.prototype.equals = function equals(color) {
     return false;
 };
 
-Color.prototype.copyGammaToLinear = function copyGammaToLinear(color) {
+/**
+ * Copies the gamma values with the current RGB values
+ *
+ * @method copyGammaToLinear
+ * @param Color instance
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.copyGammaToLinear = function copyGammaToLinear(color, options, cb) {
     if (this.isColorInstance(color)) {
         var r = color.getR();
         var g = color.getG();
         var b = color.getB();
-        this.setRGB(r*r, g*g, b*b);
+        this.setRGB(r*r, g*g, b*b, options, cb);
     }
     return this;
 };
 
-Color.prototype.convertGammaToLinear = function convertGammaToLinear() {
+/**
+ * Converts the gamma values of the current RGB values
+ *
+ * @method convertGammaToLinear
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.convertGammaToLinear = function convertGammaToLinear(options, cb) {
     var r = this.getR();
     var g = this.getG();
     var b = this.getB();
-    this.setRGB(r*r, g*g, b*b);
+    this.setRGB(r*r, g*g, b*b, options, cb);
     return this;
 };
 
+/**
+ * Adds two different Color instances together and returns the RGB value
+ *
+ * @method addColors
+ * @param Color
+ * @param Color
+ * @returns RGB value of the added values
+ */
 Color.prototype.addColors = function addColors(color1, color2) {
     var r = color1.getR() + color2.getR();
     var g = color1.getG() + color2.getG();
@@ -2489,15 +3321,24 @@ Color.prototype.addColors = function addColors(color1, color2) {
     return [r, g, b];
 };
 
-
 /**
- * HEX
+ * Converts a number to a hex value
+ *
+ * @method toHex
+ * @param Number
+ * @returns Hex value
  */
 Color.prototype.toHex = function toHex(num) {
     var hex = num.toString(16);
     return hex.length === 1 ? '0' + hex : hex;
 };
 
+/**
+ * Returns the current color in Hex
+ *
+ * @method getHex
+ * @returns Hex value
+ */
 Color.prototype.getHex = function getHex() {
     var r = this.toHex(this.getR());
     var g = this.toHex(this.getG());
@@ -2505,16 +3346,26 @@ Color.prototype.getHex = function getHex() {
     return '#' + r + g + b;
 };
 
+/**
+ * Sets color using Hex
+ *
+ * @method setHex
+ * @param Hex value
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
 Color.prototype.setHex = function setHex() {
     var values = Color.flattenArguments(arguments);
-    var hex, options;
+    var hex, options, cb;
 
     if (Color.isHex(values[0])) {
         hex = values[0];
         options = values[1];
+        cb = values[2];
     }
     else {
-        hex = values[1]; options = values[2];
+        hex = values[1]; options = values[2], cb = values[3];
     }
     hex = (hex.charAt(0) === '#') ? hex.substring(1, hex.length) : hex;
 
@@ -2525,13 +3376,15 @@ Color.prototype.setHex = function setHex() {
     var r = parseInt(hex.substring(0, 2), 16);
     var g = parseInt(hex.substring(2, 4), 16);
     var b = parseInt(hex.substring(4, 6), 16);
-    this.setRGB(r, g, b, options);
+    this.setRGB(r, g, b, options, cb);
     return this;
 };
 
-
 /**
- * HSL
+ * Converts Hue to RGB
+ *
+ * @method hueToRGB
+ * @returns Hue value
  */
 Color.prototype.hueToRGB = function hueToRGB(p, q, t) {
     if (t < 0) t += 1;
@@ -2542,10 +3395,19 @@ Color.prototype.hueToRGB = function hueToRGB(p, q, t) {
     return p;
 };
 
+/**
+ * Sets color using HSL
+ *
+ * @method setHSL
+ * @param HSL values
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
 Color.prototype.setHSL = function setHSL() {
     var values = Color.flattenArguments(arguments);
     var h = values[0], s = values[1], l = values[2];
-    var options = values[3];
+    var options = values[3], cb = values[4];
     h /= 360.0;
     s /= 100.0;
     l /= 100.0;
@@ -2563,10 +3425,16 @@ Color.prototype.setHSL = function setHSL() {
     r = Math.round(r * 255);
     g = Math.round(g * 255);
     b = Math.round(b * 255);
-    this.setRGB(r, g, b, options);
+    this.setRGB(r, g, b, options, cb);
     return this;
 };
 
+/**
+ * Returns color in HSL
+ *
+ * @method getHSL
+ * @returns HSL value
+ */
 Color.prototype.getHSL = function getHSL() {
     var rgb = this.getNormalizedRGB();
     var r = rgb[0], g = rgb[1], b = rgb[2];
@@ -2589,58 +3457,109 @@ Color.prototype.getHSL = function getHSL() {
     return [h, s*100, l*100];
 };
 
+/**
+ * Returns hue
+ *
+ * @method getHue
+ * @returns Hue value
+ */
 Color.prototype.getHue = function getHue() {
     var hsl = this.getHSL();
     return hsl[0];
 };
 
-Color.prototype.setHue = function setHue(h, options) {
+/**
+ * Sets hue
+ *
+ * @method setHue
+ * @param Hue
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.setHue = function setHue(h, options, cb) {
     var hsl = this.getHSL();
-    this.setHSL(h, hsl[1], hsl[2], options);
+    this.setHSL(h, hsl[1], hsl[2], options, cb);
     return this;
 };
 
+/**
+ * Returns saturation
+ *
+ * @method getSaturation
+ * @returns Saturation value
+ */
 Color.prototype.getSaturation = function getSaturation() {
     var hsl = this.getHSL();
     return hsl[1];
 };
 
-Color.prototype.setSaturation = function setSaturation(s, options) {
+/**
+ * Sets saturation
+ *
+ * @method setSaturation
+ * @param Saturation
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.setSaturation = function setSaturation(s, options, cb) {
     var hsl = this.getHSL();
-    this.setHSL(hsl[0], s, hsl[2], options);
+    this.setHSL(hsl[0], s, hsl[2], options, cb);
     return this;
 };
 
+/**
+ * Returns brightness
+ *
+ * @method getBrightness
+ * @returns Brightness
+ */
 Color.prototype.getBrightness = function getBrightness() {
     var rgb = this.getNormalizedRGB();
     return Math.max(rgb[0], rgb[1], rgb[2]) * 100.0;
 };
 
+/**
+ * Returns Lightness
+ *
+ * @method getLightness
+ * @returns Lightness
+ */
 Color.prototype.getLightness = function getLightness() {
     var rgb = this.getNormalizedRGB();
     var r = rgb[0], g = rgb[1], b = rgb[2];
     return ((Math.max(r, g, b) + Math.min(r, g, b)) / 2.0) * 100.0;
 };
 
-Color.prototype.getLightness = function getLightness() {
+/**
+ * Sets lightness
+ *
+ * @method setLightness
+ * @param Lightness
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
+ */
+Color.prototype.setLightness = function setLightness(l, options, cb) {
     var hsl = this.getHSL();
-    return hsl[2];
-};
-
-Color.prototype.setLightness = function setLightness(l, options) {
-    var hsl = this.getHSL();
-    this.setHSL(hsl[0], hsl[0], l, options);
+    this.setHSL(hsl[0], hsl[0], l, options, cb);
     return this;
 };
 
-
 /**
- * HSV
+ * Sets color using HSV
+ *
+ * @method setHSV
+ * @param HSV values
+ * @param Optional options arguments for animating
+ * @param Optional callback
+ * @chainable
  */
 Color.prototype.setHSV = function setHSV() {
     var values = Color.flattenArguments(arguments);
     var h = values[0], s = values[1], v = values[2];
-    var options = values[3];
+    var options = values[3], cb = values[4];
     var r, g, b;
     var i = Math.floor(h * 6);
     var f = h * 6 - i;
@@ -2657,10 +3576,16 @@ Color.prototype.setHSV = function setHSV() {
         case 5: r = v, g = p, b = q; break;
     }
 
-    this.setRGB(r*255, g*255, b*255, options);
+    this.setRGB(r*255, g*255, b*255, options, cb);
     return this;
 };
 
+/**
+ * Returns color in HSV
+ *
+ * @method getHSV
+ * @returns HSV values
+ */
 Color.prototype.getHSV = function getHSV() {
     var rgb = this.getNormalizedRGB();
     var r = rgb[0], g = rgb[1], b = rgb[2];
@@ -2682,9 +3607,8 @@ Color.prototype.getHSV = function getHSV() {
     return [h, s, v];
 };
 
-
 /**
- * Generic color names
+ * Common color names with their associated Hex values
  */
 var colorNames = {
     aliceblue: '#f0f8ff',
@@ -2838,30 +3762,66 @@ var colorNames = {
 };
 
 
-
 /**
- * Helper functions
+ * One level deep flattening of arguments
+ *
+ * @method flattenArguments
+ * @returns A flattened array
  */
 Color.flattenArguments = function flattenArguments(options) {
     return Array.prototype.concat.apply([], options);
 };
 
+/**
+ * Converts arguments into an array
+ *
+ * @method argsToArray
+ * @returns Array
+ */
 Color.argsToArray = function argsToArray(val) {
     return Array.prototype.slice.call(val);
 };
 
+/**
+ * Returns a boolean checking whether input is a 'String'
+ *
+ * @method isString
+ * @param Primitive
+ * @returns {Boolean} Boolean
+ */
 Color.isString = function isString(val) {
     return (typeof val === 'string');
 };
 
+/**
+ * Returns a boolean checking whether input is an 'Integer'
+ *
+ * @method isInt
+ * @param Primitive
+ * @returns {Boolean} Boolean
+ */
 Color.isInt = function isInt(val) {
     return parseInt(val) === val;
 };
 
+/**
+ * Returns a boolean checking whether input is a 'Float'
+ *
+ * @method isFloat
+ * @param Primitive
+ * @returns {Boolean} Boolean
+ */
 Color.isFloat = function isFloat(val) {
     return !Color.isInt(val);
 };
 
+/**
+ * Returns a boolean checking whether all inputs are of type 'Float'
+ *
+ * @method allFloats
+ * @param list
+ * @returns {Boolean} Boolean
+ */
 Color.allFloats = function allFloats() {
     var val = Color.argsToArray(arguments);
     for(var i = 0; i < val.length; i++) {
@@ -2870,10 +3830,24 @@ Color.allFloats = function allFloats() {
     return true;
 };
 
+/**
+ * Returns a boolean checking whether all inputs are of type 'Integer'
+ *
+ * @method allInts
+ * @param list
+ * @returns {Boolean} Boolean
+ */
 Color.allInts = function allInts(val) {
     return !Color.allFloats(val);
 };
 
+/**
+ * Returns a boolean checking whether all inputs are of type 'String'
+ *
+ * @method allStrings
+ * @param list
+ * @returns {Boolean} Boolean
+ */
 Color.allStrings = function allStrings() {
     var values = Color.argsToArray(arguments);
     for(var i = 0; i < values.length; i++) {
@@ -2882,38 +3856,61 @@ Color.allStrings = function allStrings() {
     return true;
 };
 
+/**
+ * Returns a boolean checking whether string input has a percentage symbol
+ *
+ * @method isPercentage
+ * @param String
+ * @returns {Boolean} Boolean
+ */
 Color.isPercentage = function isPercentage(val) {
     return /%/.test(val);
 };
 
+/**
+ * Returns a boolean checking whether string input has a hash (#) symbol
+ *
+ * @method isHex
+ * @param String
+ * @returns {Boolean} Boolean
+ */
 Color.isHex = function isHex(val) {
     return /#/.test(val);
 };
 
+/**
+ * Returns a boolean checking whether the value and type are same
+ *
+ * @method isType
+ * @param String
+ * @param String
+ * @returns {Boolean} Boolean
+ */
 Color.isType = function isType(type, value) {
     return Color.allStrings(type, value) && type.toLowerCase() === value.toLowerCase();
 };
 
+/**
+ * Clamps a value between a minimum and a maximum
+ *
+ * @method clamp
+ * @param Number input
+ * @param Minumum
+ * @param Maximum
+ * @returns Clamped value
+ */
 Color.clamp = function clamp(val, min, max) {
     min = min || 0;
     max = max || 255;
     return Math.max(Math.min(val, max), min);
 };
 
-
-/**
- * Expose
- */
 module.exports = Color;
 
 },{"famous-transitions":26}],29:[function(require,module,exports){
 'use strict';
 
-/**
- * Module dependencies
- */
 var Color = require('./Color');
-
 
 /**
  * @class Stores multiple palettes in a collection and provides methods for
@@ -2929,19 +3926,47 @@ var ColorPalette = function ColorPalette() {
     (options.length) ? this.makePalette(options) : this.setRandomPalette();
 };
 
+/**
+ * Returns the stored palette
+ *
+ * @method getPalette
+ * @returns Palette
+ */
 ColorPalette.prototype.getPalette = function getPalette() {
     return this._palette;
 };
 
+/**
+ * Returns the color at a given index within the palette
+ *
+ * @method getColor
+ * @param Index
+ * @returns {Color} Color
+ */
 ColorPalette.prototype.getColor = function getColor(i) {
     return this._palette[i];
 };
 
+/**
+ * Makes a Color from the given inputs
+ *
+ * @method makeColor
+ * @param Color values in RGB, HSL, Hex, or HSV
+ * @returns {Color} Color
+ */
 ColorPalette.prototype.makeColor = function makeColor() {
     var options = Color.flattenArguments(arguments);
     return new Color(options[0], options[1], options[2]);
 };
 
+/**
+ * Makes a palette from a given set of Colors
+ *
+ * @method makePalette
+ * @param Color inputs
+ * @chainable
+ * @returns Palette
+ */
 ColorPalette.prototype.makePalette = function makePalette() {
     var options = Color.flattenArguments(arguments);
     var palette = [];
@@ -2953,12 +3978,24 @@ ColorPalette.prototype.makePalette = function makePalette() {
     return this;
 };
 
+/**
+ * Sets the color palette from a given set of palettes
+ *
+ * @method setRandomPalette
+ * @returns Color palette
+ */
 ColorPalette.prototype.setRandomPalette = function setRandomPalette() {
     var index = Math.floor(Math.random() * rawPalettes.length);
     this.makePalette(rawPalettes[Math.floor(index)]);
     return this;
 };
 
+/**
+ * Returns the lightest color in the color palette
+ *
+ * @method getLighestColor
+ * @returns Lightest color
+ */
 ColorPalette.prototype.getLighestColor = function() {
     var lightestValue = 0, lightestRef;
 
@@ -2972,6 +4009,12 @@ ColorPalette.prototype.getLighestColor = function() {
     return lightestRef;
 };
 
+/**
+ * Returns the darkest color in the color palette
+ *
+ * @method getDarkestColor
+ * @returns Darkest color
+ */
 ColorPalette.prototype.getDarkestColor = function() {
     var darkestValue = 100, darkestRef;
 
@@ -2985,13 +4028,18 @@ ColorPalette.prototype.getDarkestColor = function() {
     return darkestRef;
 };
 
+/**
+ * Returns the number of colors inside of the palette
+ *
+ * @method getPaletteCount
+ * @returns {Integer} Palette color length
+ */
 ColorPalette.prototype.getPaletteCount = function getPaletteCount() {
     return this._palette.length;
 };
 
-
 /**
- * Palettes
+ * A set of defined color palettes
  */
 var rawPalettes = [
     [[53,92,125], [108,91,123], [192,108,132], [246,114,128], [248,177,149]],
@@ -3203,11 +4251,7 @@ var rawPalettes = [
     [[74,95,103], [92,55,75], [204,55,71], [209,92,87], [217,212,168]]
 ];
 
-
-/**
- * Expose
- */
-module.exports = ColorPalette;
+ module.exports = ColorPalette;
 
 },{"./Color":28}],30:[function(require,module,exports){
 'use strict';
@@ -3514,6 +4558,16 @@ module.exports = strip;
 
 var Transform = require('./Transform');
 
+/**
+ * Layout is often easily described in terms of "top left", "bottom right",
+ * etc. Align is a way of defining an alignment relative to a bounding-box
+ * given by a size. Align is given by an array [x, y, z] of proportions betwee
+ * 0 and 1. The default value for the align is top left, or [0, 0, 0].
+ *
+ * @class Align
+ * @constructor
+ * @private
+ */
 function Align () {
     this.x = 0;
     this.y = 0;
@@ -3521,21 +4575,59 @@ function Align () {
     this.transform = new Transform();
 }
 
+/**
+ * Sets the alignment in x direction relative to its parent.
+ *
+ * @method setX
+ * @chainable
+ * 
+ * @param {Number} x alignment in x direction
+ * @return {Align} this
+ */
 Align.prototype.setX = function setX (x) {
     this.x = x;
     return this;
 };
 
+/**
+ * Sets the alignment in y direction relative to its parent.
+ *
+ * @method setX
+ * @chainable
+ * 
+ * @param {Number} y alignment in y direction
+ * @return {Align} this
+ */
 Align.prototype.setY = function setY (y) {
     this.y = y;
     return this;
 };
 
+/**
+ * Sets the alignment in z direction relative to its parent.
+ *
+ * @method setX
+ * @chainable
+ * 
+ * @param {Number} z alignment in z direction
+ * @return {Align} this
+ */
 Align.prototype.setZ = function setZ (z) {
     this.z = z;
     return this;
 };
 
+/**
+ * Sets the alignment relative to its parent.
+ *
+ * @method set
+ * @chainable
+ * 
+ * @param {Number} [x] alignment in x direction
+ * @param {Number} [y] alignment in y direction
+ * @param {Number} [z] alignment in z direction
+ * @return {Align} this
+ */
 Align.prototype.set = function set (x, y, z) {
     this.x = x != null ? x : this.x;
     this.y = y != null ? y : this.y;
@@ -3543,6 +4635,14 @@ Align.prototype.set = function set (x, y, z) {
     return this;
 };
 
+/**
+ * Mutates the internal transform matrix according to the passed in size
+ *
+ * @method update
+ * 
+ * @param  {Number[]} size  3D size
+ * @return {Transform}      internal Transform class
+ */
 Align.prototype.update = function update (size) {
     var x = size[0] * this.x;
     var y = size[1] * this.y;
@@ -3562,6 +4662,7 @@ module.exports = Align;
  *
  * @class  Clock
  * @constructor
+ * @private
  */
 function Clock () {
     this._updates = [];
@@ -3599,8 +4700,8 @@ Clock.prototype.step = function step (time) {
  * @method  update
  * @chainable
  * 
- * @param  {Object} target Object having an `update` method
- * @return {[type]}        this
+ * @param  {Object} target  Object having an `update` method
+ * @return {Clock}          this
  */
 Clock.prototype.update = function update (target) {
     this._updates.push(target);
@@ -3658,96 +4759,285 @@ module.exports = Clock;
 
 var Layer = require('./Layer');
 
+/**
+ * ComponentStore manages `components` and `renderables`. It also keeps track
+ * of the size shared by all renderables managed by this ComponentStore.
+ *
+ * Every LocalDispatch has its own ComponentStore.
+ *
+ * @class ComponentStore
+ * @constructor
+ * @private
+ */
 function ComponentStore () {
     this._components = new Layer();
     this._renderables = new Layer();
     this._currentRenderableSize = [0, 0, 0];
 }
 
+/**
+ * Clears all components by delegating to the layer they are being managed on.
+ *
+ * @method clearComponents
+ * @chainable
+ * 
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.clearComponents = function clearComponents () {
     this._components.clear();
     return this;
 };
 
+/**
+ * Clears all renderables by delegating to the layer they are being managed on.
+ *
+ * @method clearRenderables
+ * @chainable
+ * 
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.clearRenderables = function clearRenderables () {
     this._renderables.clear();
     return this;
 };
 
+/**
+ * Clears all components and renderables managed by this ComponentStore by
+ * delegating to the respective layers.
+ *
+ * @method clear
+ * @chainable
+ * 
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.clear = function clear () {
     return this.clearComponents().clearRenderables();
 };
 
+/**
+ * @alias ComponentStore.prototype.clear
+ */
 ComponentStore.prototype.kill = ComponentStore.prototype.clear;
 
+/**
+ * Cleans the underlying layer responsible for maintaining components.
+ *
+ * @method cleanComponents
+ * @chainable
+ * 
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.cleanComponents = function cleanComponents () {
     this._components.clean();
     return this;
 };
 
+/**
+ * Cleans the underlying layer responsible for maintaining renderables.
+ *
+ * @method cleanRenderables
+ * @chainable
+ * 
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.cleanRenderables = function cleanRenderables () {
     this._renderables.clean();
     return this;
 };
 
+/**
+ * Cleans the renderables and components managed by this ComponentStore.
+ *
+ * @method clean
+ * @chainable
+ * 
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.clean = function clean () {
     return this.cleanComponents().cleanRenderables();
 };
 
+/**
+ * Returns a new component id that can be used in order to register a new
+ * component on the ComponentStore using `registerComponentAt`.
+ *
+ * @method requestComponentId
+ * 
+ * @return {Number} id that can be used to register a new component using
+ *                     `registerComponentAt`
+ */
 ComponentStore.prototype.requestComponentId = function requestComponentId () {
     return this._components.requestId();
 };
 
+/**
+ * Returns a new renderable id that can be used in order to register a new
+ * renderable on the ComponentStore using `registerRenderableAt`.
+ *
+ * @method requestComponentId
+ * 
+ * @return {Number} id that can be used to register a new renderable using
+ *                     `registerRenderableAt`
+ */
 ComponentStore.prototype.requestRenderableId = function requestRenderableId () {
     return this._renderables.requestId();
 };
 
+/**
+ * Registers the passed in component on the ComponentStore at the specified id.
+ *
+ * @method  registerComponentAt
+ * @chainable
+ * 
+ * @param  {Number} id              unique id, preferably previously retrieved using
+ *                                  `requestComponentId`
+ * @param  {Component} component    component to be registered
+ * @return {ComponentStore}         this
+ */
 ComponentStore.prototype.registerComponentAt = function registerComponentAt (id, component) {
     this._components.registerAt(id, component);
     return this;
 };
 
+/**
+ * Registers the passed in renderable on the ComponentStore at the specified
+ * id.
+ *
+ * @method  registerRenderableAt
+ * @chainable
+ * 
+ * @param  {Number} id              unique id, preferably previously retrieved using
+ *                                  `requestRenderableId`
+ * @param  {Component} component    renderable to be registered
+ * @return {ComponentStore}         this
+ */
 ComponentStore.prototype.registerRenderableAt = function registerRenderableAt (id, renderable) {
     this._renderables.registerAt(id, renderable);
     return this;
 };
 
+/**
+ * Dirties the component registered at the specified id.
+ *
+ * @method makeComponentDirtyAt
+ * @chainable
+ * 
+ * @param  {Component} id   id at which the component has previously been
+ *                          registered using `registerComponentAt`
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.makeComponentDirtyAt = function makeComponentDirtyAt (id) {
     this._components.dirtyAt(id);
     return this;
 };
 
+/**
+ * Dirties the renderable registered at the specified id.
+ *
+ * @method makeRenderableDirtyAt
+ * @chainable
+ * 
+ * @param  {Component} id   id at which the renderable has previously been
+ *                          registered using `registerComponentAt`
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.makeRenderableDirtyAt = function makeRenderableDirtyAt (id) {
     this._renderables.dirtyAt(id);
     return this;
 };
 
+/**
+ * Cleans the component registered at the specified id.
+ *
+ * @method  cleanComponentAt
+ * @chainable
+ * 
+ * @param  {Component} id   id at which the component has previously been
+ *                          registered using `registerComponentAt`
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.cleanComponentAt = function cleanComponentAt (id) {
     this._components.cleanAt(id);
     return this;
 };
 
+/**
+ * Cleans the renderable registered at the specified id.
+ *
+ * @method  cleanRenderableAt
+ * @chainable
+ * 
+ * @param  {Renderable} id  id at which the renderable has previously been
+ *                          registered using `registerRenderableAt`
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.cleanRenderableAt = function cleanRenderableAt (id) {
     this._renderables.cleanAt(id);
     return this;
 };
 
+/**
+ * Retrieves the component registered at the specified id.
+ *
+ * @method  getComponentAt
+ * @chainable
+ * 
+ * @param  {Component} id   id at which the component has previously been
+ *                          registered using `registerComponentAt`
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.getComponentAt = function getComponentAt (id) {
     return this._components.getAt(id);
 };
 
+/**
+ * Retrieves the renderable registered at the specified id.
+ *
+ * @method  getRenderableAt
+ * @chainable
+ * 
+ * @param  {Renderable} id  id at which the renderable has previously been
+ *                          registered using `registerRenderableAt`
+ * @return {ComponentStore} this
+ */
 ComponentStore.prototype.getRenderableAt = function getRenderableAt (id) {
     return this._renderables.getAt(id);
 };
 
+/**
+ * Retrieves all components registered on this ComponentStore.
+ *
+ * @method getComponents
+ * 
+ * @return {Components[]} set of all components that have previously been
+ *                        registered on this ComponentStore
+ */
 ComponentStore.prototype.getComponents = function getComponents () {
     return this._components.get();
 };
 
+/**
+ * Retrieves all renderables registered on this ComponentStore.
+ *
+ * @method getRenderable
+ * 
+ * @return {Renderables[]}  set of all renderables that have previously
+ *                          been registered on this ComponentStore
+ */
 ComponentStore.prototype.getRenderables = function getRenderables () {
     return this._renderables.get();
 };
 
+/**
+ * Determines and returns the absolute, three dimensional **pixel** size
+ * allocated to renderables on this ComponentStore.
+ *
+ * @chainable
+ * @method getRenderableSize
+ * 
+ * @return {Number[]} three dimensional **pixel** size in the format
+ *                    `[width, height, depth]`
+ */
 ComponentStore.prototype.getRenderableSize = function getRenderableSize () {
     var renderables = this._renderables.get();
     var i = 0;
@@ -3921,6 +5211,7 @@ var isWorker = self.window !== self;
  * 
  * @class  Famous
  * @constructor
+ * @private
  */
 function Famous() {
     this._globalDispatch = new GlobalDispatch();
@@ -3967,7 +5258,7 @@ Famous.prototype.step = function step (time) {
  *
  * @method  postMessage
  * @chainable
- * @private
+ * @public
  * 
  * @param  {Array} message  incoming message containing commands
  * @return {Famous}         this
@@ -4040,11 +5331,9 @@ Famous.prototype.handleWith = function handleWith (message) {
  * 
  * @method onmessage
  * @override
- * @private
- * 
- * @return {[type]} [description]
+ * @public
  */
-Famous.prototype.onmessage = function onmessage () {};
+Famous.prototype.onmessage = function onmessage (message) {};
 
 // Use this when deprecation of `new Context` pattern is complete
 // Famous.prototype.createContext = function createContext (selector) {
@@ -4059,6 +5348,7 @@ Famous.prototype.onmessage = function onmessage () {};
  * frame-by-frame basis.
  * 
  * @method getClock
+ * @public
  * 
  * @return {Clock} internal Clock
  */
@@ -4071,6 +5361,7 @@ Famous.prototype.getClock = function getClock () {
  * to be sent on the next tick.
  *
  * @method  getMessageQueue
+ * @public
  * 
  * @return {MessageQueue} internal MessageQueue
  */
@@ -4083,6 +5374,7 @@ Famous.prototype.getMessageQueue = function getMessageQueue () {
  * listeners for global (same depth) or targeted (same path) events.
  *
  * @method  getGlobalDispatch
+ * @public
  * 
  * @return {GlobalDispatch} internal GlobalDispatch
  */
@@ -4109,10 +5401,11 @@ var CallbackStore = require('famous-utilities').CallbackStore;
  * GlobalDispatch is being used in order to manage scene graph events. It
  * routes and manages events being registered on specific nodes, but also
  * provides the possibility to globally register event listeners on the
- * whole scne graph.
+ * whole scene graph.
  *
  * @class  GlobalDispatch
  * @constructor
+ * @private
  */
 function GlobalDispatch () {
     this._targetedCallbacks = {};
@@ -4246,13 +5539,14 @@ module.exports = GlobalDispatch;
 'use strict';
 
 /**
- * Layer manages a set of components or renderables.
+ * Layers manage a set of components or renderables.
  * Components are expected to expose a `kill` method. Optionally they can
  * expose a clean method which will be called as soon as the layer they are
- * registered on is being cleaned and they are dirty.
+ * registered on is being cleaned and they are being dirty.
  *
  * @class  Layer
  * @constructor
+ * @private
  */
 function Layer () {
     this._components = [];
@@ -4389,6 +5683,28 @@ var RenderContext = require('./RenderContext');
 var ComponentStore = require('./ComponentStore');
 var RenderProxy = require('./RenderProxy');
 
+/**
+ * As opposed to a Node, a LocalDispatch does not define hierarchical
+ * structures within the scene graph. Thus removing the need to manage
+ * children, but at the same time requiring the Node to delegate updates to its
+ * own LocalDispatch and all subsequent Nodes.
+ *
+ * The primary responsibilty of the LocalDispatch is to provide the ability to
+ * register events on a specific Node ("targeted events"), without inducing the
+ * complexity of determining the Nodes location within the scene graph.
+ *
+ * It also holds a reference to a RenderContext, therefore being required to
+ * delegate invocations of its update function to its RenderContext, which
+ * consequently mutates the actual 3D transform matrix associated with the
+ * Node.
+ *
+ * @class  LocalDispatch
+ * @constructor
+ * 
+ * @param {Node} node           Node being managed by the LocalDispatch.
+ * @param {RenderProxy} proxy   RenderProxy associated with the managed Node's
+ *                              parent.
+ */
 function LocalDispatch (node, proxy) {
     this._renderProxy = new RenderProxy(proxy);
     this._context = new RenderContext(this);
@@ -4396,62 +5712,186 @@ function LocalDispatch (node, proxy) {
     this._node = node;
 }
 
+/**
+ * Kills the componentstore of the LocalDispatchm therefore killing all
+ * Renderables and Components registered for the managed node.
+ *
+ * @method kill
+ * @chainable
+ * 
+ * @return {LocalDispatch} this
+ */
 LocalDispatch.prototype.kill = function kill () {
     this._componentStore.kill();
     return this;
 };
 
+/**
+ * Returns the managed Node.
+ *
+ * @method getNode
+ * 
+ * @return {Node} managed Node
+ */
 LocalDispatch.prototype.getNode = function getNode () {
     return this._node;
 };
 
+/**
+ * Retrieves the RenderContext managed by the LocalDispatch.
+ *
+ * @method getContext
+ * 
+ * @return {RenderContext}  RenderContext managed by the LocalDispatch
+ */
 LocalDispatch.prototype.getContext = function getContext () {
     return this._context;
 };
 
+/**
+ * Returns the RenderPath uniquely identifiying the Node managed by the
+ * LocalDispatch in the scene graph.
+ *
+ * @method getRenderPath
+ * 
+ * @return {String} RenderPath encoded as a string (e.g. "body/1/2/3")
+ */
 LocalDispatch.prototype.getRenderPath = function getRenderPath () {
     return this._renderProxy.getRenderPath();
 };
 
+/**
+ * Returns the RenderProxy managed by the LocalDispatch.
+ *
+ * @method getRenderProxy
+ * 
+ * @return {RenderProxy} RenderProxy managed by the LocalDispatch.
+ */
 LocalDispatch.prototype.getRenderProxy = function getRenderProxy () {
     return this._renderProxy;
 };
 
+/**
+ * Registers an event listener to be triggered whenever the specified event is
+ * being triggered on the path defined by the RenderProxy attached to the
+ * LocalDispatch describing the Node's location in the Scene graph.
+ *
+ * @method registerTargetedEvent
+ * @chainable
+ * 
+ * @param  {String}   event event type to listen on
+ * @param  {Function} cb    event listener to be invoked whenever the event
+ *                          is being triggered
+ * @return {LocalDispatch}  this
+ */
 LocalDispatch.prototype.registerTargetedEvent = function registerTargetedEvent (event, cb) {
     this._node._globalDispatch.targetedOn(this.getRenderPath(), event, cb);
     return this;
 };
 
+/**
+ * Register a global event event listener to be triggered whenever the
+ * specified event is being triggered. Global in the context of events being
+ * emitted in the scene graph means events being emitted on the same depth as
+ * the Node.
+ * 
+ * @method registerGlobalEvent
+ * @chainable
+ * 
+ * @param  {String}   event event type to listen on
+ * @param  {Function} cb    event listener to be invoked whenever the event
+ *                          is being triggered
+ * @return {LocalDispatch}  this
+ */
 LocalDispatch.prototype.registerGlobalEvent = function registerGlobalEvent (event, cb) {
     this._node._globalDispatch.globalOn(this.getRenderPath(), event, cb);
     return this;
 };
 
+/**
+ * Deregisters a global event listener that has previously been registered
+ * using `registerGlobalEvent`.
+ *
+ * @method deregisterGlobalEvent
+ * @chainable
+ * 
+ * @param  {String}   event event type to listen on
+ * @param  {Function} cb    event listener to be invoked whenever the event
+ *                          is being triggered
+ * @return {LocalDispatch}  this
+ */
 LocalDispatch.prototype.deregisterGlobalEvent = function deregisterGlobalEvent (event, cb) {
     this._node._globalDispatch.globalOff(this.getRenderPath(), event, cb);
     return this;
 };
 
+/**
+ * Triggers an event on the Node attached to the LocalDispatch. Events are
+ * being managed by the GlobalDispatch.
+ *
+ * 
+ * @param  {String} event   event type to listen on
+ * @param  {Object} payload event payload object to be passed in to every
+ *                          callback function attached to the specified event
+ *                          type
+ * @return {LocalDispatch}  this
+ */
 LocalDispatch.prototype.emit = function emit (event, payload) {
     this._node._globalDispatch.emit(event, payload);
     return this;
 };
 
+/**
+ * Cleans all components associated with this component store.
+ *
+ * @method cleanCompoents
+ * @chainable
+ * 
+ * @return {LocalDispatch} this
+ */
 LocalDispatch.prototype.cleanComponents = function cleanComponents () {
     this._componentStore.cleanComponents();
     return this;
 };
 
+/**
+ * Cleans (updates) the RenderContext attached to this LocalDispatch.
+ *
+ * @method cleanRenderContext
+ * @chainable
+ * 
+ * @param  {RenderContext} parentNode   parent RenderContext
+ * @return {LocalDispatch}              this
+ */
 LocalDispatch.prototype.cleanRenderContext = function cleanRenderContext (parentNode) {
     this._context.update(parentNode ? parentNode.getDispatch()._context : void 0);
     return this;
 };
 
+/**
+ * Cleans the underlying Layer managing renderables indirectly attached to the
+ * LocalDispatch.
+ *
+ * @method cleanRenderables
+ * @chainable
+ * 
+ * @return {LocalDispatch}  this
+ */
 LocalDispatch.prototype.cleanRenderables = function cleanRenderables () {
     this._componentStore.cleanRenderables();
     return this;
 };
 
+/**
+ * Adds a component to the underlying ComponentStore.
+ *
+ * @method addComponent
+ * @chainable
+ * 
+ * @param {Component} component component to be added
+ * @return {Number} id          id the component has been registered at on the
+ *                              underlying ComponentStore
+ */
 LocalDispatch.prototype.addComponent = function addComponent (component) {
     var store = this._componentStore;
     var id = store.requestComponentId();
@@ -4459,11 +5899,32 @@ LocalDispatch.prototype.addComponent = function addComponent (component) {
     return id;
 };
 
+/**
+ * Dirties the component registered at the specified id.
+ * The id has typically been obtained using a previous invocation of
+ * `addComponent`.
+ *
+ * @method dirtyComponent
+ * @chainable
+ * 
+ * @param  {Number} id      id obtained via `addComponent`
+ * @return {LocalDispatch}  this
+ */
 LocalDispatch.prototype.dirtyComponent = function dirtyComponent (id) {
     this._componentStore.makeComponentDirtyAt(id);
     return this;
 };
 
+/**
+ * Adds a renderable to the underlying ComponentStore.
+ *
+ * @method addRenderable
+ * @chainable
+ * 
+ * @param {Renderable} renderable   renderable to be added
+ * @return {Number} id              id the component has been registered at on the
+ *                                  underlying ComponentStore
+ */
 LocalDispatch.prototype.addRenderable = function addRenderable (renderable) {
     var store = this._componentStore;
     var id = store.requestRenderableId();
@@ -4471,10 +5932,21 @@ LocalDispatch.prototype.addRenderable = function addRenderable (renderable) {
     return id;
 };
 
+/**
+ * Dirties the renderable registered at the specified id.
+ *
+ * @method dirtyRenderable
+ * @chainable
+ * 
+ * @param  {Number} id      id obtained via `addRenderable`
+ * @return {LocalDispatch}  this
+ */
 LocalDispatch.prototype.dirtyRenderable = function dirtyRenderable (id) {
     this._componentStore.makeRenderableDirtyAt(id);
     return this;
 };
+
+// @dan TODO -> RenderContext Can we remove this redundancy?
 
 LocalDispatch.prototype.onTransformChange = function onTransformChange (cb) {
     this._context.onTransformChange(cb);
@@ -4552,6 +6024,7 @@ module.exports = LocalDispatch;
  *
  * @class  MessageQueue
  * @constructor
+ * @private
  */
 function MessageQueue() {
     this._messages = [];
@@ -4604,6 +6077,12 @@ module.exports = MessageQueue;
 
 var Align = require('./Align');
 
+/**
+ * @class MountPoint
+ * @extends {Align}
+ * @constructor
+ * @private
+ */
 function MountPoint () {
     Align.call(this);
 }
@@ -4626,12 +6105,34 @@ module.exports = MountPoint;
 
 var LocalDispatch = require('./LocalDispatch');
 
+/**
+ * Nodes define hierarchy in the scene graph.
+ *
+ * @class  Node
+ * @constructor
+ * 
+ * @param {RenderProxy}     [proxy]             proxy used for creating a new
+ *                                              LocalDispatch if none has been provided
+ * @param {GlobalDispatch}  globalDispatch      GlobalDispatch consecutively
+ *                                              passed down from the Context
+ * @param {LocalDispatch}   [localDispatch]     LocalDispatch
+ */
 function Node (proxy, globalDispatch, localDispatch) {
     this._localDispatch = localDispatch != null ? localDispatch : new LocalDispatch(this, proxy);
     this._globalDispatch = globalDispatch;
     this._children = [];
 }
 
+/**
+ * Adds a child at the specified index. If index is `undefined`, the child
+ * will be pushed to the end of the internal children array.
+ *
+ * @method  addChild
+ * @chainable
+ * 
+ * @param   {Number} [index]    index the child should be inserted at
+ * @return  {Node} added        new child node
+ */
 Node.prototype.addChild = function addChild (index) {
     var child = new this.constructor(this._localDispatch.getRenderProxy(), this._globalDispatch);
     if (index == null) this._children.push(child);
@@ -4639,6 +6140,17 @@ Node.prototype.addChild = function addChild (index) {
     return child;
 };
 
+/**
+ * Removes the passed in node from the node's children. If the node is not an
+ * immediate child of the node the method is being called on, the method will
+ * fail silently.
+ *
+ * @method  removeChild
+ * @chainable
+ * 
+ * @param  {Node} node   child node to be removed
+ * @return {Node}        this
+ */
 Node.prototype.removeChild = function removeChild (node) {
     var index = this._children.indexOf(node);
     if (index !== -1) {
@@ -4648,12 +6160,31 @@ Node.prototype.removeChild = function removeChild (node) {
     return this;
 };
 
+/**
+ * Removes the child node at the specified index. E.g. removeChild(0) removes
+ * the node's first child, which consequently changes all remanining indices.
+ *
+ * @method  removeChildAtIndex
+ * @chainable
+ * 
+ * @param  {Number} index index of the node to be removed in the internal
+ *                        children array
+ * @return {Node}       this
+ */
 Node.prototype.removeChildAtIndex = function removeChildAtIndex (index) {
-    var result = this._layoutNodes.splice(index, 1);
+    var result = this._children.splice(index, 1);
     if (result.length) result[0].kill();
     return this;
 };
 
+/**
+ * Removes all children attached to this node.
+ *
+ * @method  removeAllChildren
+ * @chainable
+ * 
+ * @return {Node} this
+ */
 Node.prototype.removeAllChildren = function removeAllChildren () {
     for (var i = 0, len = this._children.length ; i < len ; i++) {
         this._children.pop().kill();
@@ -4661,20 +6192,54 @@ Node.prototype.removeAllChildren = function removeAllChildren () {
     return this;
 };
 
+/**
+ * Kills the Node by killing its local dispatch and removing all its children.
+ * Used internally whenever a child is being removed.
+ * 
+ * @method  kill
+ * @chainable
+ * @private
+ * 
+ * @return {Node} this
+ */
 Node.prototype.kill = function kill () {
     this._localDispatch.kill();
     this.removeAllChildren();
     return this;
 };
 
+/**
+ * Returns the local dispatch attached to this node.
+ *
+ * @method  getDispatch
+ * 
+ * @return {LocalDispatch} dispatch
+ */
 Node.prototype.getDispatch = function getDispatch () {
     return this._localDispatch;
 };
 
+
+/**
+ * Returns the Node's children.
+ *
+ * @method getChildren
+ * 
+ * @return {Node[]} children of this Node
+ */
 Node.prototype.getChildren = function getChildren () {
     return this._children;
 };
 
+/**
+ * Recursively updates the node and all its children.
+ *
+ * @method  update
+ * @chainable
+ * 
+ * @param  {Node} parent    parent node
+ * @return {Node}           this
+ */
 Node.prototype.update = function update (parent) {
     this._localDispatch.update(parent);
     for (var i = 0, len = this._children.length ; i < len ; i++)
@@ -4687,12 +6252,32 @@ module.exports = Node;
 },{"./LocalDispatch":45}],49:[function(require,module,exports){
 'use strict';
 
+/**
+ * Initilizes the Opacity primitive by settings its value to 1 (default value).
+ * Hierarchically setting opacity does not affect the final, local opacity
+ * being returned. Rather, this functionality needs to be implemented in the
+ * corresponding render targets (e.g. DOM has blending by default).
+ *
+ * @class Opacity
+ * @private
+ * @constructor
+ */
 function Opacity () {
     this.value = 1;
     this.isActive = false;
     this.dirty = false;
 }
 
+/**
+ * Sets, activates and dirties the internal notion of opacity being read by the
+ * RenderContext.
+ *
+ * @method set
+ * @chainable
+ * @private
+ * 
+ * @param {Opacity} value new opacity to be set
+ */
 Opacity.prototype.set = function set (value) {
     this.isActive = true;
     if (this.value !== value && value != null) {
@@ -4702,11 +6287,32 @@ Opacity.prototype.set = function set (value) {
     return this;
 };
 
+/**
+ * Dirties the opacity.
+ * This forces the RenderContext to trigger the `opacity` event on the next
+ * invocation of the `update` method on RenderContext.
+ *
+ * @method setDirty
+ * @chainable
+ * @private
+ *
+ * @return {Opacity} this
+ */
 Opacity.prototype.setDirty = function setDirty () {
     this.dirty = true;
     return this;
 };
 
+/**
+ * Cleans the opacity. This sets its dirty flag to `false`, thus no longer
+ * reading it in `update` of the RenderContext.
+ *
+ * @method clean
+ * @chainable
+ * @private
+ * 
+ * @return {Opacity} this
+ */
 Opacity.prototype.clean = function clean () {
     this.dirty = false;
     return this;
@@ -4717,6 +6323,14 @@ module.exports = Opacity;
 },{}],50:[function(require,module,exports){
 'use strict';
 
+/**
+ * The origin primitive defines the relative position of a point within a
+ * RenderContext that should be used to apply further transformations on.
+ * 
+ * @private
+ * @class  Origin
+ * @constructor
+ */
 function Origin () {
     this.x = 0;
     this.y = 0;
@@ -4725,12 +6339,34 @@ function Origin () {
     this.dirty = false;
 }
 
+/**
+ * Internal helper method used for setting the origin without marking it as active.
+ *
+ * @method _setWithoutActivating
+ * @private
+ * @chainable
+ * 
+ * @param {Number|null} x relative position to RenderContext in interval [0, 1]
+ * @param {Number|null} y relative position to RenderContext in interval [0, 1]
+ * @param {Number|null} z relative position to RenderContext in interval [0, 1]
+ */
 Origin.prototype._setWithoutActivating = function _setWithoutActivating (x, y, z) {
     this.set(x, y, z);
     this.isActive = false;
     return this;
 };
 
+/**
+ * Sets the relative position of the origin.
+ *
+ * @method  set
+ * @private
+ * @chainable
+ * 
+ * @param {Number} x relative position to RenderContext in interval [0, 1]
+ * @param {Number} y relative position to RenderContext in interval [0, 1]
+ * @param {Number} z relative position to RenderContext in interval [0, 1]
+ */
 Origin.prototype.set = function set (x, y, z) {
     this.isActive = true;
     if (this.x !== x && x != null) {
@@ -4748,11 +6384,31 @@ Origin.prototype.set = function set (x, y, z) {
     return this;
 };
 
+/**
+ * Dirties the origin by setting its `dirty` property to true. `origin.dirty`
+ * will be read by the `LocalDispatch` on the next update.
+ *
+ * @method  setDirty
+ * @chainable
+ * @private
+ *
+ * @return {Origin} this
+ */
 Origin.prototype.setDirty = function setDirty () {
     this.dirty = true;
     return this;
 };
 
+/**
+ * Cleans the Origin by setting its `dirty` property to `false`. This prevents
+ * the origin from being read on the next update by the `LocalDispatch`.
+ *
+ * @method clean
+ * @chainable
+ * @private
+ * 
+ * @return {Origin} this
+ */
 Origin.prototype.clean = function clean () {
     this.dirty = false;
     return this;
@@ -4777,6 +6433,25 @@ var SIZE = 'size';
 var ORIGIN = 'origin';
 var OPACITY = 'opacity';
 
+/**
+ * A RenderContext does not have a notion of a nested scene graph hierarchy.
+ * Its sole purpose it to manage the `origin`, `opacity`, `mountPoint`,
+ * `align` and `size` primitives primitives by updating its internal transform
+ * matrix.
+ *
+ * The RenderContext is being created by a LocalDisaptch, which delegates to
+ * the RenderContext's update method on every `FRAME` in order to apply
+ * corresponding updates to the transform matrix attached to the node and all
+ * its children. While the scene graph is being traversed recursively, the RenderContext
+ * does not have a notion of children. Instead, the Node recursively updates
+ * its LocalDispatch (and therefore its RenderContext) and all its children.
+ * 
+ * @class RenderContext
+ * @constructor
+ * @private
+ * 
+ * @param {LocalDisaptch} dispatch
+ */
 function RenderContext (dispatch) {
     this._origin = new Origin(this);
     this._opacity = new Opacity(this);
@@ -4791,6 +6466,7 @@ function RenderContext (dispatch) {
     this._noParent = false;
 }
 
+// TODO @dan Can we remove the CHANGE event? It has never been used.
 RenderContext.prototype.onChange = function onChange (cb) {
     this._events.on(CHANGE, cb);
     return this;
@@ -4801,95 +6477,307 @@ RenderContext.prototype.offChange = function offChange (cb) {
     return this;
 };
 
+/**
+ * Registers a callback function to be invoked whenever the transform attached
+ * to the RenderContext changes.
+ *
+ * @method  onTransformChange
+ * @chainable
+ * 
+ * @param  {Function} cb    callback function to be invoked whenever the transform
+ *                          attached to the RenderContext changes
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.onTransformChange = function onTransformChange (cb) {
     this._events.on(TRANSFORM, cb);
     return this;
 };
 
+/**
+ * Deregisters a callback function previously attached to the `transform`
+ * event using `onTransformChange`.
+ *
+ * @method  offTransformChange
+ * @chainable
+ * 
+ * @param  {Function} cb    callback function previously attached to the `transform`
+ *                          event using `onTransformChange`
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.offTransformChange = function offTransformChange (cb) {
     this._events.on(TRANSFORM, cb);
     return this;
 };
 
+/**
+ * Registers a callback function to be invoked whenever the size of the
+ * RenderContext changes.
+ *
+ * @method  onSizeChange
+ * @chainable
+ * 
+ * @param  {Function} cb    callback function to be invoked whenever the size
+ *                          of the RenderContext changes
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.onSizeChange = function onSizeChange (cb) {
     this._events.on(SIZE, cb);
     return this;
 };
 
+/**
+ * Deregisters a callback function previously attached to the `size`
+ * event using `onSizeChange`.
+ *
+ * @method  offSizeChange
+ * @chainable
+ * 
+ * @param  {Function} cb    callback function previously attached to the `size`
+ *                          event using `onSizeChange`
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.offSizeChange = function offSizeChange (cb) {
     this._events.off(SIZE, cb);
     return this;
 };
 
+/**
+ * Registers a callback function to be invoked whenever the origin of the
+ * RenderContext changes.
+ *
+ * @method  onOriginChange
+ * @chainable
+ * 
+ * @param  {Function} cb    callback function to be invoked whenever the
+ *                          origin of the RenderContext changes
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.onOriginChange = function onOriginChange (cb) {
     this._events.on(ORIGIN, cb);
     return this;
 };
 
+/**
+ * Deregisters a callback function previously attached to the `transform`
+ * event using `onTransformChange`.
+ *
+ * @method  offTransformChange
+ * @chainable
+ * 
+ * @param  {Function} cb    callback function previously attached to the 
+ *                          transform` event using `onTransformChange`
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.offOriginChange = function offOriginChange (cb) {
     this._events.off(ORIGIN, cb);
     return this;
 };
 
+/**
+ * Registers a callback function to be invoked whenever the transform attached
+ * to the RenderContext changes.
+ *
+ * @method  onTransformChange
+ * @chainable
+ * 
+ * @param  {Function} cb    callback function to be invoked whenever the transform
+ *                          attached to the RenderContext changed
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.onOpacityChange = function onOpacityChange (cb) {
     this._events.on(OPACITY, cb);
     return this;
 };
 
+/**
+ * Deregisters a callback function previously attached to the `transform`
+ * event using `onTransformChange`.
+ *
+ * @method  offTransformChange
+ * @chainable
+ * 
+ * @param  {Function} cb    callback function previously attached to the `transform`
+ *                          event using `onTransformChange`
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.offOpacityChange = function offOpacityChange (cb) {
     this._events.off(OPACITY, cb);
     return this;
 };
 
+/**
+ * Sets the opacity of the RenderContext.
+ *
+ * @method  setOpacity
+ * @chainable
+ * 
+ * @param {Number} opacity  opacity to be set on the RenderContext
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.setOpacity = function setOpacity (opacity) {
     this._opacity.set(opacity);
     return this;
 };
 
+/**
+ * Sets the position of the RenderContext.
+ *
+ * @method setPosition
+ * @chainable
+ * 
+ * @param {Number} x        x position
+ * @param {Number} y        y position
+ * @param {Number} z        z position
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.setPosition = function setPosition (x, y, z) {
     this._transform.setTranslation(x, y, z);
     return this;
 };
 
+/**
+ * Sets the absolute size of the RenderContext.
+ *
+ * @method setAbsolute
+ * @chainable
+ * 
+ * @param {Number} x        absolute allocated pixel space in x direction
+ *                          (absolute width)
+ * @param {Number} y        absolute allocated pixel space in y direction
+ *                          (absolute height)
+ * @param {Number} z        absolute allocated **pixel** space in z direction
+ *                          (absolute depth)
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.setAbsolute = function setAbsolute (x, y, z) {
     this._size.setAbsolute(x, y, z);
     return this;
 };
 
+/**
+ * Returns the absolute (pixel) size of the RenderContext.
+ *
+ * @method  getSize
+ * @chainable
+ * 
+ * @return {Number[]} 3D absolute **pixel** size
+ */
 RenderContext.prototype.getSize = function getSize () {
     return this._size.get();
 };
 
+/**
+ * Sets the proportional size of the RenderContext, relative to its parent.
+ *
+ * @method  setProportions
+ * @chainable
+ * 
+ * @param {Number} x        proportional allocated relative space in x direction (relative width)
+ * @param {Number} y        proportional allocated relative space in y direction (relative height)
+ * @param {Number} z        proportional allocated relative space in z direction (relative depth)
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.setProportions = function setProportions (x, y, z) {
     this._size.setProportions(x, y, z);
     return this;
 };
 
+/**
+ * Sets the differential size of the RenderContext. Differential sizing enables
+ * adding an additional offset after applying an absolute and proportional size.
+ *
+ * @method  setDifferntial
+ * @chainable
+ * 
+ * @param {Number} x        absolute pixel size to be added in x direction
+ *                          (additional width)
+ * @param {Number} y        absolute pixel size to be added in y direction
+ *                          (additional height)
+ * @param {Number} z        absolute pixel size to be added in z direction
+ *                          (additional depth)
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.setDifferential = function setDifferentials (x, y, z) {
     this._size.setDifferential(x, y, z);
     return this;
 };
 
+/**
+ * Sets the rotation of the RenderContext in euler angles.
+ *
+ * @method  setRotation
+ * @chainable
+ * 
+ * @param {RenderContext} x     x rotation
+ * @param {RenderContext} y     y rotation
+ * @param {RenderContext} z     z rotation
+ * @return {RenderContext}      this
+ */
 RenderContext.prototype.setRotation = function setRotation (x, y, z) {
     this._transform.setRotation(x, y, z);
     return this;
 };
 
+/**
+ * Sets the three dimensional scale of the RenderContext.
+ *
+ * @method  setScale
+ * @chainable
+ * 
+ * @param {Number} x        x scale
+ * @param {Number} y        y scale
+ * @param {Number} z        z scale
+ * @return {RenderContext}  this 
+ */
 RenderContext.prototype.setScale = function setScale (x, y, z) {
     this._transform.setScale(x, y, z);
     return this;
 };
 
+/**
+ * Sets the align of the RenderContext.
+ *
+ * @method  setAlign
+ * @chainable
+ * 
+ * @param {Number} x        x align
+ * @param {Number} y        y align
+ * @param {Number} z        z align
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.setAlign = function setAlign (x, y, z) {
     this._align.set(x, y, z);
     return this;
 };
 
+/**
+ * Sets the origin of the RenderContext.
+ *
+ * @method  setOrigin
+ * @chainable
+ * 
+ * @param {Number} x        x origin
+ * @param {Number} y        y origin
+ * @param {Number} z        z origin
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.setOrigin = function setOrigin (x, y, z) {
     this._origin.set(x, y, z);
     return this;
 };
 
+/**
+ * Sets the mount point of the RenderContext.
+ * TODO Come up with some nice ASCII art
+ *
+ * @method  setMountPoint
+ * @chainable
+ * 
+ * @param {Number} x        mount point in x direction
+ * @param {Number} y        mount point in y direction
+ * @param {Number} z        mount point in z direction
+ * @return {RenderContext}  this
+ */
 RenderContext.prototype.setMountPoint = function setMountPoint (x, y, z) {
     this._mountPoint.set(x, y, z);
     return this;
@@ -4903,6 +6791,19 @@ RenderContext.prototype.dirty = function dirty () {
 var identSize = new Float32Array([0, 0, 0]);
 var identTrans = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 
+/**
+ * Updates the RenderContext's internal transform matrix and emits
+ * corresponding change events. Takes into account the parentContext's size
+ * invalidations in order to maintain high throughput while still updating the
+ * entire scene graph on every FRAME command.
+ * 
+ * @method  update
+ * @chainable
+ * 
+ * @param  {RenderContext} parentContext    parent context passed down recrusively by
+ *                                          the Node through the LocalDispatch
+ * @return {RenderContext}                  this
+ */
 RenderContext.prototype.update = function update (parentContext) {
     var sizeInvalidations;
 
@@ -4984,19 +6885,57 @@ module.exports = RenderContext;
 var index = 0;
 var SLASH = '/';
 
+/**
+ * RenderProxy recursively delegates commands to its parent in order to queue
+ * messages to be sent on the next FRAME and uniquely identifies the node it is
+ * being managed by in the scene graph by exposing a global `path` describing
+ * its location.
+ * 
+ * @class  RenderProxy
+ * @constructor
+ * @private
+ * 
+ * @param {RenderProxy|Context} parent parent used for recursively obtaining
+ *                                     the path to the corresponding node
+ */
 function RenderProxy (parent) {
     this._parent = parent;
     this._id = SLASH + index++;
 }
 
+/**
+ * Retrieves the renderpath
+ *
+ * @method getRenderPath
+ * 
+ * @return {String} render path
+ */
 RenderProxy.prototype.getRenderPath = function getRenderPath () {
     return this._parent.getRenderPath() + this._id;
 };
 
+/**
+ * Appends a command to the MessageQueue by recursively passing it up to its
+ * parent until the top-level Context is being reached.
+ *
+ * @method  receive
+ * @chainable
+ * 
+ * @param  {Object} command command to be appended to the MessageQueue.
+ *                          Usually a string literal, but can be any object
+ *                          that can be cloned by the by the structured clone
+ *                          algorithm used to serialize messages to be sent to
+ *                          the main thread. This includes object literals
+ *                          containing circular references.
+ * @return {RenderProxy}    this
+ */
 RenderProxy.prototype.receive = function receive (command) {
     this._parent.receive(command);
     return this;
 };
+
+
+// @dan This is never being used. Can we remove it?
 
 RenderProxy.prototype.send = function send () {
     this._parent.send();
@@ -5008,6 +6947,18 @@ module.exports = RenderProxy;
 },{}],53:[function(require,module,exports){
 'use strict';
 
+/**
+ * The size primitive is being used internally by the RenderContext to manage
+ * and update its respective transform matrix. It doesn't expose user-facing
+ * APIs, but instead is being exposed on the RenderContext level in form of
+ * various methods, e.g. `setProportional` and `setAbsolute`.
+ *
+ * @class Size
+ * @constructor
+ * @private
+ * 
+ * @param {RenderContext} context RenderContext the Size is being attached to
+ */
 function Size (context) {
     this._context = context;
     this._size = [0, 0, 0];
@@ -5020,6 +6971,14 @@ function Size (context) {
     this._previouslyInvalidated = 0;
 }
 
+/**
+ * Retrieves the current top-down, absolute pixel size. Incorporates it parent size.
+ *
+ * @method  get
+ * @private
+ * 
+ * @return {Number[]} absolute pixel size
+ */
 Size.prototype.get = function get () {
     if (this._context._dispatch.hasRenderables())
         return this._context._dispatch.getTotalRenderableSize();
@@ -5027,6 +6986,17 @@ Size.prototype.get = function get () {
         return this.getTopDownSize();
 };
 
+/**
+ * Sets the proportional size.
+ *
+ * @method setProportions
+ * @chainable
+ * @private
+ * 
+ * @param {Number|null} x
+ * @param {Number|null} y
+ * @param {Number|null} z
+ */
 Size.prototype.setProportions = function setProportions(x, y, z) {
     if (x !== this._proportions[0] && x != null) {
         this._proportions[0] = x;
@@ -5040,8 +7010,20 @@ Size.prototype.setProportions = function setProportions(x, y, z) {
         this._proportions[2] = z;
         this._invalidated |= 4;
     }
+    return this;
 };
 
+/**
+ * Sets the differential size.
+ *
+ * @method  setDifferential
+ * @chainable
+ * @private
+ * 
+ * @param {Number|null} x
+ * @param {Number|null} y
+ * @param {Number|null} z
+ */
 Size.prototype.setDifferential = function setDifferential (x, y, z) {
     if (x !== this._differential[0] && x != null) {
         this._differential[0] = x;
@@ -5055,8 +7037,20 @@ Size.prototype.setDifferential = function setDifferential (x, y, z) {
         this._differential[2] = z;
         this._invalidated |= 4;
     }
+    return this;
 };
 
+/**
+ * Internal helper function called by `setAbsolute` in order to update the absolute size.
+ * 
+ * @method  _setAbsolute
+ * @chainable
+ * @private
+ * 
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} z
+ */
 Size.prototype._setAbsolute = function _setAbsolute (x, y, z) {
     if (x !== this._absolute[0] && x != null) {
         this._absolute[0] = x;
@@ -5070,8 +7064,20 @@ Size.prototype._setAbsolute = function _setAbsolute (x, y, z) {
         this._absolute[2] = z;
         this._invalidated |= 4;
     }
+    return this;
 };
 
+/**
+ * Updates the internal notion of absolute sizing.
+ *
+ * @method  setAbsolute
+ * @chainable
+ * @private
+ * 
+ * @param {Number|null} x
+ * @param {Number|null} y
+ * @param {Number|null} z
+ */
 Size.prototype.setAbsolute = function setAbsolute (x, y, z) {
     this._absoluteSized[0] = x != null;
     this._absoluteSized[1] = y != null;
@@ -5080,10 +7086,28 @@ Size.prototype.setAbsolute = function setAbsolute (x, y, z) {
     return this;
 };
 
+/**
+ * Retrieves the top-down size.
+ *
+ * @method  getTopDownSize
+ * @chainable
+ * 
+ * @return {Size} this
+ */
 Size.prototype.getTopDownSize = function getTopDownSize () {
     return this._size;
 };
 
+/**
+ * Updates the size according to previously set invalidations.
+ *
+ * @method  _update
+ * @private
+ * 
+ * @param  {Number} parentReport    bit scheme
+ * @param  {Number[]} parentSize    absolute parent size
+ * @return {Number}                 bit scheme
+ */
 Size.prototype._update = function _update(parentReport, parentSize) {
     this._invalidated |= parentReport;
     if (this._invalidated & 1)
@@ -5100,6 +7124,16 @@ Size.prototype._update = function _update(parentReport, parentSize) {
     return this._previouslyInvalidated;
 };
 
+/**
+ * Resets the internal managed size (parent size). Invalidates the primitive
+ * and therefore recalculates the size on the next invocation of the _update
+ * function.
+ *
+ * @method  toIdentity
+ * @chainable
+ * 
+ * @return {Size} this
+ */
 Size.prototype.toIdentity = function toIdentity () {
     this._absolute[0] = this._absolute[1] = this._absolute[2] = 0;
     this._differential[0] = this._differential[1] = this._differential[2] = 0;
@@ -5149,13 +7183,14 @@ var DEPENDENTS = {
 };
 
 /**
- * Transform is a component that is part of every Entity.  It is
- *   responsible for updating it's own notion of position in space and
- *   incorporating that with parent information.
+ * Transform is an object that is part of every RenderContext, Align and its
+ * derivatives Origin and MountPoint.
+ * It is responsible for updating its own notion of position in space and
+ * incorporating its parent information.
  *
  * @class Transform
- * @component
  * @constructor
+ * @private
  */
 function Transform() {
     this._matrix = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
@@ -5168,9 +7203,9 @@ function Transform() {
     this._invalidated = 0;
     this._previouslyInvalidated = 0;
 
-    //precalculated values for validators
+    // precalculated values for validators
     this._precalculated = new Float32Array(9);
-    //track what transformations were applied: [scale x, scale y, scale z, rotation x, rotaion y, rotation z]
+    // track what transformations were applied: [scale x, scale y, scale z, rotation x, rotaion y, rotation z]
     this._tracktransforms = [false, false, false, false, false, false];
 }
 
@@ -5180,7 +7215,8 @@ function Transform() {
  *
  * @method getGlobalMatrix
  *
- * @return {Float32 Array} representation of this Transform being applied to it's parent
+ * @return {Float32Array}   representation of this Transform being applied to
+ *                          it's parent
  */
 Transform.prototype.getGlobalMatrix = function getGlobalMatrix() {
     return this._matrix;
@@ -5294,7 +7330,6 @@ Transform.prototype._update = function _update(parentReport, parentMatrix) {
 Transform.prototype.translate = function translate(x, y, z) {
     var translation = this._vectors.translation;
     var dirty = false;
-    var size;
 
     if (x) {
         translation[0] += x;
@@ -5378,7 +7413,6 @@ Transform.prototype.scale = function scale(x, y, z) {
 Transform.prototype.setTranslation = function setTranslation(x, y, z) {
     var translation = this._vectors.translation;
     var dirty = false;
-    var size;
 
     if (x !== translation[0] && x != null) {
         translation[0] = x;
@@ -5584,7 +7618,6 @@ Transform.prototype._precalculatedSetDefault = function _precalculatedSetDefault
 };
 
 Transform.prototype._precalculateTrMatrix = function _precalculateTrMatrix() {
-
     var tracktransforms = this._tracktransforms;
     
     //rotation should go before scale checks
@@ -6554,10 +8587,7 @@ var CallbackStore = require('famous-utilities').CallbackStore;
 
 var ELEMENT = 'element';
 var ID = 'id';
-var WIDTH = 'width';
-var HEIGHT = 'height';
 var OPACITY = 'opacity';
-var PX = 'px';
 var WITH = 'WITH';
 var CHANGE_TRANSFORM = 'CHANGE_TRANSFORM';
 var CHANGE_TRANSFORM_ORIGIN = 'CHANGE_TRANSFORM_ORIGIN';
@@ -6595,7 +8625,9 @@ function HTMLElement(dispatch) {
     this._dispatch.onOpacityChange(this._receiveOpacityChange.bind(this));
     this._dispatch.onOriginChange(this._receiveOriginChange.bind(this));
     this._receiveTransformChange(this._dispatch.getContext()._transform);
+    this._receiveSizeChange(this._dispatch.getContext()._size);
     this._receiveOriginChange(this._dispatch.getContext()._origin);
+    this._receiveOpacityChange(this._dispatch.getContext()._opacity);
 }
 
 // Return the name of the Element Class: 'element'
@@ -7033,7 +9065,7 @@ function vendorPrefix(property) {
 var VENDOR_TRANSFORM = vendorPrefix(TRANSFORM);
 var VENDOR_TRANSFORM_ORIGIN = vendorPrefix(TRANSFORM_ORIGIN);
 
-function VirtualElement (target, path, renderer, parent, rootElement) {
+function VirtualElement (target, path, renderer, parent, rootElement, root) {
     this._path = path;
     this._target = target;
     this._renderer = renderer;
@@ -7054,6 +9086,8 @@ function VirtualElement (target, path, renderer, parent, rootElement) {
     this._rootElement = rootElement || this;
     this._finalTransform = new Float32Array(16);
     this._MV = new Float32Array(16);
+    this._perspectiveTransform = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+    this._isRoot = root ? root : false;
 }
 
 VirtualElement.prototype.getTarget = function getTarget () {
@@ -7257,42 +9291,32 @@ VirtualElement.prototype.draw = function draw(renderState) {
     var m = this._finalMatrix;
     var perspectiveTransform = renderState.perspectiveTransform;
 
-    var originShiftedPerspective = [
-        perspectiveTransform[0],
-        perspectiveTransform[1],
-        perspectiveTransform[2],
-        perspectiveTransform[3],
+    this._perspectiveTransform[8] = perspectiveTransform[11] * ((this._rootElement._size[0] * 0.5) - (this._size[0] * this._origin[0])),
+    this._perspectiveTransform[9] = perspectiveTransform[11] * ((this._rootElement._size[1] * 0.5) - (this._size[1] * this._origin[1]));
+    this._perspectiveTransform[11] = perspectiveTransform[11];
 
-        perspectiveTransform[4],
-        perspectiveTransform[5],
-        perspectiveTransform[6],
-        perspectiveTransform[7],
+    if (this._parent) {
+        invert(this._invertedParent, this._parent._receivedMatrix);
+        multiply(this._finalMatrix, this._invertedParent, this._receivedMatrix);
+    }
 
-        perspectiveTransform[11] * ((this._rootElement._size[0] * 0.5) - (this._size[0] * this._origin[0])),
-        perspectiveTransform[11] * ((this._rootElement._size[1] * 0.5) - (this._size[1] * this._origin[1])),
-        perspectiveTransform[10],
-        perspectiveTransform[11],
+    if (this._parent._isRoot) {
+        multiply(
+            this._MV,
+            renderState.viewTransform,
+            this._finalMatrix
+        );
 
-        perspectiveTransform[12],
-        perspectiveTransform[13],
-        perspectiveTransform[14],
-        perspectiveTransform[15]
-    ];
+        multiply(
+            this._finalTransform,
+            this._perspectiveTransform,
+            this._MV
+        );
+    }
 
-    this._MV = multiply(
-        this._MV,
-        renderState.viewTransform,
-        m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15]
-    );
+    var finalTransform = this._parent._isRoot ? this._finalTransform : this._finalMatrix;
 
-    var MV = this._MV;
-    this._finalTransform = multiply(
-        this._finalTransform,
-        originShiftedPerspective,
-        MV[0], MV[1], MV[2], MV[3], MV[4], MV[5], MV[6], MV[7], MV[8], MV[9], MV[10], MV[11], MV[12], MV[13], MV[14], MV[15]
-    );
-
-    this._target.style[VENDOR_TRANSFORM] = stringifyMatrix(this._finalTransform);
+    this._target.style[VENDOR_TRANSFORM] = stringifyMatrix(finalTransform);
 };
 
 VirtualElement.prototype.setMatrix = function setMatrix (m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15) {
@@ -7312,28 +9336,23 @@ VirtualElement.prototype.setMatrix = function setMatrix (m0, m1, m2, m3, m4, m5,
     this._receivedMatrix[13] = m13;
     this._receivedMatrix[14] = m14;
     this._receivedMatrix[15] = m15;
-    if (this._parent) {
-        invert(this._invertedParent, this._parent._receivedMatrix);
-        multiply(this._finalMatrix, this._invertedParent, m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15);
-    }
-    else {
-        this._finalMatrix[0] = m0;
-        this._finalMatrix[1] = m1;
-        this._finalMatrix[2] = m2;
-        this._finalMatrix[3] = m3;
-        this._finalMatrix[4] = m4;
-        this._finalMatrix[5] = m5;
-        this._finalMatrix[6] = m6;
-        this._finalMatrix[7] = m7;
-        this._finalMatrix[8] = m8;
-        this._finalMatrix[9] = m9;
-        this._finalMatrix[10] = m10;
-        this._finalMatrix[11] = m11;
-        this._finalMatrix[12] = m12;
-        this._finalMatrix[13] = m13;
-        this._finalMatrix[14] = m14;
-        this._finalMatrix[15] = m15;
-    }
+
+    this._finalMatrix[0] = m0;
+    this._finalMatrix[1] = m1;
+    this._finalMatrix[2] = m2;
+    this._finalMatrix[3] = m3;
+    this._finalMatrix[4] = m4;
+    this._finalMatrix[5] = m5;
+    this._finalMatrix[6] = m6;
+    this._finalMatrix[7] = m7;
+    this._finalMatrix[8] = m8;
+    this._finalMatrix[9] = m9;
+    this._finalMatrix[10] = m10;
+    this._finalMatrix[11] = m11;
+    this._finalMatrix[12] = m12;
+    this._finalMatrix[13] = m13;
+    this._finalMatrix[14] = m14;
+    this._finalMatrix[15] = m15;
 };
 
 VirtualElement.prototype.addClass = function addClass (className) {
@@ -7464,13 +9483,17 @@ function invert (out, a) {
     return out;
 }
 
-function multiply (out, a, b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15) {
+function multiply (out, a, b) {
     var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
         a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
         a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11],
-        a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+        a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15],
 
-    // Cache only the current line of the second matrix
+        b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3],
+        b4 = b[4], b5 = b[5], b6 = b[6], b7 = b[7],
+        b8 = b[8], b9 = b[9], b10 = b[10], b11 = b[11],
+        b12 = b[12], b13 = b[13], b14 = b[14], b15 = b[15];
+
     out[0] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
     out[1] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
     out[2] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
@@ -7493,6 +9516,7 @@ function multiply (out, a, b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12
     out[13] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
     out[14] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
     out[15] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
     return out;
 }
 
@@ -7569,7 +9593,7 @@ else {
 if (typeof document !== 'undefined') {
     var VENDOR_HIDDEN, VENDOR_VISIBILITY_CHANGE;
 
-    if (typeof document.hidden !== 'undefined') { // Opera 12.10 and Firefox 18 and later support 
+    if (typeof document.hidden !== 'undefined') { // Opera 12.10 and Firefox 18 and later support
         VENDOR_HIDDEN = 'hidden';
         VENDOR_VISIBILITY_CHANGE = 'visibilitychange';
     }
@@ -7593,11 +9617,11 @@ function Engine() {
     this.looper = function(time) {
         _this.loop(time);
     };
-    this._looper = this.loop.bind(this);
     this._stoppedAt = _now();
     this._sleep = 0;
     this._startOnVisibilityChange = true;
     this.start();
+    rAF(this.looper);
 
     if (typeof document !== 'undefined') {
         var _this = this;
@@ -7609,9 +9633,7 @@ function Engine() {
             }
             else {
                 if (_this._startOnVisibilityChange) {
-                    rAF(function() {
-                        _this.start();
-                    });
+                    _this.start();
                 }
             }
         });
@@ -7622,7 +9644,6 @@ Engine.prototype.start = function start() {
     this._startOnVisibilityChange = true;
     this._running = true;
     this._sleep += _now() - this._stoppedAt;
-    rAF(this._looper);
     return this;
 };
 
@@ -7647,7 +9668,7 @@ Engine.prototype.step = function step (time) {
 Engine.prototype.loop = function loop(time) {
     this.step(time - this._sleep);
     if (this._running) {
-        rAF(this._looper);
+        rAF(this.looper);
     }
     return this;
 };
@@ -10509,32 +12530,939 @@ arguments[4][5][0].apply(exports,arguments)
 },{"dup":5}],208:[function(require,module,exports){
 arguments[4][6][0].apply(exports,arguments)
 },{"./Easing":203,"./MultipleTransition":204,"./Transitionable":205,"./TweenTransition":206,"./after":207,"dup":6}],209:[function(require,module,exports){
-arguments[4][7][0].apply(exports,arguments)
-},{"./Position":217,"dup":7}],210:[function(require,module,exports){
-arguments[4][8][0].apply(exports,arguments)
-},{"dup":8}],211:[function(require,module,exports){
-arguments[4][9][0].apply(exports,arguments)
-},{"dup":9}],212:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10,"famous-utilities":242}],213:[function(require,module,exports){
-arguments[4][11][0].apply(exports,arguments)
-},{"dup":11,"famous-math":227,"famous-utilities":242}],214:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"./Position":217,"dup":12}],215:[function(require,module,exports){
-arguments[4][13][0].apply(exports,arguments)
-},{"dup":13,"famous-transitions":208}],216:[function(require,module,exports){
-arguments[4][14][0].apply(exports,arguments)
-},{"./Position":217,"dup":14}],217:[function(require,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"dup":15,"famous-transitions":208}],218:[function(require,module,exports){
-arguments[4][16][0].apply(exports,arguments)
-},{"./Position":217,"dup":16}],219:[function(require,module,exports){
-arguments[4][17][0].apply(exports,arguments)
-},{"./Position":217,"dup":17}],220:[function(require,module,exports){
-arguments[4][18][0].apply(exports,arguments)
-},{"dup":18,"famous-transitions":208}],221:[function(require,module,exports){
-arguments[4][19][0].apply(exports,arguments)
-},{"dup":19,"famous-utilities":242}],222:[function(require,module,exports){
+'use strict';
+
+var Position = require('./Position');
+
+function Align(dispatch) {
+    Position.call(this, dispatch);
+}
+
+Align.toString = function toString() {
+    return 'Align';
+};
+
+Align.prototype = Object.create(Position.prototype);
+Align.prototype.constructor = Align;
+
+Align.prototype.clean = function clean() {
+    var context = this._dispatch._context;
+    context.setAlign(this._x.get(), this._y.get(), this._z.get());
+    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+};
+
+module.exports = Align;
+
+},{"./Position":217}],210:[function(require,module,exports){
+'use strict';
+
+/**
+ * @class Camera
+ * @constructor
+ * @component
+ * @param {RenderNode} RenderNode to which the instance of Camera will be a component of
+ */
+function Camera(dispatch) {
+    this._dispatch = dispatch;
+    this._projectionType = Camera.ORTHOGRAPHIC_PROJECTION;
+    this._focalDepth = 0;
+    this._id = dispatch.addComponent(this);
+
+    this.setFlat();
+}
+
+Camera.FRUSTUM_PROJECTION = 0;
+Camera.PINHOLE_PROJECTION = 1;
+Camera.ORTHOGRAPHIC_PROJECTION = 2;
+
+// Return the name of the Element Class: 'Camera'
+Camera.toString = function toString() {
+    return 'Camera';
+};
+
+Camera.prototype.getState = function getState() {
+    return {
+        component: this.constructor.toString(),
+        projectionType: this._projectionType,
+        focalDepth: this._focalDepth
+    };
+};
+
+
+Camera.prototype.setState = function setState(state) {
+    this._dispatch.dirtyComponent(this._id);
+    if (state.component === this.constructor.toString()) {
+        this.set(state.projectionType, state.focalDepth);
+        return true;
+    }
+    return false;
+};
+
+Camera.prototype.set = function set(type, depth) {
+    this._dispatch.dirtyComponent(this._id);
+    this._projectionType = type;
+    this._focalDepth = depth;
+};
+
+Camera.prototype.setDepth = function setDepth(depth) {
+    this._dispatch.dirtyComponent(this._id);
+    this._projectionType = Camera.PINHOLE_PROJECTION;
+    this._focalDepth = depth;
+
+    return this;
+};
+
+Camera.prototype.setFlat = function setFlat() {
+    this._dispatch.dirtyComponent(this._id);
+    this._projectionType = Camera.ORTHOGRAPHIC_PROJECTION;
+    this._focalDepth = 0;
+
+    return this;
+};
+
+Camera.prototype.clean = function clean() {
+    switch (this._projectionType) {
+        case Camera.FRUSTUM_PROJECTION:
+            this._dispatch.sendDrawCommand('FRUSTUM_PROJECTION');
+            break;
+        case Camera.PINHOLE_PROJECTION:
+            this._dispatch.sendDrawCommand('PINHOLE_PROJECTION');
+            this._dispatch.sendDrawCommand(this._focalDepth);
+            break;
+        case Camera.ORTHOGRAPHIC_PROJECTION:
+            this._dispatch.sendDrawCommand('ORTHOGRAPHIC_PROJECTION');
+            break;
+    }
+    return false;
+};
+
+module.exports = Camera;
+
+},{}],211:[function(require,module,exports){
+'use strict';
+
+function EventEmitter(dispatch) {
+    this.dispatch = dispatch;
+}
+
+EventEmitter.toString = function toString() {
+    return 'EventEmitter';
+};
+
+EventEmitter.prototype.emit = function emit(event, payload) {
+    this.dispatch.emit(event, payload);
+    return this;
+};
+
+module.exports = EventEmitter;
+
+},{}],212:[function(require,module,exports){
+'use strict';
+
+var CallbackStore = require('famous-utilities').CallbackStore;
+
+function EventHandler (dispatch, events) {
+    this.dispatch = dispatch;
+    this._events = new CallbackStore();
+
+    if (events) {
+        for (var i = 0, len = events.length; i < len; i++) {
+            var eventName = events[i].event;
+            var callback = events[i].callback;
+            this._events.on(eventName, callback);
+            dispatch.registerGlobalEvent(eventName, this.trigger.bind(this, eventName));
+        }
+    }
+}
+
+EventHandler.toString = function toString() {
+    return 'EventHandler';
+};
+
+EventHandler.prototype.on = function on (ev, cb) {
+    this._events.on(ev, cb);
+    this.dispatch.registerGlobalEvent(ev, this.trigger.bind(this, ev));
+};
+
+EventHandler.prototype.off = function off (ev, cb) {
+    this._events.off(ev, cb);
+    this.dispatch.deregisterGlobalEvent(ev, this.trigger.bind(this, ev))
+};
+
+
+EventHandler.prototype.trigger = function trigger (ev, payload) {
+    this._events.trigger(ev, payload);
+};
+
+module.exports = EventHandler;
+
+},{"famous-utilities":242}],213:[function(require,module,exports){
+'use strict';
+
+var CallbackStore = require('famous-utilities').CallbackStore;
+var Vec2 = require('famous-math').Vec2;
+
+var VEC_REGISTER = new Vec2();
+
+var gestures = {drag: true, tap: true, rotate: true, pinch: true};
+var callbacks = [processTouchStart, processTouchMove, processTouchEnd];
+
+var touchEvents = ['touchstart', 'touchmove', 'touchend'];
+var methods = ['preventDefault'];
+var properties = [{targetTouches: {0: ['pageX', 'pageY', 'identifier'], 1: ['pageX', 'pageY', 'identifier']}}];
+
+function GestureHandler (dispatch, events) {
+    this.dispatch = dispatch;
+
+    this.last1 = new Vec2();
+    this.last2 = new Vec2();
+
+    this.delta1 = new Vec2();
+    this.delta2 = new Vec2();
+
+    this.velocity1 = new Vec2();
+    this.velocity2 = new Vec2();
+
+    this.dist = 0;
+    this.diff12 = new Vec2();
+
+    this.center = new Vec2();
+    this.centerDelta = new Vec2();
+    this.centerVelocity = new Vec2();
+
+    this.pointer1 = {
+            position: this.last1,
+            delta: this.delta1,
+            velocity: this.velocity1,
+    };
+
+    this.pointer2 = {
+            position: this.last2,
+            delta: this.delta2,
+            velocity: this.velocity2,
+    };
+
+    this.event = {
+        status: null,
+        time: 0,
+        pointers: [],
+        center: this.center,
+        centerDelta: this.centerDelta,
+        centerVelocity: this.centerVelocity,
+        points: 0,
+        current: 0
+    };
+
+    this.trackedTouchIDs = [-1, -1];
+    this.timeOfPointer = 0;
+    this.multiTap = 0;
+
+    this.gestures = [];
+    this.options = {};
+    this.trackedGestures = {};
+
+    this._events = new CallbackStore();
+    for (var i = 0, len = events.length; i < len; i++) {
+        var gesture = events[i].event;
+        var callback = events[i].callback;
+        if (gestures[gesture]) {
+            this.trackedGestures[gesture] = true;
+            this.gestures.push(gesture);
+            if (events[i].event) this.options[gesture] = events[i];
+            this._events.on(gesture, callback);
+        }
+    }
+
+    var renderables = dispatch.getRenderables();
+    for (var i = 0, len = renderables.length; i < len; i++) {
+        for (var j = 0, lenj = touchEvents.length; j < lenj; j++) {
+            var touchEvent = touchEvents[j];
+            if (renderables[i].on) renderables[i].on(touchEvent, methods, properties);
+            dispatch.registerTargetedEvent(touchEvent, callbacks[j].bind(this));
+        }
+    }
+}
+
+GestureHandler.toString = function toString() {
+    return 'GestureHandler';
+};
+
+GestureHandler.prototype.triggerGestures = function() {
+    var payload = this.event;
+    for (var i = 0, len = this.gestures.length; i < len; i++) {
+        var gesture = this.gestures[i];
+        switch (gesture) {
+            case 'rotate':
+            case 'pinch':
+                if (payload.points === 2) this.trigger(gesture, payload);
+                break;
+            case 'tap':
+                if (payload.status !== 'move') {
+                    if (this.options['tap']) {
+                        var pts = this.options['tap'].points || 1;
+                        if(this.multiTap >= pts && payload.points >= pts) this.trigger(gesture, payload);
+                    }
+                    else this.trigger(gesture, payload);
+                }
+                break;
+            default:
+                this.trigger(gesture, payload);
+                break;
+        }
+    }
+};
+
+GestureHandler.prototype.trigger = function trigger (ev, payload) {
+    this._events.trigger(ev, payload);
+};
+
+function processTouchStart(e) {
+    var t = e.targetTouches;
+
+    if (t[0] && t[1] && this.trackedTouchIDs[0] === t[0].identifier && this.trackedTouchIDs[1] === t[1].identifier) {
+        return;
+    }
+
+    this.event.time = Date.now();
+
+    if (this.trackedTouchIDs[0] !== t[0].identifier) {
+        if (this.trackedGestures['tap']) {
+            var threshold = (this.options['tap'] && this.options['tap'].threshold) || 250;
+            if (this.event.time - this.timeOfPointer < threshold) this.event.taps++;
+            else this.event.taps = 1;
+            this.timeOfPointer = this.event.time;
+            this.multiTap = 1;
+        }
+        this.event.current = 1;
+        this.event.points = 1;
+        var id = t[0].identifier;
+        this.trackedTouchIDs[0] = id;
+
+        this.last1.set(t[0].pageX, t[0].pageY);
+        this.velocity1.clear();
+        this.delta1.clear();
+        this.event.pointers.push(this.pointer1);
+    }
+    if (t[1] && this.trackedTouchIDs[1] !== t[1].identifier) {
+        if (this.trackedGestures['tap']) {
+            var threshold = (this.options['tap'] && this.options['tap'].threshold) || 250;
+            if (this.event.time - this.timeOfPointer < threshold) this.multiTap = 2;
+        }
+        this.event.current = 2;
+        this.event.points = 2;
+        var id = t[1].identifier;
+        this.trackedTouchIDs[1] = id;
+
+        this.last2.set(t[1].pageX, t[1].pageY);
+        this.velocity2.clear();
+        this.delta2.clear();
+
+        Vec2.add(this.last1, this.last2, this.center).scale(0.5);
+        this.centerDelta.clear();
+        this.centerVelocity.clear();
+
+        Vec2.subtract(this.last2, this.last1, this.diff12);
+        this.dist = this.diff12.length();
+
+        if (this.trackedGestures['pinch']) {
+            this.event.scale = this.event.scale || 1;
+            this.event.scaleDelta = 0;
+            this.event.scaleVelocity = 0;
+        }
+        if (this.trackedGestures['rotate']) {
+            this.event.rotation = this.event.rotation || 0;
+            this.event.rotationDelta = 0;
+            this.event.rotationVelocity = 0;
+        }
+        this.event.pointers.push(this.pointer2);
+    }
+
+    this.event.status = 'start';
+    if (this.event.points === 1) {
+        this.center.copy(this.last1);
+        this.centerDelta.clear();
+        this.centerVelocity.clear();
+        if (this.trackedGestures['pinch']) {
+            this.event.scaleDelta = 0;
+            this.event.scaleVelocity = 0;
+        }
+        if (this.trackedGestures['rotate']) {
+            this.event.rotationDelta = 0;
+            this.event.rotationVelocity = 0;
+        }
+    }
+    this.triggerGestures();
+}
+
+function processTouchMove(e) {
+    var t = e.targetTouches;
+    var time = Date.now();
+    var dt = time - this.event.time;
+    if (dt === 0) return;
+    var invDt = 1000 / dt;
+    this.event.time = time;
+
+    this.event.current = 1;
+    this.event.points = 1;
+    if (this.trackedTouchIDs[0] === t[0].identifier) {
+        VEC_REGISTER.set(t[0].pageX, t[0].pageY);
+        Vec2.subtract(VEC_REGISTER, this.last1, this.delta1);
+        Vec2.scale(this.delta1, invDt, this.velocity1);
+        this.last1.copy(VEC_REGISTER);
+
+    }
+    if (t[1]) {
+        this.event.current = 2;
+        this.event.points = 2;
+        VEC_REGISTER.set(t[1].pageX, t[1].pageY);
+        Vec2.subtract(VEC_REGISTER, this.last2, this.delta2);
+        Vec2.scale(this.delta2, invDt, this.velocity2);
+        this.last2.copy(VEC_REGISTER);
+
+        Vec2.add(this.last1, this.last2, VEC_REGISTER).scale(0.5);
+        Vec2.subtract(VEC_REGISTER, this.center, this.centerDelta);
+        Vec2.add(this.velocity1, this.velocity2, this.centerVelocity).scale(0.5);
+        this.center.copy(VEC_REGISTER);
+
+        Vec2.subtract(this.last2, this.last1, VEC_REGISTER);
+
+        if (this.trackedGestures['rotate']) {
+            var dot = VEC_REGISTER.dot(this.diff12);
+            var cross = VEC_REGISTER.cross(this.diff12);
+            var theta = -Math.atan2(cross, dot);
+            this.event.rotation += theta;
+            this.event.rotationDelta = theta;
+            this.event.rotationVelocity = theta * invDt;
+        }
+
+        var dist = VEC_REGISTER.length();
+        var scale = dist / this.dist;
+        this.diff12.copy(VEC_REGISTER);
+        this.dist = dist;
+
+        if (this.trackedGestures['pinch']) {
+            this.event.scale *= scale;
+            scale -= 1.0;
+            this.event.scaleDelta = scale;
+            this.event.scaleVelocity = scale * invDt;
+        }
+    }
+
+    this.event.status = 'move';
+    if (this.event.points === 1) {
+        this.center.copy(this.last1);
+        this.centerDelta.copy(this.delta1);
+        this.centerVelocity.copy(this.velocity1);
+        if (this.trackedGestures['pinch']) {
+            this.event.scaleDelta = 0;
+            this.event.scaleVelocity = 0;
+        }
+        if (this.trackedGestures['rotate']) {
+            this.event.rotationDelta = 0;
+            this.event.rotationVelocity = 0;
+        }
+    }
+    this.triggerGestures();
+}
+
+function processTouchEnd(e) {
+    var t = e.targetTouches;
+
+    if (t[0] && t[1] && this.trackedTouchIDs[0] === t[0].identifier && this.trackedTouchIDs[1] === t[1].identifier) {
+            return;
+    }
+
+    this.event.status = 'end';
+    if (!t[0]) {
+        this.event.current = 0;
+        this.trackedTouchIDs[0] = -1;
+        this.trackedTouchIDs[1] = -1;
+        this.triggerGestures();
+        this.event.pointers.pop();
+        this.event.pointers.pop();
+        return;
+    }
+    else if(this.trackedTouchIDs[0] !== t[0].identifier) {
+        this.trackedTouchIDs[0] = -1;
+        var id = t[0].identifier;
+        this.trackedTouchIDs[0] = id;
+
+        this.last1.set(t[0].pageX, t[0].pageY);
+        this.velocity1.clear();
+        this.delta1.clear();
+    }
+    if (!t[1]) {
+        this.event.current = 1;
+        this.trackedTouchIDs[1] = -1;
+        this.triggerGestures();
+        this.event.points = 1;
+        this.event.pointers.pop();
+    }
+    else if (this.trackedTouchIDs[1] !== t[1].identifier) {
+        this.trackedTouchIDs[1] = -1;
+        this.event.points = 2;
+        var id = t[1].identifier;
+        this.trackedTouchIDs[1] = id;
+
+        this.last2.set(t[1].pageX, t[1].pageY);
+        this.velocity2.clear();
+        this.delta2.clear();
+
+        Vec2.add(this.last1, this.last2, this.center).scale(0.5);
+        this.centerDelta.clear();
+        this.centerVelocity.clear();
+
+        Vec2.subtract(this.last2, this.last1, this.diff12);
+        this.dist = this.diff12.length();
+    }
+}
+
+module.exports = GestureHandler;
+
+},{"famous-math":227,"famous-utilities":242}],214:[function(require,module,exports){
+'use strict';
+
+var Position = require('./Position');
+
+function MountPoint(dispatch) {
+    Position.call(this, dispatch);
+}
+
+MountPoint.toString = function toString() {
+    return 'MountPoint';
+};
+
+MountPoint.prototype = Object.create(Position.prototype);
+MountPoint.prototype.constructor = MountPoint;
+
+MountPoint.prototype.clean = function clean() {
+    var context = this._dispatch._context;
+    context.setMountPoint(this._x.get(), this._y.get(), this._z.get());
+    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+};
+
+module.exports = MountPoint;
+
+},{"./Position":217}],215:[function(require,module,exports){
+'use strict';
+
+var Transitionable = require('famous-transitions').Transitionable;
+
+function Opacity(dispatch) {
+    this._dispatch = dispatch;
+    this._id = dispatch.addComponent(this);
+    this._value = new Transitionable(1);
+}
+
+Opacity.toString = function toString() {
+    return 'Opacity';
+};
+
+Opacity.prototype.getState = function getState() {
+    return {
+        component: this.constructor.toString(),
+        value: this._value.get()
+    };
+};
+
+Opacity.prototype.setState = function setState(state) {
+    if (this.constructor.toString() === state.component) {
+        this.set(state.value);
+        return true;
+    }
+    return false;
+};
+
+Opacity.prototype.clean = function clean() {
+    var context = this._dispatch._context;
+    context.setOpacity(this._value.get());
+    return this._value.isActive();
+};
+
+Opacity.prototype.set = function set(value, options, callback) {
+    this._dispatch.dirtyComponent(this._id);
+    this._value.set(value, options, callback);
+    return this;
+};
+
+Opacity.prototype.halt = function halt() {
+    this._value.halt();
+    return this;
+};
+
+module.exports = Opacity;
+
+},{"famous-transitions":208}],216:[function(require,module,exports){
+'use strict';
+
+var Position = require('./Position');
+
+function Origin(dispatch) {
+    Position.call(this, dispatch);
+}
+
+Origin.toString = function toString() {
+    return 'Origin';
+};
+
+Origin.prototype = Object.create(Position.prototype);
+Origin.prototype.constructor = Origin;
+
+Origin.prototype.clean = function clean() {
+    var context = this._dispatch._context;
+    context.setOrigin(this._x.get(), this._y.get(), this._z.get());
+    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+};
+
+module.exports = Origin;
+
+},{"./Position":217}],217:[function(require,module,exports){
+'use strict';
+
+var Transitionable = require('famous-transitions').Transitionable;
+
+function Position(dispatch) {
+    this._dispatch = dispatch;
+    this._id = dispatch.addComponent(this);
+    this._x = new Transitionable(0);
+    this._y = new Transitionable(0);
+    this._z = new Transitionable(0);
+}
+
+Position.toString = function toString() {
+    return 'Position';
+};
+
+Position.prototype.getState = function getState() {
+    return {
+        component: this.constructor.toString(),
+        x: this._x.get(),
+        y: this._y.get(),
+        z: this._z.get()
+    };
+};
+
+Position.prototype.setState = function setState(state) {
+    if (state.component === this.constructor.toString()) {
+        this.set(state.x, state.y, state.z);
+        return true;
+    }
+    return false;
+};
+
+Position.prototype.clean = function clean() {
+    var context = this._dispatch._context;
+    context.setPosition(this._x.get(), this._y.get(), this._z.get());
+    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+};
+
+Position.prototype.setX = function setX(val, options, callback) {
+    this._dispatch.dirtyComponent(this._id);
+    this._x.set(val, options, callback);
+    return this;
+};
+
+Position.prototype.setY = function setY(val, options, callback) {
+    this._dispatch.dirtyComponent(this._id);
+    this._y.set(val, options, callback);
+    return this;
+};
+
+Position.prototype.setZ = function setZ(val, options, callback) {
+    this._dispatch.dirtyComponent(this._id);
+    this._z.set(val, options, callback);
+    return this;
+};
+
+Position.prototype.set = function set(x, y, z, options, callback) {
+    this._dispatch.dirtyComponent(this._id);
+    this._x.set(x, options, callback);
+    this._y.set(y, options, callback);
+    this._z.set(z, options, callback);
+    return this;
+};
+
+Position.prototype.halt = function halt() {
+    this._x.halt();
+    this._y.halt();
+    this._z.halt();
+    return this;
+};
+
+module.exports = Position;
+
+},{"famous-transitions":208}],218:[function(require,module,exports){
+'use strict';
+
+var Position = require('./Position');
+
+function Rotation(dispatch) {
+    Position.call(this, dispatch);
+}
+
+Rotation.toString = function toString() {
+    return 'Rotation';
+};
+
+Rotation.prototype = Object.create(Position.prototype);
+Rotation.prototype.constructor = Rotation;
+
+Rotation.prototype.clean = function clean() {
+    var context = this._dispatch._context;
+    context.setRotation(this._x.get(), this._y.get(), this._z.get());
+    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+};
+
+module.exports = Rotation;
+
+},{"./Position":217}],219:[function(require,module,exports){
+'use strict';
+
+var Position = require('./Position');
+
+function Scale(dispatch) {
+    Position.call(this, dispatch);
+    this._x.set(1);
+    this._y.set(1);
+    this._z.set(1);
+}
+
+Scale.toString = function toString() {
+    return 'Scale';
+};
+
+Scale.prototype = Object.create(Position.prototype);
+Scale.prototype.constructor = Scale;
+
+Scale.prototype.clean = function clean() {
+    var context = this._dispatch._context;
+    context.setScale(this._x.get(), this._y.get(), this._z.get());
+    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+};
+
+module.exports = Scale;
+
+},{"./Position":217}],220:[function(require,module,exports){
+'use strict';
+
+var Transitionable = require('famous-transitions').Transitionable;
+
+function Size(dispatch) {
+    this._dispatch = dispatch;
+    this._id = dispatch.addComponent(this);
+    dispatch.dirtyComponent(this._id);
+    this._absoluteMode = false;
+    this._proportional = {
+        x: new Transitionable(1),
+        y: new Transitionable(1),
+        z: new Transitionable(1)
+    };
+    this._differential = {
+        x: new Transitionable(0),
+        y: new Transitionable(0),
+        z: new Transitionable(0)
+    };
+    this._absolute = {
+        x: new Transitionable(0),
+        y: new Transitionable(0),
+        z: new Transitionable(0)
+    };
+}
+
+Size.toString = function toString() {
+    return 'Size';
+};
+
+Size.prototype.getState = function getState() {
+    if (this._absoluteMode) {
+        return {
+            component: this.constructor.toString(),
+            type: 'absolute',
+            x: this._absolute.x.get(),
+            y: this._absolute.y.get(),
+            z: this._absolute.z.get()
+        };
+    }
+    return {
+        component: this.constructor.toString(),
+        type: 'relative',
+        differential: {
+            x: this._differential.x.get(),
+            y: this._differential.y.get(),
+            z: this._differential.z.get()
+        },
+        proportional: {
+            x: this._proportional.x.get(),
+            y: this._proportional.y.get(),
+            z: this._proportional.z.get()
+        }
+    };
+};
+
+Size.prototype.setState = function setState(state) {
+    if (state.component === this.constructor.toString()) {
+        this._absoluteMode = state.type === 'absolute';
+        if (this._absoluteMode)
+            this.setAbsolute(state.x, state.y, state.z);
+        else {
+            this.setProportional(state.proportional.x, state.proportional.y, state.proportional.z);
+            this.setDifferential(state.differential.x, state.differential.y, state.differential.z);
+        }
+        return true;
+    }
+    return false;
+};
+
+Size.prototype._cleanAbsoluteX = function _cleanAbsoluteX(prop) {
+    if (prop.dirtyX) {
+        prop.dirtyX = prop.x.isActive();
+        return prop.x.get();
+    } else return null;
+};
+
+Size.prototype._cleanAbsoluteY = function _cleanAbsoluteY(prop) {
+    if (prop.dirtyY) {
+        prop.dirtyY = prop.y.isActive();
+        return prop.y.get();
+    } else return null;
+};
+
+Size.prototype._cleanAbsoluteZ = function _cleanAbsoluteZ(prop) {
+    if (prop.dirtyZ) {
+        prop.dirtyZ = prop.z.isActive();
+        return prop.z.get();
+    } else return null;
+};
+
+Size.prototype.clean = function clean () {
+    var context = this._dispatch._context;
+    if (this._absoluteMode) {
+        var abs = this._absolute;
+        context.setAbsolute(
+            this._cleanAbsoluteX(abs),
+            this._cleanAbsoluteY(abs),
+            this._cleanAbsoluteZ(abs)
+        );
+        return abs.x.isActive() ||
+            abs.y.isActive() ||
+            abs.z.isActive();
+    } else {
+        var prop = this._proportional;
+        var diff = this._differential;
+        context.setProportions(
+            this._cleanAbsoluteX(prop),
+            this._cleanAbsoluteY(prop),
+            this._cleanAbsoluteZ(prop)
+        );
+        context.setDifferential(
+            this._cleanAbsoluteX(diff),
+            this._cleanAbsoluteY(diff),
+            this._cleanAbsoluteZ(diff)
+        );
+        return prop.x.isActive() ||
+            prop.y.isActive() ||
+            prop.z.isActive() ||
+            diff.x.isActive() ||
+            diff.y.isActive() ||
+            diff.z.isActive();
+    }
+};
+
+Size.prototype.setAbsolute = function setAbsolute(x, y, z, options, callback) {
+    this._dispatch.dirtyComponent(this._id);
+    var abs = this._absolute;
+    this._absoluteMode = true;
+    if (x != null) {
+        abs.x.set(x, options, callback);
+        abs.dirtyX = true;
+    }
+    if (y != null) {
+        abs.y.set(y, options, callback);
+        abs.dirtyY = true;
+    }
+    if (z != null) {
+        abs.z.set(z, options, callback);
+        abs.dirtyZ = true;
+    }
+    return this;
+};
+
+Size.prototype.setProportional = function setProportional(x, y, z, options, callback) {
+    this._dispatch.dirtyComponent(this._id);
+    this._needsDEBUG = true;
+    var prop = this._proportional;
+    this._absoluteMode = false;
+    if (x != null) {
+        prop.x.set(x, options, callback);
+        prop.dirtyX = true;
+    }
+    if (y != null) {
+        prop.y.set(y, options, callback);
+        prop.dirtyY = true;
+    }
+    if (z != null) {
+        prop.z.set(z, options, callback);
+        prop.dirtyZ = true;
+    }
+    return this;
+};
+
+Size.prototype.setDifferential = function setDifferential(x, y, z, options, callback) {
+    this._dispatch.dirtyComponent(this._id);
+    var prop = this._differential;
+    this._absoluteMode = false;
+    if (x != null) {
+        prop.x.set(x, options, callback);
+        prop.dirtyX = true;
+    }
+    if (y != null) {
+        prop.y.set(y, options, callback);
+        prop.dirtyY = true;
+    }
+    if (z != null) {
+        prop.z.set(z, options, callback);
+        prop.dirtyZ = true;
+    }
+    return this;
+};
+
+Size.prototype.get = function get () {
+    return this._dispatch.getContext().getSize();
+};
+
+module.exports = Size;
+
+},{"famous-transitions":208}],221:[function(require,module,exports){
+'use strict';
+
+var CallbackStore = require('famous-utilities').CallbackStore;
+
+function UIEventHandler (dispatch, events) {
+    this._events = new CallbackStore();
+    var renderables = dispatch.getRenderables();
+    for (var i = 0, len = renderables.length; i < len; i++)
+        for (var j = 0, len2 = events.length; j < len2; j++) {
+            var eventName = events[i].event;
+            var methods = events[i].methods;
+            var properties = events[i].properties;
+            var callback = events[i].callback;
+            this._events.on(eventName, callback);
+            if (renderables[i].on) renderables[i].on(eventName, methods, properties);
+            dispatch.registerTargetedEvent(eventName, this.trigger.bind(this, eventName));
+        }
+}
+
+UIEventHandler.toString = function toString() {
+    return 'UIEventHandler';
+};
+
+UIEventHandler.prototype.trigger = function trigger (ev, payload) {
+    this._events.trigger(ev, payload);
+};
+
+module.exports = UIEventHandler;
+
+},{"famous-utilities":242}],222:[function(require,module,exports){
 arguments[4][20][0].apply(exports,arguments)
 },{"./Align":209,"./Camera":210,"./EventEmitter":211,"./EventHandler":212,"./GestureHandler":213,"./MountPoint":214,"./Opacity":215,"./Origin":216,"./Position":217,"./Rotation":218,"./Scale":219,"./Size":220,"./UIEventHandler":221,"dup":20}],223:[function(require,module,exports){
 arguments[4][198][0].apply(exports,arguments)
@@ -10561,10 +13489,953 @@ arguments[4][6][0].apply(exports,arguments)
 },{"./Easing":228,"./MultipleTransition":229,"./Transitionable":230,"./TweenTransition":231,"./after":232,"dup":6}],234:[function(require,module,exports){
 arguments[4][27][0].apply(exports,arguments)
 },{"dup":27}],235:[function(require,module,exports){
-arguments[4][28][0].apply(exports,arguments)
-},{"dup":28,"famous-transitions":233}],236:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"./Color":235,"dup":29}],237:[function(require,module,exports){
+'use strict';
+
+/**
+ * Module dependencies
+ */
+var Transitionable = require('famous-transitions').Transitionable;
+
+
+/**
+ * Color
+ * Accepts RGB, HSL, HEX and HSV with getters and setters.
+ * If no options are provided, RGB is the default setter.
+ */
+var Color = function Color() {
+    this._r = new Transitionable(0);
+    this._g = new Transitionable(0);
+    this._b = new Transitionable(0);
+    var options = Color.flattenArguments(arguments);
+    if (options.length) this.set(options);
+};
+
+Color.toString = function toString() {
+    return 'Color';
+};
+
+
+/**
+ * GENERAL
+ */
+Color.prototype.set = function set() {
+    var options = Color.flattenArguments(arguments);
+    var type = this.determineType(options[0]);
+
+    switch (type) {
+        case 'hsl': this.setHSL(options.slice(1)); break;
+        case 'rgb': this.setRGB(options.slice(1)); break;
+        case 'hsv': this.setHSV(options.slice(1)); break;
+        case 'hex': this.setHex(options); break;
+        case 'color': this.setColor(options); break;
+        case 'instance': this.copy(options); break;
+        default: this.setRGB(options);
+    }
+    return this;
+};
+
+Color.prototype.isActive = function isActive() {
+    return this._r.isActive() || this._g.isActive() || this._b.isActive();
+};
+
+Color.prototype.changeTo = function changeTo() {
+    var options = Color.flattenArguments(arguments);
+    if (options.length) this.set(options);
+    return this;
+};
+
+Color.prototype.copy = function copy() {
+    var values = Color.flattenArguments(arguments);
+    var color = values[0], options = values[1];
+    if (this.isColorInstance(color)) {
+        this.setRGB(color.getRGB(), options);
+    }
+    return this;
+};
+
+Color.prototype.clone = function clone() {
+    var rgb = this.getRGB();
+    return new Color('rgb', rgb[0], rgb[1], rgb[2]);
+};
+
+Color.prototype.setColor = function setColor() {
+    var values = Color.flattenArguments(arguments);
+    var color = values[0], options = values[1];
+    this.setHex(colorNames[color], options);
+    return this;
+};
+
+Color.prototype.getColor = function getColor(option) {
+    option = option || 'undefined';
+    switch (option.toLowerCase()) {
+        case 'undefined': return this.getRGB();
+        case 'rgb': return this.getRGB();
+        case 'hsl': return this.getHSL();
+        case 'hex': return this.getHex();
+        case 'hsv': return this.getHSV();
+        default: return this.getRGB();;
+    }
+};
+
+Color.prototype.isColorInstance = function isColorInstance(val) {
+    return (val instanceof Color);
+};
+
+Color.prototype.determineType = function determineType(val) {
+    if (this.isColorInstance(val)) return 'instance';
+    if (Color.isHex(val)) return 'hex';
+    if (colorNames[val]) return 'color';
+    var types = ['rgb', 'hsl', 'hex', 'hsv'];
+    for(var i = 0; i < types.length; i++) {
+        if (Color.isType(val, types[i])) return types[i];
+    }
+};
+
+
+/**
+ * RGB
+ */
+Color.prototype.setR = function setR(r, options) {
+    this._r.set(r, options);
+    return this;
+};
+
+Color.prototype.setG = function setG(g, options) {
+    this._g.set(g, options);
+    return this;
+};
+
+Color.prototype.setB = function setB(b, options) {
+    this._b.set(b, options);
+    return this;
+};
+
+Color.prototype.setRGB = function setRGB() {
+    var values = Color.flattenArguments(arguments);
+    var options = values[3];
+    this.setR(values[0], options);
+    this.setG(values[1], options);
+    this.setB(values[2], options);
+    return this;
+};
+
+Color.prototype.getR = function getR() {
+    return this._r.get();
+};
+
+Color.prototype.getG = function getG() {
+    return this._g.get();
+};
+
+Color.prototype.getB = function getB() {
+    return this._b.get();
+};
+
+Color.prototype.getRGB = function getRGB() {
+    return [this.getR(), this.getG(), this.getB()];
+};
+
+Color.prototype.getNormalizedRGB = function getNormalizedRGB() {
+    var r = this.getR() / 255.0;
+    var g = this.getG() / 255.0;
+    var b = this.getB() / 255.0;
+    return [r, g, b];
+};
+
+Color.prototype.getRGBString = function toRGBString() {
+    var r = this.getR();
+    var g = this.getG();
+    var b = this.getB();
+    return 'rgb('+ r +', '+ g +', '+ b +');';
+};
+
+Color.prototype.addRGB = function addRGB(r, g, b) {
+    var r = Color.clamp(this.getR() + r);
+    var g = Color.clamp(this.getG() + g);
+    var b = Color.clamp(this.getB() + b);
+    this.setRGB(r, g, b);
+    return this;
+};
+
+Color.prototype.addScalar = function addScalar(s) {
+    var r = Color.clamp(this.getR() + s);
+    var g = Color.clamp(this.getG() + s);
+    var b = Color.clamp(this.getB() + s);
+    this.setRGB(r, g, b);
+    return this;
+};
+
+Color.prototype.multiplyRGB = function multiplyRGB(r, g, b) {
+    var r = Color.clamp(this.getR() * r);
+    var g = Color.clamp(this.getG() * g);
+    var b = Color.clamp(this.getB() * b);
+    this.setRGB(r, g, b);
+    return this;
+};
+
+Color.prototype.multiplyScalar = function multiplyScalar(s) {
+    var r = Color.clamp(this.getR() * s);
+    var g = Color.clamp(this.getG() * s);
+    var b = Color.clamp(this.getB() * s);
+    this.setRGB(r, g, b);
+    return this;
+};
+
+Color.prototype.equals = function equals(color) {
+    if (this.isColorInstance(color)) {
+        return  this.getR() === color.getR() &&
+                this.getG() === color.getG() &&
+                this.getB() === color.getB();
+    }
+    return false;
+};
+
+Color.prototype.copyGammaToLinear = function copyGammaToLinear(color) {
+    if (this.isColorInstance(color)) {
+        var r = color.getR();
+        var g = color.getG();
+        var b = color.getB();
+        this.setRGB(r*r, g*g, b*b);
+    }
+    return this;
+};
+
+Color.prototype.convertGammaToLinear = function convertGammaToLinear() {
+    var r = this.getR();
+    var g = this.getG();
+    var b = this.getB();
+    this.setRGB(r*r, g*g, b*b);
+    return this;
+};
+
+Color.prototype.addColors = function addColors(color1, color2) {
+    var r = color1.getR() + color2.getR();
+    var g = color1.getG() + color2.getG();
+    var b = color1.getB() + color2.getB();
+    return [r, g, b];
+};
+
+
+/**
+ * HEX
+ */
+Color.prototype.toHex = function toHex(num) {
+    var hex = num.toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+};
+
+Color.prototype.getHex = function getHex() {
+    var r = this.toHex(this.getR());
+    var g = this.toHex(this.getG());
+    var b = this.toHex(this.getB());
+    return '#' + r + g + b;
+};
+
+Color.prototype.setHex = function setHex() {
+    var values = Color.flattenArguments(arguments);
+    var hex, options;
+
+    if (Color.isHex(values[0])) {
+        hex = values[0];
+        options = values[1];
+    }
+    else {
+        hex = values[1]; options = values[2];
+    }
+    hex = (hex.charAt(0) === '#') ? hex.substring(1, hex.length) : hex;
+
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+
+    var r = parseInt(hex.substring(0, 2), 16);
+    var g = parseInt(hex.substring(2, 4), 16);
+    var b = parseInt(hex.substring(4, 6), 16);
+    this.setRGB(r, g, b, options);
+    return this;
+};
+
+
+/**
+ * HSL
+ */
+Color.prototype.hueToRGB = function hueToRGB(p, q, t) {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+};
+
+Color.prototype.setHSL = function setHSL() {
+    var values = Color.flattenArguments(arguments);
+    var h = values[0], s = values[1], l = values[2];
+    var options = values[3];
+    h /= 360.0;
+    s /= 100.0;
+    l /= 100.0;
+    var r, g, b;
+    if (s === 0) {
+        r = g = b = l;
+    }
+    else {
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = this.hueToRGB(p, q, h + 1/3);
+        g = this.hueToRGB(p, q, h);
+        b = this.hueToRGB(p, q, h - 1/3);
+    }
+    r = Math.round(r * 255);
+    g = Math.round(g * 255);
+    b = Math.round(b * 255);
+    this.setRGB(r, g, b, options);
+    return this;
+};
+
+Color.prototype.getHSL = function getHSL() {
+    var rgb = this.getNormalizedRGB();
+    var r = rgb[0], g = rgb[1], b = rgb[2];
+    var max = Math.max(r, g, b);
+    var min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2;
+    if (max === min) {
+        h = s = 0;
+    }
+    else {
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h *= 60;
+    }
+    return [h, s*100, l*100];
+};
+
+Color.prototype.getHue = function getHue() {
+    var hsl = this.getHSL();
+    return hsl[0];
+};
+
+Color.prototype.setHue = function setHue(h, options) {
+    var hsl = this.getHSL();
+    this.setHSL(h, hsl[1], hsl[2], options);
+    return this;
+};
+
+Color.prototype.getSaturation = function getSaturation() {
+    var hsl = this.getHSL();
+    return hsl[1];
+};
+
+Color.prototype.setSaturation = function setSaturation(s, options) {
+    var hsl = this.getHSL();
+    this.setHSL(hsl[0], s, hsl[2], options);
+    return this;
+};
+
+Color.prototype.getBrightness = function getBrightness() {
+    var rgb = this.getNormalizedRGB();
+    return Math.max(rgb[0], rgb[1], rgb[2]) * 100.0;
+};
+
+Color.prototype.getLightness = function getLightness() {
+    var rgb = this.getNormalizedRGB();
+    var r = rgb[0], g = rgb[1], b = rgb[2];
+    return ((Math.max(r, g, b) + Math.min(r, g, b)) / 2.0) * 100.0;
+};
+
+Color.prototype.getLightness = function getLightness() {
+    var hsl = this.getHSL();
+    return hsl[2];
+};
+
+Color.prototype.setLightness = function setLightness(l, options) {
+    var hsl = this.getHSL();
+    this.setHSL(hsl[0], hsl[0], l, options);
+    return this;
+};
+
+
+/**
+ * HSV
+ */
+Color.prototype.setHSV = function setHSV() {
+    var values = Color.flattenArguments(arguments);
+    var h = values[0], s = values[1], v = values[2];
+    var options = values[3];
+    var r, g, b;
+    var i = Math.floor(h * 6);
+    var f = h * 6 - i;
+    var p = v * (1 - s);
+    var q = v * (1 - f * s);
+    var t = v * (1 - (1 - f) * s);
+
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+
+    this.setRGB(r*255, g*255, b*255, options);
+    return this;
+};
+
+Color.prototype.getHSV = function getHSV() {
+    var rgb = this.getNormalizedRGB();
+    var r = rgb[0], g = rgb[1], b = rgb[2];
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h, s, v = max;
+    var d = max - min;
+    s = max == 0 ? 0 : d / max;
+    if (max == min) {
+        h = 0;
+    }
+    else {
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return [h, s, v];
+};
+
+
+/**
+ * Generic color names
+ */
+var colorNames = {
+    aliceblue: '#f0f8ff',
+    antiquewhite: '#faebd7',
+    aqua: '#00ffff',
+    aquamarine: '#7fffd4',
+    azure: '#f0ffff',
+    beige: '#f5f5dc',
+    bisque: '#ffe4c4',
+    black: '#000000',
+    blanchedalmond: '#ffebcd',
+    blue: '#0000ff',
+    blueviolet: '#8a2be2',
+    brown: '#a52a2a',
+    burlywood: '#deb887',
+    cadetblue: '#5f9ea0',
+    chartreuse: '#7fff00',
+    chocolate: '#d2691e',
+    coral: '#ff7f50',
+    cornflowerblue: '#6495ed',
+    cornsilk: '#fff8dc',
+    crimson: '#dc143c',
+    cyan: '#00ffff',
+    darkblue: '#00008b',
+    darkcyan: '#008b8b',
+    darkgoldenrod: '#b8860b',
+    darkgray: '#a9a9a9',
+    darkgreen: '#006400',
+    darkgrey: '#a9a9a9',
+    darkkhaki: '#bdb76b',
+    darkmagenta: '#8b008b',
+    darkolivegreen: '#556b2f',
+    darkorange: '#ff8c00',
+    darkorchid: '#9932cc',
+    darkred: '#8b0000',
+    darksalmon: '#e9967a',
+    darkseagreen: '#8fbc8f',
+    darkslateblue: '#483d8b',
+    darkslategray: '#2f4f4f',
+    darkslategrey: '#2f4f4f',
+    darkturquoise: '#00ced1',
+    darkviolet: '#9400d3',
+    deeppink: '#ff1493',
+    deepskyblue: '#00bfff',
+    dimgray: '#696969',
+    dimgrey: '#696969',
+    dodgerblue: '#1e90ff',
+    firebrick: '#b22222',
+    floralwhite: '#fffaf0',
+    forestgreen: '#228b22',
+    fuchsia: '#ff00ff',
+    gainsboro: '#dcdcdc',
+    ghostwhite: '#f8f8ff',
+    gold: '#ffd700',
+    goldenrod: '#daa520',
+    gray: '#808080',
+    green: '#008000',
+    greenyellow: '#adff2f',
+    grey: '#808080',
+    honeydew: '#f0fff0',
+    hotpink: '#ff69b4',
+    indianred: '#cd5c5c',
+    indigo: '#4b0082',
+    ivory: '#fffff0',
+    khaki: '#f0e68c',
+    lavender: '#e6e6fa',
+    lavenderblush: '#fff0f5',
+    lawngreen: '#7cfc00',
+    lemonchiffon: '#fffacd',
+    lightblue: '#add8e6',
+    lightcoral: '#f08080',
+    lightcyan: '#e0ffff',
+    lightgoldenrodyellow: '#fafad2',
+    lightgray: '#d3d3d3',
+    lightgreen: '#90ee90',
+    lightgrey: '#d3d3d3',
+    lightpink: '#ffb6c1',
+    lightsalmon: '#ffa07a',
+    lightseagreen: '#20b2aa',
+    lightskyblue: '#87cefa',
+    lightslategray: '#778899',
+    lightslategrey: '#778899',
+    lightsteelblue: '#b0c4de',
+    lightyellow: '#ffffe0',
+    lime: '#00ff00',
+    limegreen: '#32cd32',
+    linen: '#faf0e6',
+    magenta: '#ff00ff',
+    maroon: '#800000',
+    mediumaquamarine: '#66cdaa',
+    mediumblue: '#0000cd',
+    mediumorchid: '#ba55d3',
+    mediumpurple: '#9370db',
+    mediumseagreen: '#3cb371',
+    mediumslateblue: '#7b68ee',
+    mediumspringgreen: '#00fa9a',
+    mediumturquoise: '#48d1cc',
+    mediumvioletred: '#c71585',
+    midnightblue: '#191970',
+    mintcream: '#f5fffa',
+    mistyrose: '#ffe4e1',
+    moccasin: '#ffe4b5',
+    navajowhite: '#ffdead',
+    navy: '#000080',
+    oldlace: '#fdf5e6',
+    olive: '#808000',
+    olivedrab: '#6b8e23',
+    orange: '#ffa500',
+    orangered: '#ff4500',
+    orchid: '#da70d6',
+    palegoldenrod: '#eee8aa',
+    palegreen: '#98fb98',
+    paleturquoise: '#afeeee',
+    palevioletred: '#db7093',
+    papayawhip: '#ffefd5',
+    peachpuff: '#ffdab9',
+    peru: '#cd853f',
+    pink: '#ffc0cb',
+    plum: '#dda0dd',
+    powderblue: '#b0e0e6',
+    purple: '#800080',
+    rebeccapurple: '#663399',
+    red: '#ff0000',
+    rosybrown: '#bc8f8f',
+    royalblue: '#4169e1',
+    saddlebrown: '#8b4513',
+    salmon: '#fa8072',
+    sandybrown: '#f4a460',
+    seagreen: '#2e8b57',
+    seashell: '#fff5ee',
+    sienna: '#a0522d',
+    silver: '#c0c0c0',
+    skyblue: '#87ceeb',
+    slateblue: '#6a5acd',
+    slategray: '#708090',
+    slategrey: '#708090',
+    snow: '#fffafa',
+    springgreen: '#00ff7f',
+    steelblue: '#4682b4',
+    tan: '#d2b48c',
+    teal: '#008080',
+    thistle: '#d8bfd8',
+    tomato: '#ff6347',
+    turquoise: '#40e0d0',
+    violet: '#ee82ee',
+    wheat: '#f5deb3',
+    white: '#ffffff',
+    whitesmoke: '#f5f5f5',
+    yellow: '#ffff00',
+    yellowgreen: '#9acd32'
+};
+
+
+
+/**
+ * Helper functions
+ */
+Color.flattenArguments = function flattenArguments(options) {
+    return Array.prototype.concat.apply([], options);
+};
+
+Color.argsToArray = function argsToArray(val) {
+    return Array.prototype.slice.call(val);
+};
+
+Color.isString = function isString(val) {
+    return (typeof val === 'string');
+};
+
+Color.isInt = function isInt(val) {
+    return parseInt(val) === val;
+};
+
+Color.isFloat = function isFloat(val) {
+    return !Color.isInt(val);
+};
+
+Color.allFloats = function allFloats() {
+    var val = Color.argsToArray(arguments);
+    for(var i = 0; i < val.length; i++) {
+        if (!Color.isFloat(val[i])) return false;
+    }
+    return true;
+};
+
+Color.allInts = function allInts(val) {
+    return !Color.allFloats(val);
+};
+
+Color.allStrings = function allStrings() {
+    var values = Color.argsToArray(arguments);
+    for(var i = 0; i < values.length; i++) {
+        if (!Color.isString(values[i])) return false;
+    }
+    return true;
+};
+
+Color.isPercentage = function isPercentage(val) {
+    return /%/.test(val);
+};
+
+Color.isHex = function isHex(val) {
+    return /#/.test(val);
+};
+
+Color.isType = function isType(type, value) {
+    return Color.allStrings(type, value) && type.toLowerCase() === value.toLowerCase();
+};
+
+Color.clamp = function clamp(val, min, max) {
+    min = min || 0;
+    max = max || 255;
+    return Math.max(Math.min(val, max), min);
+};
+
+
+/**
+ * Expose
+ */
+module.exports = Color;
+
+},{"famous-transitions":233}],236:[function(require,module,exports){
+'use strict';
+
+/**
+ * Module dependencies
+ */
+var Color = require('./Color');
+
+
+/**
+ * @class Stores multiple palettes in a collection and provides methods for
+ *        accessing, adding, and retrieving a random palette from a pre-set
+ *        collection.
+ * @description
+ * @name ColorPalettes
+ * @constructor
+ */
+var ColorPalette = function ColorPalette() {
+    this._palette = [];
+    var options = Color.flattenArguments(arguments);
+    (options.length) ? this.makePalette(options) : this.setRandomPalette();
+};
+
+ColorPalette.prototype.getPalette = function getPalette() {
+    return this._palette;
+};
+
+ColorPalette.prototype.getColor = function getColor(i) {
+    return this._palette[i];
+};
+
+ColorPalette.prototype.makeColor = function makeColor() {
+    var options = Color.flattenArguments(arguments);
+    return new Color(options[0], options[1], options[2]);
+};
+
+ColorPalette.prototype.makePalette = function makePalette() {
+    var options = Color.flattenArguments(arguments);
+    var palette = [];
+    for(var i = 0; i < options.length; i++) {
+        var color = this.makeColor(options[i]);
+        palette.push(color);
+    }
+    this._palette = palette;
+    return this;
+};
+
+ColorPalette.prototype.setRandomPalette = function setRandomPalette() {
+    var index = Math.floor(Math.random() * rawPalettes.length);
+    this.makePalette(rawPalettes[Math.floor(index)]);
+    return this;
+};
+
+ColorPalette.prototype.getLighestColor = function() {
+    var lightestValue = 0, lightestRef;
+
+    for (var i = 0; i < this._palette.length; i++) {
+        var light = this._palette[i].getLightness();
+        if (light > lightestValue) {
+            lightestRef = this._palette[i];
+            lightestValue = light;
+        }
+    }
+    return lightestRef;
+};
+
+ColorPalette.prototype.getDarkestColor = function() {
+    var darkestValue = 100, darkestRef;
+
+    for (var i = 0; i < this._palette.length; i++) {
+        var dark = this._palette[i].getLightness();
+        if( dark < darkestValue ) {
+            darkestRef = this._palette[i];
+            darkestValue = dark;
+        }
+    }
+    return darkestRef;
+};
+
+ColorPalette.prototype.getPaletteCount = function getPaletteCount() {
+    return this._palette.length;
+};
+
+
+/**
+ * Palettes
+ */
+var rawPalettes = [
+    [[53,92,125], [108,91,123], [192,108,132], [246,114,128], [248,177,149]],
+    [[27,21,33], [181,172,1], [212,30,69], [232,110,28], [236,186,9]],
+    [[63,54,42], [231,69,13], [250,157,4], [251,222,3], [254,245,150]],
+    [[10,103,137], [10,153,111], [207,6,56], [250,102,50], [254,205,35]],
+    [[157,85,105], [192,227,217], [202,55,99], [227,237,195], [235,113,84]],
+    [[110,110,110], [145,217,255], [237,255,135], [255,133,167], [255,255,255]],
+    [[0,0,0], [25,26,36], [51,44,44], [250,101,87], [255,255,255]],
+    [[27,103,107], [81,149,72], [136,196,37], [190,242,2], [234,253,230]],
+    [[31,11,12], [48,5,17], [179,84,79], [214,195,150], [231,252,207]],
+    [[172,248,248], [223,235,24], [230,95,95], [235,54,24], [235,207,24]],
+    [[196,182,109], [213,39,5], [240,211,119], [243,232,228], [247,109,60]],
+    [[11,72,107], [59,134,134], [121,189,154], [168,219,168], [207,240,158]],
+    [[0,188,209], [118,211,222], [174,232,251], [176,248,255], [254,249,240]],
+    [[85,73,57], [112,108,77], [241,230,143], [255,100,100], [255,151,111]],
+    [[36,244,161], [178,42,58], [199,244,36], [244,36,182], [249,246,49]],
+    [[108,144,134], [169,204,24], [207,73,108], [235,234,188], [252,84,99]],
+    [[78,79,75], [130,35,57], [247,62,62], [255,119,61], [255,213,115]],
+    [[121,28,49], [145,213,152], [191,178,64], [202,51,68], [237,126,80]],
+    [[104,73,83], [127,191,151], [182,219,145], [250,107,41], [253,158,41]],
+    [[0,203,231], [0,218,60], [223,21,26], [244,243,40], [253,134,3]],
+    [[56,222,231], [232,255,0], [254,62,71], [255,130,0]],
+    [[27,32,38], [75,89,107], [153,228,255], [247,79,79], [255,59,59]],
+    [[0,0,0], [0,173,239], [236,0,140], [255,242,0]],
+    [[47,43,173], [173,43,173], [228,38,146], [247,21,104], [247,219,21]],
+    [[101,150,158], [171,20,44], [189,219,222], [205,212,108], [219,217,210]],
+    [[97,24,36], [193,47,42], [247,255,238], [254,222,123], [255,101,64]],
+    [[118,85,66], [124,231,163], [220,93,110], [255,174,60], [255,229,156]],
+    [[63,184,175], [127,199,175], [218,216,167], [255,61,127], [255,158,157]],
+    [[217,251,223], [219,255,210], [231,254,235], [234,255,210], [243,255,210]],
+    [[0,23,42], [27,139,163], [94,202,214], [178,222,249], [206,254,255]],
+    [[225,245,196], [237,229,116], [249,212,35], [252,145,58], [255,78,80]],
+    [[7,9,61], [11,16,140], [12,15,102], [14,78,173], [16,127,201]],
+    [[5,177,240], [5,232,240], [94,87,230], [230,87,149], [255,5,113]],
+    [[48,0,24], [90,61,49], [131,123,71], [173,184,95], [229,237,184]],
+    [[111,191,162], [191,184,174], [242,199,119], [242,230,194], [255,255,255]],
+    [[22,147,165], [69,181,196], [126,206,202], [160,222,214], [199,237,232]],
+    [[8,26,48], [50,64,90], [59,100,128], [155,153,130], [255,134,17]],
+    [[74,186,176], [152,33,0], [255,211,0], [255,245,158]],
+    [[42,135,50], [49,48,66], [107,85,48], [255,109,36], [255,235,107]],
+    [[0,0,0], [25,134,219], [105,172,224], [149,199,24], [184,212,40]],
+    [[64,0,20], [127,0,40], [191,0,59], [229,0,71], [255,0,79]],
+    [[56,69,59], [78,133,136], [255,70,84], [255,213,106], [255,254,211]],
+    [[29,44,143], [57,179,162], [209,146,191], [222,75,107], [252,180,121]],
+    [[14,36,48], [232,213,183], [232,213,185], [245,179,73], [252,58,81]],
+    [[0,210,255], [222,255,0], [255,0,168], [255,66,0]],
+    [[21,99,105], [51,53,84], [169,186,181], [216,69,148], [236,196,89]],
+    [[105,210,231], [167,219,216], [224,228,204], [243,134,48], [250,105,0]],
+    [[122,106,83], [148,140,117], [153,178,183], [213,222,217], [217,206,178]],
+    [[34,104,136], [57,142,182], [255,162,0], [255,214,0], [255,245,0]],
+    [[2,100,117], [194,163,79], [251,184,41], [254,251,175], [255,229,69]],
+    [[214,37,77], [246,215,107], [253,235,169], [255,84,117], [255,144,54]],
+    [[0,0,0], [124,180,144], [211,25,0], [255,102,0], [255,242,175]],
+    [[35,116,222], [38,38,38], [87,54,255], [231,255,54], [255,54,111]],
+    [[64,18,44], [89,186,169], [101,98,115], [216,241,113], [252,255,217]],
+    [[126,148,158], [174,194,171], [235,206,160], [252,119,101], [255,51,95]],
+    [[75,73,11], [117,116,73], [226,223,154], [235,229,77], [255,0,81]],
+    [[159,112,69], [183,98,5], [208,167,124], [253,169,43], [254,238,171]],
+    [[38,37,28], [160,232,183], [235,10,68], [242,100,61], [242,167,61]],
+    [[0,0,0], [67,110,217], [120,0,0], [216,216,216], [240,24,0]],
+    [[51,51,51], [131,163,0], [158,12,57], [226,27,90], [251,255,227]],
+    [[79,156,52], [108,186,85], [125,210,89], [158,228,70], [187,255,133]],
+    [[0,44,43], [7,100,97], [10,131,127], [255,61,0], [255,188,17]],
+    [[149,207,183], [240,65,85], [242,242,111], [255,130,58], [255,247,189]],
+    [[89,168,15], [158,213,76], [196,237,104], [226,255,158], [240,242,221]],
+    [[54,42,44], [189,223,38], [237,38,105], [238,189,97], [252,84,99]],
+    [[11,246,147], [38,137,233], [233,26,157], [246,182,11], [246,242,11]],
+    [[8,0,9], [65,242,221], [207,242,65], [249,44,130], [252,241,30]],
+    [[198,164,154], [198,229,217], [214,129,137], [233,78,119], [244,234,213]],
+    [[6,71,128], [8,84,199], [160,194,222], [205,239,255], [237,237,244]],
+    [[93,66,63], [124,87,83], [238,128,117], [255,177,169], [255,233,231]],
+    [[59,129,131], [237,48,60], [245,99,74], [250,208,137], [255,156,91]],
+    [[56,166,155], [104,191,101], [204,217,106], [242,88,53], [242,218,94]],
+    [[60,197,234], [70,70,70], [233,234,60], [246,246,246]],
+    [[97,99,130], [102,36,91], [105,165,164], [168,196,162], [229,234,164]],
+    [[10,191,188], [19,116,125], [41,34,31], [252,53,76], [252,247,197]],
+    [[7,0,4], [236,67,8], [252,129,10], [255,172,35], [255,251,214]],
+    [[0,5,1], [8,138,19], [237,20,9], [240,249,241], [247,249,21]],
+    [[64,197,132], [131,218,232], [170,46,154], [251,35,137], [251,132,137]],
+    [[64,47,58], [217,119,119], [255,198,158], [255,219,196]],
+    [[243,96,49], [249,236,95], [255,102,0], [255,153,0], [255,204,0]],
+    [[33,90,109], [45,45,41], [60,162,162], [146,199,163], [223,236,230]],
+    [[10,42,63], [101,147,160], [185,204,184], [219,21,34], [255,239,167]],
+    [[0,160,176], [106,74,60], [204,51,63], [235,104,65], [237,201,81]],
+    [[14,141,148], [67,77,83], [114,173,117], [233,213,88], [255,171,7]],
+    [[94,159,163], [176,85,116], [220,209,180], [248,126,123], [250,184,127]],
+    [[31,31,31], [122,91,62], [205,189,174], [250,75,0], [250,250,250]],
+    [[176,230,41], [180,35,16], [247,207,10], [250,124,7], [252,231,13]],
+    [[94,65,47], [120,192,168], [240,120,24], [240,168,48], [252,235,182]],
+    [[31,26,28], [98,128,125], [134,158,138], [201,107,30], [209,205,178]],
+    [[40,60,0], [100,153,125], [237,143,69], [241,169,48], [254,204,109]],
+    [[37,2,15], [143,143,143], [158,30,76], [236,236,236], [255,17,104]],
+    [[207,108,116], [244,93,120], [255,112,136], [255,130,153], [255,187,193]],
+    [[0,0,0], [12,13,5], [168,171,132], [198,201,157], [231,235,176]],
+    [[0,170,255], [170,0,255], [170,255,0], [255,0,170], [255,170,0]],
+    [[78,150,137], [126,208,214], [135,214,155], [195,255,104], [244,252,232]],
+    [[10,10,10], [227,246,255], [255,20,87], [255,216,125]],
+    [[51,51,153], [102,153,204], [153,204,255], [255,0,51], [255,204,0]],
+    [[23,22,92], [190,191,158], [216,210,153], [229,228,218], [245,224,56]],
+    [[49,99,64], [96,158,77], [159,252,88], [195,252,88], [242,252,88]],
+    [[92,88,99], [168,81,99], [180,222,193], [207,255,221], [255,31,76]],
+    [[61,67,7], [161,253,17], [225,244,56], [244,251,196], [255,208,79]],
+    [[0,205,172], [2,170,176], [22,147,165], [127,255,36], [195,255,104]],
+    [[0,203,231], [0,218,60], [223,21,26], [244,243,40], [253,134,3]],
+    [[34,104,136], [57,142,182], [255,162,0], [255,214,0], [255,245,0]],
+    [[3,13,79], [206,236,239], [231,237,234], [251,12,6], [255,197,44]],
+    [[253,255,0], [255,0,0], [255,90,0], [255,114,0], [255,167,0]],
+    [[108,66,18], [179,0,176], [183,255,55], [255,124,69], [255,234,155]],
+    [[0,4,49], [59,69,58], [90,224,151], [204,46,9], [255,253,202]],
+    [[59,45,56], [188,189,172], [207,190,39], [240,36,117], [242,116,53]],
+    [[101,145,155], [120,185,168], [168,212,148], [242,177,73], [244,229,97]],
+    [[0,193,118], [136,193,0], [250,190,40], [255,0,60], [255,138,0]],
+    [[110,37,63], [165,199,185], [199,94,106], [241,245,244], [251,236,236]],
+    [[39,112,140], [111,191,162], [190,191,149], [227,208,116], [255,180,115]],
+    [[62,72,76], [82,91,96], [105,158,81], [131,178,107], [242,232,97]],
+    [[248,135,46], [252,88,12], [252,107,10], [253,202,73], [255,169,39]],
+    [[83,119,122], [84,36,55], [192,41,66], [217,91,67], [236,208,120]],
+    [[41,136,140], [54,19,0], [162,121,15], [188,53,33], [255,208,130]],
+    [[10,186,181], [58,203,199], [106,219,216], [153,236,234], [201,252,251]],
+    [[8,158,42], [9,42,100], [90,204,191], [229,4,4], [251,235,175]],
+    [[187,187,136], [204,198,141], [238,170,136], [238,194,144], [238,221,153]],
+    [[121,219,204], [134,78,65], [234,169,167], [242,199,196], [248,245,226]],
+    [[96,136,213], [114,170,222], [157,200,233], [192,222,245], [217,239,244]],
+    [[30,30,30], [177,255,0], [209,210,212], [242,240,240]],
+    [[255,102,0], [255,153,0], [255,204,0], [255,255,204], [255,255,255]],
+    [[35,15,43], [130,179,174], [188,227,197], [235,235,188], [242,29,65]],
+    [[212,238,94], [225,237,185], [240,242,235], [244,250,210], [255,66,66]],
+    [[20,32,71], [168,95,59], [247,92,92], [255,255,255]],
+    [[63,184,240], [80,208,240], [196,251,93], [224,240,240], [236,255,224]],
+    [[185,222,81], [209,227,137], [224,72,145], [225,183,237], [245,225,226]],
+    [[185,222,81], [209,227,137], [224,72,145], [225,183,237], [245,225,226]],
+    [[17,68,34], [51,170,170], [51,221,51], [221,238,68], [221,238,187]],
+    [[46,13,35], [245,72,40], [247,128,60], [248,228,193], [255,237,191]],
+    [[204,243,144], [224,224,90], [247,196,31], [252,147,10], [255,0,61]],
+    [[18,18,18], [255,89,56], [255,255,255]],
+    [[53,38,48], [85,72,101], [205,91,81], [233,223,204], [243,163,107]],
+    [[236,250,1], [236,250,2], [247,220,2], [248,227,113], [250,173,9]],
+    [[77,129,121], [161,129,121], [236,85,101], [249,220,159], [254,157,93]],
+    [[4,0,4], [65,61,61], [75,0,15], [200,255,0], [250,2,60]],
+    [[66,50,56], [179,112,45], [200,209,151], [235,33,56], [245,222,140]],
+    [[143,153,36], [172,201,95], [241,57,109], [243,255,235], [253,96,129]],
+    [[18,18,18], [23,122,135], [250,245,240], [255,180,143]],
+    [[67,197,210], [182,108,97], [241,155,140], [254,247,237], [255,234,215]],
+    [[78,205,196], [85,98,112], [196,77,88], [199,244,100], [255,107,107]],
+    [[0,0,0], [137,161,160], [154,227,226], [255,71,103], [255,118,5]],
+    [[248,200,221], [253,231,120], [255,61,61], [255,92,143], [255,103,65]],
+    [[23,138,132], [145,145,145], [229,255,125], [235,143,172], [255,255,255]],
+    [[73,112,138], [136,171,194], [202,255,66], [208,224,235], [235,247,248]],
+    [[51,222,245], [122,245,51], [245,51,145], [245,161,52], [248,248,101]],
+    [[57,13,45], [172,222,178], [225,234,181], [237,173,158], [254,75,116]],
+    [[192,107,129], [233,22,67], [245,175,145], [247,201,182], [249,210,182]],
+    [[131,196,192], [156,100,53], [190,215,62], [237,66,98], [240,233,226]],
+    [[136,145,136], [191,218,223], [207,246,247], [233,26,82], [237,242,210]],
+    [[64,44,56], [209,212,169], [227,164,129], [245,215,165], [255,111,121]],
+    [[93,65,87], [131,134,137], [168,202,186], [202,215,178], [235,227,170]],
+    [[0,168,198], [64,192,203], [143,190,0], [174,226,57], [249,242,231]],
+    [[0,204,190], [9,166,163], [157,191,175], [237,235,201], [252,249,216]],
+    [[0,205,172], [2,170,176], [22,147,165], [127,255,36], [195,255,104]],
+    [[51,39,23], [107,172,191], [157,188,188], [240,240,175], [255,55,15]],
+    [[51,51,53], [101,99,106], [139,135,149], [193,190,200], [233,232,238]],
+    [[17,118,109], [65,9,54], [164,11,84], [228,111,10], [240,179,0]],
+    [[73,10,61], [138,155,15], [189,21,80], [233,127,2], [248,202,0]],
+    [[71,162,145], [144,79,135], [213,28,122], [219,213,139], [244,127,143]],
+    [[55,191,230], [169,232,250], [186,255,21], [211,255,106], [247,239,236]],
+    [[69,173,168], [84,121,128], [89,79,79], [157,224,173], [229,252,194]],
+    [[248,241,224], [249,246,241], [250,244,227], [251,106,79], [255,193,150]],
+    [[0,98,125], [1,64,87], [51,50,49], [66,153,15], [255,255,255]],
+    [[52,17,57], [53,150,104], [60,50,81], [168,212,111], [255,237,144]],
+    [[0,153,137], [163,169,72], [206,24,54], [237,185,46], [248,89,49]],
+    [[26,31,30], [108,189,181], [147,204,198], [200,214,191], [227,223,186]],
+    [[165,222,190], [183,234,201], [251,178,163], [252,37,55], [255,215,183]],
+    [[26,20,14], [90,142,161], [204,65,65], [255,255,255]],
+    [[51,51,51], [111,111,111], [204,204,204], [255,100,0], [255,255,255]],
+    [[51,145,148], [167,2,103], [241,12,73], [246,216,107], [251,107,65]],
+    [[31,3,51], [31,57,77], [39,130,92], [112,179,112], [171,204,120]],
+    [[209,242,165], [239,250,180], [245,105,145], [255,159,128], [255,196,140]],
+    [[60,54,79], [109,124,157], [124,144,179], [149,181,194], [185,224,220]],
+    [[35,179,218], [153,214,241], [168,153,241], [208,89,218], [248,78,150]],
+    [[85,66,54], [96,185,154], [211,206,61], [241,239,165], [247,120,37]],
+    [[20,20,20], [177,198,204], [255,239,94], [255,255,255]],
+    [[136,238,208], [202,224,129], [239,67,53], [242,205,79], [246,139,54]],
+    [[53,38,29], [95,79,69], [151,123,105], [206,173,142], [253,115,26]],
+    [[68,66,89], [159,189,166], [219,101,68], [240,145,67], [252,177,71]],
+    [[191,208,0], [196,60,39], [233,60,31], [242,83,58], [242,240,235]],
+    [[43,43,43], [53,54,52], [230,50,75], [242,227,198], [255,198,165]],
+    [[23,20,38], [26,15,12], [207,207,207], [240,240,240], [255,77,148]],
+    [[28,1,19], [107,1,3], [163,0,6], [194,26,1], [240,60,2]],
+    [[10,10,10], [140,97,70], [214,179,156], [242,76,61], [255,255,255]],
+    [[46,13,35], [245,72,40], [247,128,60], [248,228,193], [255,237,191]],
+    [[0,62,95], [0,67,132], [22,147,165], [150,207,234], [247,249,114]],
+    [[66,29,56], [87,0,69], [190,226,232], [205,255,24], [255,8,90]],
+    [[47,59,97], [121,128,146], [187,235,185], [233,236,229], [255,103,89]],
+    [[58,17,28], [87,73,81], [131,152,142], [188,222,165], [230,249,188]],
+    [[147,193,196], [198,182,204], [242,202,174], [250,12,195], [255,123,15]],
+    [[255,3,149], [255,9,3], [255,139,3], [255,216,3], [255,251,3]],
+    [[4,0,4], [254,26,138], [254,53,26], [254,143,26], [254,240,26]],
+    [[125,173,154], [196,199,169], [249,213,177], [254,126,142], [255,62,97]],
+    [[69,38,50], [145,32,77], [226,247,206], [228,132,74], [232,191,86]],
+    [[0,0,0], [38,173,228], [77,188,233], [209,231,81], [255,255,255]],
+    [[44,87,133], [209,19,47], [235,241,247], [237,214,130]],
+    [[92,172,196], [140,209,157], [206,232,121], [252,182,83], [255,82,84]],
+    [[58,68,8], [74,88,7], [125,146,22], [157,222,13], [199,237,14]],
+    [[22,147,167], [200,207,2], [204,12,57], [230,120,30], [248,252,193]],
+    [[59,12,44], [210,255,31], [250,244,224], [255,106,0], [255,195,0]],
+    [[44,13,26], [52,158,151], [200,206,19], [222,26,114], [248,245,193]],
+    [[28,20,13], [203,232,107], [242,233,225], [255,255,255]],
+    [[75,88,191], [161,206,247], [247,255,133], [255,54,134]],
+    [[74,95,103], [92,55,75], [204,55,71], [209,92,87], [217,212,168]]
+];
+
+
+/**
+ * Expose
+ */
+module.exports = ColorPalette;
+
+},{"./Color":235}],237:[function(require,module,exports){
 arguments[4][30][0].apply(exports,arguments)
 },{"dup":30}],238:[function(require,module,exports){
 arguments[4][31][0].apply(exports,arguments)
@@ -11448,6 +15319,11 @@ function PhysicsEngine(options) {
     this.prestep = [];
     this.poststep = [];
 
+    this.transformBuffer = {
+        position: [0, 0, 0],
+        rotation: [0, 0, 0]
+    };
+
     this.frameDependent = options.frameDependent || false;
 }
 
@@ -11705,22 +15581,31 @@ PhysicsEngine.prototype.update = function update(time) {
  * @method getTransform
  * @return {Transform}
  */
-PhysicsEngine.prototype.getTransform = function getTransform(body, position, rotation) {
+PhysicsEngine.prototype.getTransform = function getTransform(body) {
     var o = this.origin;
     var oq = this.orientation;
-
     var p = body.position;
-    var s = body.size;
     var q = body.orientation;
     var rot = q;
     var loc = p;
+    var XYZ;
+
     if (oq.w !== 1) {
         rot = Quaternion.multiply(q, oq, QUAT_REGISTER)
         loc = oq.rotateVector(p, VEC_REGISTER);
     }
-    var XYZ = rot.toEulerXYZ(XYZ_REGISTER);
-    position && position.set(o.x+loc.x, o.y+loc.y, o.z+loc.z);
-    rotation && rotation.set(XYZ.x, XYZ.y, XYZ.z);
+    
+    XYZ = rot.toEulerXYZ(XYZ_REGISTER);
+
+    this.transformBuffer.position[0] = o.x+loc.x;
+    this.transformBuffer.position[1] = o.y+loc.y;
+    this.transformBuffer.position[2] = o.z+loc.z;
+
+    this.transformBuffer.rotation[0] = XYZ.x;
+    this.transformBuffer.rotation[1] = XYZ.y;
+    this.transformBuffer.rotation[2] = XYZ.z;
+
+    return this.transformBuffer;
 };
 
 /**
@@ -11789,8 +15674,6 @@ function _integratePose(body, dt) {
     q.z += (wz * qw + wx * qy - wy * qx) * hdt;
 
     q.normalize();
-
-    body.updateShape();
 };
 
 module.exports = PhysicsEngine;
@@ -11846,6 +15729,8 @@ var Vec3 = require('famous-math').Vec3;
 var Geometry = require('../Geometry');
 var ConvexHull = Geometry.ConvexHull;
 
+var TEMP_REGISTER = new Vec3();
+
 /**
  * Returns a constructor for a physical body reflecting the shape defined by input ConvexHull or Vec3 array.
  *
@@ -11859,44 +15744,63 @@ function ConvexBodyFactory(hull) {
         else hull = new ConvexHull(hull);
     }
 
-    var _polyhedralProperties = hull.polyhedralProperties;
-    var _vertices = hull.vertices;
-    var _vertexGraph = hull.graph;
-
     function ConvexBody(options) {
         Particle.call(this, options);
 
-        var originalSize = _polyhedralProperties.size;
+        var originalSize = hull.polyhedralProperties.size;
         var size = options.size || originalSize;
 
-        var scaleX = size[0]/originalSize[0];
-        var scaleY = size[1]/originalSize[1];
-        var scaleZ = size[2]/originalSize[2];
+        var scaleX = size[0] / originalSize[0];
+        var scaleY = size[1] / originalSize[1];
+        var scaleZ = size[2] / originalSize[2];
+
+        this._scale = [scaleX, scaleY, scaleZ];
 
         var T = new Mat33([scaleX, 0, 0, 0, scaleY, 0, 0, 0, scaleZ]);
 
-        var properties = _computeInertiaProperties(_polyhedralProperties, options, T);
-
-        this.mass = properties.mass;
-        this.inverseMass = 1 / this.mass;
-        this.inertia = new Mat33(properties.inertia);
-        this.inverseInertia = Mat33.inverse(this.inertia, new Mat33());
-
-        this._bodyVertices = [];
-        for (var i = 0, len = _vertices.length; i < len; i++) {
-            this._bodyVertices.push(T.vectorMultiply(_vertices[i], new Vec3()));
-        }
-        this.vertices = [];
-        for (var i = 0, len = this._bodyVertices.length; i < len; i++) {
-            this.vertices.push(Vec3.clone(this._bodyVertices[i]));
-        }
-
-        this.vertexGraph = _vertexGraph;
         this.hull = hull;
+
+        this.vertices = [];
+        for (var i = 0, len = hull.vertices.length; i < len; i++) {
+            this.vertices.push(T.vectorMultiply(hull.vertices[i], new Vec3()));
+        }
+
+        _computeInertiaProperties.call(this, T);
     }
 
     ConvexBody.prototype = Object.create(Particle.prototype);
     ConvexBody.prototype.constructor = ConvexBody;
+
+    ConvexBody.prototype.setSize = function setSize(x,y,z) {
+        var originalSize = hull.polyhedralProperties.size;
+
+        this.size[0] = x;
+        this.size[1] = y;
+        this.size[2] = z;
+
+        var scaleX = x / originalSize[0];
+        var scaleY = y / originalSize[1];
+        var scaleZ = z / originalSize[2];
+
+        this._scale = [scaleX, scaleY, scaleZ];
+
+        var T = new Mat33([scaleX, 0, 0, 0, scaleY, 0, 0, 0, scaleZ]);
+
+        var vertices = this.vertices;
+        for (var i = 0, len = hull.vertices.length; i < len; i++) {
+            T.vectorMultiply(hull.vertices[i], vertices[i]);
+        }
+    };
+
+    ConvexBody.prototype.updateInertia = function updateInertia() {
+        var scaleX = this._scale[0];
+        var scaleY = this._scale[1];
+        var scaleZ = this._scale[2];
+
+        var T = new Mat33([scaleX, 0, 0, 0, scaleY, 0, 0, 0, scaleZ]);
+
+        _computeInertiaProperties.call(this, T);
+    };
 
     ConvexBody.prototype.support = function support(direction) {
         var vertices = this.vertices;
@@ -11915,9 +15819,19 @@ function ConvexBodyFactory(hull) {
     ConvexBody.prototype.updateShape = function updateShape() {
         var vertices = this.vertices;
         var q = this.orientation;
-        var bodyVertices = this._bodyVertices;
+        var modelVertices = this.hull.vertices;
+
+        var scaleX = this._scale[0];
+        var scaleY = this._scale[1];
+        var scaleZ = this._scale[2];
+
+        var t = TEMP_REGISTER;
         for (var i = 0, len = vertices.length; i < len; i++) {
-            Vec3.applyRotation(bodyVertices[i], q, vertices[i]);
+            t.copy(modelVertices[i]);
+            t.x *= scaleX;
+            t.y *= scaleY;
+            t.z *= scaleZ;
+            Vec3.applyRotation(t, q, vertices[i]);
         }
     };
 
@@ -11934,7 +15848,8 @@ function ConvexBodyFactory(hull) {
  * @param {Mat33} T
  * @return {Object}
  */
-function _computeInertiaProperties(polyhedralProperties, options, T) {
+function _computeInertiaProperties(T) {
+    var polyhedralProperties = this.hull.polyhedralProperties;
     var T_values = T.get();
     var detT = T_values[0] * T_values[4] * T_values[8];
 
@@ -11953,16 +15868,8 @@ function _computeInertiaProperties(polyhedralProperties, options, T) {
     var Exz = E_values[2];
 
     var newVolume = polyhedralProperties.volume * detT;
-    var density = 1;
-    var mass = newVolume;
-
-    if (options.mass) {
-        mass = options.mass;
-        density = mass / newVolume;
-    } else if (options.density) {
-        density = options.density;
-        mass *= options.density;
-    }
+    var mass = this.mass;
+    var density = mass / newVolume;
 
     var Ixx = Eyy + Ezz;
     var Iyy = Exx + Ezz;
@@ -11993,10 +15900,8 @@ function _computeInertiaProperties(polyhedralProperties, options, T) {
         Ixz, Iyz, Izz
     ];
 
-    return {
-        mass: mass,
-        inertia: inertia
-    };
+    this.inertia.set(inertia);
+    Mat33.inverse(this.inertia, this.inverseInertia);
 }
 
 module.exports = ConvexBodyFactory;
@@ -12122,7 +16027,6 @@ Particle.prototype.getMass = function getMass() {
 Particle.prototype.setMass = function setMass(mass) {
     this.mass = mass;
     this.inverseMass = 1 / mass;
-    this.setInertia();
     return this;
 };
 
@@ -12139,10 +16043,10 @@ Particle.prototype.getInverseMass = function() {
 /**
  * Infers the inertia tensor. Will also compute and set the inverse inertia.
  *
- * @method setInertia
+ * @method updateInertia
  * @param {Mat33} Mat33
  */
-Particle.prototype.setInertia = function setInertia() {
+Particle.prototype.updateInertia = function updateInertia() {
     this.inertia = new Mat33([0,0,0,0,0,0,0,0,0]);
     this.inverseInertia = new Mat33([0,0,0,0,0,0,0,0,0]);
 };
@@ -12426,10 +16330,10 @@ var SUPPORT_REGISTER = new Vec3();
  */
 function Sphere(options) {
     Particle.call(this, options);
-    var r  = options.radius || 0;
+    var r  = options.radius || 1;
     this.radius = r;
     this.size = [2*r, 2*r, 2*r];
-    this.setInertia();
+    this.updateInertia();
 
     this.type = 1 << 2;
 }
@@ -12457,7 +16361,6 @@ Sphere.prototype.getRadius = function getRadius() {
 Sphere.prototype.setRadius = function setRadius(radius) {
     this.radius = radius;
     this.size = [2*this.radius, 2*this.radius, 2*this.radius];
-    this.setInertia();
     return this;
 };
 
@@ -12465,21 +16368,21 @@ Sphere.prototype.setRadius = function setRadius(radius) {
  * Infers the inertia tensor.
  *
  * @override
- * @method setInertia
+ * @method updateInertia
  */
-Sphere.prototype.setInertia = function setInertia() {
+Sphere.prototype.updateInertia = function updateInertia() {
     var m = this.mass;
     var r = this.radius;
 
     var mrr = m * r * r;
 
-    this.inertia = new Mat33([
+    this.inertia.set([
         0.4 * mrr, 0, 0,
         0, 0.4 * mrr, 0,
         0, 0, 0.4 * mrr
     ]);
 
-    this.inverseInertia = new Mat33([
+    this.inverseInertia.set([
         2.5 / mrr, 0, 0,
         0, 2.5 / mrr, 0,
         0, 0, 2.5 / mrr
@@ -12560,8 +16463,6 @@ function Wall(options) {
 
     this.mass = Infinity;
     this.inverseMass = 0;
-    this.inertia = new Mat33([0,0,0,0,0,0,0,0,0]);
-    this.inverseInertia = new Mat33([0,0,0,0,0,0,0,0,0]);
 
     this.type = 1 << 3;
 }
@@ -12789,6 +16690,9 @@ Collision.prototype.init = function(options) {
  Collision.prototype.update = function update(time, dt) {
     this.contactManifoldTable.update(dt);
     if (this.targets.length === 0) return;
+    for (var i = 0, len = this.targets.length; i < len; i++) {
+        this.targets[i].updateShape();
+    }
     var potentialCollisions = this.broadPhase.update();
     var pair;
     for (var i = 0, len = potentialCollisions.length; i < len; i++) {
@@ -12826,10 +16730,10 @@ Collision.prototype.addTarget = function addTarget(target) {
  * @param {Object | Object[]}
  */
 Collision.prototype.removeTarget = function removeTarget(target) {
-        var index = this.targets.indexOf(target);
-        if (index < 0) return;
-        this.targets.splice(index, 1);
-        this.broadPhase.remove(target);
+    var index = this.targets.indexOf(target);
+    if (index < 0) return;
+    this.targets.splice(index, 1);
+    this.broadPhase.remove(target);
 };
 
 
@@ -13053,7 +16957,7 @@ var _ID = 0;
  * @class Constraint
  */
 function Constraint(options) {
-    this.options = options = options || {};
+    options = options || {};
     this.setOptions(options);
 
     this._ID = _ID++;
@@ -13115,9 +17019,6 @@ var PI = Math.PI;
 
 /**
  *  A constraint that keeps a physics body on a given implicit curve.
- *
- *    A curve constraint is two surface constraints in disguise, as a curve is
- *    the intersection of two surfaces, and is essentially constrained to both.
  *
  *  @class Curve
  *  @constructor
@@ -13453,7 +17354,6 @@ var PI = Math.PI;
 
 /**
  *  A constraint that keeps two bodies within a certain distance.
- *
  *
  *  @class Distance
  *  @extends Constraint
@@ -13883,8 +17783,6 @@ Point2Point.prototype.constructor = Point2Point;
 Point2Point.prototype.init = function(options) {
     var w = this.anchor;
 
-    this.debug = new Vec3()
-
     var a = this.a;
     var b = this.b;
 
@@ -13924,7 +17822,7 @@ Point2Point.prototype.update = function(time, dt) {
     var invEffInertia = Mat33.add(RIaRt, RIbRt, RIaRt);
 
     var worldA = Vec3.add(a.position, this.rA, this.anchor);
-    var worldB = Vec3.add(b.position, this.rB, this.debug);
+    var worldB = Vec3.add(b.position, this.rB, VEC2_REGISTER);
 
     Vec3.subtract(worldB, worldA, this.error);
     this.error.scale(0.2/dt);
@@ -15219,12 +19117,7 @@ var FORCE_REGISTER = new Vec3();
  * @param {Object} options
  */
 function Drag(targets, options) {
-    if (targets) {
-        if (targets instanceof Array) this.targets = targets;
-        else this.targets = [targets];
-    }
-    else this.targets = [];
-    Force.call(this, options);
+    Force.call(this, targets, options);
 }
 
 Drag.prototype = Object.create(Force.prototype);
@@ -15280,7 +19173,7 @@ Drag.prototype.update = function update(time, dt) {
     var force = FORCE_REGISTER;
 
     var max = this.max;
-    var strength = this.options.strength;
+    var strength = this.strength;
     for (var i = 0, len = targets.length; i < len; i++) {
         var target = targets[i];
         var velocity = target.velocity;
@@ -15304,8 +19197,9 @@ var _ID = 0;
  * @virtual
  * @class Force
  */
-function Force(options) {
-    this.options = options = options || {};
+function Force(targets, options) {
+    this.targets = [].concat(targets);
+    options = options || {};
     this.setOptions(options);
 
     this._ID = _ID++;
@@ -15352,12 +19246,7 @@ var FORCE_REGISTER = new Vec3();
  * @param {Object} options
  */
 function Gravity1D(targets, options) {
-    if (targets) {
-        if (targets instanceof Array) this.targets = targets;
-        else this.targets = [targets];
-    }
-    else this.targets = [];
-    Force.call(this, options);
+    Force.call(this, targets, options);
 }
 
 Gravity1D.prototype = Object.create(Force.prototype);
@@ -15456,12 +19345,7 @@ var FORCE_REGISTER = new Vec3();
  */
 function Gravity3D(source, targets, options) {
     this.source = source || null;
-    if (targets) {
-        if (targets instanceof Array) this.targets = targets;
-        else this.targets = [targets];
-    }
-    else this.targets = [];
-    Force.call(this, options);
+    Force.call(this, targets, options);
 }
 
 Gravity3D.prototype = Object.create(Force.prototype);
@@ -15530,12 +19414,7 @@ var TORQUE_REGISTER = new Vec3();
  * @param {Object} options options to set on drag
  */
 function RotationalDrag(targets, options) {
-    if (targets) {
-        if (targets instanceof Array) this.targets = targets;
-        else this.targets = [targets];
-    }
-    else this.targets = [];
-    Force.call(this, options);
+    Force.call(this, targets, options);
 }
 
 RotationalDrag.prototype = Object.create(Force.prototype);
@@ -15635,12 +19514,7 @@ var PI = Math.PI;
  */
 function RotationalSpring(source, targets, options) {
     this.source = source || null;
-    if (targets) {
-        if (targets instanceof Array) this.targets = targets;
-        else this.targets = [targets];
-    }
-    else this.targets = [];
-    Force.call(this, options);
+    Force.call(this, targets, options);
 }
 
 RotationalSpring.prototype = Object.create(Force.prototype);
@@ -15667,7 +19541,7 @@ RotationalSpring.prototype.init = function init(options) {
         this.damping = 4 * PI * this.dampingRatio / this.period;
     }
     else {
-        this.period = 300;
+        this.period = 1;
         this.dampingRatio = 0;
 
         this.stiffness = 2 * PI / this.period, 2;
@@ -15701,13 +19575,13 @@ RotationalSpring.prototype.update = function update(time, dt) {
         var target = targets[i];
         var q = target.orientation;
         Quaternion.conjugate(q, deltaQ);
-        deltaQ.leftMultiply(anchor);
+        deltaQ.multiply(anchor);
 
-        var halftheta = deltaQ.w > 1 ? 0 : Math.acos(deltaQ.w);
-        var length = Math.sqrt(1-deltaQ.w*deltaQ.w);
-        if (Math.abs(length) < 1e-6) continue;
+        if (deltaQ.w >= 1) continue;
+        var halftheta = Math.acos(deltaQ.w);
+        var length = Math.sqrt(1 - deltaQ.w * deltaQ.w);
 
-        var deltaOmega = XYZ.copy(deltaQ).scale(2*halftheta/length);
+        var deltaOmega = XYZ.copy(deltaQ).scale(2 * halftheta / length);
 
         deltaOmega.scale(stiffness);
 
@@ -15753,12 +19627,7 @@ var DAMPING_REGISTER = new Vec3();
  */
 function Spring(source, targets, options) {
     this.source = source || null;
-    if (targets) {
-        if (targets instanceof Array) this.targets = targets;
-        else this.targets = [targets];
-    }
-    else this.targets = [];
-    Force.call(this, options);
+    Force.call(this, targets, options);
 }
 
 Spring.prototype = Object.create(Force.prototype);
@@ -15819,7 +19688,7 @@ Spring.prototype.init = function(options) {
         this.damping = 4 * PI * this.dampingRatio / this.period;
     }
     else {
-        this.period = 300;
+        this.period = 1;
         this.dampingRatio = 0;
 
         this.stiffness = 2 * PI / this.period;
@@ -15988,25 +19857,24 @@ function programify(vertex, fragment, uniforms, attributes) {
 },{}],319:[function(require,module,exports){
 "use strict";
 var glslify = require("glslify");
-var shaders = require("glslify/simple-adapter.js")("\n#define GLSLIFY 1\n\nvec4 a_x_convertToClipSpace(vec4 pos) {\n  float zTranslationScale = (resolution.x > resolution.y) ? 1.0 / resolution.x : 1.0 / resolution.y;\n  return vec4(((2.0 * pos.x) - resolution.x + size.x) / resolution.x, ((2.0 * pos.y) + resolution.y - size.y) / resolution.y, -pos.z * zTranslationScale, 0.0);\n}\nmat3 b_x_getNormalMatrix(in mat4 t) {\n  mat3 matNorm;\n  mat4 a = t;\n  float a00 = a[0][0], a01 = a[0][1], a02 = a[0][2], a03 = a[0][3], a10 = a[1][0], a11 = a[1][1], a12 = a[1][2], a13 = a[1][3], a20 = a[2][0], a21 = a[2][1], a22 = a[2][2], a23 = a[2][3], a30 = a[3][0], a31 = a[3][1], a32 = a[3][2], a33 = a[3][3], b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11, b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30, b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32, det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n  det = 1.0 / det;\n  matNorm[0][0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;\n  matNorm[0][1] = (a12 * b08 - a10 * b11 - a13 * b07) * det;\n  matNorm[0][2] = (a10 * b10 - a11 * b08 + a13 * b06) * det;\n  matNorm[1][0] = (a02 * b10 - a01 * b11 - a03 * b09) * det;\n  matNorm[1][1] = (a00 * b11 - a02 * b08 + a03 * b07) * det;\n  matNorm[1][2] = (a01 * b08 - a00 * b10 - a03 * b06) * det;\n  matNorm[2][0] = (a31 * b05 - a32 * b04 + a33 * b03) * det;\n  matNorm[2][1] = (a32 * b02 - a30 * b05 - a33 * b01) * det;\n  matNorm[2][2] = (a30 * b04 - a31 * b02 + a33 * b00) * det;\n  return matNorm;\n}\nmat4 c_x_inverseYMatrix = mat4(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);\nmat4 c_x_invertYAxis(mat4 transform) {\n  return c_x_inverseYMatrix * transform;\n}\nfloat d_x_inverse(float m) {\n  return 1.0 / m;\n}\nmat2 d_x_inverse(mat2 m) {\n  return mat2(m[1][1], -m[0][1], -m[1][0], m[0][0]) / (m[0][0] * m[1][1] - m[0][1] * m[1][0]);\n}\nmat3 d_x_inverse(mat3 m) {\n  float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2];\n  float a10 = m[1][0], a11 = m[1][1], a12 = m[1][2];\n  float a20 = m[2][0], a21 = m[2][1], a22 = m[2][2];\n  float b01 = a22 * a11 - a12 * a21;\n  float b11 = -a22 * a10 + a12 * a20;\n  float b21 = a21 * a10 - a11 * a20;\n  float det = a00 * b01 + a01 * b11 + a02 * b21;\n  return mat3(b01, (-a22 * a01 + a02 * a21), (a12 * a01 - a02 * a11), b11, (a22 * a00 - a02 * a20), (-a12 * a00 + a02 * a10), b21, (-a21 * a00 + a01 * a20), (a11 * a00 - a01 * a10)) / det;\n}\nmat4 d_x_inverse(mat4 m) {\n  float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3], a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3], a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3], a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3], b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11, b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30, b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32, det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n  return mat4(a11 * b11 - a12 * b10 + a13 * b09, a02 * b10 - a01 * b11 - a03 * b09, a31 * b05 - a32 * b04 + a33 * b03, a22 * b04 - a21 * b05 - a23 * b03, a12 * b08 - a10 * b11 - a13 * b07, a00 * b11 - a02 * b08 + a03 * b07, a32 * b02 - a30 * b05 - a33 * b01, a20 * b05 - a22 * b02 + a23 * b01, a10 * b10 - a11 * b08 + a13 * b06, a01 * b08 - a00 * b10 - a03 * b06, a30 * b04 - a31 * b02 + a33 * b00, a21 * b02 - a20 * b04 - a23 * b00, a11 * b07 - a10 * b09 - a12 * b06, a00 * b09 - a01 * b07 + a02 * b06, a31 * b01 - a30 * b03 - a32 * b00, a20 * b03 - a21 * b01 + a22 * b00) / det;\n}\nfloat e_x_transpose(float m) {\n  return m;\n}\nmat2 e_x_transpose(mat2 m) {\n  return mat2(m[0][0], m[1][0], m[0][1], m[1][1]);\n}\nmat3 e_x_transpose(mat3 m) {\n  return mat3(m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1], m[0][2], m[1][2], m[2][2]);\n}\nmat4 e_x_transpose(mat4 m) {\n  return mat4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2], m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);\n}\nvec4 applyTransform(vec4 pos) {\n  float xOrigin = (origin.x - 0.5) * size.x;\n  float yOrigin = (origin.y - 0.5) * size.y;\n  float zOrigin = (origin.z - 0.5) * size.z;\n  mat4 forwardOrigin = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, xOrigin, yOrigin, zOrigin, 1.0);\n  mat4 negatedOrigin = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -xOrigin, -yOrigin, -zOrigin, 1.0);\n  mat4 MVMatrix = view * transform;\n  mat4 originMVMatrix = forwardOrigin * MVMatrix;\n  originMVMatrix = originMVMatrix * negatedOrigin;\n  mat4 projection = perspective;\n  mat4 invertedYMatrix = c_x_invertYAxis(originMVMatrix);\n  invertedYMatrix[3][2] *= 2.0;\n  vec4 translation = invertedYMatrix[3];\n  pos.xyz *= size;\n  pos.y *= -1.0;\n  vec4 pixelPosition = vec4(pos.x * 0.5, pos.y * 0.5, pos.z * 0.5, 1.0);\n  mat4 pixelTransform = originMVMatrix;\n  pixelTransform[3][0] += size.x * 0.5;\n  pixelTransform[3][1] += size.y * 0.5;\n  projection[0][0] = 1.0 / resolution.x;\n  projection[1][1] = 1.0 / resolution.y;\n  projection[2][2] = (resolution.y > resolution.x) ? -1.0 / resolution.y : -1.0 / resolution.x;\n  projection[2][3] *= 0.5;\n  v_Position = (pixelTransform * pixelPosition).xyz;\n  mat4 MVPMatrix = projection * invertedYMatrix;\n  MVPMatrix[3] = vec4(0.0, 0.0, 0.0, MVPMatrix[3][3]);\n  pos = MVPMatrix * pos;\n  pos += a_x_convertToClipSpace(translation);\n  return pos;\n}\n#vert_definitions\n\nvec3 calculateOffset(vec3 ID) {\n  \n  #vert_applications\n  return vec3(0.0);\n}\nvoid main() {\n  gl_PointSize = 10.0;\n  vec3 invertedNormals = normals;\n  invertedNormals.y *= -1.0;\n  v_Normal = e_x_transpose(mat3(d_x_inverse(transform))) * invertedNormals;\n  v_TextureCoordinate = texCoord;\n  vec3 offsetPos = pos + calculateOffset(positionOffset);\n  gl_Position = applyTransform(vec4(offsetPos, 1.0));\n}", "\n#define GLSLIFY 1\n\n#float_definitions\n\nfloat a_x_applyMaterial(float ID) {\n  \n  #float_applications\n  return 1.;\n}\n#vec_definitions\n\nvec3 a_x_applyMaterial(vec3 ID) {\n  \n  #vec_applications\n  return vec3(.5);\n}\nvec3 c_x_phongLight(in vec3 material, in vec3 lightDirection, in vec3 eyeVector) {\n  vec3 normal = normalize(v_Normal);\n  float lambertianTerm = dot(lightDirection, normal);\n  vec3 diffuse = vec3(0.0, 0.0, 0.0);\n  vec3 specular = vec3(0.0, 0.0, 0.0);\n  if(lambertianTerm > 0.0 && glossiness > 0.0) {\n    diffuse = material * lambertianTerm;\n    vec3 E = normalize(eyeVector);\n    vec3 R = reflect(lightDirection, normal);\n    float specularWeight = pow(max(dot(R, E), 0.0), glossiness);\n    specular = u_LightColor * specularWeight;\n    return diffuse + specular;\n  } else {\n    lambertianTerm = max(lambertianTerm, 0.0);\n    return u_LightColor * material * lambertianTerm;\n  }\n}\nvec3 b_x_applyLight(in vec3 material) {\n  vec3 lightDirection = normalize(u_LightPosition - v_Position);\n  vec3 eyeVector = -normalize(vec3(v_Position));\n  return c_x_phongLight(material, lightDirection, eyeVector);\n}\nvoid main() {\n  vec3 material = baseColor.r >= 0.0 ? baseColor : a_x_applyMaterial(baseColor);\n  bool flatShading = u_FlatShading > 0.0;\n  bool lights = length(u_LightColor) > 0.0;\n  vec3 color = lights && !flatShading ? b_x_applyLight(material) : material;\n  bool ambience = length(u_AmbientLight) > 0.0;\n  vec3 ambientLight = u_AmbientLight * material;\n  vec3 finalColor = ambience && !flatShading ? ambientLight + color : color;\n  gl_FragColor = vec4(finalColor, opacity);\n}", [], []);
+var shaders = require("glslify/simple-adapter.js")("\n#define GLSLIFY 1\n\nvec4 a_x_convertToClipSpace(vec4 pos) {\n  float zTranslationScale = (resolution.x > resolution.y) ? 1.0 / resolution.x : 1.0 / resolution.y;\n  return vec4(((2.0 * pos.x) - resolution.x + size.x) / resolution.x, ((2.0 * pos.y) + resolution.y - size.y) / resolution.y, -pos.z * zTranslationScale, 0.0);\n}\nmat3 b_x_getNormalMatrix(in mat4 t) {\n  mat3 matNorm;\n  mat4 a = t;\n  float a00 = a[0][0], a01 = a[0][1], a02 = a[0][2], a03 = a[0][3], a10 = a[1][0], a11 = a[1][1], a12 = a[1][2], a13 = a[1][3], a20 = a[2][0], a21 = a[2][1], a22 = a[2][2], a23 = a[2][3], a30 = a[3][0], a31 = a[3][1], a32 = a[3][2], a33 = a[3][3], b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11, b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30, b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32, det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n  det = 1.0 / det;\n  matNorm[0][0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;\n  matNorm[0][1] = (a12 * b08 - a10 * b11 - a13 * b07) * det;\n  matNorm[0][2] = (a10 * b10 - a11 * b08 + a13 * b06) * det;\n  matNorm[1][0] = (a02 * b10 - a01 * b11 - a03 * b09) * det;\n  matNorm[1][1] = (a00 * b11 - a02 * b08 + a03 * b07) * det;\n  matNorm[1][2] = (a01 * b08 - a00 * b10 - a03 * b06) * det;\n  matNorm[2][0] = (a31 * b05 - a32 * b04 + a33 * b03) * det;\n  matNorm[2][1] = (a32 * b02 - a30 * b05 - a33 * b01) * det;\n  matNorm[2][2] = (a30 * b04 - a31 * b02 + a33 * b00) * det;\n  return matNorm;\n}\nmat4 c_x_inverseYMatrix = mat4(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);\nmat4 c_x_invertYAxis(mat4 transform) {\n  return c_x_inverseYMatrix * transform;\n}\nfloat d_x_inverse(float m) {\n  return 1.0 / m;\n}\nmat2 d_x_inverse(mat2 m) {\n  return mat2(m[1][1], -m[0][1], -m[1][0], m[0][0]) / (m[0][0] * m[1][1] - m[0][1] * m[1][0]);\n}\nmat3 d_x_inverse(mat3 m) {\n  float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2];\n  float a10 = m[1][0], a11 = m[1][1], a12 = m[1][2];\n  float a20 = m[2][0], a21 = m[2][1], a22 = m[2][2];\n  float b01 = a22 * a11 - a12 * a21;\n  float b11 = -a22 * a10 + a12 * a20;\n  float b21 = a21 * a10 - a11 * a20;\n  float det = a00 * b01 + a01 * b11 + a02 * b21;\n  return mat3(b01, (-a22 * a01 + a02 * a21), (a12 * a01 - a02 * a11), b11, (a22 * a00 - a02 * a20), (-a12 * a00 + a02 * a10), b21, (-a21 * a00 + a01 * a20), (a11 * a00 - a01 * a10)) / det;\n}\nmat4 d_x_inverse(mat4 m) {\n  float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3], a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3], a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3], a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3], b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11, b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30, b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32, det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n  return mat4(a11 * b11 - a12 * b10 + a13 * b09, a02 * b10 - a01 * b11 - a03 * b09, a31 * b05 - a32 * b04 + a33 * b03, a22 * b04 - a21 * b05 - a23 * b03, a12 * b08 - a10 * b11 - a13 * b07, a00 * b11 - a02 * b08 + a03 * b07, a32 * b02 - a30 * b05 - a33 * b01, a20 * b05 - a22 * b02 + a23 * b01, a10 * b10 - a11 * b08 + a13 * b06, a01 * b08 - a00 * b10 - a03 * b06, a30 * b04 - a31 * b02 + a33 * b00, a21 * b02 - a20 * b04 - a23 * b00, a11 * b07 - a10 * b09 - a12 * b06, a00 * b09 - a01 * b07 + a02 * b06, a31 * b01 - a30 * b03 - a32 * b00, a20 * b03 - a21 * b01 + a22 * b00) / det;\n}\nfloat e_x_transpose(float m) {\n  return m;\n}\nmat2 e_x_transpose(mat2 m) {\n  return mat2(m[0][0], m[1][0], m[0][1], m[1][1]);\n}\nmat3 e_x_transpose(mat3 m) {\n  return mat3(m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1], m[0][2], m[1][2], m[2][2]);\n}\nmat4 e_x_transpose(mat4 m) {\n  return mat4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2], m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);\n}\nvec4 applyTransform(vec4 pos) {\n  float xOrigin = (origin.x - 0.5) * size.x;\n  float yOrigin = (origin.y - 0.5) * size.y;\n  float zOrigin = (origin.z - 0.5) * size.z;\n  mat4 forwardOrigin = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, xOrigin, yOrigin, zOrigin, 1.0);\n  mat4 negatedOrigin = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -xOrigin, -yOrigin, -zOrigin, 1.0);\n  mat4 MVMatrix = view * transform;\n  mat4 originMVMatrix = forwardOrigin * MVMatrix;\n  originMVMatrix = originMVMatrix * negatedOrigin;\n  mat4 projection = perspective;\n  mat4 invertedYMatrix = c_x_invertYAxis(originMVMatrix);\n  invertedYMatrix[3][2] *= 2.0;\n  vec4 translation = invertedYMatrix[3];\n  pos.xyz *= size;\n  pos.y *= -1.0;\n  vec4 pixelPosition = vec4(pos.x * 0.5, pos.y * 0.5, pos.z * 0.5, 1.0);\n  mat4 pixelTransform = originMVMatrix;\n  pixelTransform[3][0] += size.x * 0.5;\n  pixelTransform[3][1] += size.y * 0.5;\n  projection[0][0] = 1.0 / resolution.x;\n  projection[1][1] = 1.0 / resolution.y;\n  projection[2][2] = (resolution.y > resolution.x) ? -1.0 / resolution.y : -1.0 / resolution.x;\n  projection[2][3] *= 0.5;\n  v_Position = (pixelTransform * pixelPosition).xyz;\n  mat4 MVPMatrix = projection * invertedYMatrix;\n  MVPMatrix[3] = vec4(0.0, 0.0, 0.0, MVPMatrix[3][3]);\n  pos = MVPMatrix * pos;\n  pos += a_x_convertToClipSpace(translation);\n  return pos;\n}\n#vert_definitions\n\nvec3 calculateOffset(vec3 ID) {\n  \n  #vert_applications\n  return vec3(0.0);\n}\nvoid main() {\n  gl_PointSize = 10.0;\n  vec3 invertedNormals = normals;\n  invertedNormals.y *= -1.0;\n  v_Normal = e_x_transpose(mat3(d_x_inverse(transform))) * invertedNormals;\n  v_TextureCoordinate = texCoord;\n  vec3 offsetPos = pos + calculateOffset(positionOffset);\n  gl_Position = applyTransform(vec4(offsetPos, 1.0));\n}", "\n#define GLSLIFY 1\n\n#float_definitions\n\nfloat a_x_applyMaterial(float ID) {\n  \n  #float_applications\n  return 1.;\n}\n#vec_definitions\n\nvec3 a_x_applyMaterial(vec3 ID) {\n  \n  #vec_applications\n  return vec3(.5);\n}\nvec3 b_x_applyLight(in vec3 material) {\n  int numLights = int(u_NumLights);\n  float lambertianTerm;\n  vec3 finalColor = vec3(0.0);\n  vec3 normal = normalize(v_Normal);\n  vec3 ambientLight = u_AmbientLight * material;\n  vec3 eyeVector = -normalize(vec3(v_Position));\n  vec3 diffuse, specular, lightDirection;\n  for(int i = 0; i < 4; i++) {\n    if(i >= numLights)\n      break;\n    diffuse = vec3(0.0, 0.0, 0.0);\n    specular = vec3(0.0, 0.0, 0.0);\n    lightDirection = normalize(u_LightPosition[i].xyz - v_Position);\n    lambertianTerm = dot(lightDirection, normal);\n    if(lambertianTerm > 0.0 && glossiness > 0.0) {\n      diffuse = material * lambertianTerm;\n      vec3 E = normalize(eyeVector);\n      vec3 R = reflect(lightDirection, normal);\n      float specularWeight = pow(max(dot(R, E), 0.0), glossiness);\n      specular = u_LightColor[i].rgb * specularWeight;\n      finalColor += diffuse + specular;\n    } else {\n      lambertianTerm = max(lambertianTerm, 0.0);\n      finalColor += u_LightColor[i].rgb * material * lambertianTerm;\n    }\n  }\n  return ambientLight + finalColor;\n}\nvoid main() {\n  vec3 material = baseColor.r >= 0.0 ? baseColor : a_x_applyMaterial(baseColor);\n  bool lightsEnabled = (u_FlatShading == 0.0) && (u_NumLights > 0.0);\n  vec3 color = lightsEnabled ? b_x_applyLight(material) : material;\n  gl_FragColor = vec4(color, opacity);\n}", [], []);
 module.exports = shaders;
 },{"glslify":317,"glslify/simple-adapter.js":318}],320:[function(require,module,exports){
 'use strict';
 
 /**
  * Buffer is a private class that wraps the vertex data that defines
- * the the points of the triangles that webgl draws. Each 
- * buffer maps to one attribute of a mesh.
+ * the the points of the triangles that webgl draws. Each buffer 
+ * maps to one attribute of a mesh.
  * 
  * @class Buffer
  * @constructor
  * 
- * @param {target} the bind target of the buffer to update: ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER
- * @param {type} The offset in bytes where data replacement begins. Must be greater than or equal to 0.
- * @param {gl} the gl context that the buffer is hosted by
+ * @param {Number} target The bind target of the buffer to update: ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER
+ * @param {Object} type Array type to be used in calls to gl.bufferData.
+ * @param {WebGLContext} gl The WebGL context that the buffer is hosted by.
  * 
  */
-
 function Buffer(target, type, gl) {
     this.buffer = null;
     this.target = target;
@@ -16042,9 +19910,6 @@ module.exports = Buffer;
 
 var INDICES = 'indices';
 
-var ELEMENT_ARRAY_BUFFER = 34963;
-var ARRAY_BUFFER = 34962;
-
 var Buffer = require('./Buffer');
 
 /**
@@ -16055,7 +19920,6 @@ var Buffer = require('./Buffer');
  * @constructor
  * 
  * @param {WebGLContext} context WebGL drawing context to be passed to buffers.
- * 
  */
 function BufferRegistry(context) {
     this.gl = context;
@@ -16077,9 +19941,11 @@ function BufferRegistry(context) {
  *
  * @method allocate
  *
- * @param {Object} spec Object with all of the render information.
- * @param {Number} bufferIndex Index of target buffer within the spec.
- * 
+ * @param {Number} geometryId Id of the geometry instance that holds the buffers.
+ * @param {String} name Key of the input buffer in the geometry.
+ * @param {Array} value Flat array containing input data for buffer.
+ * @param {Number} spacing The spacing, or itemSize, of the input buffer.
+ * @param {Boolean} dynamic Boolean denoting whether a geometry is dynamic or static.
  */
 BufferRegistry.prototype.allocate = function allocate(geometryId, name, value, spacing, dynamic) {
     var vertexBuffers = this.registry[geometryId] || (this.registry[geometryId] = { keys: [], values: [], spacing: [], offset: [], length: [] });
@@ -16119,7 +19985,7 @@ BufferRegistry.prototype.allocate = function allocate(geometryId, name, value, s
 
             if (!bufferFound) {
                 buffer = new Buffer(
-                    isIndex ? ELEMENT_ARRAY_BUFFER : ARRAY_BUFFER,
+                    isIndex ? this.gl.ELEMENT_ARRAY_BUFFER : this.gl.ARRAY_BUFFER,
                     isIndex ? Uint16Array : Float32Array,
                     this.gl
                 );
@@ -16132,7 +19998,7 @@ BufferRegistry.prototype.allocate = function allocate(geometryId, name, value, s
             // For dynamic geometries, always create new buffer.
 
             buffer = new Buffer(
-                isIndex ? ELEMENT_ARRAY_BUFFER : ARRAY_BUFFER,
+                isIndex ? this.gl.ELEMENT_ARRAY_BUFFER : this.gl.ARRAY_BUFFER,
                 isIndex ? Uint16Array : Float32Array,
                 this.gl
             );
@@ -16159,11 +20025,8 @@ BufferRegistry.prototype.allocate = function allocate(geometryId, name, value, s
 module.exports = BufferRegistry;
 
 },{"./Buffer":320}],322:[function(require,module,exports){
-/*
- Generates a checkerboard pattern to be used as a placeholder texture
- while an image loads over the network.
- 
- */
+// Generates a checkerboard pattern to be used as a placeholder texture
+// while an image loads over the network.
 
 module.exports = (function() {
     var context = document.createElement('canvas').getContext('2d');
@@ -16231,7 +20094,8 @@ var uniformNames = [
     'u_LightPosition',
     'u_LightColor',
     'u_AmbientLight',
-    'u_FlatShading'
+    'u_FlatShading',
+    'u_NumLights'
 ];
 
 var uniformValues = [
@@ -16248,9 +20112,10 @@ var uniformValues = [
     [1, 1, 1],
     [1, 1, 1],
     [0, 0, 0],
+    identityMatrix,
+    identityMatrix,
     [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0],
+    0,
     0
 ];
 
@@ -16298,7 +20163,10 @@ function Program(gl) {
  *
  * @method registerMaterial
  *
- * @param {Object} material Material being verified.
+ * @param {String} name Name of target input of material.
+ * @param {Object} material Compiled material object being verified.
+ *
+ * @return {Object} Current program.
  */
 
 Program.prototype.registerMaterial = function registerMaterial(name, material) {
@@ -16349,7 +20217,7 @@ Program.prototype.registerMaterial = function registerMaterial(name, material) {
         this.applicationVert.push('if (int(abs(ID.x)) == ' + material._id + ') return fa_' + material._id + '();');
     }
 
-    this.resetProgram();
+    return this.resetProgram();
 };
 
 /**
@@ -16361,10 +20229,8 @@ Program.prototype.registerMaterial = function registerMaterial(name, material) {
  *
  * @method resetProgram
  *
- * @return {Program} this
- *
+ * @return {Program} Current program.
  */
-
 Program.prototype.resetProgram = function resetProgram() {
     var vsChunkDefines = [];
     var vsChunkApplies = [];
@@ -16463,13 +20329,11 @@ Program.prototype.resetProgram = function resetProgram() {
  *
  * @method uniformIsCached
  *
- * @param {String} targetName Key of uniform spec being evaluated
- * @param {Number | Array} value Value of uniform spec being evaluated
+ * @param {String} targetName Key of uniform spec being evaluated.
+ * @param {Number | Array} value Value of uniform spec being evaluated.
  * @return {Boolean} Value indicating whether the uniform being set
  * is cached.
- *
  */
-
 Program.prototype.uniformIsCached = function (targetName, value) {
     if(this.cachedUniforms[targetName] == null) {
         if (value.length) {
@@ -16509,12 +20373,11 @@ Program.prototype.uniformIsCached = function (targetName, value) {
  *
  * @method setUniforms
  *
- * @param {Object} entityUniforms Key-value pairs of all uniforms from incoming spec
- * @param {Array} shaderChunks Program chunks registered to incoming spec
- * @return {Program} this
+ * @param {Array} uniformNames Array containing the keys of all uniforms to be set.
+ * @param {Array} uniformValue Array containing the values of all uniforms to be set.
  *
+ * @return {Program} Current program.
  */
-
 Program.prototype.setUniforms = function (uniformNames, uniformValue) {
     var gl = this.gl;
     var location;
@@ -16530,6 +20393,7 @@ Program.prototype.setUniforms = function (uniformNames, uniformValue) {
     for (i = 0; i < len; i++) {
         name = uniformNames[i];
         value = uniformValue[i];
+
         // Retreive the cached location of the uniform,
         // requesting a new location from the WebGL context
         // if it does not yet exist.
@@ -16546,6 +20410,7 @@ Program.prototype.setUniforms = function (uniformNames, uniformValue) {
 
         // Determine the correct function and pass the uniform
         // value to WebGL.
+
         if (Array.isArray(value) || value instanceof Float32Array) {
             switch (value.length) {
                 case 4:  gl.uniform4fv(location, value); break;
@@ -16573,12 +20438,11 @@ Program.prototype.setUniforms = function (uniformNames, uniformValue) {
  *
  * @method compileShader
  *
- * @param {WebGL Program} shader Program to be compiled
- * @param {String} source Source to be used in the shader
+ * @param {Object} shader Program to be compiled.
+ * @param {String} source Source to be used in the shader.
  *
- * @return {WebGL Program} compiled shader
+ * @return {Object} Compiled shader.
  */
-
 Program.prototype.compileShader = function compileShader(shader, source) {
     var i = 1;
 
@@ -16603,9 +20467,7 @@ module.exports = Program;
  *
  * @class Texture
  * @constructor
- * 
  */
-
 function Texture(gl, options) {
     options = options || {};
     this.id = gl.createTexture();
@@ -16634,39 +20496,37 @@ function Texture(gl, options) {
     this.unbind();
 }
 
-function isPowerOfTwo(width, height) {
-    return (width & width - 1) === 0 
-        && (height & height - 1) === 0;
-};
-
 /**
- * Binds this texture as the selected target
+ * Binds this texture as the selected target.
  *
- * @method setOrigin
+ * @method bind
  * @chainable
  *
- * @param {Number} the texture slot in which to upload the data
+ * @param {Number} unit The texture slot in which to upload the data.
+ *
+ * @return {Object} Current texture instance.
  */
-
 Texture.prototype.bind = function bind(unit) {
     this.gl.activeTexture(this.gl.TEXTURE0 + (unit || 0));
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
+    return this;
 };
 
 /**
- * Erases the texture data in the given texture slot
+ * Erases the texture data in the given texture slot.
  *
  * @method unbind
  * @chainable
  *
- * @param {Number} the texture slot in which to clean the data
+ * @param {Number} unit The texture slot in which to clean the data.
+ * 
+ * @return {Object} Current texture instance.
  */
-
 Texture.prototype.unbind = function unbind(unit) {
     this.gl.activeTexture(this.gl.TEXTURE0 + (unit || 0));
     this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+    return this;
 };
-
 
 /**
  * Replaces the image data in the texture with the given image.
@@ -16674,9 +20534,10 @@ Texture.prototype.unbind = function unbind(unit) {
  * @method setImage
  * @chainable
  *
- * @param {Image} the Img object to upload pixel data from
+ * @param {Image} img The image object to upload pixel data from.
+ *
+ * @return {Object} Current texture instance.
  */
-
 Texture.prototype.setImage = function setImage(img) {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.format, this.format, this.type, img);
@@ -16684,10 +20545,19 @@ Texture.prototype.setImage = function setImage(img) {
     return this;
 };
 
-
-Texture.prototype.setArray = function setImage(img) {
+/**
+ * Replaces the image data in the texture with an array of arbitrary data.
+ *
+ * @method setArray
+ * @chainable
+ *
+ * @param {Array} input Array to be set as data to texture. 
+ *
+ * @return {Object} Current texture instance.
+ */
+Texture.prototype.setArray = function setArray(input) {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.id);
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.format, 1, 1, 0, this.format, this.type, new Uint8Array(img));
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.format, 1, 1, 0, this.format, this.type, new Uint8Array(input));
     this.gl.bindTexture(this.gl.TEXTURE_2D, null);
     return this;
 };
@@ -16702,8 +20572,9 @@ Texture.prototype.setArray = function setImage(img) {
  * @param {Number} y-offset between texture coordinates and snapshot
  * @param {Number} x-depth of the snapshot
  * @param {Number} y-depth of the snapshot
+ * 
+ * @return {Array} An array of the pixels contained in the snapshot.
  */
-
 Texture.prototype.readBack = function readBack(x, y, width, height) {
     var gl = this.gl;
     var pixels;
@@ -16721,6 +20592,23 @@ Texture.prototype.readBack = function readBack(x, y, width, height) {
     return pixels;
 };
 
+/*
+ * Determines whether both input values are power-of-two numbers.
+ *
+ * @method isPowerOfTwo
+ * @private
+ *
+ * @param {Number} width Number representing texture width.
+ * @param {Number} height Number representing texture height.
+ *
+ * @return {Boolean} Boolean denoting whether the input dimensions
+ * are both power-of-two values.
+ */
+function isPowerOfTwo(width, height) {
+    return (width & width - 1) === 0 
+        && (height & height - 1) === 0;
+};
+
 module.exports = Texture;
 
 },{}],325:[function(require,module,exports){
@@ -16735,8 +20623,10 @@ var checkers = require('./Checkerboard');
 var identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 
 /**
- * WebGLRenderer is a private class that reads commands from a Mesh
- * and converts them into webGL api calls.
+ * WebGLRenderer is a private class that manages all interactions with the WebGL
+ * API.  Each frame it receives commands from the compositor and updates its registries
+ * accordingly.  Subsequently, the draw function is called and the WebGLRenderer
+ * issues draw calls for all meshes in its registry.
  *
  * @class WebGLRenderer
  * @constructor
@@ -16766,9 +20656,17 @@ function WebGLRenderer(container) {
 
     this.meshRegistry = {};
     this.meshRegistryKeys = [];
+
+    /**
+     * Lights
+     */
+    this.numLights = 0;
     this.ambientLight = [0, 0, 0];
     this.lightRegistry = {};
     this.lightRegistryKeys = [];
+    this.lightPositions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this.lightColors = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
     this.textureRegistry = [];
     this.texCache = {};
     this.bufferRegistry = new BufferRegistry(gl);
@@ -16791,7 +20689,16 @@ function WebGLRenderer(container) {
     this.projectionTransform = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 }
 
-
+/**
+ * Attempts to retreive the WebGLRenderer context using several
+ * accessors.  For browser compatability.  Throws on error.
+ *
+ * @method getWebGLContext
+ *
+ * @param {Object} canvas Canvas element from which the context is retreived.
+ *
+ * @return {Object} WebGLContext of canvas element.
+ */
 WebGLRenderer.prototype.getWebGLContext = function getWebGLContext(canvas) {
     var names = ['webgl', 'experimental-webgl', 'webkit-3d', 'moz-webgl'];
     var context = null;
@@ -16810,8 +20717,17 @@ WebGLRenderer.prototype.getWebGLContext = function getWebGLContext(canvas) {
     return context ? context : false;
 };
 
-
+/**
+ * Adds a new base spec to the light registry at a given path.
+ *
+ * @method createLight
+ *
+ * @param {String} path Path used as id of new light in lightRegistry.
+ *
+ * @return {Object} Newly create light spec.
+ */
 WebGLRenderer.prototype.createLight = function createLight(path) {
+    this.numLights++;
     this.lightRegistryKeys.push(path);
     return this.lightRegistry[path] = {
         color: [0, 0, 0],
@@ -16819,14 +20735,21 @@ WebGLRenderer.prototype.createLight = function createLight(path) {
     };
 };
 
-
+/**
+ * Adds a new base spec to the mesh registry at a given path.
+ *
+ * @method createMesh
+ *
+ * @param {String} path Path used as id of new mesh in meshRegistry.
+ *
+ * @return {Object} Newly create mesh spec.
+ */
 WebGLRenderer.prototype.createMesh = function createMesh(path) {
     this.meshRegistryKeys.push(path);
     return this.meshRegistry[path] = {
         uniformKeys: ['opacity', 'transform', 'size', 'origin', 'baseColor', 'positionOffset', 'u_FlatShading'],
         uniformValues: [1, identity, [0, 0, 0], [0, 0, 0], [0.5, 0.5, 0.5], [0, 0, 0], 0],
         buffers: {},
-        options: {},
         geometry: null,
         drawType: null,
         texture: null
@@ -16835,13 +20758,13 @@ WebGLRenderer.prototype.createMesh = function createMesh(path) {
 
 
 /**
- * Draws a mesh onto the screen
+ * Receives updates to meshes and other famous renderables, and updates
+ * registries accordingly.
  *
- * @method render
+ * @method receive
  *
- * @param {Context} object with local transform data and mesh
- *
- * @chainable
+ * @param {String} path Path to given famous renderable used as key in registry.
+ * @param {Array} commands Array of commands used to update a renderable.
  */
 WebGLRenderer.prototype.receive = function receive(path, commands) {
     var bufferName, bufferValue, bufferSpacing, uniformName, uniformValue, geometryId;
@@ -16919,29 +20842,47 @@ WebGLRenderer.prototype.receive = function receive(path, commands) {
     }
 };
 
+/**
+ * Triggers the 'draw' phase of the WebGLRenderer.  Iterates through registries
+ * to set uniforms, set attributes and issue draw commands for renderables.
+ *
+ * @method draw
+ *
+ * @param {Object} renderState Parameters provided by the compositor, that
+ * affect the rendering of all renderables.
+ */
 WebGLRenderer.prototype.draw = function draw(renderState) {
     var mesh;
     var buffers;
     var size;
     var light;
-    var i;
-    var len;
+    var stride;
 
     /**
-     * Light updates
+     * Update lights
      */
-    this.program.setUniforms(['u_AmbientLight'], [this.ambientLight]);
-    for (i = 0, len = this.lightRegistryKeys.length; i < len; i++) {
+    for(var i = 0; i < this.lightRegistryKeys.length; i++) {
         light = this.lightRegistry[this.lightRegistryKeys[i]];
-        this.program.setUniforms(['u_LightPosition'], [light.position]);
-        this.program.setUniforms(['u_LightColor'], [light.color]);
+        stride = i * 4;
+        // Build the light positions' 4x4 matrix
+        this.lightPositions[0 + stride] = light.position[0];
+        this.lightPositions[1 + stride] = light.position[1];
+        this.lightPositions[2 + stride] = light.position[2];
+        // Build the light colors' 4x4 matrix
+        this.lightColors[0 + stride] = light.color[0];
+        this.lightColors[1 + stride] = light.color[1];
+        this.lightColors[2 + stride] = light.color[2];
     }
+    this.program.setUniforms(['u_NumLights'], [this.numLights]);
+    this.program.setUniforms(['u_AmbientLight'], [this.ambientLight]);
+    this.program.setUniforms(['u_LightPosition'], [this.lightPositions]);
+    this.program.setUniforms(['u_LightColor'], [this.lightColors]);
 
     this.projectionTransform[11] = renderState.perspectiveTransform[11];
 
     this.program.setUniforms(['perspective', 'time', 'view'], [this.projectionTransform, Date.now()  % 100000 / 1000, renderState.viewTransform]);
 
-    for (i = 0, len = this.meshRegistryKeys.length; i < len; i++) {
+    for(var i = 0; i < this.meshRegistryKeys.length; i++) {
         mesh = this.meshRegistry[this.meshRegistryKeys[i]];
         buffers = this.bufferRegistry.registry[mesh.geometry];
 
@@ -16960,13 +20901,13 @@ WebGLRenderer.prototype.draw = function draw(renderState) {
 
 
 /**
- * Loads the buffers and issues the draw command for a geometry
+ * Loads the buffers and issues the draw command for a geometry.
  *
  * @method drawBuffers
  *
- * @param {Object} Map of vertex buffers keyed by attribute identifier
- * @param {Number} Enumerator defining what primitive to draw
- *
+ * @param {Object} vertexBuffers All buffers used to draw the geometry.
+ * @param {Number} mode Enumerator defining what primitive to draw
+ * @param {Number} id ID of geometry being drawn.
  */
 WebGLRenderer.prototype.drawBuffers = function drawBuffers(vertexBuffers, mode, id) {
     var gl = this.gl;
@@ -17067,11 +21008,9 @@ WebGLRenderer.prototype.drawBuffers = function drawBuffers(vertexBuffers, mode, 
  *
  * @method renderOffscreen
  *
- * @param {Function} The render function to be called after setup and before cleanup
- * @param {spec} The object containing mesh data
- * @param {context} The object containing global render information
- * @param {Texture} The location where the render data is stored
- *
+ * @param {Function} callback The render function to be called after setup and before cleanup.
+ * @param {Array} size Size of framebuffer being drawn to.
+ * @param {Object} texture Location where the render data is stored.
  */
 function renderOffscreen(callback, size, texture) {
     var gl = this.gl;
@@ -17100,12 +21039,11 @@ function renderOffscreen(callback, size, texture) {
 };
 
 /**
- * Diagonose the failed intialization of an FBO
+ * Diagnoses the failed intialization of an FBO.
  *
  * @method checkFrameBufferStatus
  *
- * @param {Object} the glContext that owns this FBO
- *
+ * @param {Object} the WebGLContext that owns this FBO.
  */
 function checkFrameBufferStatus(gl) {
     var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
@@ -17129,14 +21067,9 @@ function checkFrameBufferStatus(gl) {
 /**
  * Updates the width and height of parent canvas, sets the viewport size on
  * the WebGL context and updates the resolution uniform for the shader program.
- * If no size is passed in this function will update using the cached size.
+ * Size is retreived from the container object of the renderer.
  *
  * @method updateSize
- *
- * @param {Number} width Updated width of the drawing context.
- * @param {Number} height Updated height of the drawing context.
- * @param {Number} depth Updated depth of the drawing context.
- *
  */
 WebGLRenderer.prototype.updateSize = function updateSize() {
     var newSize = this.container._getSize();
@@ -17157,20 +21090,45 @@ WebGLRenderer.prototype.updateSize = function updateSize() {
     this.program.setUniforms(this.resolutionName, this.resolutionValues);
 };
 
-module.exports = WebGLRenderer;
-
+/**
+ * Updates the state of the WebGL drawing context based on custom parameters
+ * defined on a mesh.
+ *
+ * @method handleOptions
+ *
+ * @param {Object} options Draw state options to be set to the context.
+ */
 WebGLRenderer.prototype.handleOptions = function handleOptions(options) {
     var gl = this.gl;
-    if (! options) return;
+    if (!options) return;
     if (options.blending) gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 };
 
-WebGLRenderer.prototype.resetOptions = function handleOptions(options) {
+/**
+ * Resets the state of the WebGL drawing context to default values.
+ *
+ * @method resetOptions
+ *
+ * @param {Object} options Draw state options to be set to the context.
+ */
+WebGLRenderer.prototype.resetOptions = function resetOptions(options) {
     var gl = this.gl;
-    if (! options) return;
+    if (!options) return;
     if (options.blending) gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 };
 
+/**
+ * Loads an image from a string or Image object and executes a callback function.
+ *
+ * @method loadImage
+ * @private
+ *
+ * @param {Object | String} img The input image data to load as an asset.
+ * @param {Function} callback The callback function to be fired when
+ * the image has finished loading.
+ *
+ * @return {Object} Image object being loaded.
+ */
 function loadImage (img, callback) {
     var obj = (typeof img === 'string' ? new Image() : img) || {};
     obj.crossOrigin = 'anonymous';
@@ -17180,6 +21138,16 @@ function loadImage (img, callback) {
     return obj;
 }
 
+/**
+ * Handles loading of texture objects.
+ *
+ * @method handleTexture
+ * @private
+ *
+ * @param {Object} input The input texture object collected from mesh.
+ *
+ * @return {Object} Texture instance linked to input data.
+ */
 function handleTexture(input) {
     var source = input.data;
     var textureId = input.id;
@@ -17216,6 +21184,8 @@ function handleTexture(input) {
     return texture;
 }
 
+module.exports = WebGLRenderer;
+
 },{"./Buffer":320,"./BufferRegistry":321,"./Checkerboard":322,"./Program":323,"./Texture":324}],326:[function(require,module,exports){
 module.exports = {
     Buffer: require('./Buffer'),
@@ -17234,6 +21204,13 @@ var WebGLRenderer = require('famous-webgl-renderers').WebGLRenderer;
 var Camera = require('famous-components').Camera;
 var VirtualWindow = require('./VirtualWindow');
 
+/**
+ * Instantiates a new Compositor, used for routing commands received from the
+ * WebWorker to the WebGL and DOM renderer.
+ * 
+ * @class Compositor
+ * @constructor
+ */
 function Compositor() {
     this._contexts = {};
     this._outCommands = [];
@@ -17249,6 +21226,12 @@ function Compositor() {
     this._virtualWindow = new VirtualWindow(this);
 }
 
+/**
+ * Exposes a key-value-mapping of commands to the renderer they should be
+ * routed to.
+ * 
+ * @type {Object}
+ */
 Compositor.CommandsToOutput = {
     CHANGE_TRANSFORM_ORIGIN: 'DOM',
     CHANGE_TRANSFORM: 'DOM',
@@ -17273,11 +21256,32 @@ Compositor.CommandsToOutput = {
     MATERIAL_INPUT: 'GL'
 };
 
+/**
+ * Schedules an event to be sent to the WebWorker the next time the out command
+ * queue is being flushed.
+ *
+ * @method sendEvent
+ * @private
+ * 
+ * @param  {String} path    render path to the node the event should be
+ *                          triggered on (*targeted event*)
+ * @param  {String} ev      event type
+ * @param  {Object} payload event object (serializable using structured
+ *                          cloning algorithm)
+ */
 Compositor.prototype.sendEvent = function sendEvent(path, ev, payload) {
     this._outCommands.push('WITH', path, 'TRIGGER', ev, payload);
 };
 
-
+/**
+ * Internal helper method used by `drawCommands`.
+ * 
+ * @method handleWith
+ * @private
+ * 
+ * @param  {Array} commands     remaining message queue received from the
+ *                              WebWorker, used to shift single messages from
+ */
 Compositor.prototype.handleWith = function handleWith (commands) {
     var path = commands.shift();
     var pathArr = path.split('/');
@@ -17318,6 +21322,21 @@ Compositor.prototype.handleWith = function handleWith (commands) {
     }
 };
 
+/**
+ * Retrieves the top-level VirtualElement attached to the passed in document
+ * selector.
+ * If no such element exists, one will be instantiated, therefore representing
+ * the equivalent of a Context in the Main Thread.
+ *
+ * @method getOrSetContext
+ * @private
+ * 
+ * @param  {String} selector            document query selector used for
+ *                                      retrieving the DOM node the
+ *                                      VirtualElement should be attached to
+ * @return {Object} result              
+ * @return {VirtualElement} result.DOM  final VirtualElement
+ */
 Compositor.prototype.getOrSetContext = function getOrSetContext(selector) {
     if (this._contexts[selector]) return this._contexts[selector];
     var result = {
@@ -17328,6 +21347,15 @@ Compositor.prototype.getOrSetContext = function getOrSetContext(selector) {
     return result;
 };
 
+/**
+ * Internal helper method used by `drawCommands`.
+ *
+ * @method giveSizeFor
+ * @private
+ * 
+ * @param  {Array} commands     remaining message queue received from the
+ *                              WebWorker, used to shift single messages from
+ */
 Compositor.prototype.giveSizeFor = function giveSizeFor(commands) {
     var selector = commands.shift();
     var size = this.getOrSetContext(selector).DOM._getSize();
@@ -17339,15 +21367,34 @@ Compositor.prototype.giveSizeFor = function giveSizeFor(commands) {
                 _this.sendResize(selector, _this.getOrSetContext(selector).DOM._getSize());
             }
         });
-    return this;
 };
 
+/**
+ * Internal helper method used for notifying the WebWorker about externally
+ * resized contexts (e.g. by resizing the browser window).
+ *
+ * @method sendResize
+ * @private
+ *
+ * @param  {String} selector    render path to the node (context) that should
+ *                              be resized
+ * @param  {Array} size         new context size
+ */
 Compositor.prototype.sendResize = function sendResize (selector, size) {
     this._outCommands.push('WITH', selector, 'TRIGGER', 'resize', size);
     this._sentResize = true;
-    return this;
 };
 
+/**
+ * Processes the previously via `receiveCommands` updated incoming "in"
+ * command queue.
+ * Called by ThreadManager.
+ *
+ * @method drawCommands
+ *
+ * @return {Array} outCommands  set of commands to be sent back to the
+ *                              WebWorker
+ */
 Compositor.prototype.drawCommands = function drawCommands() {
     var commands = this._inCommands;
     var command;
@@ -17402,6 +21449,13 @@ Compositor.prototype.drawCommands = function drawCommands() {
     return this._outCommands;
 };
 
+/**
+ * Used by ThreadManager to update the interal queue of incoming commands.
+ * Receiving commands does not immediately start the rederning process.
+ * 
+ * @param  {Array} commands     command queue to be processed by the
+ *                              compositor's `drawCommands` method
+ */
 Compositor.prototype.receiveCommands = function receiveCommands(commands) {
     var len = commands.length;
     for (var i = 0; i < len; i++) {
@@ -17409,6 +21463,12 @@ Compositor.prototype.receiveCommands = function receiveCommands(commands) {
     }
 };
 
+/**
+ * Flushes the queue of outgoing "out" commands.
+ * Called by ThreadManager.
+ *
+ * @method clearCommands
+ */
 Compositor.prototype.clearCommands = function clearCommands() {
     this._outCommands.length = 0;
     this._sentResize = false;
@@ -17417,6 +21477,37 @@ Compositor.prototype.clearCommands = function clearCommands() {
 module.exports = Compositor;
 
 },{"./VirtualWindow":330,"famous-components":222,"famous-dom-renderers":299,"famous-webgl-renderers":326}],328:[function(require,module,exports){
+'use strict';
+
+/**
+ * The ThreadManager is being updated by an Engine by consecutively calling its
+ * `update` method. It can either manage a real Web-Worker or the global
+ * Famous core singleton.
+ *
+ * @example
+ * var compositor = new Compositor();
+ * 
+ * // Using a Web Worker
+ * var worker = new Worker('worker.bundle.js');
+ * var threadmanger = new ThreadManager(worker, compositor);
+ * 
+ * // Without using a Web Worker
+ * var threadmanger = new ThreadManager(Famous, compositor);
+ * 
+ * @class  ThreadManager
+ * @constructor
+ * 
+ * @param {Famous|Worker} thread        The thread being used to receive
+ *                                      messages from and post messages to.
+ *                                      Expected to expose a WebWorker-like
+ *                                      API, which means providing a way to
+ *                                      listen for updates by setting its
+ *                                      `onmessage` property and sending
+ *                                      updates using `postMessage`.
+ * @param {Compositor} compositor       an instance of Compositor used to
+ *                                      extract enqueued draw commands from to
+ *                                      be sent to the thread
+ */
 function ThreadManager (thread, compositor) {
 	this._thread = thread;
 	this._compositor = compositor;
@@ -17430,6 +21521,16 @@ function ThreadManager (thread, compositor) {
     };
 }
 
+/**
+ * Update method being invoked by the Engine on every `requestAnimationFrame`.
+ * Used for updating the notion of time within the managed thread by sending
+ * a FRAME command and sending messages to 
+ * 
+ * @method update
+ * 
+ * @param  {Number} time unix timestamp to be passed down to the worker as a
+ *                       FRAME command
+ */
 ThreadManager.prototype.update = function update (time) {
     this._thread.postMessage(['FRAME', time]);
     var threadMessages = this._compositor.drawCommands();
@@ -18033,7 +22134,6 @@ arguments[4][37][0].apply(exports,arguments)
 'use strict';
 
 var Geometry = require('./Geometry');
-var TRIANGLES = 'TRIANGLES';
 
 /**
  * DynamicGeometry is a component that defines the data that should
@@ -18044,14 +22144,22 @@ var TRIANGLES = 'TRIANGLES';
  * 
  * @param {Object} options instantiation options
  */
-
 function DynamicGeometry(options) {
     Geometry.call(this, options);
 
     this.spec.dynamic = true;
 }
 
-DynamicGeometry.prototype.getLength = function getLength(bufferName) {
+/**
+ * Returns the number of attribute values used to draw the DynamicGeometry.
+ *
+ * @class DynamicGeometry
+ * @constructor
+ * 
+ * @return {Object} flattened length of the vertex positions attribute
+ * in the geometry.
+ */
+DynamicGeometry.prototype.getLength = function getLength() {
     return this.getVertexPositions().length;
 };
 
@@ -18062,9 +22170,8 @@ DynamicGeometry.prototype.getLength = function getLength(bufferName) {
  * @method getVertexBuffer
  *
  * @param {String} bufferName Name of vertexBuffer to be retrieved.
- * @return {Object} current geometry.
+ * @return {Object} value of buffer with corresponding bufferName.
  */
-
 DynamicGeometry.prototype.getVertexBuffer = function getVertexBuffer(bufferName) {
     if (! bufferName) throw 'getVertexBuffer requires a name';
 
@@ -18080,9 +22187,11 @@ DynamicGeometry.prototype.getVertexBuffer = function getVertexBuffer(bufferName)
  * buffer if one does not exist with given name.
  * 
  * @method setVertexBuffer
+ * @param {String} bufferName Name of vertexBuffer to be set.
+ * @param {Array} value Input data to fill target buffer.
+ * @param {Number} size Vector size of input buffer data.
  * @return {Object} current geometry.
  */
-
 DynamicGeometry.prototype.setVertexBuffer = function setVertexBuffer(bufferName, value, size) {
     var idx = this.spec.bufferNames.indexOf(bufferName);
 
@@ -18091,7 +22200,7 @@ DynamicGeometry.prototype.setVertexBuffer = function setVertexBuffer(bufferName,
     }
 
     this.spec.bufferValues[idx] = value || [];
-    this.spec.bufferSpacings[idx] = size || 3;
+    this.spec.bufferSpacings[idx] = size || this.DEFAULT_BUFFER_SIZE;
 
     if (this.spec.invalidations.indexOf(idx) === -1) {
         this.spec.invalidations.push(idx);
@@ -18105,7 +22214,7 @@ DynamicGeometry.prototype.setVertexBuffer = function setVertexBuffer(bufferName,
  *
  * @method fromGeometry
  *
- * @param {Object} geometry DynamicGeometry instance to copy buffers from.
+ * @param {Object} geometry Geometry instance to copy buffers from.
  * @return {Object} current geometry.
  */
 DynamicGeometry.prototype.fromGeometry = function fromGeometry(geometry) {
@@ -18121,7 +22230,7 @@ DynamicGeometry.prototype.fromGeometry = function fromGeometry(geometry) {
 };
 
 /**
- *  Set the positions of the verticies in this geometry.
+ *  Set the positions of the vertices in this geometry.
  * 
  *  @method setVertexPositions
  *  @param {Array} value New value for vertex position buffer
@@ -18201,43 +22310,16 @@ DynamicGeometry.prototype.getTextureCoords = function () {
     return this.getVertexBuffer('texCoord');
 };
 
-/**
- * Gets the index buffer with corresponding bufferName.
- *
- * @method getIndexBuffer
- *
- * @param {String} bufferName Name of indexBuffer to be retrieved.
- * @param {String} value Value of indexBuffer to be retrieved.
- * @return {Object} current geometry.
- */
-
-DynamicGeometry.prototype.addIndexBuffer = function addIndexBuffer(bufferName, value) {
-    this.spec.indexBuffers[bufferName] = value || [];
-
-    return this;
-};
-
-/**
- * Gets the index buffer with corresponding bufferName.
- *
- * @method getIndexBuffer
- *
- * @param {String} bufferName Name of indexBuffer to be retrieved.
- * @return {Array} Index buffer.
- */
-
-DynamicGeometry.prototype.getIndexBuffer = function getIndexBuffer(bufferName) {
-    return this.spec.indexBuffers[bufferName];
-};
-
 module.exports = DynamicGeometry;
 
 },{"./Geometry":384}],384:[function(require,module,exports){
 'use strict';
 
 var GeometryIds = 0;
-var TRIANGLES = 'TRIANGLES';
-var DEFAULT_BUFFER_SIZE = 3;
+
+// WebGL drawing primitives map. This is generated in geometry to 
+// avoid chrome deoptimizations in WebGLRenderer draw function.
+// TODO: return draw type data retreival to WebGLRenderer.
 
 var DRAW_TYPES = {
     POINTS: 0,
@@ -18251,22 +22333,22 @@ var DRAW_TYPES = {
 
 /**
  * Geometry is a component that defines the data that should
- *   be drawn to the webGL canvas. Manages vertex data and attributes.
+ * be drawn to the webGL canvas. Manages vertex data and attributes.
  *
  * @class Geometry
  * @constructor
  * 
  * @param {Object} options Instantiation options.
  */
-
 function Geometry(options) {
     this.id = GeometryIds++;
     this.options = options || {};
+    this.DEFAULT_BUFFER_SIZE = 3;
 
     this.spec = {
         id: this.id,
         dynamic: false,
-        type: DRAW_TYPES[(this.options.type ? this.options.type.toUpperCase() : TRIANGLES)],
+        type: DRAW_TYPES[(this.options.type ? this.options.type.toUpperCase() : 'TRIANGLES')],
         bufferNames: [],
         bufferValues: [],
         bufferSpacings: [],
@@ -18278,7 +22360,7 @@ function Geometry(options) {
         for (var i = 0; i < len;) {
             this.spec.bufferNames.push(this.options.buffers[i].name);
             this.spec.bufferValues.push(this.options.buffers[i].data);
-            this.spec.bufferSpacings.push(this.options.buffers[i].size || DEFAULT_BUFFER_SIZE);
+            this.spec.bufferSpacings.push(this.options.buffers[i].size || this.DEFAULT_BUFFER_SIZE);
             this.spec.invalidations.push(i++);
         }
     }
@@ -18307,7 +22389,6 @@ var outputs = [
  * @static
  * @class GeometryHelper
  */
-
 var GeometryHelper = {};
 
 /**
@@ -18318,11 +22399,12 @@ var GeometryHelper = {};
  * @static
  * @method generateParametric
  *
- * @param {Number} amount of slices to iterate through
- * @param {Number} amount of stacks to iterate through
- * @param {Function} function used to generate vertex positions at each point
+ * @param {Number} detailX Amount of slices to iterate through.
+ * @param {Number} detailY Amount of stacks to iterate through.
+ * @param {Function} func Function used to generate vertex positions at each point.
+ * 
+ * @return {Object} Object containing generated vertices and indices.
  */
-
 GeometryHelper.generateParametric = function generateParametric(detailX, detailY, func) {
     var vertices = [],
         i, theta, phi, result, j;
@@ -18367,13 +22449,12 @@ GeometryHelper.generateParametric = function generateParametric(detailX, detailY
  * @static
  * @method computeNormals
  *
- * @param {Array} indices declaring faces of geometry
- * @param {Array} vertices of all points on the geometry
- * @param {Array} array to be filled and returned
+ * @param {Array} vertices Vertices of all points on the geometry.
+ * @param {Array} indices Indices declaring faces of geometry.
+ * @param {Array} out Array to be filled and returned.
  * 
- * @return {Array} calculated face normals
+ * @return {Array} Calculated face normals.
  */
-
 GeometryHelper.computeNormals = function computeNormals(vertices, indices, out) {
     var normals = out || [];
     var vertexThree;
@@ -18424,12 +22505,11 @@ GeometryHelper.computeNormals = function computeNormals(vertices, indices, out) 
  * @static
  * @method subdivide
  *
- * @param {Array} indices declaring faces of geometry
- * @param {Array} vertices of all points on the geometry
- * @param {Array} texture coordinates of all points on the geometry
+ * @param {Array} indices Indices declaring faces of geometry
+ * @param {Array} vertices Vertices of all points on the geometry
+ * @param {Array} texutureCoords Texture coordinates of all points on the geometry
  * 
  */
-
 GeometryHelper.subdivide = function subdivide(indices, vertices, textureCoords) {
     var triangleIndex = indices.length / 3,
         abc,
@@ -18472,11 +22552,10 @@ GeometryHelper.subdivide = function subdivide(indices, vertices, textureCoords) 
  * @static
  * @method getUniqueFaces
  *
- * @param {Array} vertices of all points on the geometry
- * @param {Array} indices declaring faces of geometry
+ * @param {Array} vertices Vertices of all points on the geometry
+ * @param {Array} indices Indices declaring faces of geometry
  * 
  */
-
 GeometryHelper.getUniqueFaces = function getUniqueFaces(vertices, indices) {
     var triangleIndex = indices.length / 3,
         registered = [],
@@ -18504,11 +22583,10 @@ GeometryHelper.getUniqueFaces = function getUniqueFaces(vertices, indices) {
  * @static
  * @method subdivide
  *
- * @param {Array} vertices of all points on the geometry
- * @param {Array} indices declaring faces of geometry
+ * @param {Array} vertices Vertices of all points on the geometry
+ * @param {Array} indices Indices declaring faces of geometry
  * 
  */
-
 GeometryHelper.subdivideSpheroid = function subdivideSpheroid(vertices, indices) {
     var triangleIndex = indices.length / 3,
         abc,
@@ -18543,11 +22621,11 @@ GeometryHelper.subdivideSpheroid = function subdivideSpheroid(vertices, indices)
  * @static
  * @method getSpheroidNormals
  *
- * @param {Array} vertices of all points on the geometry
+ * @param {Array} vertices Vertices of all points on the geometry
+ * @param {Array} out Optional array to be filled with resulting normals.
  * 
  * @return {Array} new list of calculated normals.
  */
-
 GeometryHelper.getSpheroidNormals = function getSpheroidNormals(vertices, out) {
     var out = out || [];
     var length = vertices.length / 3;
@@ -18575,11 +22653,11 @@ GeometryHelper.getSpheroidNormals = function getSpheroidNormals(vertices, out) {
  * @static
  * @method getSpheroidUV
  *
- * @param {Array} vertices of all points on the geometry
+ * @param {Array} vertices Vertices of all points on the geometry
+ * @param {Array} out Optional array to be filled with resulting texture coordinates.
  * 
  * @return {Array} new list of calculated texture coordinates
  */
-
 GeometryHelper.getSpheroidUV = function getSpheroidUV(vertices, out) {
     var out = out || [];
     var length = vertices.length / 3;
@@ -18588,8 +22666,8 @@ GeometryHelper.getSpheroidUV = function getSpheroidUV(vertices, out) {
     for(var i = 0; i < length; i++) {
         vertex = vertices.slice(i * 3, i * 3 + 3);
         out.push(
-            this.azimuth(vertex) * 0.5 / Math.PI + 0.5,
-            this.altitude(vertex) / Math.PI + 0.5
+            this.getAzimuth(vertex) * 0.5 / Math.PI + 0.5,
+            this.getAltitude(vertex) / Math.PI + 0.5
         );
     }
 
@@ -18602,11 +22680,11 @@ GeometryHelper.getSpheroidUV = function getSpheroidUV(vertices, out) {
  * @static
  * @method normalizeAll
  *
- * @param {Array} vertices of all points on the geometry
+ * @param {Array} vertices Vertices of all points on the geometry
+ * @param {Array} out Optional array to be filled with resulting normalized vectors.
  * 
  * @return {Array} new list of normalized vertices
  */
-
 GeometryHelper.normalizeAll = function normalizeAll(vertices, out) {
     var out = out || [];
     var vertex;
@@ -18619,12 +22697,120 @@ GeometryHelper.normalizeAll = function normalizeAll(vertices, out) {
     return out;
 };
 
-GeometryHelper.azimuth = function azimuth(v) {
+/**
+ * Normalizes a set of vertices to model space.
+ *
+ * @static
+ * @method normalizeVertices
+ *
+ * @param {Array} vertices Vertices of all points on the geometry
+ * @param {Array} out Optional array to be filled with model space position vectors.
+ * 
+ * @return {Array} Output vertices.
+ */
+GeometryHelper.normalizeVertices = function normalizeVertices(vertices, out) {
+    var out = out || [];
+    var len = vertices.length / 3;
+    var vectors = [];
+    var minX;
+    var maxX;
+    var minY;
+    var maxY;
+    var minZ;
+    var maxZ;
+    var v;
+
+    for (var i = 0; i < len; i++) {
+        v = vectors[i] = new Vec3(
+            vertices[i * 3],
+            vertices[i * 3 + 1],
+            vertices[i * 3 + 2]
+        );
+
+        if (minX == null || v.x < minX) minX = v.x;
+        if (maxX == null || v.x > maxX) maxX = v.x;
+
+        if (minY == null || v.y < minY) minY = v.y;
+        if (maxY == null || v.y > maxY) maxY = v.y;
+
+        if (minZ == null || v.z < minZ) minZ = v.z;
+        if (maxZ == null || v.z > maxZ) maxZ = v.z;
+    };
+
+    var translation = new Vec3(
+        getTranslationFactor(maxX, minX),
+        getTranslationFactor(maxY, minY),
+        getTranslationFactor(maxZ, minZ)
+    );
+
+    var scale = Math.min(
+        getScaleFactor(maxX + translation.x, minX + translation.x),
+        getScaleFactor(maxY + translation.y, minY + translation.y),
+        getScaleFactor(maxZ + translation.z, minZ + translation.z)
+    );
+
+    for (var i = 0; i < vectors.length; i++) {
+        out.push.apply(out, vectors[i].add(translation).scale(scale).toArray());
+    }
+
+    return out;
+};
+
+/**
+ * Determines translation amount for a given axis to normalize model coordinates.
+ *
+ * @method getTranslationFactor
+ * @private
+ *
+ * @param {Number} max Maximum position value of given axis on the model.
+ * @param {Number} min Minimum position value of given axis on the model.
+ *
+ * @return {Number} Number by which the given axis should be translated for all vertices.
+ */
+function getTranslationFactor(max, min) {
+    return -(min + (max - min) / 2);
+}
+
+/**
+ * Determines scale amount for a given axis to normalize model coordinates.
+ *
+ * @method getScaleFactor
+ * @private
+ *
+ * @param {Number} max Maximum scale value of given axis on the model.
+ * @param {Number} min Minimum scale value of given axis on the model.
+ *
+ * @return {Number} Number by which the given axis should be scaled for all vertices.
+ */
+function getScaleFactor(max, min) {
+    return 1 / ((max - min) / 2);
+}
+
+/**
+ * Finds the azimuth, or angle above the XY plane, of a given vector.
+ *
+ * @static
+ * @method getAzimuth
+ *
+ * @param {Array} v Vertex to retreive azimuth from.
+ * 
+ * @return {Number} Azimuth value in radians. 
+ */
+GeometryHelper.getAzimuth = function azimuth(v) {
     return Math.atan2(v[2], -v[0]);
 };
 
-// Angle above the XZ plane.
-GeometryHelper.altitude = function inclination(v) {
+/**
+ * Finds the altitude, or angle above the XZ plane, of a given vector.
+ *
+ * @static
+ * @method getAltitude
+ *
+ * @param {Array} v Vertex to retreive altitude from.
+ * 
+ * @return {Number} Altitude value in radians. 
+ */
+GeometryHelper.getAltitude = function altitude(v) {
     return Math.atan2(-v[1], Math.sqrt((v[0] * v[0]) + (v[2] * v[2])));
 };
 
@@ -18634,11 +22820,10 @@ GeometryHelper.altitude = function inclination(v) {
  * @static
  * @method trianglesToLines
  *
- * @param {Array} indices of all faces on the geometry
+ * @param {Array} indices Indices of all faces on the geometry
  * 
  * @return {Array} new list of line-formatted indices
  */
-
 GeometryHelper.trianglesToLines = function triangleToLines(indices, out) {
     var out = [];
     var face;
@@ -18666,7 +22851,7 @@ var GeometryHelper = require('./GeometryHelper');
  * an argument to a callback function.
  *
  * @static
- * @class Engine
+ * @class OBJLoader
  */
 
 var OBJLoader = {
@@ -18681,13 +22866,12 @@ var OBJLoader = {
  *
  * @method load
  *
- * @param {String} URL of desired obj
- * @param {Function} function to be fired upon successful formatting of obj
- * @param {Boolean} optional paramater specificing whether or not Famo.us should
- * calculate the normals for each face
+ * @param {String} url URL of desired obj
+ * @param {Function} cb Function to be fired upon successful formatting of obj
+ * @param {Object} options Options hash to that can affect the output of the OBJ
+ * vertices.
  */
-
-OBJLoader.load = function load(url, cb, computeNormals) {
+OBJLoader.load = function load(url, cb, options) {
     if (! this.cached[url]) {
         if(! this.requests[url]) {
             this.requests[url] = [cb];
@@ -18696,7 +22880,7 @@ OBJLoader.load = function load(url, cb, computeNormals) {
                 _onsuccess.bind(
                     this,
                     url,
-                    computeNormals
+                    options
                 )
             );
         } else {
@@ -18719,9 +22903,8 @@ OBJLoader.load = function load(url, cb, computeNormals) {
  * @param {Boolean} value determining whether or not to manually calculate normals
  * @param {String} content of the server response
  */
-
-function _onsuccess(url, computeNormals, text) {
-    var buffers = _format.call(this, text, computeNormals);
+function _onsuccess(url, options, text) {
+    var buffers = format.call(this, text, options || {});
     this.cached[url] = buffers;
 
     for (var i = 0; i < this.requests[url].length; i++) {
@@ -18735,7 +22918,7 @@ function _onsuccess(url, computeNormals, text) {
  * Takes raw string format of obj and converts it to a javascript
  * object representing the buffers needed to draw the geometry.
  *
- * @method _format
+ * @method format
  * @private
  *
  * @param {String} raw obj data in text format
@@ -18743,226 +22926,324 @@ function _onsuccess(url, computeNormals, text) {
  *
  * @return {Object} vertex buffer data
  */
+function format(text, options) {
+    var text = sanitize(text);
 
-function _format(text, computeNormals) {
     var lines = text.split('\n');
 
-    var faceTextureCoord = [];
-    var vertexNormal = [];
-    var textureCoord = [];
-    var faceVertex = [];
-    var faceNormal = [];
+    var faceTexCoords = [];
+    var faceVertices = [];
+    var faceNormals = [];
+
+    var normals = [];
+    var texCoords = [];
     var vertices = [];
-    var scaleFactor = 1;
-    var texcoord;
-    var normal;
-    var vertex;
-    var index;
-    var i1;
-    var i2;
-    var i3;
-    var i4;
-    var vx;
-    var vy;
-    var vz;
-    var tx;
-    var ty;
-    var nx;
-    var ny;
-    var nz;
+
+    var i1, i2, i3, i4;
+    var split;
     var line;
+
     var length = lines.length;
 
-    for(var i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
         line = lines[i];
+        split = lines[i].split(' ');
 
-        //Vertex Positions
-        if(line.indexOf('v ') !== -1) {
-            vertex = line.split(' ');
-            vx = parseFloat(vertex[1])*scaleFactor;
-            vy = parseFloat(vertex[2])*scaleFactor;
-            vz = parseFloat(vertex[3])*scaleFactor;
-            vertices.push([vx, vy, vz]);
+        // Handle vertex positions
+
+        if (line.indexOf('v ') !== -1) {
+            vertices.push([
+                parseFloat(split[1]),
+                parseFloat(split[2]),
+                parseFloat(split[3])
+            ]);
         }
 
-        //Texture Coords
+        // Handle texture coordinates
+
         else if(line.indexOf('vt ') !== -1) {
-            texcoord = line.split(' ');
-            tx = parseFloat(texcoord[1]);
-            ty = parseFloat(texcoord[2]);
-            textureCoord.push([tx, ty]);
+            texCoords.push([
+                parseFloat(split[1]),
+                parseFloat(split[2])
+            ]);
         }
 
-        //Vertex Normals
-        else if(line.indexOf('vn ') !== -1) {
-            normal = line.split(' ');
-            nx = parseFloat(normal[1]);
-            ny = parseFloat(normal[2]);
-            nz = parseFloat(normal[3]);
-            vertexNormal.push([nx, ny, nz]);
+        // Handle vertex normals
+
+        else if (line.indexOf('vn ') !== -1) {
+            normals.push([
+                parseFloat(split[1]),
+                parseFloat(split[2]),
+                parseFloat(split[3])
+            ]);
         }
 
-        //Faces
-        else if(line.indexOf('f ') !== -1) {
-            index = line.split(' ');
+        // Handle face
 
-            //Vertex//Normal
-            if(index[1].indexOf('//') !== -1) {
-                i1 = index[1].split('//');
-                i2 = index[2].split('//');
-                i3 = index[3].split('//');
-                faceVertex.push([
-                    parseFloat(i1[0])-1,
-                    parseFloat(i2[0])-1,
-                    parseFloat(i3[0])-1
+        else if (line.indexOf('f ') !== -1) {
+
+            // Vertex, Normal
+
+            if (split[1].indexOf('//') !== -1) {
+                i1 = split[1].split('//');
+                i2 = split[2].split('//');
+                i3 = split[3].split('//');
+
+                faceVertices.push([
+                    parseFloat(i1[0]) - 1,
+                    parseFloat(i2[0]) - 1,
+                    parseFloat(i3[0]) - 1
                 ]);
-                faceNormal.push([
-                    parseFloat(i1[1])-1,
-                    parseFloat(i2[1])-1,
-                    parseFloat(i3[1])-1
+                faceNormals.push([
+                    parseFloat(i1[1]) - 1,
+                    parseFloat(i2[1]) - 1,
+                    parseFloat(i3[1]) - 1
                 ]);
 
-                if(index[4]) {
-                    i4 = index[4].split('/');
-                    faceVertex.push([
-                        parseFloat(i1[0])-1,
-                        parseFloat(i3[0])-1,
-                        parseFloat(i4[0])-1
+                // Handle quad
+
+                if (split[4]) {
+                    i4 = split[4].split('//');
+                    faceVertices.push([
+                        parseFloat(i1[0]) - 1,
+                        parseFloat(i3[0]) - 1,
+                        parseFloat(i4[0]) - 1
                     ]);
-                    faceNormal.push([
-                        parseFloat(i1[2])-1,
-                        parseFloat(i3[2])-1,
-                        parseFloat(i4[2])-1
+                    faceNormals.push([
+                        parseFloat(i1[2]) - 1,
+                        parseFloat(i3[2]) - 1,
+                        parseFloat(i4[2]) - 1
                     ]);
                 }
             }
 
-            //Vertex/Texcoord/Normal
-            else if(index[1].indexOf('/') !== -1) {
-                i1 = index[1].split('/');
-                i2 = index[2].split('/');
-                i3 = index[3].split('/');
-                faceVertex.push([
-                    parseFloat(i1[0])-1,
-                    parseFloat(i2[0])-1,
-                    parseFloat(i3[0])-1
+            // Vertex, TexCoord, Normal
+
+            else if (split[1].indexOf('/') !== -1) {
+                i1 = split[1].split('/');
+                i2 = split[2].split('/');
+                i3 = split[3].split('/');
+
+                faceVertices.push([
+                    parseFloat(i1[0]) - 1,
+                    parseFloat(i2[0]) - 1,
+                    parseFloat(i3[0]) - 1
                 ]);
-                faceTextureCoord.push([
-                    parseFloat(i1[1])-1,
-                    parseFloat(i2[1])-1,
-                    parseFloat(i3[1])-1
+                faceTexCoords.push([
+                    parseFloat(i1[1]) - 1,
+                    parseFloat(i2[1]) - 1,
+                    parseFloat(i3[1]) - 1
                 ]);
-                faceNormal.push([
-                    parseFloat(i1[2])-1,
-                    parseFloat(i2[2])-1,
-                    parseFloat(i3[2])-1
+                faceNormals.push([
+                    parseFloat(i1[2]) - 1,
+                    parseFloat(i2[2]) - 1,
+                    parseFloat(i3[2]) - 1
                 ]);
 
-                if(index[4]) {
-                    i4 = index[4].split('/');
-                    faceVertex.push([
-                        parseFloat(i1[0])-1,
-                        parseFloat(i3[0])-1,
-                        parseFloat(i4[0])-1
+                // Handle Quad
+
+                if (split[4]) {
+                    i4 = split[4].split('/');
+
+                    faceVertices.push([
+                        parseFloat(i1[0]) - 1,
+                        parseFloat(i3[0]) - 1,
+                        parseFloat(i4[0]) - 1
                     ]);
-                    faceTextureCoord.push([
-                        parseFloat(i1[1])-1,
-                        parseFloat(i3[1])-1,
-                        parseFloat(i4[1])-1
+                    faceTexCoords.push([
+                        parseFloat(i1[1]) - 1,
+                        parseFloat(i3[1]) - 1,
+                        parseFloat(i4[1]) - 1
                     ]);
-                    faceNormal.push([
-                        parseFloat(i1[2])-1,
-                        parseFloat(i3[2])-1,
-                        parseFloat(i4[2])-1
+                    faceNormals.push([
+                        parseFloat(i1[2]) - 1,
+                        parseFloat(i3[2]) - 1,
+                        parseFloat(i4[2]) - 1
                     ]);
                 }
             }
 
-            //Vertex
+            // Vertex
+
             else {
-                faceVertex.push([
-                    parseFloat(index[1])-1,
-                    parseFloat(index[2])-1,
-                    parseFloat(index[3])-1
+                faceVertices.push([
+                    parseFloat(split[1]) - 1,
+                    parseFloat(split[2]) - 1,
+                    parseFloat(split[3]) - 1
                 ]);
-                faceTextureCoord.push([
-                    parseFloat(index[1])-1,
-                    parseFloat(index[2])-1,
-                    parseFloat(index[3])-1
+                faceTexCoords.push([
+                    parseFloat(split[1]) - 1,
+                    parseFloat(split[2]) - 1,
+                    parseFloat(split[3]) - 1
                 ]);
-                faceNormal.push([
-                    parseFloat(index[1])-1,
-                    parseFloat(index[2])-1,
-                    parseFloat(index[3])-1
+                faceNormals.push([
+                    parseFloat(split[1]) - 1,
+                    parseFloat(split[2]) - 1,
+                    parseFloat(split[3]) - 1
                 ]);
 
-                if(index[4]) {
-                    faceVertex.push([
-                        parseFloat(index[1])-1,
-                        parseFloat(index[3])-1,
-                        parseFloat(index[4])-1
+                // Handle Quad
+
+                if (split[4]) {
+                    faceVertices.push([
+                        parseFloat(split[1]) - 1,
+                        parseFloat(split[3]) - 1,
+                        parseFloat(split[4]) - 1
                     ]);
-                    faceTextureCoord.push([
-                        parseFloat(index[1])-1,
-                        parseFloat(index[3])-1,
-                        parseFloat(index[4])-1
+                    faceTexCoords.push([
+                        parseFloat(split[1]) - 1,
+                        parseFloat(split[3]) - 1,
+                        parseFloat(split[4]) - 1
                     ]);
-                    faceNormal.push([
-                        parseFloat(index[1])-1,
-                        parseFloat(index[3])-1,
-                        parseFloat(index[4])-1
+                    faceNormals.push([
+                        parseFloat(split[1]) - 1,
+                        parseFloat(split[3]) - 1,
+                        parseFloat(split[4]) - 1
                     ]);
                 }
             }
         }
     }
 
-    var n = [];
-    var v = [];
-    var t = [];
-    var f = [];
-    var vertexCache = {};
-    var count = 0;
-    var uvCoord;
-    var j;
+    var cached = cacheVertices(
+        vertices,
+        normals,
+        texCoords,
+        faceVertices,
+        faceNormals,
+        faceTexCoords
+    );
 
-    for (i = 0; i < faceVertex.length; i++) {
-        f[i] = [];
-        for (j = 0; j < faceVertex[i].length; j++) {
-            uvCoord = faceTextureCoord[i][j];
-            vertex  = faceVertex[i][j];
-            normal  = faceNormal[i][j];
+    cached.vertices = flatten(cached.vertices);
+    cached.normals = flatten(cached.normals);
+    cached.texCoords = flatten(cached.texCoords);
+    cached.indices = flatten(cached.indices);
 
-            // index = vertexCache[vertex + ',' + normal + ',' + uvCoord];
-            //
-            // if(index === undefined) {
-                index = count++;
-                v.push(vertices[vertex]);
-                if(vertexNormal[normal])  n.push(vertexNormal[normal]);
-                if(textureCoord[uvCoord]) t.push(textureCoord[uvCoord]);
-                vertexCache[vertex + ',' + normal + ',' + uvCoord] = index;
-            // }
-            f[i].push(index);
-        }
+    if (options.normalize) {
+        cached.vertices = GeometryHelper.normalizeVertices(
+            cached.vertices
+        );
     }
 
-    n = computeNormals ? GeometryHelper.computeNormals(f, v) :  n;
+    if (options.computeNormals) {
+        cached.normals = GeometryHelper.computeNormals(
+            cached.indices,
+            cached.vertices
+        );
+    }
 
     return {
-        vertices: flatten(v),
-        normals: flatten(n),
-        textureCoords: flatten(t),
-        indices: flatten(f)
+        vertices: cached.vertices,
+        normals: cached.normals,
+        textureCoords: cached.texCoords,
+        indices: cached.indices
     };
 };
 
+/*
+ * Replaces all double spaces with single spaces and removes
+ * all trailing spaces from lines of a given string.
+ *
+ * @method sanitize
+ * @private
+ *
+ * @param {String} text String to be sanitized.
+ *
+ * @return {String} sanitized string.
+ */
+function sanitize(text) {
+    return text.replace(/ +(?= )/g,'').replace(/\s+$/g, '');
+}
+
+/*
+ * Takes a given pool of attributes and face definitions
+ * and removes all duplicate vertices.
+ *
+ * @method cacheVertices
+ * @private
+ *
+ * @param {Array} v Pool of vertices used in face declarations.
+ * @param {Array} n Pool of normals used in face declarations.
+ * @param {Array} t Pool of textureCoords used in face declarations.
+ * @param {Array} fv Vertex positions at each face in the OBJ.
+ * @param {Array} fn Normals at each face in the OBJ.
+ * @param {Array} ft Texture coordinates at each face in the OBJ.
+ *
+ * @return {Object} Object containing the vertices, textureCoordinates and
+ * normals of the OBJ.
+ */
+function cacheVertices(v, n, t, fv, fn, ft) {
+    var outNormals = [];
+    var outPos = [];
+    var outTexCoord = [];
+    var outIndices = [];
+
+    var vertexCache = {};
+
+    var positionIndex;
+    var normalIndex;
+    var texCoordIndex;
+
+    var currentIndex = 0;
+    var fvLength = fv.length;
+    var fnLength = fn.length;
+    var ftLength = ft.length;
+    var faceLength;
+    var index;
+
+    for (var i = 0; i < fvLength; i++) {
+        outIndices[i] = [];
+        faceLength = fv[i].length;
+
+        for (var j = 0; j < faceLength; j++) {
+            if (ftLength) texCoordIndex = ft[i][j];
+            if (fnLength) normalIndex   = fn[i][j];
+                          positionIndex = fv[i][j];
+
+            index = vertexCache[positionIndex + ',' + normalIndex + ',' + texCoordIndex];
+
+            if(index === undefined) {
+                index = currentIndex++;
+
+                              outPos.push(v[positionIndex]);
+                if (fnLength) outNormals.push(n[normalIndex]);
+                if (ftLength) outTexCoord.push(t[texCoordIndex]);
+
+                vertexCache[positionIndex + ',' + normalIndex + ',' + texCoordIndex] = index;
+            }
+
+            outIndices[i].push(index);
+        }
+    }
+
+    return {
+        vertices: outPos,
+        normals: outNormals,
+        texCoords: outTexCoord,
+        indices: outIndices
+    }
+}
+
+/*
+ * Flattens an array of arrays. Not recursive. Assumes
+ * all children are arrays.
+ *
+ * @method flatten
+ * @private
+ *
+ * @param {Array} arr Input array to be flattened.
+ *
+ * @return {Array} Flattened version of input array.
+ */
 function flatten(arr) {
-  var i = arr.length;
-  var out = [];
+    var len = arr.length;
+    var out = [];
 
-  while (i--) out.push.apply(out, arr[i]);
+    for (var i = 0; i < len; i++) {
+        out.push.apply(out, arr[i]);
+    }
 
-  return out;
+    return out;
 }
 
 module.exports = OBJLoader;
@@ -19006,19 +23287,17 @@ var boxData = [
 ];
 
 /**
- * This class creates a new geometry instance and sets
- * its vertex positions, texture coordinates, normals,
- * and indices to based on the primitive.
+ * This function returns a new static geometry, which is passed
+ * custom buffer data.
  *
  * @class BoxGeometry
  * @constructor
  *
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
  * 
  * @return {Object} constructed geometry
  */
-
 function BoxGeometry(options) {
     var options = options || {};
 
@@ -19045,7 +23324,7 @@ function BoxGeometry(options) {
         indices.push(v, v + 1, v + 2);
         indices.push(v + 2, v + 1, v + 3);
     }
-    
+
     return new Geometry({
         buffers: [
             { name: 'pos', data: vertices },
@@ -19064,19 +23343,17 @@ module.exports = BoxGeometry;
 var Geometry       = require('../Geometry');
 
 /**
- * This class creates a new geometry instance and sets
- * its vertex positions, texture coordinates, normals,
- * and indices to based on the primitive.
+ * This function returns a new static geometry, which is passed
+ * custom buffer data.
  *
  * @class Circle
  * @constructor
  *
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
  * 
  * @return {Object} constructed geometry
  */
-
 function Circle (options) {
     var options  = options || {};
     var detail   = options.detail || 30;
@@ -19098,12 +23375,11 @@ function Circle (options) {
  *
  * @method getBuffers
  *
- * @param {Number} amount of detail that determines how many
+ * @param {Number} detail Amount of detail that determines how many
  * vertices are created and where they are placed
  * 
  * @return {Object} constructed geometry
  */
-
 function getBuffers(detail) {
     var theta = 0;
     var x;
@@ -19145,11 +23421,12 @@ var GeometryHelper = require('../GeometryHelper');
  *
  * @class Cylinder
  * @constructor
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * 
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
+ *
  * @return {Object} constructed geometry
  */
-
 function Cylinder (options) {
     var options  = options || {};
     var radius   = options.radius || 1;
@@ -19173,16 +23450,16 @@ function Cylinder (options) {
 }
 
 /**
- * function used in iterative construction of parametric primitive.
+ * Function used in iterative construction of parametric primitive.
  *
  * @static
  * @method generator
  * @param {Number} r Cylinder radius.
  * @param {Number} u Longitudal progress from 0 to PI.
  * @param {Number} v Latitudal progress from 0 to PI.
+ *
  * @return {Array} x, y and z coordinate of geometry.
  */
-
 Cylinder.generator = function generator(r, u, v, pos) {
     pos[0] = r * Math.cos(v);
     pos[1] = r * (-1 + u / Math.PI * 2);
@@ -19198,19 +23475,17 @@ var Geometry       = require('../Geometry');
 var GeometryHelper = require('../GeometryHelper');
 
 /**
- * This class creates a new geometry instance and sets
- * its vertex positions, texture coordinates, normals,
- * and indices to based on the primitive.
+ * This function returns a new static geometry, which is passed
+ * custom buffer data.
  *
  * @class GeodesicSphere
  * @constructor
  *
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
  * 
  * @return {Object} constructed geometry
  */
-
 function GeodesicSphere (options) {
     var t = (1 + Math.sqrt(5)) * 0.5;
 
@@ -19256,19 +23531,17 @@ var Geometry = require('../Geometry');
 var GeometryHelper = require('../GeometryHelper');
 
 /**
- * This class creates a new geometry instance and sets
- * its vertex positions, texture coordinates, normals,
- * and indices to based on the primitive.
+ * This function returns a new static geometry, which is passed
+ * custom buffer data.
  *
  * @class Icosahedron
  * @constructor
  *
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
  * 
  * @return {Object} constructed geometry
  */
-
 function Icosahedron() {
     var t = ( 1 + Math.sqrt( 5 ) ) / 2;
 
@@ -19312,19 +23585,17 @@ var Geometry = require('../Geometry');
 var GeometryHelper = require('../GeometryHelper');
 
 /**
- * This class creates a new geometry instance and sets
- * its vertex positions, texture coordinates, normals,
- * and indices to based on the primitive.
+ * This function returns a new static geometry, which is passed
+ * custom buffer data.
  *
  * @class ParametricCone
  * @constructor
  *
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
  * 
  * @return {Object} constructed geometry
  */
-
 function ParametricCone (options) {
     var options  = options || {};
     var detail   = options.detail || 15;
@@ -19371,19 +23642,17 @@ module.exports = ParametricCone;
 var Geometry = require('../Geometry');
 
 /**
- * This class creates a new geometry instance and sets
- * its vertex positions, texture coordinates, normals,
- * and indices to based on the primitive.
+ * This function returns a new static geometry, which is passed
+ * custom buffer data.
  *
  * @class Plane
  * @constructor
  *
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
  * 
  * @return {Object} constructed geometry
  */
-
 function Plane(options) {
     var options = options || {};
     var detailX = options.detailX || options.detail || 1;
@@ -19428,19 +23697,17 @@ var Geometry = require('../Geometry');
 var GeometryHelper = require('../GeometryHelper');
 
 /**
- * This class creates a new geometry instance and sets
- * its vertex positions, texture coordinates, normals,
- * and indices to based on the primitive.
+ * This function returns a new static geometry, which is passed
+ * custom buffer data.
  *
  * @class ParametricSphere
  * @constructor
  *
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
  * 
  * @return {Object} constructed geometry
  */
-
 function ParametricSphere (options) {
     options = options || {};
     var detail = options.detail || 10;
@@ -19466,15 +23733,14 @@ function ParametricSphere (options) {
 }
 
 /**
- * function used in iterative construction of parametric primitive.
+ * Function used in iterative construction of parametric primitive.
  *
  * @static
  * @method generator
  * @param {Number} u Longitudal progress from 0 to PI.
  * @param {Number} v Latitudal progress from 0 to PI.
- * @return {Array} x, y and z coordinate of geometry
+ * @return {Array} x, y and z coordinates of geometry
  */
-
 ParametricSphere.generator = function generator(u, v, pos) {
     var x = Math.sin(u) * Math.cos(v);
     var y = Math.cos(u);
@@ -19494,19 +23760,17 @@ var Geometry = require('../Geometry');
 var GeometryHelper = require('../GeometryHelper');
 
 /**
- * This class creates a new geometry instance and sets
- * its vertex positions, texture coordinates, normals,
- * and indices to based on the primitive.
+ * This function generates custom buffers and passes them to
+ * a new static geometry, which is returned to the user.
  *
  * @class Tetrahedron
  * @constructor
  *
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
  * 
  * @return {Object} constructed geometry
  */
-
 function Tetrahedron(options) {
     var textureCoords = [];
     var normals = [];
@@ -19575,15 +23839,14 @@ var Geometry = require('../Geometry');
 var GeometryHelper = require('../GeometryHelper');
 
 /**
- * This class creates a new geometry instance and sets
- * its vertex positions, texture coordinates, normals,
- * and indices to based on the primitive.
+ * This function returns a new static geometry, which is passed
+ * custom buffer data.
  *
  * @class Torus
  * @constructor
  *
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
  * 
  * @return {Object} constructed geometry
  */
@@ -19619,9 +23882,8 @@ function Torus(options) {
  * @param {Number} a Radius of tube.
  * @param {Number} u Longitudal progress from 0 to PI.
  * @param {Number} v Latitudal progress from 0 to PI.
- * @return {Array} x, y and z coordinate of geometry.
+ * @return {Array} x, y and z coordinate of the vertex.
  */
-
 Torus.generator = function generator(c, a, u, v, pos) {
     pos[0] = (c + a * Math.cos(2 * v)) * Math.sin(2 * u);
     pos[1] = -(c + a * Math.cos(2 * v)) * Math.cos(2 * u);
@@ -19637,19 +23899,17 @@ var Geometry       = require('../Geometry');
 var GeometryHelper = require('../GeometryHelper');
 
 /**
- * This class creates a new geometry instance and sets
- * its vertex positions, texture coordinates, normals,
- * and indices to based on the primitive.
+ * This function returns a new static geometry, which is passed
+ * custom buffer data.
  *
  * @class Triangle
  * @constructor
  *
- * @param {Object} options that can alter the values
- * and amount of vertex buffers
+ * @param {Object} options Parameters that alter the
+ * vertex buffers of the generated geometry.
  * 
  * @return {Object} constructed geometry
  */
-
 function Triangle (options) {
     var options  = options || {};
     var detail   = options.detail || 1;
@@ -19688,39 +23948,110 @@ module.exports = Triangle;
 
 var TextureRegistry = require('./TextureRegistry');
 
+/** 
+ * A list of glsl expressions which can interface with javascript data and
+ * connected to each other to build custom shaders. 
+ *
+ */
+var expressions = {};
+
 var snippets = {
+
+    /* Abs - The abs function returns the absolute value of x, i.e. x when x is positive or zero and -x for negative x. The input parameter can be a floating scalar or a float vector. In case of a float vector the operation is done component-wise.
+     */ 
+
     abs: {glsl: 'abs(%1);'},
+    /* Sign - The sign function returns 1.0 when x is positive, 0.0 when x is zero and -1.0 when x is negative. The input parameter can be a floating scalar or a float vector. In case of a float vector the operation is done component-wise. */
+
+
     sign: {glsl: 'sign(%1);'},
+
+    /* Floor - The floor function returns the largest integer number that is smaller or equal to x. The input parameter can be a floating scalar or a float vector. In case of a float vector the operation is done component-wise. */
+
     floor: {glsl: 'floor(%1);'},
+
+    /* Ceiling - The ceiling function returns the smallest number that is larger or equal to x. The input parameter can be a floating scalar or a float vector. In case of a float vector the operation is done component-wise. */
+
     ceiling: {glsl: 'ceil(%1);'},
 
+    /* The mod expression returns the remained of the division operation of the two inputs. */
     mod: {glsl: 'mod(%1, %2);'},
+
+    /* Min - The min function returns the smaller of the two arguments. The input parameters can be floating scalars or float vectors. In case of float vectors the operation is done component-wise. */
+
     min: {glsl: 'min(%1, %2);'},
+
+    /* Max - The max function returns the larger of the two arguments. The input parameters can be floating scalars or float vectors. In case of float vectors the operation is done component-wise. */ 
+
     max: {glsl: 'max(%1, %2);'},
+    /* Clamp - The clamp function returns x if it is larger than minVal and smaller than maxVal. In case x is smaller than minVal, minVal is returned. If x is larger than maxVal, maxVal is returned. The input parameters can be floating scalars or float vectors. In case of float vectors the operation is done component-wise. */
+
     clamp: {glsl: 'clamp(%1, %2, %3);'},
+
+    /* Mix - The mix function returns the linear blend of x and y, i.e. the product of x and (1 - a) plus the product of y and a. The input parameters can be floating scalars or float vectors. In case of float vectors the operation is done component-wise. */
+
     mix: {glsl: 'mix(%1, %2, %3);'},
+
+    /* Step - The step function returns 0.0 if x is smaller then edge and otherwise 1.0. The input parameters can be floating scalars or float vectors. In case of float vectors the operation is done component-wise. */
+
     step: {glsl: 'step(%1, %2, %3);'},
+    
+    /* Smoothstep - The smoothstep function returns 0.0 if x is smaller then edge0 and 1.0 if x is larger than edge1. Otherwise the return value is interpolated between 0.0 and 1.0 using Hermite polynomirals. The input parameters can be floating scalars or float vectors. In case of float vectors the operation is done component-wise. */ 
+
     smoothstep: {glsl: 'smoothstep(%1);'},
+
+
+    /* fragCoord - The fragCoord function returns the fragment's position in screenspace. */
 
     fragCoord: {glsl: 'gl_FragColor.xy;'},
 
+    /* Sin - The sin function returns the sine of an angle in radians. The input parameter can be a floating scalar or a float vector. In case of a float vector the sine is calculated separately for every component. */
+
+
     sin: {glsl: 'sin(%1);'},
+
+    /* Cos - The cos function returns the cosine of an angle in radians. The input parameter can be a floating scalar or a float vector. */
+
+    cos: {glsl: 'cos(%1);'},
+
+    /* Pow - The power function returns x raised to the power of y. The input parameters can be floating scalars or float vectors. In case of float vectors the operation is done component-wise. */ 
+
+    pow: {glsl: 'pow(%1, %2);'},
+
+    /* Sqrt - The sqrt function returns the square root of x. The input parameter can be a floating scalar or a float vector. In case of a float vector the operation is done component-wise. */ 
+
+    /* fragCoord - The time function returns the elapsed time in the unix epoch in milliseconds.*/
+
     time: {glsl: 'time;'},
 
+    /* The Add function takes two inputs, adds them together and outputs the result. This addition operation is performed on a per channel basis, meaning that the inputs' R channels get added, G channels get added, B channels get added, etc. Both inputs must have the same number of channels unless one of them is a single Constant value. Constants can be added to a vector with any number of inputs. */
     add: {glsl: '%1 + %2;'},
+
+    /* The Add function takes two inputs, adds them together and outputs the result. This addition operation is performed on a per channel basis, meaning that the inputs' R channels get added, G channels get added, B channels get added, etc. Both inputs must have the same number of channels unless one of them is a single Constant value. Constants can be added to a vector with any number of inputs. */
     multiply: {glsl: '%1 * %2;'},
 
-    normal: {glsl:'v_Normal;'},
+
+    /* The normal function returns the 3-dimensional surface normal, which is a vector that is perpendicular to the tangent plane at that point.*/
+    normal: {glsl:'(v_Normal + 1.0) * 0.5;'},
+
+    /* The uv function returns the 2-dimensional vector that maps the object's 3-dimensional vertices to a 2D plane. */
     uv: {glsl:'vec3(v_TextureCoordinate, 1);'},
+
+    /* The mesh position function returns the transformed fragment's position in world-space.  */
     meshPosition: {glsl:'(v_Position + 1.0) * 0.5;'},
 
+
+    /* The image function fetches the model's */
     image: {glsl:'texture2D(image, v_TextureCoordinate).rgb;'},
 
+
+    /* The constant function returns a static value which is defined at compile-time that cannot be changed dynamically.*/
     constant: {glsl: '%1;'},
+    
+    /* The Parameter expression has values that can be modified (dynamically during runtime in some cases) in a MaterialInstance of the base material containing the parameter. These expressions should be given unique names, via the Parameter Name property, to be used when identifying the specific parameter in the MaterialInstance. If two parameters of the same type have the same name in the same material, they will be assumed to be the same parameter. Changing the value of the parameter in the MaterialInstance would change the value of both the parameter expressions in the material. A default value for the parameter will also be set in the base material. This will be the value of the parameter in the MaterialInstance unless it is overridden and modified there. */
+
     parameter: {uniforms: {parameter: 1}, glsl: 'parameter;'}
 };
-
-var expressions = {};
 
 expressions.registerExpression = function registerExpression(name, schema) {
     this[name] = function (inputs, options) {
@@ -19847,28 +24178,61 @@ function arrayToVec(array) {
 module.exports = expressions;
 expressions.Material = Material;
 expressions.Texture = function (source) {
-    if (! window) return console.log('this constructor cannot be run inside of a work');
+    if (typeof window === 'undefined') return console.error('Texture constructor cannot be run inside of a worker');
     return expressions.image([], { texture: source });
 };
 
 },{"./TextureRegistry":400}],400:[function(require,module,exports){
+'use strict';
+
+/*
+ * A singleton object that holds texture instances in a registry which
+ * can be accessed by key.  Allows for texture sharing and easy referencing.
+ *
+ * @static
+ * @class TextureRegistry
+ */
 var TextureRegistry = {
 	registry: {},
+	textureIds: 1
+};
 
-	textureIds: 1,
+/*
+ * Registers a new Texture object with a unique id and input parameters to be
+ * handled by the WebGLRenderer.  If no accessor is input the texture will be 
+ * created but not store in the registry.
+ *
+ * @method register
+ *
+ * @param {String} accessor Key used to later access the texture object.
+ * @param {Object | Array | String} data Data to be used in the WebGLRenderer to
+ * generate texture data.
+ * @param {Object} options Optional parameters to affect the rendering of the
+ * WebGL texture.
+ *
+ * @return {Object} Newly generated texture object.
+ */
+TextureRegistry.register = function register(accessor, data, options) {
+	if (accessor) return (this.registry[accessor] = { id: this.textureIds++, __isATexture__: true, data: data, options: options });
+	else return { id: this.textureIds++, data: data, __isATexture__: true, options: options };
+};
 
-	register: function register(accessor, data, options) {
-		if (accessor) return (this.registry[accessor] = { id: this.textureIds++, __isATexture__: true, data: data, options: options });
-		else return { id: this.textureIds++, data: data, __isATexture__: true, options: options };
-	},
-
-	get: function get(accessor) {
-		if (!this.registry[accessor]) {
-			throw 'Texture "' + accessor + '" not found!';
-		}
-		else {
-			return this.registry[accessor];
-		}
+/*
+ * Retreives the texture object from registry.  Throws if no texture is
+ * found at given key.
+ *
+ * @method get
+ *
+ * @param {String} accessor Key of a desired texture in the registry.
+ *
+ * @return {Object} Desired texture object.
+ */
+TextureRegistry.get = function get(accessor) {
+	if (!this.registry[accessor]) {
+		throw 'Texture "' + accessor + '" not found!';
+	}
+	else {
+		return this.registry[accessor];
 	}
 }
 
@@ -19994,9 +24358,6 @@ arguments[4][398][0].apply(exports,arguments)
 },{"../Geometry":442,"../GeometryHelper":443,"dup":398}],457:[function(require,module,exports){
 'use strict';
 
-/**
- * Module dependencies
- */
 var Transitionable = require('famous-transitions').Transitionable;
 var Color = require('famous-utilities').Color;
 var Geometry = require('famous-webgl-geometries');
@@ -20008,14 +24369,14 @@ var Geometry = require('famous-webgl-geometries');
  *
  * @class Mesh
  * @constructor
- * @param {RenderNode} RenderNode to which the instance of Mesh will be a component of
+ * @renderable
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved
+ * @param {object} Options Optional params for configuring Mesh
  */
 function Mesh (dispatch, options) {
     this.dispatch = dispatch;
     this.queue = [];
     this._id = dispatch.addRenderable(this);
-
-    // Inputs
 
     this._color = new Color();
     this._glossiness = new Transitionable(0);
@@ -20034,12 +24395,21 @@ function Mesh (dispatch, options) {
     if (options) this.setOptions(options);
 }
 
-
-Mesh.toString = function toString () {
+/**
+* Returns the definition of the Class: 'Mesh'
+*
+* @method toString
+* @return {string} definition
+*/
+Mesh.toString = function toString() {
     return 'Mesh';
 };
 
-
+/**
+ * Init function for setting up listeners for changes from the scene graph.
+ *
+ * @private
+ */
 function init() {
     var dispatch = this.dispatch;
     dispatch.onTransformChange(this._receiveTransformChange.bind(this));
@@ -20048,10 +24418,13 @@ function init() {
     dispatch.onOriginChange(this._receiveOriginChange.bind(this));
     this._receiveTransformChange(dispatch.getContext()._transform);
     this._receiveOriginChange(dispatch.getContext()._origin);
-    return this;
 };
 
-
+/**
+ * Receives transform change updates from the scene graph.
+ *
+ * @private
+ */
 Mesh.prototype._receiveTransformChange = function _receiveTransformChange(transform) {
     this.dispatch.dirtyRenderable(this._id);
     this.queue.push('GL_UNIFORMS');
@@ -20059,7 +24432,11 @@ Mesh.prototype._receiveTransformChange = function _receiveTransformChange(transf
     this.queue.push(transform._matrix);
 };
 
-
+/**
+ * Receives size change updates from the scene graph.
+ *
+ * @private
+ */
 Mesh.prototype._receiveSizeChange = function _receiveSizeChange(size) {
     var size = size.getTopDownSize();
     this.dispatch.dirtyRenderable(this._id);
@@ -20073,7 +24450,11 @@ Mesh.prototype._receiveSizeChange = function _receiveSizeChange(size) {
     this.queue.push(size);
 };
 
-
+/**
+ * Receives origin change updates from the scene graph.
+ *
+ * @private
+ */
 Mesh.prototype._receiveOriginChange = function _receiveOriginChange(origin) {
     this.dispatch.dirtyRenderable(this._id);
     this.queue.push('GL_UNIFORMS');
@@ -20084,7 +24465,11 @@ Mesh.prototype._receiveOriginChange = function _receiveOriginChange(origin) {
     this.queue.push(this._origin);
 };
 
-
+/**
+ * Receives opacity change updates from the scene graph.
+ *
+ * @private
+ */
 Mesh.prototype._receiveOpacityChange = function _receiveOpacityChange(opacity) {
     this.dispatch.dirtyRenderable(this._id);
     this.queue.push('GL_UNIFORMS');
@@ -20092,20 +24477,27 @@ Mesh.prototype._receiveOpacityChange = function _receiveOpacityChange(opacity) {
     this.queue.push(opacity.value);
 };
 
-
+/**
+ * Returns the size of Mesh.
+ *
+ * @method getSize
+ * @returns {array} Size Returns size
+ */
 Mesh.prototype.getSize = function getSize() {
     return this._size;
 };
 
 /**
- * Set the geometry of a mesh
+ * Set the geometry of a mesh.
  *
  * @method setGeometry
  * @chainable
  *
  * @param {Geometry} geometry instance to be associated with the mesh
+ * @param {Object} Options Various configurations for geometries.
+ * @chainable
  */
-Mesh.prototype.setGeometry = function (geometry, options) {
+Mesh.prototype.setGeometry = function setGeometry(geometry, options) {
     var i;
     var key;
     var buffers;
@@ -20128,18 +24520,23 @@ Mesh.prototype.setGeometry = function (geometry, options) {
     return this;
 };
 
-
-Mesh.prototype.getGeometry = function () {
+/**
+ * Get the geometry of a mesh.
+ *
+ * @method getGeometry
+ * @returns {Geometry} geometry Geometry of mesh
+ */
+Mesh.prototype.getGeometry = function getGeometry() {
     return this._geometry;
 };
 
 /**
- * Empties the command queue
- *
- * @method clean
- * @chainable
- *
- */
+* Returns boolean: if true, renderable is to be updated on next engine tick
+*
+* @private
+* @method clean
+* @returns {boolean} Boolean
+*/
 Mesh.prototype.clean = function clean() {
     var path = this.dispatch.getRenderPath();
 
@@ -20203,16 +24600,28 @@ Mesh.prototype.clean = function clean() {
     return this.queue.length;
 };
 
-
 /**
- * Defines a 3-element map that provides the overall color of the mesh.
- *
- * @method setBaseColor
- * @chainable
- *
- * @param {Object, Array} Material, image, or vec3
- * @return {Element} current Mesh
- */
+* Changes the color of Mesh, passing either a material expression or a basic
+* color using 'Color' as its helper. If no material expression is passed in,
+* then the Color accepts various inputs and an optional options parameter for
+* tweening colors. Its default parameters are in RGB, however, you can also
+* specify different inputs.
+* setBaseColor(r, g, b, option)
+* setBaseColor('rgb', 0, 0, 0, option)
+* setBaseColor('hsl', 0, 0, 0, option)
+* setBaseColor('hsv', 0, 0, 0, option)
+* setBaseColor('hex', '#000000', option)
+* setBaseColor('#000000', option)
+* setBaseColor('black', option)
+* setBaseColor(Color)
+* @method setBaseColor
+* @param {Object, Array} Material, image, or vec3
+* @param {number} r Used to set the r value of Color
+* @param {number} g Used to set the g value of Color
+* @param {number} b Used to set the b value of Color
+* @param {object} options Optional options argument for tweening colors
+* @chainable
+*/
 Mesh.prototype.setBaseColor = function setBaseColor() {
     this.dispatch.dirtyRenderable(this._id);
     var materialExpression = Array.prototype.concat.apply([], arguments);
@@ -20238,13 +24647,23 @@ Mesh.prototype.setBaseColor = function setBaseColor() {
     return this;
 };
 
+
+/**
+ * Returns either the material expression or the color of Mesh.
+ *
+ * @method getBaseColor
+ * @returns {MaterialExpress|Color}
+ */
 Mesh.prototype.getBaseColor = function getBaseColor(option) {
     return this._expressions.baseColor || this._color.getColor(option);
 };
 
-
 /**
- * Set whether the mesh is affected by light
+ * Change whether the Mesh is affected by light. Default is true.
+ *
+ * @method setFlatShading
+ * @param {boolean} Boolean
+ * @chainable
  */
 Mesh.prototype.setFlatShading = function setFlatShading(bool) {
     this.dispatch.dirtyRenderable(this._id);
@@ -20255,15 +24674,21 @@ Mesh.prototype.setFlatShading = function setFlatShading(bool) {
     return this;
 };
 
-
+/**
+ * Returns a boolean for whether Mesh is affected by light.
+ *
+ * @method getFlatShading
+ * @returns {boolean} Boolean
+ */
 Mesh.prototype.getFlatShading = function getFlatShading() {
     return this._flatShading ? true : false;
 };
 
 
 /**
- * Defines a 3-element map which is used to provide significant physical detail to
- * the surface by perturbing the facing direction of each individual pixel.
+ * Defines a 3-element map which is used to provide significant physical
+ * detail to the surface by perturbing the facing direction of each individual
+ * pixel.
  *
  * @method normal
  * @chainable
@@ -20271,7 +24696,7 @@ Mesh.prototype.getFlatShading = function getFlatShading() {
  * @param {Object, Array} Material, Image or vec3
  * @return {Element} current Mesh
  */
-Mesh.prototype.setNormals = function (materialExpression) {
+Mesh.prototype.setNormals = function setNormals(materialExpression) {
     this.dispatch.dirtyRenderable(this._id);
     if (materialExpression._compile) materialExpression = materialExpression._compile();
     this.queue.push(typeof materialExpression === 'number' ? 'UNIFORM_INPUT' : 'MATERIAL_INPUT');
@@ -20280,20 +24705,27 @@ Mesh.prototype.setNormals = function (materialExpression) {
     return this;
 };
 
-Mesh.prototype.getNormals = function (materialExpression) {
-    return;
+/**
+ * Returns the Normals expression of Mesh (work in progress)
+ *
+ * @method getNormals
+ * @returns The normals expression for Mesh
+ */
+Mesh.prototype.getNormals = function getNormals(materialExpression) {
+    return null;
 };
 
 /**
- * Defines 1 element map which is used to normalize the specular and diffuseness of a surface.
+ * Defines the glossiness of the mesh from either a material expression or a
+ * scalar value
  *
- * @method glossiness
+ * @method setGlossiness
+ * @param {MaterialExpression|Number}
+ * @param {Object} Options Optional paramter to be passed with scalar
+ * glossiness for tweening.
  * @chainable
- *
- * @param {Object} Material or Image
- * @return {Element} current Mesh
  */
-Mesh.prototype.setGlossiness = function(materialExpression) {
+Mesh.prototype.setGlossiness = function setGlossiness() {
     this.dispatch.dirtyRenderable(this._id);
     var materialExpression = Array.prototype.concat.apply([], arguments);
 
@@ -20314,12 +24746,19 @@ Mesh.prototype.setGlossiness = function(materialExpression) {
     return this;
 };
 
-Mesh.prototype.getGlossiness = function(materialExpression) {
+/**
+ * Returns material expression or scalar value for glossiness.
+ *
+ * @method getGlossiness
+ * @returns {MaterialExpress|Number}
+ */
+Mesh.prototype.getGlossiness = function getGlossiness(materialExpression) {
     return this._expressions.glossiness || this._glossiness.get();
 };
 
 /**
- * Defines 1 element map which describes the electrical conductivity of a material.
+ * Defines 1 element map which describes the electrical conductivity of a
+ * material.
  *
  * @method metallic
  * @chainable
@@ -20336,18 +24775,25 @@ Mesh.prototype.setMetallness = function setMetallness(materialExpression) {
     return this;
 };
 
+/**
+ * Returns material expression for metallness.
+ *
+ * @method getMetallness
+ * @returns {MaterialExpress}
+ */
 Mesh.prototype.getMetallness = function getMetallness() {
     return this._expressions.metallness || this._metallness.get();
 };
 
 /**
- * Defines 3 element map which displaces the position of each vertex in world space.
+ * Defines 3 element map which displaces the position of each vertex in world
+ * space.
  *
- * @method metallic
+ * @method setPositionOffset
  * @chainable
  *
- * @param {Object} Material or Image
- * @return {Element} current Mesh
+ * @param {Object} Material Expression
+ * @chainable
  */
 Mesh.prototype.setPositionOffset = function positionOffset(materialExpression) {
     this.dispatch.dirtyRenderable(this._id);
@@ -20370,17 +24816,25 @@ Mesh.prototype.setPositionOffset = function positionOffset(materialExpression) {
     return this;
 };
 
+/**
+ * Returns position offset.
+ *
+ * @method getPositionOffset
+ * @returns {MaterialExpress|Number}
+ */
 Mesh.prototype.getPositionOffset = function getPositionOffset(materialExpression) {
     return this._expressions.positionOffset || this._positionOffset.get();
 };
+
 /**
- * Defines 3 element map which displaces the position of each vertex in world space.
+ * Defines 3 element map which displaces the position of each vertex in world
+ * space.
  *
- * @method metallic
+ * @method setOptions
  * @chainable
  *
- * @param {Object} Material or Image
- * @return {Element} current Mesh
+ * @param {Object} Options
+ * @chainable
  */
 Mesh.prototype.setOptions = function setOptions(options) {
     this.queue.push('GL_SET_DRAW_OPTIONS');
@@ -20388,10 +24842,6 @@ Mesh.prototype.setOptions = function setOptions(options) {
     return this;
 };
 
-
-/**
- * Expose
- */
 module.exports = Mesh;
 
 },{"famous-transitions":233,"famous-utilities":416,"famous-webgl-geometries":445}],458:[function(require,module,exports){
@@ -20406,14 +24856,19 @@ module.exports = {
 },{"./Mesh":457,"./lights/AmbientLight":459,"./lights/PointLight":461}],459:[function(require,module,exports){
 'use strict';
 
-/**
- * Module dependencies
- */
 var Light = require('./Light');
 
 
 /**
- * AmbientLight Component
+ * AmbientLight extends the functionality of Light. It sets the ambience in
+ * the scene. Ambience is a light source that emits light in the entire
+ * scene, evenly.
+ *
+ * @class AmbientLight
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved
+ * from the corresponding Render Node
  */
 var AmbientLight = function AmbientLight(dispatch) {
     Light.call(this, dispatch);
@@ -20423,32 +24878,43 @@ var AmbientLight = function AmbientLight(dispatch) {
     };
 };
 
+/**
+* Returns the definition of the Class: 'AmbientLight'
+*
+* @method toString
+* @return {string} definition
+*/
 AmbientLight.toString = function toString() {
     return 'AmbientLight';
 };
 
+/**
+ * Extends Light constructor
+ */
 AmbientLight.prototype = Object.create(Light.prototype);
-AmbientLight.prototype.constructor = AmbientLight;
-
 
 /**
- * Expose
+ * Sets AmbientLight as the constructor
  */
+AmbientLight.prototype.constructor = AmbientLight;
+
 module.exports = AmbientLight;
 
 },{"./Light":460}],460:[function(require,module,exports){
 'use strict';
 
-/**
- * Module dependencies
- */
 var Color = require('famous-utilities').Color;
 
-
 /**
- * Light Component
+ * The blueprint for all light components for inheriting common functionality.
+ *
+ * @class Light
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved
+ * from the corresponding Render Node
  */
-var Light = function Light(dispatch) {
+function Light(dispatch) {
     this._dispatch = dispatch;
     this._id = dispatch.addComponent(this);
     this.queue = [];
@@ -20456,16 +24922,41 @@ var Light = function Light(dispatch) {
     this.commands = { color: '' };
 };
 
+/**
+* Returns the definition of the Class: 'Light'
+*
+* @method toString
+* @return {string} definition
+*/
 Light.toString = function toString() {
     return 'Light';
 };
 
+/**
+* Changes the color of the light, using 'Color' as its helper. It accepts an
+* optional options parameter for tweening colors. Its default parameters are
+* in RGB, however, you can also specify different inputs.
+* setColor(r, g, b, option)
+* setColor('rgb', 0, 0, 0, option)
+* setColor('hsl', 0, 0, 0, option)
+* setColor('hsv', 0, 0, 0, option)
+* setColor('hex', '#000000', option)
+* setColor('#000000', option)
+* setColor('black', option)
+* setColor(Color)
+* @method setColor
+* @param {number} r Used to set the r value of Color
+* @param {number} g Used to set the g value of Color
+* @param {number} b Used to set the b value of Color
+* @param {object} options Optional options argument for tweening colors
+* @chainable
+*/
 Light.prototype.setColor = function setColor() {
     this._dispatch.dirtyComponent(this._id);
     var values = Color.flattenArguments(arguments);
 
     if (values[0] instanceof Color) {
-        this._color = materialExpression[0];
+        this._color = values[0];
     }
 
     this._color.set(values);
@@ -20477,10 +24968,26 @@ Light.prototype.setColor = function setColor() {
     return this;
 };
 
+/**
+* Returns the current color value. Defaults to RGB values if no option is
+* provided.
+
+* @method getColor
+* @param {string} option An optional specification for returning colors in
+* different formats: RGB, HSL, Hex, HSV
+* @returns {number} value The color value. Defaults to RGB.
+*/
 Light.prototype.getColor = function getColor(option) {
     return this._color.getColor(option);
 };
 
+/**
+* Returns boolean: if true, component is to be updated on next engine tick
+*
+* @private
+* @method clean
+* @returns {boolean} Boolean
+*/
 Light.prototype.clean = function clean() {
     var path = this._dispatch.getRenderPath();
 
@@ -20502,26 +25009,25 @@ Light.prototype.clean = function clean() {
         return true;
     }
 
-    return false;
+    return this.queue.length;
 };
 
-
-/**
- * Expose
- */
 module.exports = Light;
 
 },{"famous-utilities":416}],461:[function(require,module,exports){
 'use strict';
 
-/**
- * Module dependencies
- */
 var Light = require('./Light');
 
-
 /**
- * PointLight Component
+ * PointLight extends the functionality of Light. PointLight is a light source
+ * that emits light in all directions from a point in space.
+ *
+ * @class PointLight
+ * @constructor
+ * @component
+ * @param {LocalDispatch} dispatch LocalDispatch to be retrieved
+ * from the corresponding Render Node
  */
 var PointLight = function PointLight(dispatch) {
     Light.call(this, dispatch);
@@ -20535,13 +25041,31 @@ var PointLight = function PointLight(dispatch) {
     this._dispatch.onTransformChange(this._receiveTransformChange.bind(this));
 };
 
+/**
+* Returns the definition of the Class: 'PointLight'
+*
+* @method toString
+* @return {string} definition
+*/
 PointLight.toString = function toString() {
     return 'PointLight';
 };
 
+/**
+ * Extends Light constructor
+ */
 PointLight.prototype = Object.create(Light.prototype);
+
+/**
+ * Sets PointLight as the constructor
+ */
 PointLight.prototype.constructor = PointLight;
 
+/**
+ * Receives transform change updates from the scene graph.
+ *
+ * @private
+ */
 PointLight.prototype._receiveTransformChange = function _receiveTransformChange(transform) {
     this._dispatch.dirtyComponent(this._id);
     this.queue.push(this.commands.position);
@@ -20550,10 +25074,6 @@ PointLight.prototype._receiveTransformChange = function _receiveTransformChange(
     this.queue.push(transform._matrix[14]);
 };
 
-
-/**
- * Expose
- */
 module.exports = PointLight;
 
 },{"./Light":460}],462:[function(require,module,exports){
