@@ -1,5 +1,5 @@
-BEST.component('famous-demos:flipper', {
-    tree: 'flipper.html',
+BEST.component('famous-demos:flipper-button', {
+    tree: 'flipper-button.html',
     behaviors: {
         '#flipper-root': {
             'mount-point': [.5,.5],
