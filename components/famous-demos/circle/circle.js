@@ -43,6 +43,7 @@ BEST.component('famous-demos:circle', {
                 'font-family': 'monospace',
                 'text-align': 'center',
                 'font-size' : '20px',
+                'cursor' : 'pointer',
                 'z-index': 5
             },
             'unselectable': true
