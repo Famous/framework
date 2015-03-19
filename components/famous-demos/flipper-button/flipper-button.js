@@ -2,14 +2,15 @@ BEST.component('famous-demos:flipper-button', {
     tree: 'flipper-button.html',
     behaviors: {
         '#flipper-root': {
-            'mount-point': [.5,.5],
-            'align': [0.5, 0.5],
             'origin': [0.5, 0.5],
             'size': function(size) {
               return [size[0], size[1]];
             },
             'rotation-x': function(rotationX) {
                 return rotationX;
+            },
+            'scale': function(scale) {
+                return [scale, scale, 1];
             }
         },
         '.flipper-back': {
@@ -17,22 +18,11 @@ BEST.component('famous-demos:flipper-button', {
                 return Math.PI;
             }
         },
-        '.front-surface': {
-            'style': {
-                'background-color': 'rgb(244, 67, 54)',
-                'color': 'rgb(255,255,255)',
-                'font-size' : '20px',
-                'line-height': '85px',
-                'cursor': 'pointer'
-            }
+        '.front-label' : {
+            '$yield' : '.front-label'
         },
-        '.back-surface': {
-            'style':  {
-                'background-color': 'rgb(238, 238, 238)',
-                'font-size' : '20px',
-                'font-weight': 'bold',
-                'color': 'rgb(244, 67, 54)'
-            }
+        '.back-label' : {
+            '$yield' : '.back-label'
         },
         '.button-surface' : {
             'backface-visible': false,
@@ -41,21 +31,53 @@ BEST.component('famous-demos:flipper-button', {
             style: {
                 'font-family' : 'Arial',
                 'text-align': 'center',
-                'border-radius': '5%'
+                'border-radius': '5%',
+                'cursor': 'pointer'
             }
         },
+        '.front-surface': {
+            'style': {
+                'background-color': 'rgb(244, 67, 54)',
+            }
+        },
+        '.front-label-surface' : {
+            'style' : {
+                'color': 'rgb(255,255,255)',
+                'font-size' : '20px',
+                'line-height': '85px',
+                'pointer-events': 'none'
+            }
+        },
+        '.back-label-surface': {
+            'style' : {
+                'background-color': 'rgb(238, 238, 238)',
+                'font-size' : '20px',
+                'font-weight': 'bold',
+                'color': 'rgb(244, 67, 54)',
+            }
+        }
     },
     events: {
         public: {
-            'flip-click': function(state) {
+            'flip-click': function(state, event) {
                 var rotation = state.get('rotationX') > 0 ? 0 : Math.PI;
-                state.set('rotationX', rotation, {duration: 400, 'curve': 'outExpo'});
+                state.set('rotationX', rotation, {duration: 500, 'curve': 'outExpo'});
+                window.state = state;
+                state.set('scale', 0.8, {duration: 150, 'curve': 'inCirc'}, function(state){
+
+                    // console.log('callback')
+                    state.set('scale', 5, {duration: 250, curve: 'outBack'});
+                    // setTimeout(function() {
+                    //     state.set('scale', 2, {duration: 250, curve: 'outBack'});
+                    // }, 1)
+                }.bind(null, state));
             }
         }
     },
     states: {
         size: [200, 80],
         zPos: { front: 1, back: 0 },
-        rotationX: 0
+        rotationX: 0,
+        scale: 1
     }
 });
