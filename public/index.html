@@ -15,7 +15,7 @@
     <script type="text/javascript">
       (function() {
         if (QUERY.best) {
-          var best = BEST.deploy(QUERY.best, 'body');
+          BEST.deploy(QUERY.best, 'body');
         }
         else {
           console.error('Please supply a BEST name (`?best=...`)');
