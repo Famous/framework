@@ -30,6 +30,6 @@ BEST.component('famous-demos:torus', {
     states: {
         color: '#3cf',
         geometry: 'Torus',
-        canvasSize: [200, 200],
+        canvasSize: [200, 200, 200],
     }
 });
