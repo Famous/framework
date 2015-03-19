@@ -51,7 +51,7 @@ BEST.component('famous-demos:circle', {
     events: {
         public: {
             'handle-click': function(state, message) {
-                state.setState('radius', state.getState('radius') + 5);
+                state.setState('radius', state.getState('radius') + 50, {duration: 1000, curve: 'outBounce'});
             }
         }
     },
