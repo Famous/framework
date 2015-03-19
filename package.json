@@ -20,10 +20,11 @@
     "copy-components": "cp -r components/ build/components",
     "watch-components": "watch 'npm run copy-components' components",
     "watch-lib": "watchify lib/index.js -t brfs -s BEST -o build/index.bundle.js --debug --verbose",
-    "watch-public" : "watch 'npm run copy-public' public",
+    "watch-public": "watch 'npm run copy-public' public",
+    "watch-modules": "watch 'npm run watch-lib' node_modules",
     "copy-famous": "cp ./vendor/famous-standalone.js build/",
     "copy-public": "cp -r public/ build",
-    "watch": "rm -rf build && mkdir build && npm run copy-famous & npm run watch-lib & npm run watch-components & npm run watch-public"
+    "watch": "rm -rf build && mkdir build && npm run copy-famous & npm run watch-lib & npm run watch-components & npm run watch-modules & npm run watch-public"
   },
   "authors": [
     "Zack Brown <zack@famo.us>",
@@ -67,7 +68,6 @@
   },
   "dependencies": {
     "best-function-parser": "git+ssh://git@github.famo.us:framework/function-parser#master",
-    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#master",
-    "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#master"
+    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#master"
   }
 }
