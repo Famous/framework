@@ -3,25 +3,24 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>BEST build</title>
+    <title>BEST</title>
     <meta name="viewport" content="width=device-width, maximum-scale=1, user-scalable=no" />
     <link href="http://fonts.googleapis.com/css?family=Roboto:400,300,500" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/default.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/zenburn.min.css">
   </head>
   <body>
     <script type="text/javascript" src="famous-standalone.js"></script>
     <script type="text/javascript" src="index.bundle.js"></script>
+    <script type="text/javascript" src="assets/query-string.js"></script>
     <script type="text/javascript">
-      //BEST.deploy('famous-demos:circle', 'body');
-      BEST.deploy('famous-demos:clickable-black-square', 'body');
-      //BEST.deploy('famous-demos:flipper', 'body');
-      //BEST.deploy('famous-demos:hfl-test', 'body');
-      //BEST.deploy('famous-demos:colorful-square-demo', 'body');
-      //BEST.deploy('famous-demos:six-surfaces', 'body');
-      //BEST.deploy('famous-demos:torus', 'body');
+      (function() {
+        if (QUERY.best) {
+          var best = BEST.deploy(QUERY.best, 'body');
+        }
+        else {
+          console.error('Please supply a BEST name (`?best=...`)');
+        }
+      }());
     </script>
   </body>
 </html>
