@@ -13,8 +13,8 @@ BEST.component('famous:ambient-light', {
             }
         },
         handlers: {
-            'color': function($pointLight, $payload) {
-                $pointLight.setColor($payload);
+            'color': function($ambientLight, $payload) {
+                $ambientLight.setColor($payload);
             }
         }
     },
