@@ -38,7 +38,7 @@ BEST.component('famous-demos:torus', {
     },
     states: {
         color: '#3cf',
-        geometry: 'Icosahedron',
+        geometry: 'Torus',
         position: [window.innerWidth * 0.5, window.innerHeight * 0.5],
         pointLightColor: 'white',
         ambientLightColor: 'darkblue',
