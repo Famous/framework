@@ -41,7 +41,7 @@ BEST.component('famous-demos:torus', {
         geometry: 'Icosahedron',
         position: [window.innerWidth * 0.5, window.innerHeight * 0.5],
         pointLightColor: 'white',
-        ambientLightColor: 'blue',
+        ambientLightColor: 'darkblue',
         canvasSize: [200, 200, 200],
     }
 });
