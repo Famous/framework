@@ -13,39 +13,43 @@ Implementation of the BEST framework, a.k.a.:
 * _States_ enclose the stateful values of a component in a single place.
 * _Behaviors_ are pure functions that respond to state changes by returning values.
 
-In the implementation here, a BEST component might look like this:
+In the implementation here, a BEST component looks like this:
 
-    BEST.component('mario:sprite', {
-        behaviors: {
-            size: function(health) {
-                if (health < 2) return 0.5;
-                else return 1;
+```
+BEST.component('famous-demos:clickable-black-square', {
+    tree: '<famous:view id="context">' +
+              '<famous:html-element famous:events:click="handle-click" id="square">' +
+                  '<h1>{{ count }}</h1>' +
+              '</famous:html-element>' +
+          '</famous:view>',
+    behaviors: {
+        '#context': {
+            'size': [200, 200]
+        },
+        '#square': {
+            'template': function(count) {
+                return { count: count };
             }
-        },
-        events: {
-            public: {
-                'damage': function(state) {
-                    state.subtract('health', 1);
-                }
+        }
+    },
+    events: {
+        public: {
+            'handle-click': function(state) {
+                state.set('count', state.get('count') + 1);
             }
-        },
-        states: {
-            health: 2
-        },
-        tree: '<image tap="damage"></image>'
-    });
-
-(That's just a pretend example to get the basic idea across.)
-
-[For more, see the `docs` folder](docs).
+        }
+    },
+    states: {
+        count: 0
+    }
+});
+```
 
 ## Getting started
 
-After cloning the repo, a few steps to get set up:
+Clone the repo.
 
-Use `famous-conductor` to install Famous modules into `vendor/famous`.
-
-Install the packages (some of which locally link the Famous modules you just installed):
+Install the package dependencies.
 
     $ npm i -g phantomjs
     $ npm i
@@ -54,21 +58,15 @@ Then, start up the development server:
 
     $ npm run develop
 
-And open [localhost:1337](http://localhost:1337) in your browser.
+And open [http://localhost:1337/?best=famous-demos:clickable-black-square](http://localhost:1337/?best=famous-demos:clickable-black-square) in your browser.
 
-## Tests
+Change the `?best=` query parameter to the name of the BEST component you want to load. Currently available BEST components are available within the `components` folder.
 
-Run all of the tests with:
+## Contributing
 
-    $ npm test
+### Workflow
 
-## Docs
-
-See the `docs` folder.
-
-
-## Git Workflow
-We use a `rebase` based workflow approach. The steps are:
+We use a Git `rebase`-based workflow approach:
 
 - Locally, create a `feature-branch`. Make commits on the `feature-branch`.
   - **DO NOT** make local commits on to `master` or `develop`. Doing so will force a `merge` whenever you pull down from the remote `master`/`develop`, which is what we would like to avoid.
@@ -80,12 +78,11 @@ We use a `rebase` based workflow approach. The steps are:
   - `git checkout develop`
   - `git merge feature-branch`
   - `git push origin develop`
-- When ready, one of the team members will take responsibility for merging `develop` into `master` and cutting a new SemVer, ensuring that `master` always remains in a stable, documented state.
-- NEVER `merge` `master` into `develop`
-- NEVER `merge` `master`/`develop` into a `feature-branch`
-- ALWAYS `rebase` if you are future along in the "git river"
+- When ready, one of the team members will take responsibility for merging `develop` into `master` and cutting a new semver, ensuring that `master` always remains in a stable, documented state.
+- Never `merge` `master` into `develop`
+- Never `merge` `master`/`develop` into a `feature-branch`
+- Always `rebase` if you are further along in the "git river"
 - If you accidently end up with a merge commit, deal with the issue locally and make sure it is resolved before pushing up to up to `origin`.
-
 
 ## Authors
 
