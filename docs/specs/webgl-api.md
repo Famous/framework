@@ -78,7 +78,7 @@ BEST.component('famous-demos:sun', {
                 glsl:
                     // could be defined in another file like:
                     // "#{FILE_INLINE('../my-cool-vertex')}"
-                    'vec3('                                                           +
+                    'vec3 sunDisplacement() ('                                        +
                         'v_Displacement = a_Displacement;'                            +
                         'return normals * vec3(a_Displacement * 10.0 * u_Amplitude);' +
                     ')'
