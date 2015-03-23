@@ -11,7 +11,7 @@ BEST.component('famous-demos:sphere', {
                 return [position[0], position[1]];
             },
             'rotation': function($time) {
-                return [$time / 1000, $time / 1000, $time / 1000];
+                return [-$time / 1000, -$time / 1000, -$time / 1000];
             },
         },
         '.point-light': {
