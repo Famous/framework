@@ -2,7 +2,7 @@
 Task: translate [Farhad’s sun example](https://github.famo.us/platform/seed/blob/develop/src/examples/solarSystem/Sun.js) into BEST.
 
 ### JavaScript
-```
+```javascript
 // sun.js
 BEST.component('famous-demos:sun', {
     tree: 'sun.html',
@@ -130,7 +130,7 @@ BEST.component('famous-demos:sun', {
 ```
 
 ### Tree
-```
+```html
 !-- sun.html --!
 <famous:view>
     <famous:view class="sun-container">
