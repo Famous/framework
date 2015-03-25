@@ -9,13 +9,10 @@ BEST.component('famous-demos:repeat-square', {
                 for (var i = 0; i < count; i++) {
                     result.push({
                         'change-color' : colors[i % colors.length],
-                        position: [Math.random() * 700, Math.random() * 700]
+                        'position': [50, 100 + i * 210]
                     });
                 };
                 return result;
-            },
-            'position' : function() {
-                return [Math.random() * 700, Math.random() * 700]
             },
             'change-color': function(backgroundColor) {
                 return backgroundColor;
@@ -25,7 +22,6 @@ BEST.component('famous-demos:repeat-square', {
     events: {
         public: {
             'update-count' : function(state, message) {
-                state.chain('count').add(1);
                 state.set('count', message);
             },
             'change-color': function(state, message) {
