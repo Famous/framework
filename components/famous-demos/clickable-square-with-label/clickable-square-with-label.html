@@ -1,0 +1,13 @@
+<famous:view id="context">
+    <famous:view id='label-view'>
+        <famous:html-element id="label">
+            <div>Clickable Square</div>
+        </famous:html-element>
+    </famous:view>
+
+    <famous:view id='square-view'>
+        <famous:html-element famous:events:click="handle-click" id="square">
+            <h1>{{ count }}</h1>
+        </famous:html-element>
+    </famous:view>
+</famous:view>
