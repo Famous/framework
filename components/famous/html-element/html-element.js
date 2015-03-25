@@ -15,12 +15,15 @@ BEST.component('famous:html-element', {
             },
             '$self:true-size': function(trueSize) {
                 return trueSize;
+            },
+            '$self:locals': function(locals) {
+                return locals;
             }
         }
     },
     events: {
         public: {
-            'yield': function(state, message) {
+            '$yield': function(state, message) {
                 var content = '';
                 for (var i = 0; i < message.length; i++) {
                     var outerHTML = message[i].outerHTML;
@@ -42,32 +45,34 @@ BEST.component('famous:html-element', {
             },
             'unselectable': function(state, message) {
                 if (message) {
-                    state.set('style', {
-                        '-moz-user-select': '-moz-none',
-                        '-khtml-user-select': 'none',
-                        '-webkit-user-select': 'none',
-                        '-o-user-select': 'none',
-                        'user-select': 'none'
-                    });
+                    var style = state.get('style') || {};
+                    style['-moz-user-select'] = '-moz-none';
+                    style['-khtml-user-select'] = 'none';
+                    style['-webkit-user-select'] = 'none';
+                    style['-o-user-select'] = 'none';
+                    style['user-select'] = 'none';
+                    state.set('style', style);
                 }
             },
             'backface-visible': function(state, message) {
-                var style = {
-                    '-webkit-backface-visibility': 'visible',
-                    'backface-visibility': 'visible'
-                };
-
-                if(!message) {
-                    style = {
-                        '-webkit-backface-visibility': 'hidden',
-                        'backface-visibility': 'hidden'
-                    }
-                }
-
+                var style = state.get('style') || {};
+                style['-webkit-backface-visibility'] = (message) ? 'visible' : 'hidden';
+                style['backface-visibility'] = (message) ? 'visible' : 'hidden';
                 state.set('style', style);
             },
+            'box-shadow': function(state, message) {
+                var style = state.get('style') || {};
+                style['-webkit-box-shadow'] = message;
+                style['-moz-box-shadow'] = message;
+                style['box-shadow'] = message;
+                state.set('style', style);
+
+            },
             'true-size': function(state, message) {
-                state.set('trueSize', true);
+                state.set('trueSize', !!message);
+            },
+            'template': function(state, locals) {
+                state.set('locals', locals);
             }
         },
         handlers: {
@@ -89,6 +94,18 @@ BEST.component('famous:html-element', {
             },
             'true-size': function($HTMLElement, $payload) {
                 $HTMLElement.trueSize(!!$payload, !!$payload);
+            },
+            'locals': function($mustache, $state, $payload) {
+                if ($state.get('didTemplate')) {
+                    var initialContent = $state.get('initialContent');
+                }
+                else {
+                    var initialContent = $state.get('content');
+                    $state.set('initialContent', initialContent);
+                    $state.set('didTemplate', true);
+                }
+                var templatedContent = $mustache(initialContent, $payload);
+                $state.set('content', templatedContent);
             }
         }
     },
@@ -96,6 +113,9 @@ BEST.component('famous:html-element', {
         'id': null,
         'content': '',
         'style': {},
-        'attributes': {}
+        'attributes': {},
+        'locals': {},
+        'didTemplate': false,
+        'initialContent': ''
     }
 });

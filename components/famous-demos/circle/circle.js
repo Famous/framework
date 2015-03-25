@@ -17,31 +17,43 @@ BEST.component('famous-demos:circle', {
                 'font-size': '30px'
             }
         },
+
         '#circle-surface': {
             'style': {
-                'color': 'white',
-                'font-weight': 'bold',
-                'font-family': 'monospace',
                 'border-radius': '50%',
                 'background-color': '#666',
-                'text-align': 'center',
-                'margin-top': '36px'
+                'margin-top': '36px',
+                'cursor' : 'pointer'
             },
             'unselectable': true
         },
-        '#label' : {
-            'yield' : function(_surrogates) {
-                return _surrogates;
-            }
+        '#circle-label': {
+            'size' : function() {
+                return [150, 20];
+            },
+            'position': [0, 0, 25],
+            'align': [0.5, 0.35],
+            'mount-point': [0.5, 0.5],
+            '$yield': true
+        },
+        '.circle-label-surface' : {
+            'style' : {
+                'color': 'white',
+                'font-weight': 'bold',
+                'font-family': 'monospace',
+                'text-align': 'center',
+                'font-size' : '20px',
+                'cursor' : 'pointer',
+                'z-index': 5
+            },
+            'unselectable': true
         }
     },
     events: {
         public: {
             'handle-click': function(state, message) {
-                state.setState('radius', state.getState('radius') + 5);
-            },
-            'yield' : function(state, _surrogates) {
-                state.set('_surrogates', _surrogates);
+                var radius = state.getState('radius');
+                state.setState('radius', radius + 50, {duration: 1000, curve: 'outBounce'});
             }
         }
     },

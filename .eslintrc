@@ -5,6 +5,8 @@
   },
   "rules": {
     "quotes": [2, "single"],
-    "no-loop-func": false
+    "no-loop-func": false,
+    "no-eval": false,
+    "no-underscore-dangle": false
   }
 }

@@ -3,23 +3,25 @@ BEST.component('famous-demos:six-surfaces', {
     behaviors: {
         '.square': {
             'size': function(size, $time) {
-                var chg = (Math.sin($time / 1000) / 2) + 1;
-                return [chg * size, chg * size];
+                    var chg = (Math.sin($time / 1000) / 2) + 1;
+                    return [chg * size, chg * size];
             },
-            'rotation-z': function($time) {
-                return $time / 1000;
+            'rotation': function(_isAnimating, $time) {
+                if (_isAnimating)
+                    return [0, 0, $time / 1000];
+                else
+                    return [$time / 1000, 0, 0];
             },
             'origin': [0.5, 0.5],
-            'position': function() {
-                var wih = window.innerHeight * 0.75;
-                var wiw = window.innerWidth * 0.75;
-                var px = Math.floor(Math.random() * wiw);
-                var py = Math.floor(Math.random() * wih);
+            'mount-point': [0.5, 0.5],
+            'position': function(windowSize) {
+                var px = Math.floor(Math.random() * windowSize[0]);
+                var py = Math.floor(Math.random() * windowSize[1]);
                 return [px, py];
             }
         },
         '.surface': {
-            'style': function($every, key, value) {
+            'style': function() {
                 var hue = Math.floor(Math.random() * 240) + 140;
                 return {
                     'color': 'white',
@@ -32,21 +34,26 @@ BEST.component('famous-demos:six-surfaces', {
                 };
             }
         },
+
         '#circle-component' : {
             'handle-click' : function(_circleClickEvent) {
                 return '_circleClickEvent';
             }
-        }
+        },
+
     },
     events: {
         public: {
             'circle-click': function(state, event) {
                 state.set('_circleClickEvent', event);
+                state.chain('_isAnimating').flip();
             }
         }
     },
     states: {
         size: 130,
+        windowSize: [window.innerWidth * .9, window.innerHeight * .9],
+        _isAnimating: true,
         _circleClickEvent: null
     }
 });

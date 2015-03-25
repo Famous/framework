@@ -26,13 +26,19 @@
     </famous:view>
 
     <famous-demos:circle id="circle-component">
-        <famous:html-element id="circle-surface" famous:events:click="circle-click">
-          <p>
-            Element 6
-            <br>
-            <br>
-            (click me)
-          </p>
-        </famous:html-element>
+        <famous:view id='cirlce-label'>
+            <famous:html-element class="circle-label-surface" famous:events:click="circle-click">
+              <p>
+                Element 6
+                <br>
+                <br>
+                (click me)
+              </p>
+            </famous:html-element>
+        </famous:view>
     </famous-demos:circle>
+
+    <famous-demos:torus>
+    </famous-demos:torus>
+
 </famous:view>

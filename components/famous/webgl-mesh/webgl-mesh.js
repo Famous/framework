@@ -4,18 +4,18 @@ BEST.component('famous:webgl-mesh', {
             '$self:color': function(color) {
                 return color;
             },
-            '$self:normals': function(normals) {
-                return normals;
-            },
+            //'$self:normals': function(normals) {
+            //    return normals;
+            //},
             '$self:geometry': function(geometry) {
                 return geometry;
             },
             '$self:glossiness': function(glossiness) {
                 return glossiness;
             },
-            '$self:metallness': function(metallness) {
-                return metallness;
-            },
+            //'$self:metallness': function(metallness) {
+            //    return metallness;
+            //},
             '$self:flatShading': function(flatShading) {
                 return flatShading;
             },
@@ -29,18 +29,18 @@ BEST.component('famous:webgl-mesh', {
             'color': function(state, color) {
                 state.set('color', color);
             },
-            'normals': function(state, normals) {
-                state.set('normals', normals);
-            },
+            //'normals': function(state, normals) {
+            //    state.set('normals', normals);
+            //},
             'geometry': function(state, geometry) {
                 state.set('geometry', geometry);
             },
             'glossiness': function(state, glossiness) {
                 state.set('glossiness', glossiness);
             },
-            'metallness': function(state, metallness) {
-                state.set('metallness', metallness);
-            },
+            //'metallness': function(state, metallness) {
+            //    state.set('metallness', metallness);
+            //},
             'flatShading': function(state, flatShading) {
                 state.set('flatShading', flatShading);
             },
@@ -50,21 +50,23 @@ BEST.component('famous:webgl-mesh', {
         },
         handlers: {
             'color': function($webGLMesh, $payload) {
-                // setBaseColor takes in 4 arguments not in an array
-                $webGLMesh.setBaseColor($payload[0], $payload[1], $payload[2], $payload[3]);
+                if ($payload instanceof Array)
+                    $webGLMesh.setBaseColor($payload[0], $payload[1], $payload[2], $payload[3]);
+                else
+                    $webGLMesh.setBaseColor($payload);
             },
-            'normals': function($webGLMesh, $payload) {
-                $webGLMesh.setNormals($payload);
-            },
+            //'normals': function($webGLMesh, $payload) {
+            //    $webGLMesh.setNormals($payload);
+            //},
             'geometry': function($webGLMesh, $payload) {
                 $webGLMesh.setGeometry($payload);
             },
             'glossiness': function($webGLMesh, $payload) {
                 $webGLMesh.setGlossiness($payload);
             },
-            'metallness': function($webGLMesh, $payload) {
-                $webGLMesh.setMetallness($payload);
-            },
+            //'metallness': function($webGLMesh, $payload) {
+            //    $webGLMesh.setMetallness($payload);
+            //},
             'flatShading': function($webGLMesh, $payload) {
                 $webGLMesh.setFlatShading($payload);
             },
@@ -75,10 +77,10 @@ BEST.component('famous:webgl-mesh', {
     },
      states: {
         'color': ['rgb', 0.5, 0.5, 0.5],
-        'normals': [0, 0, 0],
-        'glossiness': 0,
-        'metallness': 0,
         'flatShading': 0,
+        'glossiness': 0,
+        //'metallness': 0, // bug in metallness
+        //'normals': [0, 0, 0], // bug in setNormals
         'positionOffset': [0, 0, 0]
      }
 });
