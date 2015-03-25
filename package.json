@@ -12,18 +12,18 @@
   },
   "homepage": "https://github.famo.us/framework/best",
   "scripts": {
-    "develop": "npm run watch & npm run sync",
+    "develop": "npm run watch & npm run serve",
     "docs": "jsdoc lib/framework/index.js --destination docs/generated",
     "test": "npm run lint && testling '' | tap-spec",
     "lint": "eslint lib && jscs lib",
-    "sync": "browser-sync start --server build/ --port 1337 --files 'build/**/*.*'",
+    "serve": "serve build -p 1337",
     "copy-components": "cp -r components/ build/components",
-    "watch-components": "watch 'npm run copy-components' components",
     "watch-lib": "watchify lib/index.js -t brfs -s BEST -o build/index.bundle.js --debug --verbose",
+    "watch-components": "watch 'npm run copy-components' components",
     "watch-public": "watch 'npm run copy-public' public",
-    "watch-modules": "watch 'npm run watch-lib' node_modules",
+    "watch-all": "npm run watch-public & npm run watch-components & npm run watch-lib",
     "copy-public": "cp -r public/ build",
-    "watch": "rm -rf build && mkdir build && npm run watch-lib & npm run watch-components & npm run watch-modules & npm run watch-public"
+    "watch": "rm -rf build && mkdir build && npm run watch-all"
   },
   "authors": [
     "Zack Brown <zack@famo.us>",
