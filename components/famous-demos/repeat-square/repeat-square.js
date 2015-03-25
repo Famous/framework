@@ -9,7 +9,7 @@ BEST.component('famous-demos:repeat-square', {
                 for (var i = 0; i < count; i++) {
                     result.push({
                         'change-color' : colors[i % colors.length],
-                        'position': [50, 100 + i * 210]
+                        'position': [50, 100 + i * 250]
                     });
                 };
                 return result;
@@ -18,6 +18,14 @@ BEST.component('famous-demos:repeat-square', {
                 return backgroundColor;
             }
         },
+        '#root2': {
+            'position': function() {
+                return [300, 0, 0]
+            }
+        },
+        '.label-view': {
+            size: [100, 50]
+        }
     },
     events: {
         public: {
