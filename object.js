@@ -1,5 +1,12 @@
 'use strict';
 
+/*
+Note: Review our and Lodash's licenses for potential conflicts before putting this
+code into production.
+*/
+
+var _  = require('lodash');
+
 var OBJ_TYPE = 'object';
 
 // Deep-clone the given object.
@@ -49,5 +56,6 @@ function merge(a, b) {
 
 module.exports = {
     clone: clone,
-    merge: merge
+    merge: merge,
+    isEqual: _.isEqual
 };
