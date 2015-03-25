@@ -1,3 +1,5 @@
+'use strict';
+
 // Make an HTTP GET request to the given URL, returning
 // the results to the given callback.
 function get(url, cb) {
