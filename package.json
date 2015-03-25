@@ -66,10 +66,9 @@
     "watchify": "^2.3.0"
   },
   "dependencies": {
-    "best-function-parser": "git+ssh://git@github.famo.us:framework/function-parser#master",
-    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#master",
-    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#master",
-    "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#master",
+    "best-function-parser": "git+ssh://git@github.famo.us:framework/function-parser#v0.1.0",
+    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#v0.1.0",
+    "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#v0.1.0",
     "mustache": "^1.1.0",
     "famous-components": "git+ssh://git@github.famo.us/platform/components#v0.1.0",
     "famous-core": "git+ssh://git@github.famo.us/platform/core#v0.1.0",
