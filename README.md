@@ -49,7 +49,7 @@ BEST.component('famous-demos:clickable-black-square', {
 
 Clone the repo.
 
-    $ git clone git@github.famo.us:framework/best.git#v0.1.0
+    $ git clone git@github.famo.us:framework/best.git
 
 Install the package dependencies.
 
