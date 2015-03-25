@@ -1,5 +1,5 @@
-BEST.component('famous-demos:clickable-black-square', {
-    tree: 'clickable-black-square.html',
+BEST.component('famous-demos:clickable-square', {
+    tree: 'clickable-square.html',
 
     behaviors: {
         '#context': {
@@ -16,7 +16,8 @@ BEST.component('famous-demos:clickable-black-square', {
                 return {
                     'background-color': backgroundColor,
                     'cursor': 'pointer',
-                    'color': 'white'
+                    'color': 'black',
+                    'border': '2px solid black'
                 };
             },
             'unselectable': true
@@ -39,7 +40,7 @@ BEST.component('famous-demos:clickable-black-square', {
 
     states: {
         count: 0,
-        backgroundColor: 'black',
+        backgroundColor: 'gray',
         position: [0, 0, 0]
     }
 });
