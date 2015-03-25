@@ -103,6 +103,51 @@
 
 'webgl:geometry'
     // Done by Matthew
+    // https://github.famo.us/gist/matthew/8de8153c19afa07be113
+
 'webgl:material'
-    // not a clue...
+    // first pass
+    behaviors:
+            $self:
+                $self:uniformBuffer: (uniformBuffer) ->
+                    return uniformBuffer
+                $self:defaultBuffer: (defaultBuffer) ->
+                    return defaultBuffer
+                $self:shaders: (shaders) ->
+                    return shaders
+    events:
+        public:
+            uniformBuffer: (state, message) ->
+                state.set('uniformBuffer', message)
+            defaultBuffer: (state, message) ->
+                state.set('defaultBuffer', message)
+            shaders: (state, message) ->
+                state.set('shaders', message)
+        handlers:
+            uniformBuffer: ($Material, $state, $payload) ->
+                var vertexName = $state.get('__vertexName')
+                $Material[vertexName].setUniform($payload)
+            shaders: ($Material, $state, $payload) ->
+                // IMPORTANT: must be run first to save reference to shader names
+                // maybe we can offload this to the public events...
+                var name, type, glsl, entryPoint;
+
+                // for each shader
+                forEach($payload, (shader) ->
+                    type = shader.type
+                    glsl = shader.glsl
+
+                    // Let's not worry about multi-function glsl for now
+                    // if (shader.type === 'vertex')
+                    //     entryPoint = shader.entryPoint
+
+                    // save reference to shader names for internal use
+                    $state.set('__' + type + 'Name', name)
+
+                    // register each glsl expression
+                    $Material.registerExpression(name, glsl)
+                )
+            defaultBuffer: ($Material, $state, $payload) ->
+                var vertexName = $state.get('__vertexName')
+                $Material[vertexName](null, $payload)
 ```
