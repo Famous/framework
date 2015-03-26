@@ -14,7 +14,7 @@
   "scripts": {
     "develop": "npm run watch & npm run serve",
     "docs": "jsdoc lib/framework/index.js --destination docs/generated",
-    "test": "npm run lint && testling '' | tap-spec",
+    "test": "browserify tests/*.spec.js > tests/bundle.js && rm -rf tests/components && cp -r components/ tests/components && serve tests -p 3001",
     "lint": "eslint lib && jscs lib",
     "serve": "serve build -p 1337",
     "copy-components": "cp -r components/ build/components",

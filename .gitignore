@@ -12,3 +12,5 @@ pids
 build/*
 vendor/famous/*
 docs/generated/*
+tests/components/*
+tests/bundle.js
