@@ -59,7 +59,35 @@ BEST.component('famous-demos:sap-part-two', {
                 return logoSize;
             },
             'position': function(logoPosition) {
-
+                return logoPosition;
+            }
+        },
+        '#run-simple-container': {
+            'position': function(runSimplePosition) {
+                return runSimplePosition;
+            }
+        },
+        '#run-simple': {
+            'true-size': true,
+            'style': {
+                'color': 'white',
+                'font-size': '16px',
+                'text-align': 'center',
+            }
+        },
+        '#learn-more-container': {
+            'position': function(learnMorePosition) {
+                return learnMorePosition;
+            }
+        },
+        '#learn-more': {
+            'true-size': true,
+            'style': {
+                'color': 'white',
+                'font-size': '16px',
+                'text-align': 'center',
+                'font-weight': 'bold',
+                'text-decoration': 'underline'
             }
         }
     },
@@ -69,7 +97,9 @@ BEST.component('famous-demos:sap-part-two', {
         imageBPosition: [0, 340],
         simplePosition: [0, 100],
         hasALifePosition: [0, 150],
-        logoPosition: [103, 340],
-        logoSize: [108, 47],
+        logoPosition: [490, 110],
+        runSimplePosition: [550, 160],
+        learnMorePosition: [490, 550],
+        logoSize: [108, 47]
     }
 });
