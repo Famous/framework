@@ -1,5 +1,7 @@
 'use strict';
 
+var ObjectUtils = require('./object');
+
 var ARRAY_TYPE = 'array';
 
 // Iterate over the array, passing each element to the given function.
@@ -27,7 +29,29 @@ function union(a, b) {
     return result;
 }
 
+/**
+ * Iterates over each element in a pair of arrays and returns a result array
+ * signifying whether elements at a shared index are equal.
+ * @param  {Array} a
+ * @param  {Array} b
+ * @return {Array} Array of booleans; 'true' signifies that the elements that share
+ *                 that index are equal, 'false' signifies that the elements at that
+ *                 index are not equal.
+ */
+function checkElementEquality(a, b) {
+    var maxLength = Math.max(a.length, b.length);
+    var result = [];
+    var isEqual;
+
+    for (var i = 0; i < maxLength; i++) {
+        isEqual = (a.length > i && b.length > i) ? ObjectUtils.isEqual(a[i], b[i]) : false;
+        result.push(isEqual);
+    };
+    return result;
+}
+
 module.exports = {
     each: each,
-    union: union
+    union: union,
+    checkElementEquality: checkElementEquality
 }
