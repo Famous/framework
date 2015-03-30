@@ -18,7 +18,7 @@ test('Finder', function(t) {
             }
         }
     });
-    t.deepEquals(deps, ['famous:foo:bar', 'famous:events', 'famous:foo', 'famous:bla:bleep']);
+    t.deepEquals(deps,  ['famous:view', 'famous:foo:bar', 'famous:events', 'famous:bla:bleep']);
 
     var urls = Finder.subcomponentURLs('foo:bar:baz', {
         tree: 'sha.html',
