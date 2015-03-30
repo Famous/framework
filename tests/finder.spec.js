@@ -11,14 +11,14 @@ test('Finder', function(t) {
     t.equals(componentURL, './components/foo/bar/baz/qux/qux.js');
 
     var deps = Finder.findDependencies({
-        tree: '<famous:view><famous:foo:bar famous:events:click="yaya"></famous:foo:bar></famous:view>',
+        tree: '<famous:view><famous:foo:bar famous:events:click="yaya"><la:lee:loo/></famous:foo:bar></famous:view>',
         behaviors: {
             '#foo': {
                 'famous:bla:bleep:bloop': true
             }
         }
     });
-    t.deepEquals(deps,  ['famous:view', 'famous:foo:bar', 'famous:events', 'famous:bla:bleep']);
+    t.deepEquals(deps, ['famous:view', 'famous:foo:bar', 'famous:events', 'la:lee:loo', 'famous:bla:bleep']);
 
     var urls = Finder.subcomponentURLs('foo:bar:baz', {
         tree: 'sha.html',
