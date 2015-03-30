@@ -6,9 +6,19 @@ BEST.component('famous-demos:clickable-square', {
             'size': [200, 200],
             'position': function(position) {
                 return position;
+            },
+            '$if': function() {
+                return true;
             }
         },
         '#square': {
+            '$repeat': function() {
+                return [
+                    { id: 'a' },
+                    { id: 'b' },
+                    { id: 'c' }
+                ];
+            },
             'template': function(count) {
                 return { count: count };
             },

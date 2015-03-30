@@ -1,6 +1,7 @@
 BEST.component('famous:html-element', {
     behaviors: {
         '$self': {
+            '$yield': true,
             '$self:id': function(id) {
                 return id;
             },
@@ -25,8 +26,9 @@ BEST.component('famous:html-element', {
         public: {
             '$yield': function(state, message) {
                 var content = '';
-                for (var i = 0; i < message.length; i++) {
-                    var outerHTML = message[i].outerHTML;
+                var surrogates = message.surrogateRoot.childNodes;
+                for (var i = 0; i < surrogates.length; i++) {
+                    var outerHTML = surrogates[i].outerHTML;
                     content += (outerHTML) ? outerHTML : '';
                 }
                 state.set('content', content);
