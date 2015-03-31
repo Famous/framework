@@ -1,8 +1,11 @@
-BEST.component('famous-demos:sap-part-two', {
+BEST.component('famous-ads:sap-part-two', {
     tree: 'sap-part-two.html',
     behaviors: {
         '#part-two-container': {
-            'size': [300, 600]
+            'size': [300, 600],
+            'position': function(containerPosition) {
+                return containerPosition;
+            }
         },
         '#image-a-container': {
             'size': [300, 300],
@@ -91,8 +94,24 @@ BEST.component('famous-demos:sap-part-two', {
             }
         }
     },
-    events: {},
-    states: {
+    events: {
+        public: {
+            'start': function(state, message) {
+                state.set('_wait', -1, {duration: 2000}, function() {
+                    state.set('simplePosition', [-300, 100], {duration: 500, curve: 'easeOut'});
+                    state.set('hasALifePosition', [-300, 150], {duration: 500, curve: 'easeOut'});
+                    state.set('logoPosition', [90, 110], {duration: 500, curve: 'easeOut'});
+                    state.set('runSimplePosition', [150, 160], {duration: 500, curve: 'easeOut'}, function() {
+                        state.set('_wait', -1, {duration: 500}, function() {
+                            state.set('learnMorePosition', [90, 550], {duration: 500, curve: 'easeOut'});
+                        });
+                    });
+                });
+            }
+        }
+    },
+    states: {   
+        containerPosition: [0, 0],
         imageAPosition: [0, 0],
         imageBPosition: [0, 340],
         simplePosition: [0, 100],
@@ -100,6 +119,7 @@ BEST.component('famous-demos:sap-part-two', {
         logoPosition: [490, 110],
         runSimplePosition: [550, 160],
         learnMorePosition: [490, 550],
-        logoSize: [108, 47]
+        logoSize: [108, 47],
+        _wait: -1
     }
 });

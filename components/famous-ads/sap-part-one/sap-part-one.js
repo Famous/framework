@@ -1,17 +1,15 @@
-BEST.component('famous-demos:sap-part-one', {
+BEST.component('famous-ads:sap-part-one', {
     tree: 'sap-part-one.html',
     behaviors: {
         '#part-one-container': {
             'position': function(containerPosition) {
                 return containerPosition;
-            },
-            '$yield': true
+            }
         },
         '#complexity-container': {
             'position': function(complexityPosition) {
                 return complexityPosition;
-            },
-        '$yield': true
+            }
         },
         '#complexity': {
             'style': {
@@ -24,8 +22,7 @@ BEST.component('famous-demos:sap-part-one', {
         '#hopes-container': {
             'position': function(hopesPosition) {
                 return hopesPosition;
-            },
-            '$yield': true
+            }
         },
         '#hopes': {
             'style': {
@@ -38,20 +35,23 @@ BEST.component('famous-demos:sap-part-one', {
     },
     events: {
         public: {
-            'part-one-container': function(state, message) {
-                state.set('containerPosition', message.state, message.transition)
-            },
-            'complexity-position': function(state, message) {
-                state.set('complexityPosition', message.state, message.transition);
-            },
-            'hopes-position': function(state, message) {
-                state.set('hopesPosition', message.state, message.transition);
+            'start': function(state, message) {
+                state.set('_wait', -1, {duration: 500}, function() {
+                    state.set('complexityPosition', [0, 110], {duration: 500, curve: 'easeOut'}, function() {
+                        state.set('_wait', -1, {duration: 2000}, function() {
+                            state.set('complexityPosition', [-300, 110], {duration: 500, curve: 'easeOut'});
+                            state.set('hopesPosition', [0, 110], {duration: 500, curve: 'easeOut'});
+                        });
+                    });
+                });
+                
             }
         }
     },
     states: {
         containerPosition: [0, 0],
         complexityPosition: [300, 110],
-        hopesPosition: [300, 110]
+        hopesPosition: [300, 110],
+        _wait: -1
     }
 });

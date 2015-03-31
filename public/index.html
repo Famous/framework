@@ -8,12 +8,18 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet" type="text/css">
   </head>
   <body>
+    <div style="overflow:hidden; width:300px; height:625px; margin: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0"></div>
     <script type="text/javascript" src="index.bundle.js"></script>
     <script type="text/javascript" src="assets/query-string.js"></script>
     <script type="text/javascript">
       (function() {
         if (QUERY.best) {
-          BEST.Application.deploy(QUERY.best, 'body', function(app){window.app=app;});
+          if (QUERY.best === 'famous-ads:sap-ad') { 
+            BEST.Application.deploy(QUERY.best, 'div', function(app){window.app=app;});
+          }
+          else {
+            BEST.Application.deploy(QUERY.best, 'body', function(app){window.app=app;});
+          }
         }
         else {
           console.error('Please supply a BEST name (`?best=...`)');
