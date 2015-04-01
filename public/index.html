@@ -14,7 +14,8 @@
     <script type="text/javascript">
       (function() {
         if (QUERY.best) {
-          if (QUERY.best === 'famous-ads:sap-ad') { 
+          var folder = QUERY.best.split(':')[0];
+          if (folder === 'famous-ads') { 
             BEST.Application.deploy(QUERY.best, 'div', function(app){window.app=app;});
           }
           else {
