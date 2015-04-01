@@ -2,7 +2,7 @@ BEST.component('famous:components', {
     events: {
         handlers: {
             'align': function($align, $payload) {
-                $align.set($payload[0], $payload[1], $payload[2]);
+                $align.set($payload[0], $payload[1], $payload[2] || 0);
             },
             'align-x': function($align, $payload) {
                 $align.setX($payload);
@@ -17,7 +17,7 @@ BEST.component('famous:components', {
                 $camera.set($payload[0], $payload[1]);
             },
             'mount-point': function($mountPoint, $payload) {
-                $mountPoint.set($payload[0], $payload[1], $payload[2]);
+                $mountPoint.set($payload[0], $payload[1], $payload[2] || 0);
             },
             'mount-point-x': function($mountPoint, $payload) {
                 $mountPoint.setX($payload);
@@ -29,10 +29,12 @@ BEST.component('famous:components', {
                 $mountPoint.setZ($payload);
             },
             'opacity': function($opacity, $payload) {
+                console.log('set opacity to ', $payload);
                 $opacity.set($payload);
+                console.log('opacity is ', $opacity.get());
             },
             'origin': function($origin, $payload) {
-                $origin.set($payload[0], $payload[1], $payload[2]);
+                $origin.set($payload[0], $payload[1], $payload[2] || 0);
             },
             'origin-x': function($origin, $payload) {
                 $origin.setX($payload);
@@ -44,7 +46,7 @@ BEST.component('famous:components', {
                 $origin.setZ($payload);
             },
             'position': function($position, $payload) {
-                $position.set($payload[0], $payload[1], $payload[2]);
+                $position.set($payload[0], $payload[1], $payload[2] || 0);
             },
             'position-x': function($position, $payload) {
                 $position.setX($payload);
@@ -56,7 +58,7 @@ BEST.component('famous:components', {
                 $position.setZ($payload);
             },
             'rotation': function($rotation, $payload) {
-                $rotation.set($payload[0], $payload[1], $payload[2]);
+                $rotation.set($payload[0], $payload[1], $payload[2] || 0);
             },
             'rotation-x': function($rotation, $payload) {
                 $rotation.setX($payload);
@@ -68,7 +70,7 @@ BEST.component('famous:components', {
                 $rotation.setZ($payload);
             },
             'scale': function($scale, $payload) {
-                $scale.set($payload[0], $payload[1], $payload[2]);
+                $scale.set($payload[0], $payload[1], $payload[2] || 1);
             },
             'scale-x': function($scale, $payload) {
                 $scale.setX($payload);
