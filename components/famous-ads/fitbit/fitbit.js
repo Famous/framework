@@ -12,6 +12,7 @@ BEST.component('famous-ads:fitbit', {
             },
         },
         '#meet-family': {
+            'true-size': true,
             'style': {
                 'color': 'rgb(71, 187, 179)',
                 'font-weight': '800',
@@ -60,12 +61,20 @@ BEST.component('famous-ads:fitbit', {
                 return chargeImagePosition;
             }
         },
+        '#charge-img': {
+            'true-size': true
+        },
         '#charge-label-container': {
             'position': function(chargeLabelPosition) {
                 return chargeLabelPosition;
-            }
+            },
+            'rotation-x': function(chargeRotationX) {
+                return chargeRotationX;
+            },
+            'origin': [1, 1]
         },
         '#charge-label': {
+            'true-size': true,
             'style': {
                 'font-size': '20px',
                 'font-weight': '50px',
@@ -74,14 +83,23 @@ BEST.component('famous-ads:fitbit', {
         '#flex-img-container': {
             'position': function(flexImagePosition) {
                 return flexImagePosition;
-            }
+            },
+
+        },
+        '#flex-img': {
+            'true-size': true
         },
         '#flex-label-container': {
             'position': function(flexLabelPosition) {
                 return flexLabelPosition;
-            }
+            },
+            'rotation-x': function(flexRotationX) {
+                return flexRotationX;
+            },
+            'origin': [1, 1]
         },
         '#flex-label': {
+            'true-size': true,
             'style': {
                 'font-size': '20px',
                 'font-weight': '50px',
@@ -92,12 +110,20 @@ BEST.component('famous-ads:fitbit', {
                 return oneImagePosition;
             }
         },
+        '#one-img': {
+            'true-size': true
+        },
         '#one-label-container': {
             'position': function(oneLabelPosition) {
                 return oneLabelPosition;
-            }
+            },
+            'rotation-x': function(oneRotationX) {
+                return oneRotationX;
+            },
+            'origin': [1, 1]
         },
         '#one-label': {
+            'true-size': true,
             'style': {
                 'font-size': '20px',
                 'font-weight': '50px'
@@ -108,12 +134,20 @@ BEST.component('famous-ads:fitbit', {
                 return zipImagePosition;
             }
         },
+        '#zip-img': {
+            'true-size': true
+        },
         '#zip-label-container': {
             'position': function(zipLabelPosition) {
                 return zipLabelPosition;
-            }
+            },
+            'rotation-x': function(zipRotationX) {
+                return zipRotationX;
+            },
+            'origin': [1, 1]
         },
         '#zip-label': {
+            'true-size': true,
             'style': {
                 'font-size': '20px',
                 'font-weight': '50px'
@@ -122,9 +156,10 @@ BEST.component('famous-ads:fitbit', {
         '#find-fit-container': {
             'position': function(findFitPosition) {
                 return findFitPosition;
-            }
+            },
         },
         '#find-fit': {
+            'true-size': true,
             'style': {
                 'color': 'rgb(71, 187, 179)',
                 'font-weight': '800',
@@ -133,10 +168,41 @@ BEST.component('famous-ads:fitbit', {
             }
         }
     },
-    events: {},
+    events: {
+        public: {
+            'handle-charge-hover': function(state) {
+                state
+                    .set('chargeRotationX', 0, {duration: 200, curve: 'easeOut'})
+                    .set('flexRotationX', Math.PI/2)
+                    .set('oneRotationX', Math.PI/2)
+                    .set('zipRotationX', Math.PI/2)
+            },
+            'handle-flex-hover': function(state) {
+                state
+                    .set('flexRotationX', 0, {duration: 200, curve: 'easeOut'})
+                    .set('chargeRotationX', Math.PI/2)
+                    .set('oneRotationX', Math.PI/2)
+                    .set('zipRotationX', Math.PI/2)
+            },
+            'handle-one-hover': function(state) {
+                state
+                    .set('oneRotationX', 0, {duration: 200, curve: 'easeOut'})
+                    .set('chargeRotationX', Math.PI/2)
+                    .set('flexRotationX', Math.PI/2)
+                    .set('zipRotationX', Math.PI/2)
+            },
+            'handle-zip-hover': function(state) {
+                state
+                    .set('zipRotationX', 0, {duration: 200, curve: 'easeOut'})
+                    .set('chargeRotationX', Math.PI/2)
+                    .set('oneRotationX', Math.PI/2)
+                    .set('flexRotationX', Math.PI/2)
+            }
+        }
+    },
     states: {
         adSize: [300, 250],
-        meetFamilyPosition: [0, 50],
+        meetFamilyPosition: [20, 50],
         bottomBarSize: [300, 45],
         bottomBarPosition: [0, 205],
         fitbitLogoPosition: [15, 10],
@@ -150,6 +216,10 @@ BEST.component('famous-ads:fitbit', {
         oneLabelPosition: [75, 30],
         zipImagePosition: [0, 105],
         zipLabelPosition: [30, 30],
-        findFitPosition: [0, 10],
+        findFitPosition: [75, 0],
+        chargeRotationX: Math.PI/2,
+        flexRotationX: Math.PI/2,
+        oneRotationX: Math.PI/2,
+        zipRotationX: Math.PI/2,
     }
 });
