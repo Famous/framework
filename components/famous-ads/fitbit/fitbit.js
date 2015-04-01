@@ -40,7 +40,7 @@ BEST.component('famous-ads:fitbit', {
         },
         '#bottom-bar-background': {
             'style': {
-                'background-color': 'black',
+                'background-color': 'rgb(17, 36, 41)',
                 'z-index': '-5'
             }
         },
@@ -58,13 +58,15 @@ BEST.component('famous-ads:fitbit', {
             }
         },
         '#shop-now': {
-            'style': function(shopNowBackgroundColor) {
+            'style': function(shopNowBackgroundColor, shopNowTextColor) {
+                console.log('test2.5')
                 return {
                     'background-color': shopNowBackgroundColor,
+                    'color': shopNowTextColor,
                     'border-radius': '10px',
                     'text-align': 'center',
                     'font-size': '18px',
-                    'color': 'white',
+                    'transition': 'all 0.25s ease'
                 }
             }
         },
@@ -266,7 +268,8 @@ BEST.component('famous-ads:fitbit', {
                     .set('oneRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
-                    .set('shopNowBackgroundColor', 'rgb(94, 122, 136)');
+                    .set('shopNowBackgroundColor', 'rgb(94, 122, 136)')
+                    .set('shopNowTextColor', 'rgb(255, 255, 255)');
             },
             'handle-flex-hover': function(state) {
                 state
@@ -275,7 +278,8 @@ BEST.component('famous-ads:fitbit', {
                     .set('oneRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
-                    .set('shopNowBackgroundColor', 'rgb(232, 87, 60)');
+                    .set('shopNowBackgroundColor', 'rgb(232, 87, 60)')
+                    .set('shopNowTextColor', 'rgb(255, 255, 255)');
             },
             'handle-one-hover': function(state) {
                 state
@@ -284,7 +288,8 @@ BEST.component('famous-ads:fitbit', {
                     .set('flexRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
-                    .set('shopNowBackgroundColor', 'rgb(6, 6, 6)');
+                    .set('shopNowBackgroundColor', 'rgb(6, 6, 6)')
+                    .set('shopNowTextColor', 'rgb(255, 255, 255)');
             },
             'handle-zip-hover': function(state) {
                 state
@@ -293,7 +298,8 @@ BEST.component('famous-ads:fitbit', {
                     .set('oneRotationX', Math.PI/2)
                     .set('flexRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
-                    .set('shopNowBackgroundColor', 'rgb(184, 222, 61)');
+                    .set('shopNowBackgroundColor', 'rgb(184, 222, 61)')
+                    .set('shopNowTextColor', 'rgb(255, 255, 255)');
             },
             'handle-exit-hover': function(state) {
                 console.log('background hover')
@@ -303,7 +309,13 @@ BEST.component('famous-ads:fitbit', {
                     .set('oneRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', 0, {duration: 200, curve: 'easeOut'})
-                    .set('shopNowBackgroundColor', 'rgb(239, 61, 111)');
+                    .set('shopNowBackgroundColor', 'rgb(239, 61, 111)')
+                    .set('shopNowTextColor', 'rgb(255, 255, 255)');
+            },
+            'handle-button-hover': function(state) {
+                state
+                    .set('shopNowBackgroundColor', 'rgb(255, 255, 255)')
+                    .set('shopNowTextColor', 'rgb(239, 61, 111)');
             }
         },
         handlers: {
@@ -321,6 +333,7 @@ BEST.component('famous-ads:fitbit', {
         shopNowSize: [140, 28],
         shopNowPosition: [150, 10],
         shopNowBackgroundColor: 'rgb(239, 61, 111)',
+        shopNowTextColor: 'rgb(255, 255, 255)',
         chargeImagePosition: [180, 60],
         chargeLabelPosition: [220, 30],
         flexImagePosition: [110, 65],
