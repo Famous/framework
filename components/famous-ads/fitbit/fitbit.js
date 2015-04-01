@@ -58,12 +58,14 @@ BEST.component('famous-ads:fitbit', {
             }
         },
         '#shop-now': {
-            'style': {
-                'background-color': 'rgb(239, 61, 111)',
-                'border-radius': '10px',
-                'text-align': 'center',
-                'font-size': '18px',
-                'color': 'white',
+            'style': function(shopNowBackgroundColor) {
+                return {
+                    'background-color': shopNowBackgroundColor,
+                    'border-radius': '10px',
+                    'text-align': 'center',
+                    'font-size': '18px',
+                    'color': 'white',
+                }
             }
         },
         '#charge-img-container': {
@@ -264,6 +266,7 @@ BEST.component('famous-ads:fitbit', {
                     .set('oneRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
+                    .set('shopNowBackgroundColor', 'rgb(94, 122, 136)');
             },
             'handle-flex-hover': function(state) {
                 state
@@ -272,6 +275,7 @@ BEST.component('famous-ads:fitbit', {
                     .set('oneRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
+                    .set('shopNowBackgroundColor', 'rgb(232, 87, 60)');
             },
             'handle-one-hover': function(state) {
                 state
@@ -280,6 +284,7 @@ BEST.component('famous-ads:fitbit', {
                     .set('flexRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
+                    .set('shopNowBackgroundColor', 'rgb(6, 6, 6)');
             },
             'handle-zip-hover': function(state) {
                 state
@@ -288,6 +293,7 @@ BEST.component('famous-ads:fitbit', {
                     .set('oneRotationX', Math.PI/2)
                     .set('flexRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
+                    .set('shopNowBackgroundColor', 'rgb(184, 222, 61)');
             },
             'handle-exit-hover': function(state) {
                 console.log('background hover')
@@ -297,6 +303,7 @@ BEST.component('famous-ads:fitbit', {
                     .set('oneRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', 0, {duration: 200, curve: 'easeOut'})
+                    .set('shopNowBackgroundColor', 'rgb(239, 61, 111)');
             }
         },
         handlers: {
@@ -313,6 +320,7 @@ BEST.component('famous-ads:fitbit', {
         fitbitLogoPosition: [15, 10],
         shopNowSize: [140, 28],
         shopNowPosition: [150, 10],
+        shopNowBackgroundColor: 'rgb(239, 61, 111)',
         chargeImagePosition: [180, 60],
         chargeLabelPosition: [220, 30],
         flexImagePosition: [110, 65],
