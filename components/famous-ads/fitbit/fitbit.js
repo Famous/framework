@@ -87,17 +87,17 @@ BEST.component('famous-ads:fitbit', {
                     [0,     [-500, 25]],
                     [750,   [-500, 25]],
                     [1000,  [210,  25], 'easeOut'],
-                    [5000,  [210,  25]],
-                    [5500,  [1210, 25], 'easeOut'],
-                    [5501,  [210,  25]]
+                    [3000,  [210,  25]],
+                    [3500,  [1210, 25], 'easeOut'],
+                    [3501,  [210,  25]]
                 ])(time);
             },
             'rotation-x': function(time, _timeline, chargeRotationX) {
-                return time > 5501 ? chargeRotationX : 
+                return time > 3501 ? chargeRotationX : 
                     _timeline([
                         [0,     0],
-                        [5500,  0],
-                        [5501,  Math.PI/2]
+                        [3500,  0],
+                        [3501,  Math.PI/2]
                     ])(time);
             },
             'origin': [1, 1]
@@ -113,8 +113,8 @@ BEST.component('famous-ads:fitbit', {
             'position': function(time, _timeline) {
                 return _timeline([
                     [0,     [-500, 65]],
-                    [1500,  [-500, 65]],
-                    [2000,  [110,  65], 'easeOut'],
+                    [900,   [-500, 65]],
+                    [1400,  [110,  65], 'easeOut'],
                 ])(time);
             },
 
@@ -126,15 +126,15 @@ BEST.component('famous-ads:fitbit', {
             'position': function(time, _timeline) {
                 return _timeline([
                     [0,     [-500, 25]],
-                    [1500,  [-500, 25]],
-                    [2000,  [140,  25], 'easeOut'],
-                    [5000,  [140,  25]],
-                    [5500,  [1140, 25], 'easeOut'],
-                    [5501,  [140,  25]]
+                    [900,   [-500, 25]],
+                    [1400,  [140,  25], 'easeOut'],
+                    [3000,  [140,  25]],
+                    [3500,  [1140, 25], 'easeOut'],
+                    [3501,  [140,  25]]
                 ])(time);
             },
             'rotation-x': function(time, _timeline, flexRotationX) {
-                return time > 5501 ? flexRotationX :
+                return time > 3501 ? flexRotationX :
                     _timeline([
                         [0,     0],
                         [5500,  0],
@@ -154,8 +154,8 @@ BEST.component('famous-ads:fitbit', {
             'position': function(time, _timeline) {
                 return _timeline([
                     [0,     [-500, 82]],
-                    [2500,  [-500, 82]],
-                    [3000,  [60,   82], 'easeOut']
+                    [1300,  [-500, 82]],
+                    [1800,  [60,   82], 'easeOut']
                 ])(time);
             }
         },
@@ -166,19 +166,19 @@ BEST.component('famous-ads:fitbit', {
             'position': function(time, _timeline) {
                 return _timeline([
                     [0,     [-500, 25]],
-                    [2500,  [-500, 25]],
-                    [3000,  [70,   25], 'easeOut'],
-                    [5000,  [70,   25]],
-                    [5500,  [1070, 25], 'easeOut'],
-                    [5501,  [70,   25]]
+                    [1300,  [-500, 25]],
+                    [1800,  [70,   25], 'easeOut'],
+                    [3000,  [70,   25]],
+                    [3500,  [1070, 25], 'easeOut'],
+                    [3501,  [70,   25]]
                 ])(time);
             },
             'rotation-x': function(time, _timeline, oneRotationX) {
-                return time > 5501 ? oneRotationX :
+                return time > 3501 ? oneRotationX :
                     _timeline([
                         [0,     0],
-                        [5500,  0],
-                        [5501,  Math.PI/2]
+                        [3500,  0],
+                        [3501,  Math.PI/2]
                     ])(time);
             },
             'origin': [1, 1]
@@ -194,8 +194,8 @@ BEST.component('famous-ads:fitbit', {
             'position': function(time, _timeline) {
                 return _timeline([
                     [0,     [-500, 105]],
-                    [3500,  [-500, 105]],
-                    [4000,  [0,    105], 'easeOut'],
+                    [1700,  [-500, 105]],
+                    [2100,  [0,    105], 'easeOut'],
                 ])(time);
             }
         },
@@ -206,19 +206,19 @@ BEST.component('famous-ads:fitbit', {
             'position': function(time, _timeline) {
                 return _timeline([
                     [0,     [-500, 25]],
-                    [3500,  [-500, 25]],
-                    [4000,  [20,   25], 'easeOut'],
-                    [5000,  [20,   25]],
-                    [5500,  [1020, 25], 'easeOut'],
-                    [5501,  [20,   25]]
+                    [1700,  [-500, 25]],
+                    [2100,  [20,   25], 'easeOut'],
+                    [3000,  [20,   25]],
+                    [3500,  [1020, 25], 'easeOut'],
+                    [3501,  [20,   25]]
                 ])(time);
             },
             'rotation-x': function(time, _timeline, zipRotationX) {
-                return time > 5501 ? zipRotationX :
+                return time > 3501 ? zipRotationX :
                     _timeline([
                         [0,     0],
-                        [5500,  0],
-                        [5501,  Math.PI/2]
+                        [3500,  0],
+                        [3501,  Math.PI/2]
                     ])(time);
             },
             'origin': [1, 1]
@@ -234,8 +234,8 @@ BEST.component('famous-ads:fitbit', {
             'position': function(time, _timeline) {
                 return _timeline([
                     [0,     [-1000, 0]],
-                    [5000,  [-1000, 0]],
-                    [5250,  [75,    10], 'easeOut']
+                    [3000,  [-1000, 0]],
+                    [3250,  [75,    10], 'easeOut']
                 ])(time);
             },
             'rotation-x': function(findFitRotationX) {
