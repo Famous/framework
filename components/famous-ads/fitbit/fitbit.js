@@ -59,7 +59,6 @@ BEST.component('famous-ads:fitbit', {
         },
         '#shop-now': {
             'style': function(shopNowBackgroundColor, shopNowTextColor) {
-                console.log('test2.5')
                 return {
                     'background-color': shopNowBackgroundColor,
                     'color': shopNowTextColor,
@@ -302,7 +301,6 @@ BEST.component('famous-ads:fitbit', {
                     .set('shopNowTextColor', 'rgb(255, 255, 255)');
             },
             'handle-exit-hover': function(state) {
-                console.log('background hover')
                 state
                     .set('chargeRotationX', Math.PI/2)
                     .set('flexRotationX', Math.PI/2)
