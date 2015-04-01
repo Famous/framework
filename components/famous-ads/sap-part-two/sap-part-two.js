@@ -110,7 +110,7 @@ BEST.component('famous-ads:sap-part-two', {
             }
         }
     },
-    states: {   
+    states: {
         containerPosition: [0, 0],
         imageAPosition: [0, 0],
         imageBPosition: [0, 340],
