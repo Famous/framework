@@ -236,7 +236,7 @@ BEST.component('famous-ads:fitbit', {
                 return _timeline([
                     [0,     [-1000, 0]],
                     [5000,  [-1000, 0]],
-                    [5250,  [75,    0], 'easeOut']
+                    [5250,  [75,    10], 'easeOut']
                 ])(time);
             },
             'rotation-x': function(findFitRotationX) {
