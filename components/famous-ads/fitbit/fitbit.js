@@ -106,7 +106,7 @@ BEST.component('famous-ads:fitbit', {
             'true-size': true,
             'style': {
                 'font-size': '20px',
-                'font-weight': '50px',
+                'font-weight': '500',
             }
         },
         '#flex-img-container': {
@@ -147,7 +147,7 @@ BEST.component('famous-ads:fitbit', {
             'true-size': true,
             'style': {
                 'font-size': '20px',
-                'font-weight': '50px',
+                'font-weight': '500',
             }
         },
         '#one-img-container': {
@@ -187,7 +187,7 @@ BEST.component('famous-ads:fitbit', {
             'true-size': true,
             'style': {
                 'font-size': '20px',
-                'font-weight': '50px'
+                'font-weight': '500'
             }
         },
         '#zip-img-container': {
@@ -227,7 +227,7 @@ BEST.component('famous-ads:fitbit', {
             'true-size': true,
             'style': {
                 'font-size': '20px',
-                'font-weight': '50px'
+                'font-weight': '500'
             }
         },
         '#find-fit-container': {
