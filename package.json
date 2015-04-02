@@ -61,7 +61,7 @@
   },
   "dependencies": {
     "best-function-parser": "git+ssh://git@github.famo.us:framework/function-parser#v0.1.0",
-    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#v0.1.0",
+    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#v0.1.1",
     "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#v0.2.0",
     "mustache": "^1.1.0",
     "famous-components": "git+ssh://git@github.famo.us/platform/components#v0.1.1",
