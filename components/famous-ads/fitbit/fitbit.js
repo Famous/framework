@@ -15,9 +15,9 @@ BEST.component('famous-ads:fitbit', {
         '#meet-family-banner' : {
             'position': function(time, _timeline) {
                 return _timeline([
-                    [0,     [20, 50]],
-                    [750,   [20, 50]],
-                    [1000,  [1000, 50], 'outExpo']
+                    [0,     [0, 50]],
+                    [750,   [0, 50], 'outExpo'],
+                    [1000,  [1000, 50]]
                 ])(time);
             },
             'style': {
@@ -26,7 +26,7 @@ BEST.component('famous-ads:fitbit', {
                 'font-size': '35px',
                 'text-align': 'center'
             },
-            size: [300, 100]
+            size: [300, 50]
         },
         '#bottom-bar-container': {
             'size': function(bottomBarSize) {
