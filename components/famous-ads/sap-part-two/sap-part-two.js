@@ -98,7 +98,8 @@ BEST.component('famous-ads:sap-part-two', {
                 'font-size': '16px',
                 'text-align': 'center',
                 'font-weight': 'bold',
-                'text-decoration': 'underline'
+                'text-decoration': 'underline',
+                'cursor': 'pointer'
             }
         }
     },
