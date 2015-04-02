@@ -1,8 +1,11 @@
 BEST.component('famous:ui-element', {
     tree: 'ui-element.html',
     behaviors: {
-        '#self' : {
-            '$yield' : true
+        '$self' : {
+            '$yield' : true,
+            '$self:use-child-size': function(useChildSize) {
+                return useChildSize;
+            }
         },
         '#view' : {
             'align': function(align) {
@@ -251,11 +254,19 @@ BEST.component('famous:ui-element', {
             },
             'template': function(state, message) {
                 state.set('template', message);
+            },
+
+            'use-child-size' : function(state, message) {
+                state.set('useChildSize', message);
+            }
+        },
+        handlers: {
+            'use-child-size' : function($HTMLElement, $payload) {
+                $HTMLElement.trueSize(!!$payload, !!$payload);
             }
         }
-
     },
     states: {
-        'sizeAbsolute': [0, 0, 0]
+        useChildSize: true
     }
 });
