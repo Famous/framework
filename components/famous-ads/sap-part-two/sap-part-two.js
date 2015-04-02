@@ -81,7 +81,8 @@ BEST.component('famous-ads:sap-part-two', {
             'true-size': true,
             'style': {
                 'color': 'white',
-                'font-size': '16px',
+                'font-size': '18px',
+                'font-weight': '400',
                 'text-align': 'center',
             }
         },
