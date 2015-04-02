@@ -112,7 +112,7 @@ BEST.component('famous:html-element', {
         }
     },
     states: {
-        'id': null,
+        'id': '',
         'content': '',
         'style': {},
         'attributes': {},
