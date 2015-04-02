@@ -253,8 +253,9 @@ BEST.component('famous:ui-element', {
                 state.set('template', message);
             }
         }
-        
+
     },
     states: {
+        'sizeAbsolute': [0, 0, 0]
     }
 });
