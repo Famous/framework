@@ -16,8 +16,9 @@ BEST.component('famous-ads:sap-part-two', {
         '#image-a': {
             'true-size': true,
             'style': {
-                'background-color': '#FF0099',
-                'color': 'white'
+                'background-color': 'transparent',
+                'color': 'white',
+                'z-index': '2'
             }
         },
         '#image-b-container': {
@@ -27,9 +28,15 @@ BEST.component('famous-ads:sap-part-two', {
         },
         '#image-b': {
             'true-size': true,
-            'style': {
-            }
 
+        },
+        '#image-c-container': {
+            'position': function(imageCPosition) {
+                return imageCPosition;
+            }
+        },
+        '#image-c': {
+            'true-size': true,
         },
         '#simple-container': {
             'position': function (simplePosition) {
@@ -114,6 +121,7 @@ BEST.component('famous-ads:sap-part-two', {
         containerPosition: [0, 0],
         imageAPosition: [0, 0],
         imageBPosition: [0, 340],
+        imageCPosition: [0, 0],
         simplePosition: [0, 100],
         hasALifePosition: [0, 150],
         logoPosition: [490, 110],
