@@ -10,7 +10,8 @@ BEST.component('famous-ads:fitbit', {
             'style': {
                 'background-color': 'white',
                 'z-index': '-10'
-            }
+            },
+            position: [0, 0, -50] // Chrome doesn't respect z-index
         },
         '#meet-family-banner' : {
             'position': function(time, _timeline) {
@@ -221,8 +222,9 @@ BEST.component('famous-ads:fitbit', {
             'size' : [70, 30],
             'style': {
                 'font-size': '20px',
-                'font-weight': '500'
-            }
+                'font-weight': '500',
+                'z-index' : '5'
+            },
         },
 
         '.fitbit-img' : {
