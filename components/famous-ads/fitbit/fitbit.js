@@ -97,8 +97,8 @@ BEST.component('famous-ads:fitbit', {
                         [3501,  Math.PI/2]
                     ])(time);
             },
-            'origin': [1, 1],
-            'true-size': true,
+            'origin': [0.5, 1],
+            'size' : [70, 30],
             'style': {
                 'font-size': '20px',
                 'font-weight': '500',
@@ -134,8 +134,8 @@ BEST.component('famous-ads:fitbit', {
                         [5501,  Math.PI/2]
                     ])(time);
             },
-            'origin': [1, 1],
-            'true-size': true,
+            'origin': [0.5, 1],
+            'size' : [70, 30],
             'style': {
                 'font-size': '20px',
                 'font-weight': '500',
@@ -171,8 +171,8 @@ BEST.component('famous-ads:fitbit', {
                         [3501,  Math.PI/2]
                     ])(time);
             },
-            'origin': [1, 1],
-            'true-size': true,
+            'origin': [0.5, 1],
+            'size' : [70, 30],
             'style': {
                 'font-size': '20px',
                 'font-weight': '500'
@@ -209,8 +209,8 @@ BEST.component('famous-ads:fitbit', {
                         [3501,  Math.PI/2]
                     ])(time);
             },
-            'origin': [1, 1],
-            'true-size': true,
+            'origin': [0.5, 1],
+            'size' : [70, 30],
             'style': {
                 'font-size': '20px',
                 'font-weight': '500'
@@ -248,7 +248,7 @@ BEST.component('famous-ads:fitbit', {
         public: {
             'handle-charge-hover': function(state) {
                 state
-                    .set('chargeRotationX', 0, {duration: 200, curve: 'easeOut'})
+                    .set('chargeRotationX', 0, {duration: 300, curve: 'easeOut'})
                     .set('flexRotationX', Math.PI/2)
                     .set('oneRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
@@ -258,7 +258,7 @@ BEST.component('famous-ads:fitbit', {
             },
             'handle-flex-hover': function(state) {
                 state
-                    .set('flexRotationX', 0, {duration: 200, curve: 'easeOut'})
+                    .set('flexRotationX', 0, {duration: 300, curve: 'easeOut'})
                     .set('chargeRotationX', Math.PI/2)
                     .set('oneRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
@@ -268,7 +268,7 @@ BEST.component('famous-ads:fitbit', {
             },
             'handle-one-hover': function(state) {
                 state
-                    .set('oneRotationX', 0, {duration: 200, curve: 'easeOut'})
+                    .set('oneRotationX', 0, {duration: 300, curve: 'easeOut'})
                     .set('chargeRotationX', Math.PI/2)
                     .set('flexRotationX', Math.PI/2)
                     .set('zipRotationX', Math.PI/2)
@@ -278,7 +278,7 @@ BEST.component('famous-ads:fitbit', {
             },
             'handle-zip-hover': function(state) {
                 state
-                    .set('zipRotationX', 0, {duration: 200, curve: 'easeOut'})
+                    .set('zipRotationX', 0, {duration: 300, curve: 'easeOut'})
                     .set('chargeRotationX', Math.PI/2)
                     .set('oneRotationX', Math.PI/2)
                     .set('flexRotationX', Math.PI/2)
