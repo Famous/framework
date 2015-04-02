@@ -20,14 +20,13 @@ BEST.component('famous-ads:fitbit', {
                     [1000,  [1000, 50], 'outExpo']
                 ])(time);
             },
-            'true-size': true,
             'style': {
                 'color': 'rgb(71, 187, 179)',
                 'font-weight': '800',
                 'font-size': '35px',
                 'text-align': 'center'
             },
-            'use-child-size' : false
+            size: [300, 100]
         },
         '#bottom-bar-container': {
             'size': function(bottomBarSize) {
@@ -56,14 +55,16 @@ BEST.component('famous-ads:fitbit', {
             'position': function(shopNowPosition) {
                 return shopNowPosition;
             },
-            'style': function(shopNowBackgroundColor, shopNowTextColor) {
+            'style': function(shopNowBackgroundColor, shopNowTextColor, shopNowBorderColor) {
                 return {
                     'background-color': shopNowBackgroundColor,
                     'color': shopNowTextColor,
+                    'border': '1px solid ' + shopNowBorderColor,
                     'border-radius': '10px',
                     'text-align': 'center',
                     'font-size': '18px',
-                    'transition': 'all 0.25s ease'
+                    'transition': 'all 0.25s ease',
+                    'cursor' : 'pointer'
                 }
             }
         },
@@ -75,8 +76,7 @@ BEST.component('famous-ads:fitbit', {
                     [750,   [-500, 60]],
                     [1000,  [180,  60], 'easeOut']
                 ])(time);
-            },
-            'true-size': true
+            }
         },
         '#charge-label' : {
             'position': function(time, _timeline) {
@@ -96,12 +96,6 @@ BEST.component('famous-ads:fitbit', {
                         [3500,  0],
                         [3501,  Math.PI/2]
                     ])(time);
-            },
-            'origin': [0.5, 1],
-            'size' : [70, 30],
-            'style': {
-                'font-size': '20px',
-                'font-weight': '500',
             }
         },
 
@@ -112,8 +106,7 @@ BEST.component('famous-ads:fitbit', {
                     [900,   [-500, 65]],
                     [1400,  [110,  65], 'easeOut'],
                 ])(time);
-            },
-            'true-size': true
+            }
         },
         '#flex-label' : {
             'position': function(time, _timeline) {
@@ -133,12 +126,6 @@ BEST.component('famous-ads:fitbit', {
                         [5500,  0],
                         [5501,  Math.PI/2]
                     ])(time);
-            },
-            'origin': [0.5, 1],
-            'size' : [70, 30],
-            'style': {
-                'font-size': '20px',
-                'font-weight': '500',
             }
         },
 
@@ -149,8 +136,7 @@ BEST.component('famous-ads:fitbit', {
                     [1300,  [-500, 82]],
                     [1800,  [60,   82], 'easeOut']
                 ])(time);
-            },
-            'true-size': true
+            }
         },
         '#one-label' : {
             'position': function(time, _timeline) {
@@ -170,12 +156,6 @@ BEST.component('famous-ads:fitbit', {
                         [3500,  0],
                         [3501,  Math.PI/2]
                     ])(time);
-            },
-            'origin': [0.5, 1],
-            'size' : [70, 30],
-            'style': {
-                'font-size': '20px',
-                'font-weight': '500'
             }
         },
 
@@ -186,9 +166,7 @@ BEST.component('famous-ads:fitbit', {
                     [1700,  [-500, 105]],
                     [2100,  [0,    105], 'easeOut'],
                 ])(time);
-            },
-            'true-size': true
-
+            }
         },
         '#zip-label' : {
             'position': function(time, _timeline) {
@@ -208,12 +186,6 @@ BEST.component('famous-ads:fitbit', {
                         [3500,  0],
                         [3501,  Math.PI/2]
                     ])(time);
-            },
-            'origin': [0.5, 1],
-            'size' : [70, 30],
-            'style': {
-                'font-size': '20px',
-                'font-weight': '500'
             }
         },
 
@@ -229,7 +201,7 @@ BEST.component('famous-ads:fitbit', {
                 return findFitRotationX;
             },
             'origin': [0.5, 0.5],
-            'true-size': true,
+            size: [150, 50],
             'style': {
                 'color': 'rgb(71, 187, 179)',
                 'font-weight': '800',
@@ -241,6 +213,22 @@ BEST.component('famous-ads:fitbit', {
         '$self': {
             '$self:startAd' : function(startAd) {
                 return true;
+            }
+        },
+
+        '.label' : {
+            'origin': [0.5, 1],
+            'size' : [70, 30],
+            'style': {
+                'font-size': '20px',
+                'font-weight': '500'
+            }
+        },
+
+        '.fitbit-img' : {
+            'true-size': true,
+            style: {
+                cursor: 'pointer'
             }
         }
     },
@@ -254,7 +242,8 @@ BEST.component('famous-ads:fitbit', {
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
                     .set('shopNowBackgroundColor', 'rgb(94, 122, 136)')
-                    .set('shopNowTextColor', 'rgb(255, 255, 255)');
+                    .set('shopNowTextColor', 'rgb(255, 255, 255)')
+                    .set('shopNowBorderColor', 'rgb(0, 0, 0)');
             },
             'handle-flex-hover': function(state) {
                 state
@@ -264,7 +253,8 @@ BEST.component('famous-ads:fitbit', {
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
                     .set('shopNowBackgroundColor', 'rgb(232, 87, 60)')
-                    .set('shopNowTextColor', 'rgb(255, 255, 255)');
+                    .set('shopNowTextColor', 'rgb(255, 255, 255)')
+                    .set('shopNowBorderColor', 'rgb(0, 0, 0)');
             },
             'handle-one-hover': function(state) {
                 state
@@ -274,7 +264,8 @@ BEST.component('famous-ads:fitbit', {
                     .set('zipRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
                     .set('shopNowBackgroundColor', 'rgb(6, 6, 6)')
-                    .set('shopNowTextColor', 'rgb(255, 255, 255)');
+                    .set('shopNowTextColor', 'rgb(255, 255, 255)')
+                    .set('shopNowBorderColor', 'rgb(255, 255, 255)');
             },
             'handle-zip-hover': function(state) {
                 state
@@ -284,7 +275,8 @@ BEST.component('famous-ads:fitbit', {
                     .set('flexRotationX', Math.PI/2)
                     .set('findFitRotationX', Math.PI/2)
                     .set('shopNowBackgroundColor', 'rgb(184, 222, 61)')
-                    .set('shopNowTextColor', 'rgb(255, 255, 255)');
+                    .set('shopNowTextColor', 'rgb(255, 255, 255)')
+                    .set('shopNowBorderColor', 'rgb(0, 0, 0)');
             },
             'handle-exit-hover': function(state) {
                 state
