@@ -7,23 +7,37 @@ BEST.component('famous-ads:sap-ad', {
             },
         },
         '#part-one-container': {
-            'position': function(partOnePosition) {
-                return partOnePosition;
+            'position': function(time, _timeline, partOnePosition) {
+                return _timeline([
+                    [0,     partOnePosition],
+                    [3500,  partOnePosition, 'easeOut'],
+                    [4000,  [-150, 0, 0]]
+                ])(time);
             },
         },
         '#part-one-component': {
-            'start': function(_partOneStart) {
-                return _partOneStart;
+            'start-one': function(time, _timeline) {
+                return _timeline([
+                    [0,     1],
+                    [3500,  0]
+                ])(time);
             }
         },
         '#part-two-container': {
-            'position': function(partTwoPosition) {
-                return partTwoPosition;
+            'position': function(time, _timeline, partTwoPosition) {
+                return _timeline([
+                    [0,     partTwoPosition],
+                    [3500,  partTwoPosition, 'easeOut'],
+                    [4000,  [0, 0, 0]]
+                ])(time);
             }
         },
         '#part-two-component': {
-            'start': function(_partTwoStart) {
-                return _partTwoStart;
+            'start-two': function(time, _timeline) {
+                return _timeline([
+                    [0,     0],
+                    [3500,  1]
+                ])(time);
             }
         },
         '#start-button-container': {
@@ -44,18 +58,19 @@ BEST.component('famous-ads:sap-ad', {
                 'text-align': 'center'
             },
             'unselectable': true
-        } 
+        },
+        '$self': {
+            '$self:startAd' : function(startAd) {
+                return true;
+            }
+        },
     },
+
     events: {
-        public: {
-            'start-ad': function(state, event) {
-                state.set('_partOneStart', 'started');
-                setTimeout(function() {
-                    state.set('partOnePosition', [-150, 0, 0], {duration: 500, curve: 'easeOut'});
-                    state.set('partTwoPosition', [0, 0, 0], {duration: 500, curve: 'easeOut'}, function() {
-                        state.set('_partTwoStart', 'started');
-                    });
-                }, 5500);
+        public: {},
+        handlers: {
+            'startAd' : function($state, $payload) {
+                $state.set('time', 5500, {duration: 5500});
             }
         }
     },
@@ -66,6 +81,8 @@ BEST.component('famous-ads:sap-ad', {
         startButtonPosition: [0, 600, 0],
         startButtonSize: [80, 30],
         _partOneStart: '',
-        _partTwoStart: ''
+        _partTwoStart: '',
+        time: 0,
+        startAd: false
     }
 });

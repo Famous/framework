@@ -39,8 +39,12 @@ BEST.component('famous-ads:sap-part-two', {
             'true-size': true,
         },
         '#simple-container': {
-            'position': function (simplePosition) {
-                return simplePosition;
+            'position': function (time, _timeline, simplePosition) {
+                return _timeline([
+                    [0,     simplePosition],
+                    [1500,  simplePosition, 'easeOut'],
+                    [2000,  [-300, 100]]
+                ])(time);
             }
         },
         '#simple': {
@@ -52,8 +56,12 @@ BEST.component('famous-ads:sap-part-two', {
             }
         },
         '#has-a-life-container': {
-            'position': function(hasALifePosition) {
-                return hasALifePosition;
+            'position': function(time, _timeline, hasALifePosition) {
+                return _timeline([
+                    [0,  hasALifePosition],
+                    [1500,  hasALifePosition, 'easeOut'],
+                    [2000,  [-300, 150]]
+                ])(time);
             }
         },
         '#has-a-life': {
@@ -68,13 +76,21 @@ BEST.component('famous-ads:sap-part-two', {
             'size': function(logoSize) {
                 return logoSize;
             },
-            'position': function(logoPosition) {
-                return logoPosition;
+            'position': function(time, _timeline, logoPosition) {
+                return _timeline([
+                    [0,     logoPosition],
+                    [1500,  logoPosition, 'easeOut'],
+                    [2000,  [90, 110]]
+                ])(time);
             }
         },
         '#run-simple-container': {
-            'position': function(runSimplePosition) {
-                return runSimplePosition;
+            'position': function(time, _timeline, runSimplePosition) {
+                return _timeline([
+                    [0,     runSimplePosition],
+                    [1500,  runSimplePosition, 'easeOut'],
+                    [2000,  [150, 160]]
+                ])(time);
             }
         },
         '#run-simple': {
@@ -87,8 +103,12 @@ BEST.component('famous-ads:sap-part-two', {
             }
         },
         '#learn-more-container': {
-            'position': function(learnMorePosition) {
-                return learnMorePosition;
+            'position': function(time, _timeline, learnMorePosition) {
+                return _timeline([
+                    [0,     learnMorePosition],
+                    [2000,  learnMorePosition, 'easeOut'],
+                    [2500,  [90, 550]]
+                ])(time);
             }
         },
         '#learn-more': {
@@ -105,17 +125,11 @@ BEST.component('famous-ads:sap-part-two', {
     },
     events: {
         public: {
-            'start': function(state, message) {
-                state.set('_wait', -1, {duration: 2000}, function() {
-                    state.set('simplePosition', [-300, 100], {duration: 500, curve: 'easeOut'});
-                    state.set('hasALifePosition', [-300, 150], {duration: 500, curve: 'easeOut'});
-                    state.set('logoPosition', [90, 110], {duration: 500, curve: 'easeOut'});
-                    state.set('runSimplePosition', [150, 160], {duration: 500, curve: 'easeOut'}, function() {
-                        state.set('_wait', -1, {duration: 500}, function() {
-                            state.set('learnMorePosition', [90, 550], {duration: 500, curve: 'easeOut'});
-                        });
-                    });
-                });
+            'start-two': function(state, message) {
+                if (!state.get('animationStarted') && message === 1) {
+                    state.set('time', 2500, {duration: 2500});
+                    state.set('animationStarted', true);
+                }
             }
         }
     },
@@ -130,6 +144,7 @@ BEST.component('famous-ads:sap-part-two', {
         runSimplePosition: [550, 160],
         learnMorePosition: [490, 550],
         logoSize: [108, 47],
-        _wait: -1
+        time: 0,
+        animationStarted: false
     }
 });

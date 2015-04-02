@@ -7,8 +7,14 @@ BEST.component('famous-ads:sap-part-one', {
             }
         },
         '#complexity-container': {
-            'position': function(complexityPosition) {
-                return complexityPosition;
+            'position': function(time, _timeline, complexityPosition) {
+                return _timeline([
+                    [0,     complexityPosition],
+                    [500,   complexityPosition, 'easeOut'],
+                    [1000,  [0, 110]],
+                    [2000,  [0, 110], 'easeOut'],
+                    [2500,  [-300, 110]]
+                ])(time);
             }
         },
         '#complexity': {
@@ -20,8 +26,12 @@ BEST.component('famous-ads:sap-part-one', {
             }
         },
         '#hopes-container': {
-            'position': function(hopesPosition) {
-                return hopesPosition;
+            'position': function(time, _timeline, hopesPosition) {
+                return _timeline([
+                    [0,     hopesPosition],
+                    [2000,  hopesPosition, 'easeOut'],
+                    [2500,  [0, 110]]
+                ])(time);
             }
         },
         '#hopes': {
@@ -35,16 +45,11 @@ BEST.component('famous-ads:sap-part-one', {
     },
     events: {
         public: {
-            'start': function(state, message) {
-                state.set('_wait', -1, {duration: 500}, function() {
-                    state.set('complexityPosition', [0, 110], {duration: 500, curve: 'easeOut'}, function() {
-                        state.set('_wait', -1, {duration: 2000}, function() {
-                            state.set('complexityPosition', [-300, 110], {duration: 500, curve: 'easeOut'});
-                            state.set('hopesPosition', [0, 110], {duration: 500, curve: 'easeOut'});
-                        });
-                    });
-                });
-                
+            'start-one' : function(state, message) {
+                if (!state.get('animationStarted') && message === 1) {
+                    state.set('time', 2500, {duration: 2500});
+                    state.set('animationStarted', true);
+                }
             }
         }
     },
@@ -52,6 +57,7 @@ BEST.component('famous-ads:sap-part-one', {
         containerPosition: [0, 0],
         complexityPosition: [300, 110],
         hopesPosition: [300, 110],
-        _wait: -1
+        time: 0,
+        animationStarted: false
     }
 });
