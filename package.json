@@ -12,7 +12,7 @@
   },
   "homepage": "https://github.famo.us/framework/best-state-manager",
   "scripts": {
-    "test": "tape tests/*.spec.js | tap-spec",
+    "test": "browserify tests/*.spec.js > tests/bundle.js",
     "lint": "eslint lib && jscs lib"
   },
   "authors": [
@@ -50,6 +50,7 @@
     "jsdom": "^3.1.2",
     "lodash": "^3.3.0",
     "q": "^1.2.0",
-    "through": "^2.3.6"
+    "through": "^2.3.6",
+    "famous": "git+ssh://git@github.famo.us:platform/famous.git#v0.1.0"
   }
 }

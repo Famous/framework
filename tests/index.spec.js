@@ -2,6 +2,9 @@
 
 var test = require('tape');
 var path = require('path');
+var Famous = require('famous').core.Famous;
+var Clock = Famous.getClock();
+var Transitionable = require('famous').transitions.Transitionable;
 
 var StateManager = require('./../lib');
 
@@ -17,7 +20,8 @@ test('StateManager', function(t) {
     cutenessLevel: 8.1,
     playfulnessLevel: 8.8,
     size: [100, 200, 300],
-    points: 10
+    points: 10,
+    fluffiness: 10
   }
 
   var globalObserverFlag = false;
@@ -27,7 +31,7 @@ test('StateManager', function(t) {
     globalObserverFlag = true;
   }
 
-  var SM = new StateManager(dogState, globalObserver);
+  var SM = new StateManager(dogState, Clock, Transitionable);
 
   console.log('GETTER');
   t.equal(SM.getState('age'), 4, 'should get state');
@@ -73,7 +77,7 @@ test('StateManager', function(t) {
   SM.chain('points').add(10).subtract(10);
   SM.chain('age').add(2).subtract(2);
   t.equal(count, 4, 'Global observer works with state changes that are part of constructor');
-  
+
   SM.set('newProperty', 8);
   t.equal(SM.get('newProperty'), 8, 'StateManager properly sets/retrieves dynamcially added state');
   t.equal(count, 5, 'Global observer works with state changes on dynamcially added properties');
@@ -186,18 +190,65 @@ test('StateManager', function(t) {
     .divide(3);
   t.equal(SM.getState('cutenessLevel'), 219, 'should be able to chain operations');
 
-  
-  console.log('THROWS ERROR ON NON-STANDARD INPUTS');
-  t.test('Should check for invalid inputs', function(st){
-    st.plan(1);
 
-    try {
-      SM.chain('cutenessLevel').add([1, 2]);
-    }
-    catch(err) {
-      st.ok(err, 'Caught error attempting to add array to integer');
-    }
-  })
+  //console.log('THROWS ERROR ON NON-STANDARD INPUTS');
+  //t.test('Should check for invalid inputs', function(st){
+  //  st.plan(1);
+
+  //  try {
+  //    SM.chain('cutenessLevel').add([1, 2]);
+  //  }
+  //  catch(err) {
+  //    st.ok(err, 'Caught error attempting to add array to integer');
+  //  }
+  //});
+
+  var time = 0;
+  var _now = Date.now;
+
+  t.test('set up time', function(t) {
+    time = 0;
+    Date.now = function() {
+      return time;
+    };
+    t.end();
+  });
+
+  console.log('CALLBACK CHAIN');
+  t.test('Should chain callbacks', function(t) {
+    t.plan(4);
+
+    SM
+      .set('fluffiness', 100, {duration: 1000})
+      .thenSet('fluffiness', 200, {duration: 2000});
+
+    time = 500;
+    SM.update();
+    t.equal(SM.get('fluffiness'), 55);
+
+    time = 1000;
+    SM.update();
+    t.equal(SM.get('fluffiness'), 100);
+    console.log('clock time: ', SM._Clock._time)
+
+    time = 2000;
+    SM.update();
+    console.log('T-2000', SM.get('fluffiness'));
+    t.equal(SM.get('fluffiness'), 155);
+    console.log('clock time: ', SM._Clock._time)
+
+    time = 3000;
+    SM.update();
+    console.log('T-3000', SM);
+    t.equal(SM.get('fluffiness'), 200);
+    console.log('clock time: ', SM._Clock._time);
+  });
+
+  t.test('tear down time', function(t) {
+    console.log('tearing down')
+    Date.now = _now;
+    t.end();
+  });
 
   t.end();
 });
