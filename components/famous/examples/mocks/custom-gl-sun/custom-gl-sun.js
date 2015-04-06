@@ -1,5 +1,5 @@
 BEST.component('famous:examples:mocks:custom-gl-sun', {
-    tree: 'sun.html',
+    tree: 'custom-gl-sun.html',
     behaviors: {
         '#view': {
             'size': [0.5, 0.5, 0.5],
