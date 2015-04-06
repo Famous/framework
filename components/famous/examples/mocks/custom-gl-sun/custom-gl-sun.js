@@ -1,4 +1,4 @@
-BEST.component('famous:examples:demos:sun', {
+BEST.component('famous:examples:mocks:custom-gl-sun', {
     tree: 'sun.html',
     behaviors: {
         '#view': {
