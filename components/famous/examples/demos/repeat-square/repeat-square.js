@@ -14,8 +14,8 @@ BEST.component('famous:examples:demos:repeat-square', {
                 };
                 return result;
             },
-            'change-color': function(backgroundColor) {
-                return backgroundColor;
+            'change-color': function(_backgroundColor) {
+                return _backgroundColor;
             }
         },
         '#root2': {
@@ -33,12 +33,12 @@ BEST.component('famous:examples:demos:repeat-square', {
                 state.set('count', message);
             },
             'change-color': function(state, message) {
-                state.set('backgroundColor', message);
+                state.set('_backgroundColor', message);
             }
         }
     },
     states: {
-        count: 0,
-        backgroundColor: 'red'
+        count: 5,
+        _backgroundColor: 'red'
     }
 });
