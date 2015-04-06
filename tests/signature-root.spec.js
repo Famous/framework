@@ -21,7 +21,7 @@ test('Signature Root', function(t) {
     t.test('Component properly defines its own state', function(st){
         st.plan(1);
 
-        BEST.Application.deploy('test:yield-label', 'body', function(app) {
+        BEST.Application.deploy('famous:tests:yield-label', 'body', function(app) {
             var bestNode = app.graph.rootNode;
             var rootDOMNode = bestNode.domNode;
             var squareDOMNode = rootDOMNode.querySelector(SQUARE_ELEMENT_SELECTOR);
@@ -42,7 +42,7 @@ test('Signature Root', function(t) {
     t.test('Component cannot define state outside of its visible children', function(st){
         st.plan(2);
 
-        BEST.Application.deploy('test:signature-root-check', 'body', function(app) {
+        BEST.Application.deploy('famous:tests:signature-root-check', 'body', function(app) {
             var bestNode = app.graph.rootNode;
             var rootDOMNode = bestNode.domNode;
 
