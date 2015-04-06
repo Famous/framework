@@ -1,0 +1,13 @@
+<famous:core:view id="root">
+    <famous:core:view class='label-view'><famous:core:dom-element><p>Label 1</p></famous:core:dom-element></famous:core:view>
+    <famous:examples:demos:clickable-square-with-label class='square'></famous:examples:demos:clickable-square-with-label>
+</famous:core:view>
+
+<famous:core:view id="root2">
+    <famous:core:view class='label-view'><famous:core:dom-element><p>Label 2</p></famous:core:dom-element></famous:core:view>
+    <famous:examples:demos:clickable-square-with-label class='square'>
+        <famous:core:dom-element id="label">
+            <div>Yielded Label</div>
+        </famous:core:dom-element>
+    </famous:examples:demos:clickable-square-with-label>
+</famous:core:view>

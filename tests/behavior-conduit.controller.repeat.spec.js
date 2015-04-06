@@ -33,7 +33,7 @@ test('BehaviorConduit `repeat` controller', function(t) {
 
         // st.plan(5);
 
-        // BEST.Application.deploy('test:repeat-element', 'body', function(app) {
+        // BEST.Application.deploy('famous:tests:repeat-element', 'body', function(app) {
         //     var faSurfaceCount;
         //     var virtualDOMChildCount;
 
