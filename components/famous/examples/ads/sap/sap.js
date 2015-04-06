@@ -7,8 +7,8 @@ BEST.component('famous:examples:ads:sap', {
             },
         },
         '#part-one-container': {
-            'position': function(time, _timeline, partOnePosition) {
-                return _timeline([
+            'position': function(time, partOnePosition) {
+                return $B.timeline([
                     [0,     partOnePosition],
                     [3500,  partOnePosition, 'easeOut'],
                     [4000,  [-150, 0, 0]]
@@ -16,16 +16,16 @@ BEST.component('famous:examples:ads:sap', {
             },
         },
         '#part-one-component': {
-            'start-one': function(time, _timeline) {
-                return _timeline([
+            'start-one': function(time) {
+                return $B.timeline([
                     [0,     1],
                     [3500,  0]
                 ])(time);
             }
         },
         '#part-two-container': {
-            'position': function(time, _timeline, partTwoPosition) {
-                return _timeline([
+            'position': function(time, partTwoPosition) {
+                return $B.timeline([
                     [0,     partTwoPosition],
                     [3500,  partTwoPosition, 'easeOut'],
                     [4000,  [0, 0, 0]]
@@ -33,8 +33,8 @@ BEST.component('famous:examples:ads:sap', {
             }
         },
         '#part-two-component': {
-            'start-two': function(time, _timeline) {
-                return _timeline([
+            'start-two': function(time) {
+                return $B.timeline([
                     [0,     0],
                     [3500,  1]
                 ])(time);

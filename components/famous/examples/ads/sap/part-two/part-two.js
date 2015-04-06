@@ -1,4 +1,4 @@
-BEST.component('famous:examples:ads:part-two', {
+BEST.component('famous:examples:ads:sap:part-two', {
     tree: 'part-two.html',
     behaviors: {
         '#part-two-container': {
@@ -39,8 +39,8 @@ BEST.component('famous:examples:ads:part-two', {
             'true-size': true,
         },
         '#simple-container': {
-            'position': function (time, _timeline, simplePosition) {
-                return _timeline([
+            'position': function (time, simplePosition) {
+                return $B.timeline([
                     [0,     simplePosition],
                     [1500,  simplePosition, 'easeOut'],
                     [2000,  [-300, 100]]
@@ -56,8 +56,8 @@ BEST.component('famous:examples:ads:part-two', {
             }
         },
         '#has-a-life-container': {
-            'position': function(time, _timeline, hasALifePosition) {
-                return _timeline([
+            'position': function(time, hasALifePosition) {
+                return $B.timeline([
                     [0,  hasALifePosition],
                     [1500,  hasALifePosition, 'easeOut'],
                     [2000,  [-300, 150]]
@@ -76,8 +76,8 @@ BEST.component('famous:examples:ads:part-two', {
             'size': function(logoSize) {
                 return logoSize;
             },
-            'position': function(time, _timeline, logoPosition) {
-                return _timeline([
+            'position': function(time, logoPosition) {
+                return $B.timeline([
                     [0,     logoPosition],
                     [1500,  logoPosition, 'easeOut'],
                     [2000,  [90, 110]]
@@ -85,8 +85,8 @@ BEST.component('famous:examples:ads:part-two', {
             }
         },
         '#run-simple-container': {
-            'position': function(time, _timeline, runSimplePosition) {
-                return _timeline([
+            'position': function(time, runSimplePosition) {
+                return $B.timeline([
                     [0,     runSimplePosition],
                     [1500,  runSimplePosition, 'easeOut'],
                     [2000,  [150, 160]]
@@ -103,8 +103,8 @@ BEST.component('famous:examples:ads:part-two', {
             }
         },
         '#learn-more-container': {
-            'position': function(time, _timeline, learnMorePosition) {
-                return _timeline([
+            'position': function(time, learnMorePosition) {
+                return $B.timeline([
                     [0,     learnMorePosition],
                     [2000,  learnMorePosition, 'easeOut'],
                     [2500,  [90, 550]]

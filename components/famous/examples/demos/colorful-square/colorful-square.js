@@ -5,11 +5,11 @@ BEST.component('famous:examples:demos:colorful-square', {
             'origin': function(origin) {
                 return origin;
             },
-            'size': function(size) {
-                return [Math.random() * size[0], Math.random() * size[1]];
+            'size': function(size, $random1, $random2) {
+                return [$random1 * size[0], $random2 * size[1]];
             },
-            'position': function(position) {
-                return [Math.random() * position[0], Math.random() * position[1]];
+            'position': function(position, $random1, $random2) {
+                return [$random1 * position[0], $random2 * position[1]];
             },
             'rotation': function($time) {
                 return [$time / 1000, $time / 1000, $time / 1000];
@@ -17,17 +17,17 @@ BEST.component('famous:examples:demos:colorful-square', {
             '$yield': true
         },
         '.square': {
-            'style': function(opacity) {
-                var hue = Math.floor(Math.random() * 240) + 200;
+            'style': function(opacity, $random1, $random2, $random3, $random4, $random5) {
+                var hue = Math.floor($random1 * 240) + 200;
                 var border = 50;
                 return {
                     'background-color': 'hsla(' + hue + ', 80%, 60%, 0.8)',
-                    'border-top': Math.random() * border + 'px solid #f2c9c9',
-                    'border-left': Math.random() * border + 'px solid #83ddd6',
-                    'border-bottom': Math.random() * border + 'px solid #aca74',
-                    'border-right': Math.random() * border + 'px solid #f7f396',
-                    'opacity': opacity,
-                }
+                    'border-top': $random2 * border + 'px solid #f2c9c9',
+                    'border-left': $random3 * border + 'px solid #83ddd6',
+                    'border-bottom': $random4 * border + 'px solid #aca74',
+                    'border-right': $random5 * border + 'px solid #f7f396',
+                    'opacity': opacity
+                };
             }
         }
     },

@@ -14,8 +14,8 @@ BEST.component('famous:examples:ads:fitbit', {
             position: [0, 0, -50] // Chrome doesn't respect z-index
         },
         '#meet-family-banner' : {
-            'position': function(time, _timeline) {
-                return _timeline([
+            'position': function(time) {
+                return $B.timeline([
                     [0,     [0, 50]],
                     [750,   [0, 50], 'outExpo'],
                     [1000,  [1000, 50]]
@@ -71,8 +71,8 @@ BEST.component('famous:examples:ads:fitbit', {
         },
 
         '#charge-item' : {
-            'position': function(time, _timeline) {
-                return _timeline([
+            'position': function(time) {
+                return $B.timeline([
                     [0,     [-500, 60]],
                     [750,   [-500, 60]],
                     [1000,  [180,  60], 'easeOut']
@@ -80,8 +80,8 @@ BEST.component('famous:examples:ads:fitbit', {
             }
         },
         '#charge-label' : {
-            'position': function(time, _timeline) {
-                return _timeline([
+            'position': function(time) {
+                return $B.timeline([
                     [0,     [-500, 25]],
                     [750,   [-500, 25]],
                     [1000,  [210,  25], 'easeOut'],
@@ -90,9 +90,9 @@ BEST.component('famous:examples:ads:fitbit', {
                     [3501,  [210,  25]]
                 ])(time);
             },
-            'rotation-x': function(time, _timeline, chargeRotationX) {
+            'rotation-x': function(time, chargeRotationX) {
                 return time > 3501 ? chargeRotationX : 
-                    _timeline([
+                    $B.timeline([
                         [0,     0],
                         [3500,  0],
                         [3501,  Math.PI/2]
@@ -101,8 +101,8 @@ BEST.component('famous:examples:ads:fitbit', {
         },
 
         '#flex-item' : {
-            'position': function(time, _timeline) {
-                return _timeline([
+            'position': function(time) {
+                return $B.timeline([
                     [0,     [-500, 65]],
                     [900,   [-500, 65]],
                     [1400,  [110,  65], 'easeOut'],
@@ -110,8 +110,8 @@ BEST.component('famous:examples:ads:fitbit', {
             }
         },
         '#flex-label' : {
-            'position': function(time, _timeline) {
-                return _timeline([
+            'position': function(time) {
+                return $B.timeline([
                     [0,     [-500, 25]],
                     [900,   [-500, 25]],
                     [1400,  [140,  25], 'easeOut'],
@@ -120,9 +120,9 @@ BEST.component('famous:examples:ads:fitbit', {
                     [3501,  [140,  25]]
                 ])(time);
             },
-            'rotation-x': function(time, _timeline, flexRotationX) {
+            'rotation-x': function(time, flexRotationX) {
                 return time > 3501 ? flexRotationX :
-                    _timeline([
+                    $B.timeline([
                         [0,     0],
                         [5500,  0],
                         [5501,  Math.PI/2]
@@ -131,8 +131,8 @@ BEST.component('famous:examples:ads:fitbit', {
         },
 
         '#one-item' : {
-            'position': function(time, _timeline) {
-                return _timeline([
+            'position': function(time) {
+                return $B.timeline([
                     [0,     [-500, 82]],
                     [1300,  [-500, 82]],
                     [1800,  [60,   82], 'easeOut']
@@ -140,8 +140,8 @@ BEST.component('famous:examples:ads:fitbit', {
             }
         },
         '#one-label' : {
-            'position': function(time, _timeline) {
-                return _timeline([
+            'position': function(time) {
+                return $B.timeline([
                     [0,     [-500, 25]],
                     [1300,  [-500, 25]],
                     [1800,  [70,   25], 'easeOut'],
@@ -150,9 +150,9 @@ BEST.component('famous:examples:ads:fitbit', {
                     [3501,  [70,   25]]
                 ])(time);
             },
-            'rotation-x': function(time, _timeline, oneRotationX) {
+            'rotation-x': function(time, oneRotationX) {
                 return time > 3501 ? oneRotationX :
-                    _timeline([
+                    $B.timeline([
                         [0,     0],
                         [3500,  0],
                         [3501,  Math.PI/2]
@@ -161,8 +161,8 @@ BEST.component('famous:examples:ads:fitbit', {
         },
 
         '#zip-item' : {
-            'position': function(time, _timeline) {
-                return _timeline([
+            'position': function(time) {
+                return $B.timeline([
                     [0,     [-500, 105]],
                     [1700,  [-500, 105]],
                     [2100,  [0,    105], 'easeOut'],
@@ -170,8 +170,8 @@ BEST.component('famous:examples:ads:fitbit', {
             }
         },
         '#zip-label' : {
-            'position': function(time, _timeline) {
-                return _timeline([
+            'position': function(time) {
+                return $B.timeline([
                     [0,     [-500, 25]],
                     [1700,  [-500, 25]],
                     [2100,  [20,   25], 'easeOut'],
@@ -180,9 +180,9 @@ BEST.component('famous:examples:ads:fitbit', {
                     [3501,  [20,   25]]
                 ])(time);
             },
-            'rotation-x': function(time, _timeline, zipRotationX) {
+            'rotation-x': function(time, zipRotationX) {
                 return time > 3501 ? zipRotationX :
-                    _timeline([
+                    $B.timeline([
                         [0,     0],
                         [3500,  0],
                         [3501,  Math.PI/2]
@@ -191,8 +191,8 @@ BEST.component('famous:examples:ads:fitbit', {
         },
 
         '#find-fit' : {
-            'position': function(time, _timeline) {
-                return _timeline([
+            'position': function(time) {
+                return $B.timeline([
                     [0,     [-1000, 0]],
                     [3000,  [-1000, 0]],
                     [3250,  [75,    10], 'easeOut']
