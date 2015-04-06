@@ -1,4 +1,4 @@
-BEST.component('famous:examples:ads:part-one', {
+BEST.component('famous:examples:ads:sap:part-one', {
     tree: 'part-one.html',
     behaviors: {
         '#part-one-container': {
@@ -7,8 +7,8 @@ BEST.component('famous:examples:ads:part-one', {
             }
         },
         '#complexity-container': {
-            'position': function(time, _timeline, complexityPosition) {
-                return _timeline([
+            'position': function(time, complexityPosition) {
+                return $B.timeline([
                     [0,     complexityPosition],
                     [500,   complexityPosition, 'easeOut'],
                     [1000,  [0, 110]],
@@ -26,8 +26,8 @@ BEST.component('famous:examples:ads:part-one', {
             }
         },
         '#hopes-container': {
-            'position': function(time, _timeline, hopesPosition) {
-                return _timeline([
+            'position': function(time, hopesPosition) {
+                return $B.timeline([
                     [0,     hopesPosition],
                     [2000,  hopesPosition, 'easeOut'],
                     [2500,  [0, 110]]
