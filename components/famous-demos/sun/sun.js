@@ -18,9 +18,7 @@ BEST.component('famous-demos:sun', {
             'detail': 100,
             'vertex-buffer': {
                 'a_disp': function($vertices, $random) {
-                    return $vertices.map(function(index) {
-                        return $random[index];
-                    });
+                    return $vertices.map($random);
                 }
             }
         },
