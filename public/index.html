@@ -6,21 +6,38 @@
     <title>BEST</title>
     <meta name="viewport" content="width=device-width, maximum-scale=1, user-scalable=no" />
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        #input {
+            width: 75%;
+            font-family: Consolas, monospace;
+        }
+    </style>
   </head>
   <body>
-    <div style="overflow:hidden; width:300px; height:625px; margin: auto; position: absolute; top: 0; left: 0; right: 0; bottom: 0"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12">
+            <form method="get">
+              <label for="best">Enter a BEST component name:</label><br>
+              <input name="best" type="text" tabindex="0" id="input" placeholder="E.g. famous:examples:ads:fitbit">
+              <input type="submit" value="Submit">
+            </form>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-xs-12">
+            <div id="deploy"></div>
+        </div>
+      </div>
+    </div>
     <script type="text/javascript" src="index.bundle.js"></script>
     <script type="text/javascript" src="assets/query-string.js"></script>
     <script type="text/javascript">
       (function() {
         if (QUERY.best) {
-          var folder = QUERY.best.split(':')[0];
-          if (folder === 'famous-ads') { 
-            BEST.Application.deploy(QUERY.best, 'div', function(app){window.app=app;});
-          }
-          else {
-            BEST.Application.deploy(QUERY.best, 'body', function(app){window.app=app;});
-          }
+          BEST.Application.deploy(QUERY.best, '#deploy', function(app){window.app=app;});
+          document.getElementById('input').value = QUERY.best;
         }
         else {
           console.error('Please supply a BEST name (`?best=...`)');
