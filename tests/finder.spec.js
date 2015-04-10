@@ -7,7 +7,6 @@ test('Finder', function(t) {
     t.plan(6);
     t.ok(finder, 'exports');
     t.ok(finder.componentURL, 'exports componentURL');
-
     var componentURL = finder.componentURL('foo:bar:baz:qux');
     t.equals(componentURL, 'http://localhost:8357/foo/bar/baz/qux/qux.js');
 
