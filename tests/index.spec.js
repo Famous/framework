@@ -191,63 +191,16 @@ test('StateManager', function(t) {
   t.equal(SM.getState('cutenessLevel'), 219, 'should be able to chain operations');
 
 
-  //console.log('THROWS ERROR ON NON-STANDARD INPUTS');
-  //t.test('Should check for invalid inputs', function(st){
-  //  st.plan(1);
+  console.log('THROWS ERROR ON NON-STANDARD INPUTS');
+  t.test('Should check for invalid inputs', function(st){
+    st.plan(1);
 
-  //  try {
-  //    SM.chain('cutenessLevel').add([1, 2]);
-  //  }
-  //  catch(err) {
-  //    st.ok(err, 'Caught error attempting to add array to integer');
-  //  }
-  //});
-
-  var time = 0;
-  var _now = Date.now;
-
-  t.test('set up time', function(t) {
-    time = 0;
-    Date.now = function() {
-      return time;
-    };
-    t.end();
-  });
-
-  console.log('CALLBACK CHAIN');
-  t.test('Should chain callbacks', function(t) {
-    t.plan(4);
-
-    SM
-      .set('fluffiness', 100, {duration: 1000})
-      .thenSet('fluffiness', 200, {duration: 2000});
-
-    time = 500;
-    SM.update();
-    t.equal(SM.get('fluffiness'), 55);
-
-    time = 1000;
-    SM.update();
-    t.equal(SM.get('fluffiness'), 100);
-    console.log('clock time: ', SM._Clock._time)
-
-    time = 2000;
-    SM.update();
-    console.log('T-2000', SM.get('fluffiness'));
-    t.equal(SM.get('fluffiness'), 155);
-    console.log('clock time: ', SM._Clock._time)
-
-    time = 3000;
-    SM.update();
-    console.log('T-3000', SM);
-    t.equal(SM.get('fluffiness'), 200);
-    console.log('clock time: ', SM._Clock._time);
-  });
-
-  t.test('tear down time', function(t) {
-    console.log('tearing down')
-    Date.now = _now;
-    t.end();
+    try {
+      SM.chain('cutenessLevel').add([1, 2]);
+    }
+    catch(err) {
+      st.ok(err, 'Caught error attempting to add array to integer');
+    }
   });
 
   t.end();
