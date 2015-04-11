@@ -35,7 +35,7 @@
   "license": "Proprietary",
   "testling": {
     "files": [
-      "tests/**.spec.js"
+      "tests/**/*.spec.js"
     ],
     "scripts": [
         "tests/helpers/bind-polyfill.js",
