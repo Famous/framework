@@ -43,7 +43,7 @@
     ]
   },
   "devDependencies": {
-    "best-components": "git+ssh://git@github.famo.us:framework/components#v0.0.2",
+    "best-components": "git+ssh://git@github.famo.us:framework/components#v0.1.0",
     "brfs": "^1.1.1",
     "browserify": "^8.1.3",
     "eslint": "^0.14.1",
