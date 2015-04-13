@@ -39,7 +39,8 @@
     ],
     "scripts": [
         "tests/helpers/bind-polyfill.js",
-        "tests/helpers/html-domparser.js"
+        "tests/helpers/html-domparser.js",
+        "tests/helpers/custom-event-polyfill.js"
     ]
   },
   "devDependencies": {
