@@ -27,7 +27,10 @@ function join(urls, cb) {
             var url = urls[idx];
             get(url, function(data) {
                 total += 1;
-                out.push(data);
+                // Important! We guarantee that results are returned
+                // in the same order the URLs were given in, hence
+                // assigning via index rather than pushing.
+                out[idx] = data;
                 if (total === length) {
                     cb(out);
                 }
