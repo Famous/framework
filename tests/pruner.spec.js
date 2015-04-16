@@ -1,6 +1,6 @@
 'use strict';
 var test = require('tape');
-var PruneTree = require('../lib/helpers/prune-tree');
+var Pruner = require('../lib/pruner');
 var VirtualDOM = require('../lib/virtual-dom');
 
 var domNode = VirtualDOM.parse(
@@ -27,8 +27,8 @@ domNode.parentNode.removeChild(domNode);
 
 test('Prune Tree', function(t) {
     t.plan(5);
-    t.ok(PruneTree, 'exports');
-    t.ok(PruneTree.pruneByAttribute, 'exports function');
+    t.ok(Pruner, 'exports');
+    t.ok(Pruner.pruneByAttribute, 'exports function');
 
     var aNodes;
     var bNodes;
@@ -53,7 +53,7 @@ test('Prune Tree', function(t) {
     if (correctInitialState) correctInitialState = xNodes.length === 3;
     t.ok(correctInitialState, 'domNode correctly initialized');
 
-    PruneTree.pruneByAttribute(domNode, 'root', 'a');
+    Pruner.pruneByAttribute(domNode, 'root', 'a');
 
     // Check removed nodes
     var removedState = true;
