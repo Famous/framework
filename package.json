@@ -4,6 +4,6 @@
   "description": "simple utility functions for Famo.us BEST Framework",
   "license": "MPLv2",
   "dependencies": {
-    "lodash": "^3.6.0"
+    "lodash.isequal": "^3.0.1"
   }
 }

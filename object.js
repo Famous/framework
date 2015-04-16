@@ -5,7 +5,7 @@ Note: Review our and Lodash's licenses for potential conflicts before putting th
 code into production.
 */
 
-var _  = require('lodash');
+var isEqual  = require('lodash.isequal');
 
 var OBJ_TYPE = 'object';
 
@@ -57,5 +57,5 @@ function merge(a, b) {
 module.exports = {
     clone: clone,
     merge: merge,
-    isEqual: _.isEqual
+    isEqual: isEqual
 };
