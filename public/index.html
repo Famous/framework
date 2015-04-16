@@ -46,7 +46,7 @@
     <script type="text/javascript">
       (function() {
         if (QUERY.best) {
-          BEST.Application.deploy(QUERY.best, '#deploy', {}, function(app){window.app=app;});
+          BEST.deploy(QUERY.best, '#deploy', {}, function(app){window.app=app;});
           document.getElementById('input').value = QUERY.best;
         }
         else {
