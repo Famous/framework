@@ -1,6 +1,6 @@
 {
   "name": "framework-utilities",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "simple utility functions for Famo.us BEST Framework",
   "license": "MPLv2",
   "dependencies": {
