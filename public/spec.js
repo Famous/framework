@@ -223,7 +223,7 @@ BEST.register('famous:examples:clickable-square', {
     tree: '' +
         '<famous:core:view id="context">' +
         '  <famous:core:dom-element id="surface">' +
-        '      <h1>{{ count }}</h1>' +
+        '    <h1>{{ count }}</h1>' +
         '  </famous:core:dom-element>' +
         '</famous:core:view>',
     behaviors: {
