@@ -1,4 +1,5 @@
 'use strict';
+window.Famous = require('../node_modules/famous');
 var test = require('tape');
 var index = require('../lib');
 

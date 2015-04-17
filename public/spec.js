@@ -219,7 +219,7 @@ BEST.register('famous:events', {
     }
 });
 
-BEST.execute('famous:examples:clickable-square', {
+BEST.register('famous:examples:clickable-square', {
     tree: '' +
         '<famous:core:view id="context">' +
         '  <famous:core:dom-element id="surface">' +
@@ -246,3 +246,5 @@ BEST.execute('famous:examples:clickable-square', {
     },
     states: { count: 0 }
 });
+
+BEST.execute('famous:examples:clickable-square', 'body');
