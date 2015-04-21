@@ -206,11 +206,11 @@ BEST.register('famous:core:view', {
 BEST.register('famous:events', {
     events: {
         '$public': {
-            '$miss': function($DOMElement, $node, $payload) {
+            '$miss': function($DOMElement, $component, $payload) {
                 var proxy = $payload.proxy;
                 var selector = $payload.selector;
                 var listener = $payload.listener;
-                $node.famousNode.addUIEvent(proxy);
+                $component.famousNode.addUIEvent(proxy);
                 $DOMElement.on(proxy, function(event) {
                     listener('famous:events:' + proxy, event, selector);
                 });
