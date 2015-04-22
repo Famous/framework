@@ -207,12 +207,12 @@ BEST.register('famous:events', {
     events: {
         '$public': {
             '$miss': function($DOMElement, $component, $payload) {
-                var proxy = $payload.proxy;
-                var selector = $payload.selector;
+                var eventName = $payload.eventName;
                 var listener = $payload.listener;
-                $component.famousNode.addUIEvent(proxy);
-                $DOMElement.on(proxy, function(event) {
-                    listener('famous:events:' + proxy, event, selector);
+
+                $component.famousNode.addUIEvent(eventName);
+                $DOMElement.on(eventName, function(event) {
+                    listener(event);
                 });
             }
         }
@@ -239,8 +239,9 @@ BEST.register('famous:examples:clickable-square', {
     },
     events: {
         '#surface': {
-            'famous:events:click': function($state) {
+            'famous:events:click': function($state, $payload) {
                 $state.set('count', $state.get('count') + 1);
+                console.log('Click event: ', $payload);
             }
         }
     },
