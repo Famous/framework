@@ -136,14 +136,13 @@ StateManager.prototype.thenSet = function thenSet(key, value, transition) {
  */
 StateManager.prototype.setState = function setState(key, value, transition) {
     var previousState = this.get(key) || 0;
+    var transitionableExists = isTransitionable.call(this, key);
 
-    if (isArray(key)) {
-        key = JSON.stringify(key);
-    }
+    if (isArray(key)) key = JSON.stringify(key);
 
-    if(transition) {
+    if (transition) {
         // make sure we have a reference to a transitionable
-        if (!(this._transitionables[key] instanceof this._Transitionable)) {
+        if (!transitionableExists) {
             this._transitionables[key] = new this._Transitionable(previousState);
         }
         else {
@@ -151,40 +150,32 @@ StateManager.prototype.setState = function setState(key, value, transition) {
             this._transitionables[key].halt();
         }
 
-        // set callback function
-        var self = this;
-        var cb = function() {
-            // check the then queue and pop off arguments
-            if (self._thenQueue.length > 0) {
-                var args = self._thenQueue.shift();
-                self.setState(args[0], args[1], args[2]);
-            }
-        }
-
-        // set default curve and duration if none provided
-        transition.curve = transition.curve || 'linear';
-        transition.duration = transition.duration || 0;
-
-        this._transitionables[key]
-            .from(previousState)
-            .to(value, transition.curve, transition.duration, cb)
+        this._setTransitionable(key, previousState, value, transition);
     }
     else {
         // If this used to be a t9able and isn't anymore,
         // clean up by halting and removing
-        if (this._transitionables[key] && (this._transitionables[key] instanceof this._Transitionable)) {
-            this._transitionables[key].halt();
-        }
+        if (transitionableExists) this._transitionables[key].halt();
         delete this._transitionables[key];
 
         this._state[key] = value;
-        this._latestStateChange = {};
-        this._latestStateChange[key] = value;
         this._notifyObservers(key, value);
     }
+
+    this._setLatestStateChange(key, value);
     return this;
 }
+
 StateManager.prototype.set = StateManager.prototype.setState;
+
+StateManager.prototype._setTransitionable = function _setTransitionable(key, previous, current, transition) {
+    transition.curve = transition.curve || 'linear';
+    transition.duration = transition.duration || 0;
+
+    this._transitionables[key]
+        .from(previous)
+        .to(current, transition.curve, transition.duration, checkThenQueue.bind(this))
+}
 
 /**
  * State getter function.
@@ -193,40 +184,6 @@ StateManager.prototype.getState = function getState(key) {
     var target = key[key.length - 1];
     return isArray(key) ? traverse(this._state, key)[target] : this._state[key];
 }
-
-function setObject(key, val, object) {
-    key = parse(key);
-    if (isString(key)) {
-        object[key] = val;
-    }
-    else if (isArray(key)) {
-        var targetKey = key[key.length - 1];
-        var hostObject = traverse(object, key);
-        hostObject[targetKey] = val;
-    }
-}
-
-function parse(key) {
-    var output = null;
-    try {
-        output = JSON.parse(key);
-    }
-    catch(e) {
-        output = key;
-    }
-    return output;
-}
-
-function traverse(object, path) {
-    if (object.hasOwnProperty(path[0])) {
-        if (path.length === 1) return object;
-        else return traverse(object[path.slice(0, 1)], path.slice(1, path.length));
-    }
-    else {
-        console.error('Incorrect path');
-    }
-}
-
 
 StateManager.prototype.get = StateManager.prototype.getState;
 
@@ -292,6 +249,16 @@ StateManager.prototype.triggerGlobalChange = function triggerGlobalChange(whiteL
  */
 StateManager.prototype.getLatestStateChange = function getLatestStateChange() {
     return this._latestStateChange;
+}
+
+/**
+ * Resets `_latestStateChange to updated key and value.
+ * Used internally by `setState()`.
+ * @protected
+ */
+StateManager.prototype._setLatestStateChange = function _setLatestStateChange(key, value) {
+    this._latestStateChange = {};
+    this._latestStateChange[key] = value;
 }
 
 /**
@@ -519,14 +486,78 @@ StateManager.prototype.onUpdate = function onUpdate() {
     this._Famous.requestUpdate(this);
 }
 
+function isTransitionable(key) {
+    if (!this._transitionables[key]) return false;
+    return this._transitionables[key] instanceof this._Transitionable;
+}
+
+function setObject(key, val, object) {
+    key = parse(key);
+    if (isString(key)) {
+        object[key] = val;
+    }
+    else if (isArray(key)) {
+        var targetKey = key[key.length - 1];
+        var hostObject = traverse(object, key);
+        hostObject[targetKey] = val;
+    }
+}
+
+/**
+ * Helper function to parse nested object keys.
+ * Returns key if not a nested object.
+ */
+function parse(key) {
+    try {
+        return JSON.parse(key);
+    }
+    catch(e) {
+        return key;
+    }
+}
+
+/**
+ * Helper function to return the host object of nested state.
+ */
+function traverse(object, path) {
+    if (object.hasOwnProperty(path[0])) {
+        if (path.length === 1) return object;
+        else return traverse(object[path.slice(0, 1)], path.slice(1, path.length));
+    }
+    else {
+        console.error('Incorrect path');
+    }
+}
+
+/**
+ * Helper function to check the thenQueue
+ * and call .setState on latest .then call.
+ */
+function checkThenQueue() {
+    // check the then queue and pop off arguments
+    if (this._thenQueue.length > 0) {
+        var args = this._thenQueue.shift();
+        this.setState(args[0], args[1], args[2]);
+    }
+}
+
+/**
+ * Helper function to check if value is an array.
+ */
 function isArray(value) {
     return Array.isArray(value);
 }
 
+/**
+ * Helper function to check if value is a string.
+ */
 function isString(value) {
     return typeof value === 'string';
 }
 
+/**
+ * Helper function to check if value is a number.
+ */
 function isNumber(value) {
     return typeof value === 'number';
 }
