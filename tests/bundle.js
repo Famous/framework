@@ -8,13 +8,13 @@ var operator = require('./operator');
  *
  * Manages states and observers to watch for changes in state.
  */
-function StateManager(initialState, Clock, Transitionable) {
+function StateManager(initialState, Famous, Transitionable) {
     this._state = initialState || {};
     this._observers = {};
     this._globalObservers = [];
     this._once = [];
+    this._globalChangeListeners = [];
     this._latestStateChange = {};
-    this._Clock = Clock;
     this._Transitionable = Transitionable;
 
     //keep track of Transitionables associated with states
@@ -24,9 +24,12 @@ function StateManager(initialState, Clock, Transitionable) {
     this._initObservers();
     this._currentState = '';
     this._operator = operator;
+
+    // keep track of queue of .thenSet callbacks
     this._thenQueue = [];
 
-    Clock.update(this);
+    this._Famous = Famous;
+    this._Famous.requestUpdate(this);
 }
 
 /**
@@ -55,17 +58,36 @@ StateManager.prototype.subscribeOnce = function subscribeOnce(observer) {
 }
 
 /**
+ * Adds an observer that will be fired every time a global change
+ * is triggered.
+ */
+StateManager.prototype.subscribeToGlobalChange = function subscribeToGlobalChange(observer) {
+    this._globalChangeListeners.push(observer);
+}
+
+/**
  * Removes an observer from all observables.
  */
 StateManager.prototype.unsubscribe = function unsubscribe(observer) {
     // Remove from global
-    var globalIndex = this._globalObservers.indexOf(observer);
-    if (globalIndex !== -1) {
-        this._globalObservers.splice(globalIndex);
+    var globalKeys = {
+        '_globalObservers': true,
+        '_globalChangeListeners': true
+    };
+
+    var index;
+    var listenerStack;
+    var key;
+    for (key in globalKeys) {
+        listenerStack = this[key];
+        index = listenerStack.indexOf(observer);
+        if (index !== -1) {
+            listenerStack.splice(index);
+        }
     }
 
     // Remove from all key based observers
-    for (var key in this._observers) {
+    for (key in this._observers) {
         this.unsubscribeFrom(key, observer);
     }
 }
@@ -113,41 +135,44 @@ StateManager.prototype.thenSet = function thenSet(key, value, transition) {
  * (all numeric values can be treated as Transitionables)
  */
 StateManager.prototype.setState = function setState(key, value, transition) {
-    var previousState = this._state[key] || 0;
-    var self = this;
+    var previousState = this.get(key) || 0;
 
-    // set callback function
-    var cb = function() {
-        // check the then queue and pop off arguments
-        if (self._thenQueue.length > 0) {
-            var args = self._thenQueue.shift();
-            self.setState(args[0], args[1], args[2]);
-        }
+    if (isArray(key)) {
+        key = JSON.stringify(key);
     }
 
-    if(transition){
+    if(transition) {
         // make sure we have a reference to a transitionable
-        if(!(this._transitionables[key] instanceof this._Transitionable)){
+        if (!(this._transitionables[key] instanceof this._Transitionable)) {
             this._transitionables[key] = new this._Transitionable(previousState);
-        } else{
+        }
+        else {
             // we already have a t9able; halt it so we can start anew
             this._transitionables[key].halt();
         }
 
-        // wait for event queue to process .thenSet before firing cb
-        setTimeout(function() {
-            transition.curve = transition.curve || 'linear';
-            transition.duration = transition.duration || 0;
+        // set callback function
+        var self = this;
+        var cb = function() {
+            // check the then queue and pop off arguments
+            if (self._thenQueue.length > 0) {
+                var args = self._thenQueue.shift();
+                self.setState(args[0], args[1], args[2]);
+            }
+        }
 
-            self._transitionables[key]
-                .from(previousState)
-                .to(value, transition.curve, transition.duration, cb)
-        }, 0);
+        // set default curve and duration if none provided
+        transition.curve = transition.curve || 'linear';
+        transition.duration = transition.duration || 0;
 
-    } else{
+        this._transitionables[key]
+            .from(previousState)
+            .to(value, transition.curve, transition.duration, cb)
+    }
+    else {
         // If this used to be a t9able and isn't anymore,
         // clean up by halting and removing
-        if(this._transitionables[key] && (this._transitionables[key] instanceof this._Transitionable)){
+        if (this._transitionables[key] && (this._transitionables[key] instanceof this._Transitionable)) {
             this._transitionables[key].halt();
         }
         delete this._transitionables[key];
@@ -165,10 +190,62 @@ StateManager.prototype.set = StateManager.prototype.setState;
  * State getter function.
  */
 StateManager.prototype.getState = function getState(key) {
-    return this._state[key];
+    var target = key[key.length - 1];
+    return isArray(key) ? traverse(this._state, key)[target] : this._state[key];
 }
+
+function setObject(key, val, object) {
+    key = parse(key);
+    if (isString(key)) {
+        object[key] = val;
+    }
+    else if (isArray(key)) {
+        var targetKey = key[key.length - 1];
+        var hostObject = traverse(object, key);
+        hostObject[targetKey] = val;
+    }
+}
+
+function parse(key) {
+    var output = null;
+    try {
+        output = JSON.parse(key);
+    }
+    catch(e) {
+        output = key;
+    }
+    return output;
+}
+
+function traverse(object, path) {
+    if (object.hasOwnProperty(path[0])) {
+        if (path.length === 1) return object;
+        else return traverse(object[path.slice(0, 1)], path.slice(1, path.length));
+    }
+    else {
+        console.error('Incorrect path');
+    }
+}
+
+
 StateManager.prototype.get = StateManager.prototype.getState;
 
+/**
+ * Return the full states object.
+ */
+StateManager.prototype.getStateObject = function() {
+    return this._state;
+};
+
+/**
+ * Convenience function that logs
+ * the value of any passed in state.
+ */
+StateManager.prototype.log = function(key) {
+    var state = this.get(key);
+    console.log('The state of ' + key + ' is: ', state);
+    return this;
+}
 
 /**
  * Calls set state with current state's value on each state.
@@ -178,7 +255,7 @@ StateManager.prototype.get = StateManager.prototype.getState;
  * @param {RegEx} blackList RegEx defining which keys state should NOT be triggered on.
  */
 StateManager.prototype.triggerGlobalChange = function triggerGlobalChange(whiteList, blackList) {
-    for(var key in this._state) {
+    for (var key in this._state) {
         if (whiteList) {
             if (whiteList.test(key)) {
                 this.setState(key, this.getState(key));
@@ -194,12 +271,16 @@ StateManager.prototype.triggerGlobalChange = function triggerGlobalChange(whiteL
         }
     }
 
-    for (var i = 0; i < this._globalObservers.length; i++) {
+    var i;
+    for (i = 0; i < this._globalObservers.length; i++) {
         this._globalObservers[i]();
     };
+    for (i=0; i < this._globalChangeListeners.length; i++) {
+        this._globalChangeListeners[i]();
+    }
 
     var observer;
-    while(this._once.length) {
+    while (this._once.length) {
         observer = this._once.pop();
         observer();
     }
@@ -416,22 +497,38 @@ StateManager.prototype._notifyObservers = function _notifyObservers(key, value) 
 /**
  * Update all observers that are watching
  * currently transitioning Transitionables.
- * Used with Clock.update to be called upon every
- * requestAnimationFrame cycle
- * this is called `update` specifically because
- * the Clock.update function expects an object with
- * a function member named `update`
+ *
+ * This is called `update` specifically because
+ * the Famous.requestUpdate function expects an object with
+ * a function member named `onUpdate`
  */
-StateManager.prototype.update = function update(){
-    for(var key in this._transitionables){
-        if(this._transitionables.hasOwnProperty(key)){
+StateManager.prototype.onUpdate = function onUpdate() {
+    for (var key in this._transitionables) {
+        if (this._transitionables.hasOwnProperty(key)) {
             var t = this._transitionables[key];
-            if(t && t.isActive()){
-                this._state[key] = t.get();
-                this._notifyObservers(key);
+            if (t && t.isActive()) {
+                setObject(key, t.get(), this._state);
+                var parsedKey = parse(key);
+                if (isString(parsedKey)) this._notifyObservers(parse(key));
+                if (isArray(parsedKey)) this._notifyObservers(parse(key)[0]);
             }
         }
     }
+
+    // Update on each tick
+    this._Famous.requestUpdate(this);
+}
+
+function isArray(value) {
+    return Array.isArray(value);
+}
+
+function isString(value) {
+    return typeof value === 'string';
+}
+
+function isNumber(value) {
+    return typeof value === 'number';
 }
 
 module.exports = StateManager;
@@ -4930,8 +5027,6 @@ function base64DetectIncompleteChar(buffer) {
 }
 
 },{"buffer":4}],26:[function(require,module,exports){
-'use strict';
-
 module.exports = {
     components: require('famous-components'),
     core: require('famous-core'),
@@ -4951,7 +5046,7 @@ module.exports = {
     polyfills: require('famous-polyfills')
 };
 
-},{"famous-components":66,"famous-core":102,"famous-dom-renderables":120,"famous-engine":123,"famous-math":128,"famous-physics":177,"famous-polyfills":178,"famous-renderers":306,"famous-router":309,"famous-stylesheets":312,"famous-transitions":317,"famous-utilities":330,"famous-webgl-geometries":359,"famous-webgl-materials":373,"famous-webgl-renderables":417,"famous-webgl-shaders":423}],27:[function(require,module,exports){
+},{"famous-components":66,"famous-core":75,"famous-dom-renderables":94,"famous-engine":97,"famous-math":102,"famous-physics":151,"famous-polyfills":153,"famous-renderers":280,"famous-router":283,"famous-stylesheets":286,"famous-transitions":291,"famous-utilities":304,"famous-webgl-geometries":333,"famous-webgl-materials":347,"famous-webgl-renderables":386,"famous-webgl-shaders":392}],27:[function(require,module,exports){
 'use strict';
 
 /**
@@ -7513,14 +7608,14 @@ var Easing = {
      * @throws {Error} Will throw an error when attempting to overwrite default
      *    curve.
      * @throws {Error} Will throw an error if curve has already been registered.
-     * 
+     *
      * @param {String} name unique name for later access
      * @param {Function} curve function of one numeric variable mapping [0,1]
      *    to range inside [0,1]
      * @return {Easing} this
      */
     registerCurve: function(name, curve) {
-        console.warn('Easing is deprecated! Use transitions.curves instead!');
+        console.warn('Easing is deprecated! Use transitions.Curves instead!');
         if (_defaultCurves[name]) throw new Error('Default curves can not be overwritten');
         if (_curves[name]) throw new Error('Curve has already been registered');
         _curves[name] = curve;
@@ -7541,7 +7636,7 @@ var Easing = {
      * @return {Easing} this
      */
     unregisterCurve: function(name) {
-        console.warn('Easing is deprecated! Use transitions.curves instead!');
+        console.warn('Easing is deprecated! Use transitions.Curves instead!');
         if (_defaultCurves[name]) throw new Error('Default curves can not be unregistered');
         if (!_curves[name]) throw new Error('Curve has not been registered');
         delete _curves[name];
@@ -7553,31 +7648,31 @@ var Easing = {
      *
      * @method getCurve
      * @static
-     * 
+     *
      * @param {String} name name of curve
      * @return {Function} curve function of one numeric variable mapping [0,1]
      *    to range inside [0,1]
      */
     getCurve: function(name) {
-        console.warn('Easing is deprecated! Use transitions.curves instead!');
+        console.warn('Easing is deprecated! Use transitions.Curves instead!');
         return _curves[name];
     },
 
     /**
      * Retrieves the names of all previously registered easing curves.
-     * 
+     *
      * @method getCurves
      * @static
-     * 
+     *
      * @return {String[]} array of registered easing curves
      */
     getCurves: function() {
-        console.warn('Easing is deprecated! Use transitions.curves instead!');
+        console.warn('Easing is deprecated! Use transitions.Curves instead!');
         return Object.keys(_defaultCurves).concat(Object.keys(_curves));
     },
 
     createBezierCurve: function(v1, v2) {
-        console.warn('Easing is deprecated! Use transitions.curves instead!');
+        console.warn('Easing is deprecated! Use transitions.Curves instead!');
         v1 = v1 || 0; v2 = v2 || 0;
         return function(t) {
             return v1*t + (-2*v1 - v2 + 3)*t*t + (v1 + v2 - 2)*t*t*t;
@@ -7586,6 +7681,7 @@ var Easing = {
 };
 
 module.exports = Easing;
+
 },{}],34:[function(require,module,exports){
 'use strict';
 
@@ -8699,11 +8795,11 @@ var Position = require('./Position');
  * @class Align
  * @constructor
  * @component
- * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Align component
+ * @param {LocalDispatch} node LocalDispatch to be retrieved from corresponding Render Node of the Align component
  */
 
-function Align(dispatch) {
-    Position.call(this, dispatch);
+function Align(node) {
+    Position.call(this, node);
 }
 
 /**
@@ -8720,18 +8816,12 @@ Align.toString = function toString() {
 Align.prototype = Object.create(Position.prototype);
 Align.prototype.constructor = Align;
 
-/**
-*
-* If true, component is to be updated on next engine tick
-*
-* @method
-* @return {Boolean}
-*/
-Align.prototype.clean = function clean() {
-    var context = this._dispatch._context;
-    context.setAlign(this._x.get(), this._y.get(), this._z.get());
-    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+Align.prototype.update = function update() {
+    this._node.setAlign(this._x.get(), this._y.get(), this._z.get());
+    this._checkUpdate();
 };
+
+Align.prototype.onUpdate = Align.prototype.update;
 
 module.exports = Align;
 
@@ -8744,17 +8834,17 @@ module.exports = Align;
  * @component
  * @param {RenderNode} RenderNode to which the instance of Camera will be a component of
  */
-function Camera(dispatch) {
-    this._dispatch = dispatch;
+function Camera(node) {
+    this._node = node;
     this._projectionType = Camera.ORTHOGRAPHIC_PROJECTION;
     this._focalDepth = 0;
     this._near = 0;
     this._far = 0;
-    this._id = dispatch.addComponent(this);
+    this._requestingUpdate = false;
+    this._id = node.addComponent(this);
     this._viewTransform = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-
-    dispatch.onTransformChange(buildViewTransform.bind(this));
-
+    this._viewDirty = false;
+    this._perspectiveDrty = false;
     this.setFlat();
 }
 
@@ -8779,7 +8869,6 @@ Camera.prototype.getState = function getState() {
 
 
 Camera.prototype.setState = function setState(state) {
-    this._dispatch.dirtyComponent(this._id);
     if (state.component === this.constructor.toString()) {
         this.set(state.projectionType, state.focalDepth, state.near, state.far);
         return true;
@@ -8788,7 +8877,10 @@ Camera.prototype.setState = function setState(state) {
 };
 
 Camera.prototype.set = function set(type, depth, near, far) {
-    this._dispatch.dirtyComponent(this._id);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
     this._projectionType = type;
     this._focalDepth = depth;
     this._near = near;
@@ -8796,7 +8888,11 @@ Camera.prototype.set = function set(type, depth, near, far) {
 };
 
 Camera.prototype.setDepth = function setDepth(depth) {
-    this._dispatch.dirtyComponent(this._id);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+    this._perspectiveDirty = true;
     this._projectionType = Camera.PINHOLE_PROJECTION;
     this._focalDepth = depth;
     this._near = 0;
@@ -8806,7 +8902,11 @@ Camera.prototype.setDepth = function setDepth(depth) {
 };
 
 Camera.prototype.setFrustum = function setFrustum(near, far) {
-    this._dispatch.dirtyComponent(this._id);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+    this._perspectiveDirty = true;
     this._projectionType = Camera.FRUSTUM_PROJECTION;
     this._focalDepth = 0;
     this._near = near;
@@ -8816,7 +8916,11 @@ Camera.prototype.setFrustum = function setFrustum(near, far) {
 };
 
 Camera.prototype.setFlat = function setFlat() {
-    this._dispatch.dirtyComponent(this._id);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+    this._perspectiveDirty = true;
     this._projectionType = Camera.ORTHOGRAPHIC_PROJECTION;
     this._focalDepth = 0;
     this._near = 0;
@@ -8825,60 +8929,69 @@ Camera.prototype.setFlat = function setFlat() {
     return this;
 };
 
-Camera.prototype.clean = function clean() {
-    var path = this._dispatch.getRenderPath();
+Camera.prototype.onUpdate = function onUpdate() {
+    this._requestingUpdate = false;
 
-    this._dispatch
+    var path = this._node.getLocation();
+
+    this._node
         .sendDrawCommand('WITH')
         .sendDrawCommand(path);
 
-    switch (this._projectionType) {
-        case Camera.FRUSTUM_PROJECTION:
-            this._dispatch.sendDrawCommand('FRUSTUM_PROJECTION');
-            this._dispatch.sendDrawCommand(this._near);
-            this._dispatch.sendDrawCommand(this._far);
-            break;
-        case Camera.PINHOLE_PROJECTION:
-            this._dispatch.sendDrawCommand('PINHOLE_PROJECTION');
-            this._dispatch.sendDrawCommand(this._focalDepth);
-            break;
-        case Camera.ORTHOGRAPHIC_PROJECTION:
-            this._dispatch.sendDrawCommand('ORTHOGRAPHIC_PROJECTION');
-            break;
+    if (this._perspectiveDirty) {
+        this._perspectiveDirty = true;
+        
+        switch (this._projectionType) {
+            case Camera.FRUSTUM_PROJECTION:
+                this._node.sendDrawCommand('FRUSTUM_PROJECTION');
+                this._node.sendDrawCommand(this._near);
+                this._node.sendDrawCommand(this._far);
+                break;
+            case Camera.PINHOLE_PROJECTION:
+                this._node.sendDrawCommand('PINHOLE_PROJECTION');
+                this._node.sendDrawCommand(this._focalDepth);
+                break;
+            case Camera.ORTHOGRAPHIC_PROJECTION:
+                this._node.sendDrawCommand('ORTHOGRAPHIC_PROJECTION');
+                break;
+        }
     }
 
     if (this._viewDirty) {
         this._viewDirty = false;
-        
-        this._dispatch.sendDrawCommand('CHANGE_VIEW_TRANSFORM');
-        this._dispatch.sendDrawCommand(this._viewTransform[0]);
-        this._dispatch.sendDrawCommand(this._viewTransform[1]);
-        this._dispatch.sendDrawCommand(this._viewTransform[2]);
-        this._dispatch.sendDrawCommand(this._viewTransform[3]);
 
-        this._dispatch.sendDrawCommand(this._viewTransform[4]);
-        this._dispatch.sendDrawCommand(this._viewTransform[5]);
-        this._dispatch.sendDrawCommand(this._viewTransform[6]);
-        this._dispatch.sendDrawCommand(this._viewTransform[7]);
+        this._node.sendDrawCommand('CHANGE_VIEW_TRANSFORM');
+        this._node.sendDrawCommand(this._viewTransform[0]);
+        this._node.sendDrawCommand(this._viewTransform[1]);
+        this._node.sendDrawCommand(this._viewTransform[2]);
+        this._node.sendDrawCommand(this._viewTransform[3]);
 
-        this._dispatch.sendDrawCommand(this._viewTransform[8]);
-        this._dispatch.sendDrawCommand(this._viewTransform[9]);
-        this._dispatch.sendDrawCommand(this._viewTransform[10]);
-        this._dispatch.sendDrawCommand(this._viewTransform[11]);
+        this._node.sendDrawCommand(this._viewTransform[4]);
+        this._node.sendDrawCommand(this._viewTransform[5]);
+        this._node.sendDrawCommand(this._viewTransform[6]);
+        this._node.sendDrawCommand(this._viewTransform[7]);
 
-        this._dispatch.sendDrawCommand(this._viewTransform[12]);
-        this._dispatch.sendDrawCommand(this._viewTransform[13]);
-        this._dispatch.sendDrawCommand(this._viewTransform[14]);
-        this._dispatch.sendDrawCommand(this._viewTransform[15]);
+        this._node.sendDrawCommand(this._viewTransform[8]);
+        this._node.sendDrawCommand(this._viewTransform[9]);
+        this._node.sendDrawCommand(this._viewTransform[10]);
+        this._node.sendDrawCommand(this._viewTransform[11]);
+
+        this._node.sendDrawCommand(this._viewTransform[12]);
+        this._node.sendDrawCommand(this._viewTransform[13]);
+        this._node.sendDrawCommand(this._viewTransform[14]);
+        this._node.sendDrawCommand(this._viewTransform[15]);
     }
-    return false;
 };
 
 
-function buildViewTransform(transform) {
-    var a = transform._matrix;
+Camera.prototype.onTransformChange = function onTransformChange(transform) {
+    var a = transform;
     this._viewDirty = true;
-    this._dispatch.dirtyComponent(this._id);
+
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
 
     var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
     a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7],
@@ -8927,10 +9040,10 @@ module.exports = Camera;
  * Component to manage general event emission.
  *
  * @class EventEmitter
- * @param {LocalDispatch} dispatch The dispatch with which to register the handler.
+ * @param {Node} node The node to send events through.
  */
-function EventEmitter(dispatch) {
-    this.dispatch = dispatch;
+function EventEmitter(node) {
+    this.node = node;
 }
 
 /**
@@ -8952,7 +9065,7 @@ EventEmitter.toString = function toString() {
  * @param {Object} payload The event payload.
  */
 EventEmitter.prototype.emit = function emit(event, payload) {
-    this.dispatch.emit(event, payload);
+    this.node.emit(event, payload);
     return this;
 };
 
@@ -8967,20 +9080,12 @@ var CallbackStore = require('famous-utilities').CallbackStore;
  * Component to handle general events.
  *
  * @class EventHandler
- * @param {LocalDispatch} dispatch The dispatch with which to register the handler.
- * @param {Object[]} events An array of event objects specifying .event and .callback properties.
+ * @param {Node} node The node on which this component is registered.
  */
-function EventHandler (dispatch, events) {
-    this.dispatch = dispatch;
+function EventHandler (node, events) {
+    this.node = node;
+    this.id = node.addComponent(this);
     this._events = new CallbackStore();
-
-    if (events) {
-        for (var i = 0, len = events.length; i < len; i++) {
-            var eventName = events[i].event;
-            var callback = events[i].callback;
-            this.on(eventName, callback);
-        }
-    }
 }
 
 /**
@@ -9003,7 +9108,6 @@ EventHandler.toString = function toString() {
  */
 EventHandler.prototype.on = function on (ev, cb) {
     this._events.on(ev, cb);
-    this.dispatch.registerGlobalEvent(ev, this.trigger.bind(this, ev));
 };
 
 /**
@@ -9015,7 +9119,6 @@ EventHandler.prototype.on = function on (ev, cb) {
  */
 EventHandler.prototype.off = function off (ev, cb) {
     this._events.off(ev, cb);
-    this.dispatch.deregisterGlobalEvent(ev, this.trigger.bind(this, ev))
 };
 
 /**
@@ -9028,6 +9131,8 @@ EventHandler.prototype.off = function off (ev, cb) {
 EventHandler.prototype.trigger = function trigger (ev, payload) {
     this._events.trigger(ev, payload);
 };
+
+EventHandler.prototype.onReceive = EventHandler.prototype.trigger;
 
 module.exports = EventHandler;
 
@@ -9053,12 +9158,14 @@ var mouseProperties = ['pageX', 'pageY'];
  * as-requested basis.
  *
  * @class GestureHandler
- * @param {LocalDispatch} dispatch The dispatch with which to register the handler.
+ * @param {LocalDispatch} node The node with which to register the handler.
  * @param {Object[]} events An array of event objects specifying .event and .callback properties.
  */
 
-function GestureHandler (dispatch, events) {
-    this.dispatch = dispatch;
+function GestureHandler (node, events) {
+    this.node = node;
+    this.id = node.addComponent(this);
+
     this._events = new CallbackStore();
 
     this.last1 = new Vec2();
@@ -9116,20 +9223,23 @@ function GestureHandler (dispatch, events) {
         }
     }
 
-    var renderables = dispatch.getRenderables();
-    for (var i = 0, len = renderables.length; i < len; i++) {
-        for (var j = 0; j < 3; j++) {
-            var touchEvent = touchEvents[j];
-            var mouseEvent = mouseEvents[j];
-            if (renderables[i].on) renderables[i].on(touchEvent, methods, touchProperties);
-            dispatch.registerTargetedEvent(touchEvent, progressbacks[j].bind(this));
-            if (renderables[i].on) renderables[i].on(mouseEvent, methods, mouseProperties);
-            dispatch.registerTargetedEvent(mouseEvent, progressbacks[j].bind(this));
-        }
-        if (renderables[i].on) renderables[i].on('mouseleave', methods, mouseProperties);
-        dispatch.registerTargetedEvent('mouseleave', _processMouseLeave.bind(this));
+    for (var i = 0 ; i < 3 ; i++) {
+        var touchEvent = touchEvents[i];
+        var mouseEvent = mouseEvents[i];
+        node.addUIEvent(touchEvent);
+        node.addUIEvent(mouseEvent);
     }
+
+    node.addUIEvent('mouseleave');
 }
+
+GestureHandler.prototype.onReceive = function onReceive (event, payload) {
+    var index = mouseEvents.indexOf(event);
+    index = index !== -1 ? index : touchEvents.indexOf(event);
+    
+    if (index !== -1) progressbacks[index].call(this, payload);
+    else if (event === 'mouseleave') _processMouseLeave.call(this, payload);
+};
 
 /**
  * Returns the name of GestureHandler as a string.
@@ -9487,8 +9597,8 @@ var Position = require('./Position');
  * @component
  * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the MountPoint component
  */
-function MountPoint(dispatch) {
-    Position.call(this, dispatch);
+function MountPoint(node) {
+    Position.call(this, node);
 }
 
 /**
@@ -9505,18 +9615,12 @@ MountPoint.toString = function toString() {
 MountPoint.prototype = Object.create(Position.prototype);
 MountPoint.prototype.constructor = MountPoint;
 
-/**
-*
-* If true, component is to be updated on next engine tick
-*
-* @method
-* @return {Boolean} 
-*/
-MountPoint.prototype.clean = function clean() {
-    var context = this._dispatch._context;
-    context.setMountPoint(this._x.get(), this._y.get(), this._z.get());
-    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+MountPoint.prototype.update = function update() {
+    this._node.setMountPoint(this._x.get(), this._y.get(), this._z.get());
+    this._checkUpdate();
 };
+
+MountPoint.prototype.onUpdate = MountPoint.prototype.update;
 
 module.exports = MountPoint;
 
@@ -9532,10 +9636,12 @@ var Transitionable = require('famous-transitions').Transitionable;
  * @component
  * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Opacity component
  */
-function Opacity(dispatch) {
-    this._dispatch = dispatch;
-    this._id = dispatch.addComponent(this);
+function Opacity(node) {
+    this._node = node;
+    this._id = node.addComponent(this);
     this._value = new Transitionable(1);
+
+    this._requestingUpdate = false;
 }
 
 /**
@@ -9582,19 +9688,6 @@ Opacity.prototype.setState = function setState(state) {
 
 /**
 *
-* If true, component is to be updated on next engine tick
-*
-* @method
-* @return {Boolean}
-*/
-Opacity.prototype.clean = function clean() {
-    var context = this._dispatch._context;
-    context.setOpacity(this._value.get());
-    return this._value.isActive();
-};
-
-/**
-*
 * Setter for Opacity with callback
 *
 * @method
@@ -9604,7 +9697,11 @@ Opacity.prototype.clean = function clean() {
 * @chainable
 */
 Opacity.prototype.set = function set(value, options, callback) {
-    this._dispatch.dirtyComponent(this._id);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+
     this._value.set(value, options, callback);
     return this;
 };
@@ -9632,6 +9729,17 @@ Opacity.prototype.halt = function halt() {
     return this;
 };
 
+Opacity.prototype.isActive = function isActive(){
+    return this._value.isActive();
+};
+
+Opacity.prototype.update = function update () {
+    this._node.setOpacity(this._value.get());
+    this._checkUpdate();    
+};
+
+Opacity.prototype.onUpdate = Opacity.prototype.update;
+
 module.exports = Opacity;
 
 },{"famous-transitions":36}],60:[function(require,module,exports){
@@ -9645,8 +9753,8 @@ var Position = require('./Position');
  * @component
  * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Origin component
  */
-function Origin(dispatch) {
-    Position.call(this, dispatch);
+function Origin(node) {
+    Position.call(this, node);
 }
 
 
@@ -9664,18 +9772,12 @@ Origin.toString = function toString() {
 Origin.prototype = Object.create(Position.prototype);
 Origin.prototype.constructor = Origin;
 
-/**
-*
-* If true, component is to be updated on next engine tick
-*
-* @method
-* @return {Boolean}
-*/
-Origin.prototype.clean = function clean() {
-    var context = this._dispatch._context;
-    context.setOrigin(this._x.get(), this._y.get(), this._z.get());
-    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+Origin.prototype.update = function update() {
+    this._node.setOrigin(this._x.get(), this._y.get(), this._z.get());
+    this._checkUpdate();
 };
+
+Origin.prototype.onUpdate = Origin.prototype.update;
 
 module.exports = Origin;
 
@@ -9690,12 +9792,17 @@ var Transitionable = require('famous-transitions').Transitionable;
  * @component
  * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Position component
  */
-function Position(dispatch) {
-    this._dispatch = dispatch;
-    this._id = dispatch.addComponent(this);
-    this._x = new Transitionable(0);
-    this._y = new Transitionable(0);
-    this._z = new Transitionable(0);
+function Position(node) {
+    this._node = node;
+    this._id = node.addComponent(this);
+  
+    this._requestingUpdate = false;
+    
+    var initialPosition = node.getPosition();
+
+    this._x = new Transitionable(initialPosition[0]);
+    this._y = new Transitionable(initialPosition[1]);
+    this._z = new Transitionable(initialPosition[2]);
 }
 
 /** 
@@ -9716,7 +9823,7 @@ Position.toString = function toString() {
 * @method
 * @return {Object}
 */
-Position.prototype.getState = function getState() {
+Position.prototype.getValue = function getValue() {
     return {
         component: this.constructor.toString(),
         x: this._x.get(),
@@ -9785,18 +9892,24 @@ Position.prototype.isActive = function isActive() {
     return this._x.isActive() || this._y.isActive() || this._z.isActive();
 };
 
+Position.prototype._checkUpdate = function _checkUpdate() {
+    if (this.isActive()) this._node.requestUpdateOnNextTick(this._id);
+    else this._requestingUpdate = false;
+};
+
+
+Position.prototype.update = function update () {
+    this._node.setPosition(this._x.get(), this._y.get(), this._z.get());
+    this._checkUpdate();
+};
+
 /** 
 *
 * If true, component is to be updated on next engine tick
 *
 * @method
-* @return {Boolean}
 */
-Position.prototype.clean = function clean() {
-    var context = this._dispatch.getContext();
-    context.setPosition(this._x.get(), this._y.get(), this._z.get());
-    return this.isActive();
-};
+Position.prototype.onUpdate = Position.prototype.update;
 
 /** 
 *
@@ -9809,7 +9922,11 @@ Position.prototype.clean = function clean() {
 * @chainable
 */
 Position.prototype.setX = function setX(val, options, callback) {
-    this._dispatch.dirtyComponent(this._id);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+
     this._x.set(val, options, callback);
     return this;
 };
@@ -9825,7 +9942,11 @@ Position.prototype.setX = function setX(val, options, callback) {
 * @chainable
 */
 Position.prototype.setY = function setY(val, options, callback) {
-    this._dispatch.dirtyComponent(this._id);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+
     this._y.set(val, options, callback);
     return this;
 };
@@ -9841,7 +9962,11 @@ Position.prototype.setY = function setY(val, options, callback) {
 * @chainable
 */
 Position.prototype.setZ = function setZ(val, options, callback) {
-    this._dispatch.dirtyComponent(this._id);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+
     this._z.set(val, options, callback);
     return this;
 };
@@ -9860,18 +9985,29 @@ Position.prototype.setZ = function setZ(val, options, callback) {
 * @chainable
 */
 Position.prototype.set = function set(x, y, z, options, callback) {
-    this._dispatch.dirtyComponent(this._id);
-    var cbX = null;
-    var cbY = null;
-    var cbZ = null;
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
 
-    if (z != null) cbZ = callback;
-    else if (y != null) cbY = callback;
-    else if (x != null) cbX = callback;
+    var xCallback;
+    var yCallback;
+    var zCallback;
 
-    if (x != null) this._x.set(x, options, cbX);
-    if (y != null) this._y.set(y, options, cbY);
-    if (z != null) this._z.set(z, options, cbZ);
+    if (z != null) {
+        zCallback = callback;
+    }
+    else if (y != null) {
+        yCallback = callback;
+    }
+    else if (x != null) {
+        xCallback = callback;
+    }
+
+    if (x != null) this._x.set(x, options, xCallback);
+    if (y != null) this._y.set(y, options, yCallback);
+    if (z != null) this._z.set(z, options, zCallback);
+
     return this;
 };
 
@@ -9902,8 +10038,8 @@ var Position = require('./Position');
  * @component
  * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Rotation component
  */
-function Rotation(dispatch) {
-    Position.call(this, dispatch);
+function Rotation(node) {
+    Position.call(this, node);
 }
 
 /**
@@ -9920,18 +10056,12 @@ Rotation.toString = function toString() {
 Rotation.prototype = Object.create(Position.prototype);
 Rotation.prototype.constructor = Rotation;
 
-/**
-*
-* If true, component is to be updated on next engine tick
-*
-* @method
-* @return {Boolean}
-*/
-Rotation.prototype.clean = function clean() {
-    var context = this._dispatch._context;
-    context.setRotation(this._x.get(), this._y.get(), this._z.get());
-    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+Rotation.prototype.update = function update() {
+    this._node.setRotation(this._x.get(), this._y.get(), this._z.get());
+    this._checkUpdate();
 };
+
+Rotation.prototype.onUpdate = Rotation.prototype.update;
 
 module.exports = Rotation;
 
@@ -9946,9 +10076,8 @@ var Position = require('./Position');
  * @component
  * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from corresponding Render Node of the Scale component
  */
-
-function Scale(dispatch) {
-    Position.call(this, dispatch);
+function Scale(node) {
+    Position.call(this, node);
     this._x.set(1);
     this._y.set(1);
     this._z.set(1);
@@ -9968,18 +10097,12 @@ Scale.toString = function toString() {
 Scale.prototype = Object.create(Position.prototype);
 Scale.prototype.constructor = Scale;
 
-/**
-*
-* If true, component is to be updated on next engine tick
-*
-* @method
-* @return {Boolean}
-*/
-Scale.prototype.clean = function clean() {
-    var context = this._dispatch._context;
-    context.setScale(this._x.get(), this._y.get(), this._z.get());
-    return this._x.isActive() || this._y.isActive() || this._z.isActive();
+Scale.prototype.update = function update() {
+    this._node.setScale(this._x.get(), this._y.get(), this._z.get());
+    this._checkUpdate();
 };
+
+Scale.prototype.onUpdate = Scale.prototype.update;
 
 module.exports = Scale;
 
@@ -9987,6 +10110,7 @@ module.exports = Scale;
 'use strict';
 
 var Transitionable = require('famous-transitions').Transitionable;
+var CoreSize = require('famous-core').Size;
 
 /**
  * Size component used for managing the size of the underlying RenderContext.
@@ -9996,15 +10120,14 @@ var Transitionable = require('famous-transitions').Transitionable;
  * @constructor
  * @component
  * 
- * @param {LocalDispatch} dispatch LocalDispatch to be retrieved from
+ * @param {LocalDispatch} node LocalDispatch to be retrieved from
  *                                 corresponding RenderNode of the Size
  *                                 component
  */
-function Size(dispatch) {
-    this._dispatch = dispatch;
-    this._id = dispatch.addComponent(this);
-    dispatch.dirtyComponent(this._id);
-    this._absoluteMode = false;
+function Size(node) {
+    this._node = node;
+    this._id = node.addComponent(this);
+    this._requestingUpdate = false;
     this._proportional = {
         x: new Transitionable(1),
         y: new Transitionable(1),
@@ -10021,6 +10144,16 @@ function Size(dispatch) {
         z: new Transitionable(0)
     };
 }
+
+Size.RELATIVE = CoreSize.RELATIVE;
+Size.ABSOLUTE = CoreSize.ABSOLUTE;
+Size.RENDER = CoreSize.RENDER;
+Size.DEFAULT = CoreSize.DEFAULT;
+
+Size.prototype.setMode = function setMode(x, y, z) {
+    this._node.setSizeMode(x, y, z);
+    return this;
+};
 
 /** 
 * Stringifies Size.
@@ -10066,18 +10199,13 @@ Size.toString = function toString() {
 * @return {absoluteSizeState|relativeSizeState}
 */
 Size.prototype.getState = function getState() {
-    if (this._absoluteMode) {
-        return {
-            component: this.constructor.toString(),
-            type: 'absolute',
+    return {
+        sizeMode: this._node.value.sizeMode,
+        absolute: {
             x: this._absolute.x.get(),
             y: this._absolute.y.get(),
             z: this._absolute.z.get()
-        };
-    }
-    return {
-        component: this.constructor.toString(),
-        type: 'relative',
+        },
         differential: {
             x: this._differential.x.get(),
             y: this._differential.y.get(),
@@ -10105,80 +10233,56 @@ Size.prototype.getState = function getState() {
 */
 Size.prototype.setState = function setState(state) {
     if (state.component === this.constructor.toString()) {
-        this._absoluteMode = state.type === 'absolute';
-        if (this._absoluteMode)
-            this.setAbsolute(state.x, state.y, state.z);
-        else {
-            this.setProportional(state.proportional.x, state.proportional.y, state.proportional.z);
-            this.setDifferential(state.differential.x, state.differential.y, state.differential.z);
+        this.setMode.apply(this, state.sizeMode);
+        if (state.absolute) {
+            this.setAbsolute(state.absolute.x, state.absolute.y, state.absolute.z);
         }
-        return true;
+        if (state.differential) {
+            this.setAbsolute(state.differential.x, state.differential.y, state.differential.z);
+        }
+        if (state.proportional) {
+            this.setAbsolute(state.proportional.x, state.proportional.y, state.proportional.z);
+        }
     }
     return false;
 };
 
-Size.prototype._cleanAbsoluteX = function _cleanAbsoluteX(prop) {
-    if (prop.dirtyX) {
-        prop.dirtyX = prop.x.isActive();
-        return prop.x.get();
-    } else return null;
+Size.prototype._isActive = function _isActive(type) {
+    return type.x.isActive() || type.y.isActive() || type.z.isActive();
 };
 
-Size.prototype._cleanAbsoluteY = function _cleanAbsoluteY(prop) {
-    if (prop.dirtyY) {
-        prop.dirtyY = prop.y.isActive();
-        return prop.y.get();
-    } else return null;
+Size.prototype.isActive = function isActive(){
+    return (
+        this._isActive(this._absolute) ||
+        this._isActive(this._proportional) ||
+        this._isActive(this._differential)
+    );
 };
 
-Size.prototype._cleanAbsoluteZ = function _cleanAbsoluteZ(prop) {
-    if (prop.dirtyZ) {
-        prop.dirtyZ = prop.z.isActive();
-        return prop.z.get();
-    } else return null;
+Size.prototype.onUpdate = function onUpdate() {
+    var abs = this._absolute;
+    this._node.setAbsoluteSize(
+        abs.x.get(),
+        abs.y.get(),
+        abs.z.get()
+    );
+    var prop = this._proportional;
+    var diff = this._differential;
+    this._node.setProportionalSize(
+        prop.x.get(),
+        prop.y.get(),
+        prop.z.get()
+    );
+    this._node.setDifferentialSize(
+        diff.x.get(),
+        diff.y.get(),
+        diff.z.get()
+    );
+
+    if (this.isActive()) this._node.requestUpdateOnNextTick(this._id);
+    else this._requestingUpdate = false;
 };
 
-/**
-*
-* If true, component is to be updated on next engine tick
-*
-* @method clean
-* 
-* @return {Boolean} boolean indicating whether the component is still dirty
-*/
-Size.prototype.clean = function clean () {
-    var context = this._dispatch._context;
-    if (this._absoluteMode) {
-        var abs = this._absolute;
-        context.setAbsolute(
-            this._cleanAbsoluteX(abs),
-            this._cleanAbsoluteY(abs),
-            this._cleanAbsoluteZ(abs)
-        );
-        return abs.x.isActive() ||
-            abs.y.isActive() ||
-            abs.z.isActive();
-    } else {
-        var prop = this._proportional;
-        var diff = this._differential;
-        context.setProportions(
-            this._cleanAbsoluteX(prop),
-            this._cleanAbsoluteY(prop),
-            this._cleanAbsoluteZ(prop)
-        );
-        context.setDifferential(
-            this._cleanAbsoluteX(diff),
-            this._cleanAbsoluteY(diff),
-            this._cleanAbsoluteZ(diff)
-        );
-        return prop.x.isActive() ||
-            prop.y.isActive() ||
-            prop.z.isActive() ||
-            diff.x.isActive() ||
-            diff.y.isActive() ||
-            diff.z.isActive();
-    }
-};
 
 /**
 * Applies absolute size.
@@ -10195,33 +10299,19 @@ Size.prototype.clean = function clean () {
 * @return {Size} this
 */
 Size.prototype.setAbsolute = function setAbsolute(x, y, z, options, callback) {
-    this._absoluteMode = true;
-    this._setSizeType(this._absolute, x, y, z, options, callback);
-    return this;
-};
-
-Size.prototype._setSizeType = function setProp(prop, x, y, z, options, callback){
-    this._dispatch.dirtyComponent(this._id);
-
-    var cbX = null;
-    var cbY = null;
-    var cbZ = null;
-
-    if (z != null) cbZ = callback;
-    else if (y != null) cbY = callback;
-    else if (x != null) cbX = callback;
-
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+    var abs = this._absolute;
     if (x != null) {
-        prop.x.set(x, options, cbX);
-        prop.dirtyX = true;
+        abs.x.set(x, options, callback);
     }
     if (y != null) {
-        prop.y.set(y, options, cbY);
-        prop.dirtyY = true;
+        abs.y.set(y, options, callback);
     }
     if (z != null) {
-        prop.z.set(z, options, cbZ);
-        prop.dirtyZ = true;
+        abs.z.set(z, options, callback);
     }
 };
 
@@ -10240,8 +10330,20 @@ Size.prototype._setSizeType = function setProp(prop, x, y, z, options, callback)
 * @return {Size} this
 */
 Size.prototype.setProportional = function setProportional(x, y, z, options, callback) {
-    this._absoluteMode = false;
-    this._setSizeType(this._proportional, x, y, z, options, callback);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+    var prop = this._proportional;
+    if (x != null) {
+        prop.x.set(x, options, callback);
+    }
+    if (y != null) {
+        prop.y.set(y, options, callback);
+    }
+    if (z != null) {
+        prop.z.set(z, options, callback);
+    }
     return this;
 };
 
@@ -10259,8 +10361,20 @@ Size.prototype.setProportional = function setProportional(x, y, z, options, call
 *                            transitions have been completed
 */
 Size.prototype.setDifferential = function setDifferential(x, y, z, options, callback) {
-    this._absoluteMode = false;
-    this._setSizeType(this._differential, x, y, z, options, callback);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+    var diff = this._differential;
+    if (x != null) {
+        diff.x.set(x, options, callback);
+    }
+    if (y != null) {
+        diff.y.set(y, options, callback);
+    }
+    if (z != null) {
+        diff.z.set(z, options, callback);
+    }
     return this;
 };
 
@@ -10272,7 +10386,7 @@ Size.prototype.setDifferential = function setDifferential(x, y, z, options, call
 * @return {Number[]} size three dimensional computed size
 */
 Size.prototype.get = function get () {
-    return this._dispatch.getContext().getSize();
+    return this._node.getSize();
 };
 
 /**
@@ -10298,7 +10412,7 @@ Size.prototype.halt = function halt () {
 
 module.exports = Size;
 
-},{"famous-transitions":36}],65:[function(require,module,exports){
+},{"famous-core":75,"famous-transitions":36}],65:[function(require,module,exports){
 'use strict';
 
 var CallbackStore = require('famous-utilities').CallbackStore;
@@ -10397,138 +10511,6 @@ module.exports = {
 };
 
 },{"./Align":53,"./Camera":54,"./EventEmitter":55,"./EventHandler":56,"./GestureHandler":57,"./MountPoint":58,"./Opacity":59,"./Origin":60,"./Position":61,"./Rotation":62,"./Scale":63,"./Size":64,"./UIEventHandler":65}],67:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],68:[function(require,module,exports){
-arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],69:[function(require,module,exports){
-arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":67,"dup":34}],70:[function(require,module,exports){
-arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],71:[function(require,module,exports){
-arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":67,"./Easing":68,"./Transitionable":69,"./after":70,"dup":36}],72:[function(require,module,exports){
-arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],73:[function(require,module,exports){
-arguments[4][43][0].apply(exports,arguments)
-},{"dup":43,"famous-transitions":71}],74:[function(require,module,exports){
-arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],75:[function(require,module,exports){
-arguments[4][45][0].apply(exports,arguments)
-},{"dup":45}],76:[function(require,module,exports){
-arguments[4][46][0].apply(exports,arguments)
-},{"dup":46}],77:[function(require,module,exports){
-arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],78:[function(require,module,exports){
-arguments[4][48][0].apply(exports,arguments)
-},{"dup":48}],79:[function(require,module,exports){
-arguments[4][49][0].apply(exports,arguments)
-},{"./CallbackStore":72,"./Color":73,"./KeyCodes":74,"./MethodStore":75,"./ObjectManager":76,"./clone":77,"./flatClone":78,"./keyValueToArrays":80,"./loadURL":81,"./strip":82,"dup":49}],80:[function(require,module,exports){
-arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],81:[function(require,module,exports){
-arguments[4][51][0].apply(exports,arguments)
-},{"dup":51}],82:[function(require,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],83:[function(require,module,exports){
-'use strict';
-
-var Transform = require('./Transform');
-
-/**
- * Layout is often easily described in terms of "top left", "bottom right",
- * etc. Align is a way of defining an alignment relative to a bounding-box
- * given by a size. Align is given by an array [x, y, z] of proportions betwee
- * 0 and 1. The default value for the align is top left, or [0, 0, 0].
- *
- * @class Align
- * @constructor
- * @private
- */
-function Align () {
-    this.x = 0;
-    this.y = 0;
-    this.z = 0.5;
-    this.transform = new Transform();
-}
-
-/**
- * Sets the alignment in x direction relative to its parent.
- *
- * @method setX
- * @chainable
- * 
- * @param {Number} x alignment in x direction
- * @return {Align} this
- */
-Align.prototype.setX = function setX (x) {
-    this.x = x;
-    return this;
-};
-
-/**
- * Sets the alignment in y direction relative to its parent.
- *
- * @method setX
- * @chainable
- * 
- * @param {Number} y alignment in y direction
- * @return {Align} this
- */
-Align.prototype.setY = function setY (y) {
-    this.y = y;
-    return this;
-};
-
-/**
- * Sets the alignment in z direction relative to its parent.
- *
- * @method setX
- * @chainable
- * 
- * @param {Number} z alignment in z direction
- * @return {Align} this
- */
-Align.prototype.setZ = function setZ (z) {
-    this.z = z;
-    return this;
-};
-
-/**
- * Sets the alignment relative to its parent.
- *
- * @method set
- * @chainable
- * 
- * @param {Number} [x] alignment in x direction
- * @param {Number} [y] alignment in y direction
- * @param {Number} [z] alignment in z direction
- * @return {Align} this
- */
-Align.prototype.set = function set (x, y, z) {
-    this.x = x != null ? x : this.x;
-    this.y = y != null ? y : this.y;
-    this.z = z != null ? z : this.z;
-    return this;
-};
-
-/**
- * Mutates the internal transform matrix according to the passed in size
- *
- * @method update
- * 
- * @param  {Number[]} size  3D size
- * @return {Transform}      internal Transform class
- */
-Align.prototype.update = function update (size) {
-    var x = size[0] * this.x;
-    var y = size[1] * this.y;
-    var z = size[2] * (this.z - 0.5);
-    this.transform.setTranslation(x, y, z);
-    return this.transform;
-};
-
-module.exports = Align;
-
-},{"./Transform":101}],84:[function(require,module,exports){
 'use strict';
 
 /**
@@ -10540,10 +10522,9 @@ module.exports = Align;
  * @private
  */
 function Clock () {
-    this._updates = [];
-    this._nextStepUpdates = [];
     this._time = 0;
-
+    this._frame = 0;
+    this._timerQueue = [];
     this._updatingIndex = 0;
 }
 
@@ -10558,55 +10539,12 @@ function Clock () {
  * @return {Clock}       this
  */
 Clock.prototype.step = function step (time) {
+    this._frame++;
     this._time = time;
-
-    for (; this._updatingIndex < this._updates.length; this._updatingIndex++) {
-        this._updates[this._updatingIndex].update(time);
-    }
-
-    while (this._nextStepUpdates.length > 0) {
-        this._nextStepUpdates.shift().update(time);
-    }
-
-    this._updatingIndex = 0;
-
-    return this;
-};
-
-/**
- * Registers an object to be updated on every frame.
- *
- * @method  update
- * @chainable
- * 
- * @param {Object}      updateable          Object having an `update` method
- * @param {Function}    updateable.update   update method to be called on every
- *                                          step
- * @return {Clock}                          this
- */
-Clock.prototype.update = function update (updateable) {
-    if (this._updates.indexOf(updateable) === -1) {
-        this._updates.push(updateable);
-    }
-    return this;
-};
-
-/**
- * Deregisters a previously using `update` registered object to be no longer
- * updated on every frame.
- *
- * @method  noLongerUpdate
- * @chainable
- * 
- * @param  {Object} updateable  Object previously registered using the `update`
- *                              method
- * @return {Clock}              this
- */
-Clock.prototype.noLongerUpdate = function noLongerUpdate(updateable) {
-    var index = this._updates.indexOf(updateable);
-    if (index > -1) {
-        if (index <= this._updatingIndex && this._updatingIndex !== 0) this._updatingIndex--;
-        this._updates.splice(index, 1);
+    for (var i = 0; i < this._timerQueue.length; i++) {
+        if (this._timerQueue[i](this._time)) {
+            this._timerQueue.splice(i, 1);
+        }
     }
     return this;
 };
@@ -10615,6 +10553,7 @@ Clock.prototype.noLongerUpdate = function noLongerUpdate(updateable) {
  * Returns the internal clock time.
  *
  * @method  getTime
+ * @deprecated Use #now instead
  * 
  * @param  {Number} time high resolution timstamp used for invoking the
  *                       `update` method on all registered objects
@@ -10624,21 +10563,26 @@ Clock.prototype.getTime = function getTime() {
 };
 
 /**
- * Registers object to be updated **once** on the next step. Registered
- * updateables are not guaranteed to be unique, therefore multiple updates per
- * step per object are possible.
+ * Returns the internal clock time.
  *
- * @method nextStep
- * @chainable
+ * @method  now
  * 
- * @param {Object}      updateable          Object having an `update` method
- * @param {Function}    updateable.update   update method to be called on the
- *                                          next step
- * @return {Clock}                          this
+ * @param  {Number} time high resolution timstamp used for invoking the
+ *                       `update` method on all registered objects
  */
-Clock.prototype.nextStep = function nextStep(updateable) {
-    this._nextStepUpdates.push(updateable);
-    return this;
+Clock.prototype.now = function now () {
+    return this._time;
+};
+
+/**
+ * Returns the number of frames elapsed so far.
+ *
+ * @method getFrame
+ * 
+ * @return {Number} frames
+ */
+Clock.prototype.getFrame = function getFrame () {
+    return this._frame;
 };
 
 /**
@@ -10651,25 +10595,47 @@ Clock.prototype.nextStep = function nextStep(updateable) {
  * @param {Function} callback function to be run after a specified duration
  * @param {Number} delay milliseconds from now to execute the function
  *
- * @return {Function} decorated passed in callback function
+ * @return {Function} timer function used for Clock#clearTimer
  */
 Clock.prototype.setTimeout = function (callback, delay) {
     var params = Array.prototype.slice.call(arguments, 2);
-
-    // problem this._time might be null
     var startedAt = this._time;
-    var _this = this;
-    var looper = {
-        update: function update (time) {
-            if (time - startedAt >= delay) {
-                callback.apply(this, params);
-                _this.noLongerUpdate(looper);
-            }
+    var timer = function(time) {
+        if (time - startedAt >= delay) {
+            callback.apply(null, params);
+            return true;
         }
+        return false;
     };
-    callback.__looper = looper
-    this.update(looper);
-    return callback;
+    this._timerQueue.push(timer);
+    return timer;
+};
+
+
+/**
+ * Wraps a function to be invoked after a certain amount of time.
+ *  After a set duration has passed, it executes the function and
+ *  resets the execution time.
+ *
+ * @method setInterval
+ *
+ * @param {Function} callback function to be run after a specified duration
+ * @param {Number} duration interval to execute function in milliseconds
+ *
+ * @return {Function} timer function used for Clock#clearTimer
+ */
+Clock.prototype.setInterval = function setInterval(callback, delay) {
+    var params = Array.prototype.slice.call(arguments, 2);
+    var startedAt = this._time;
+    var timer = function(time) {
+        if (time - startedAt >= delay) {
+            callback.apply(null, params);
+            startedAt = time;
+        }
+        return false;
+    };
+    this._timerQueue.push(timer);
+    return timer;
 };
 
 /**
@@ -10679,12 +10645,15 @@ Clock.prototype.setTimeout = function (callback, delay) {
  * @method clearTimer
  * @chainable
  * 
- * @param  {Function} callback  previously via `Clock#setTimeout` or
- *                              `Clock#setInterval` registered callback function
+ * @param  {Function} callback  previously by `Clock#setTimeout` or
+ *                              `Clock#setInterval` returned callback function
  * @return {Clock}              this
  */
-Clock.prototype.clearTimer = function (callback) {
-    this.noLongerUpdate(callback.__looper);
+Clock.prototype.clearTimer = function (timer) {
+    var index = this._timerQueue.indexOf(timer);
+    if (index !== -1) {
+        this._timerQueue.splice(index, 1);
+    }
     return this;
 };
 
@@ -10720,2971 +10689,1772 @@ Clock.prototype.setInterval = function setInterval(callback, delay) {
 
 module.exports = Clock;
 
-},{}],85:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 'use strict';
 
-var Layer = require('./Layer');
-
-/**
- * ComponentStore manages `components` and `renderables`. It also keeps track
- * of the size shared by all renderables managed by this ComponentStore.
- *
- * Every LocalDispatch has its own ComponentStore.
- *
- * @class ComponentStore
- * @constructor
- * @private
- */
-function ComponentStore () {
-    this._components = new Layer();
-    this._renderables = new Layer();
-    this._currentRenderableSize = [0, 0, 0];
-}
-
-/**
- * Clears all components by delegating to the layer they are being managed on.
- *
- * @method clearComponents
- * @chainable
- * 
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.clearComponents = function clearComponents () {
-    this._components.clear();
-    return this;
-};
-
-/**
- * Clears all renderables by delegating to the layer they are being managed on.
- *
- * @method clearRenderables
- * @chainable
- * 
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.clearRenderables = function clearRenderables () {
-    this._renderables.clear();
-    return this;
-};
-
-/**
- * Clears all components and renderables managed by this ComponentStore by
- * delegating to the respective layers.
- *
- * @method clear
- * @chainable
- * 
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.clear = function clear () {
-    return this.clearComponents().clearRenderables();
-};
-
-/**
- * @alias ComponentStore.prototype.clear
- */
-ComponentStore.prototype.kill = ComponentStore.prototype.clear;
-
-/**
- * Cleans the underlying layer responsible for maintaining components.
- *
- * @method cleanComponents
- * @chainable
- * 
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.cleanComponents = function cleanComponents () {
-    this._components.clean();
-    return this;
-};
-
-/**
- * Cleans the underlying layer responsible for maintaining renderables.
- *
- * @method cleanRenderables
- * @chainable
- * 
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.cleanRenderables = function cleanRenderables () {
-    this._renderables.clean();
-    return this;
-};
-
-/**
- * Cleans the renderables and components managed by this ComponentStore.
- *
- * @method clean
- * @chainable
- * 
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.clean = function clean () {
-    return this.cleanComponents().cleanRenderables();
-};
-
-/**
- * Returns a new component id that can be used in order to register a new
- * component on the ComponentStore using `registerComponentAt`.
- *
- * @method requestComponentId
- * 
- * @return {Number} id that can be used to register a new component using
- *                     `registerComponentAt`
- */
-ComponentStore.prototype.requestComponentId = function requestComponentId () {
-    return this._components.requestId();
-};
-
-/**
- * Returns a new renderable id that can be used in order to register a new
- * renderable on the ComponentStore using `registerRenderableAt`.
- *
- * @method requestComponentId
- * 
- * @return {Number} id that can be used to register a new renderable using
- *                     `registerRenderableAt`
- */
-ComponentStore.prototype.requestRenderableId = function requestRenderableId () {
-    return this._renderables.requestId();
-};
-
-/**
- * Registers the passed in component on the ComponentStore at the specified id.
- *
- * @method  registerComponentAt
- * @chainable
- * 
- * @param  {Number} id              unique id, preferably previously retrieved using
- *                                  `requestComponentId`
- * @param  {Component} component    component to be registered
- * @return {ComponentStore}         this
- */
-ComponentStore.prototype.registerComponentAt = function registerComponentAt (id, component) {
-    this._components.registerAt(id, component);
-    return this;
-};
-
-/**
- * Registers the passed in renderable on the ComponentStore at the specified
- * id.
- *
- * @method  registerRenderableAt
- * @chainable
- * 
- * @param  {Number} id              unique id, preferably previously retrieved using
- *                                  `requestRenderableId`
- * @param  {Component} component    renderable to be registered
- * @return {ComponentStore}         this
- */
-ComponentStore.prototype.registerRenderableAt = function registerRenderableAt (id, renderable) {
-    this._renderables.registerAt(id, renderable);
-    return this;
-};
-
-/**
- * Dirties the component registered at the specified id.
- *
- * @method makeComponentDirtyAt
- * @chainable
- * 
- * @param  {Component} id   id at which the component has previously been
- *                          registered using `registerComponentAt`
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.makeComponentDirtyAt = function makeComponentDirtyAt (id) {
-    this._components.dirtyAt(id);
-    return this;
-};
-
-/**
- * Dirties the renderable registered at the specified id.
- *
- * @method makeRenderableDirtyAt
- * @chainable
- * 
- * @param  {Component} id   id at which the renderable has previously been
- *                          registered using `registerComponentAt`
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.makeRenderableDirtyAt = function makeRenderableDirtyAt (id) {
-    this._renderables.dirtyAt(id);
-    return this;
-};
-
-/**
- * Cleans the component registered at the specified id.
- *
- * @method  cleanComponentAt
- * @chainable
- * 
- * @param  {Component} id   id at which the component has previously been
- *                          registered using `registerComponentAt`
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.cleanComponentAt = function cleanComponentAt (id) {
-    this._components.cleanAt(id);
-    return this;
-};
-
-/**
- * Cleans the renderable registered at the specified id.
- *
- * @method  cleanRenderableAt
- * @chainable
- * 
- * @param  {Renderable} id  id at which the renderable has previously been
- *                          registered using `registerRenderableAt`
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.cleanRenderableAt = function cleanRenderableAt (id) {
-    this._renderables.cleanAt(id);
-    return this;
-};
-
-/**
- * Retrieves the component registered at the specified id.
- *
- * @method  getComponentAt
- * @chainable
- * 
- * @param  {Component} id   id at which the component has previously been
- *                          registered using `registerComponentAt`
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.getComponentAt = function getComponentAt (id) {
-    return this._components.getAt(id);
-};
-
-/**
- * Retrieves the renderable registered at the specified id.
- *
- * @method  getRenderableAt
- * @chainable
- * 
- * @param  {Renderable} id  id at which the renderable has previously been
- *                          registered using `registerRenderableAt`
- * @return {ComponentStore} this
- */
-ComponentStore.prototype.getRenderableAt = function getRenderableAt (id) {
-    return this._renderables.getAt(id);
-};
-
-/**
- * Retrieves all components registered on this ComponentStore.
- *
- * @method getComponents
- * 
- * @return {Components[]} set of all components that have previously been
- *                        registered on this ComponentStore
- */
-ComponentStore.prototype.getComponents = function getComponents () {
-    return this._components.get();
-};
-
-/**
- * Retrieves all renderables registered on this ComponentStore.
- *
- * @method getRenderable
- * 
- * @return {Renderables[]}  set of all renderables that have previously
- *                          been registered on this ComponentStore
- */
-ComponentStore.prototype.getRenderables = function getRenderables () {
-    return this._renderables.get();
-};
-
-/**
- * Determines and returns the absolute, three dimensional **pixel** size
- * allocated to renderables on this ComponentStore.
- *
- * @chainable
- * @method getRenderableSize
- * 
- * @return {Number[]} three dimensional **pixel** size in the format
- *                    `[width, height, depth]`
- */
-ComponentStore.prototype.getRenderableSize = function getRenderableSize () {
-    var renderables = this._renderables.get();
-    var i = 0;
-    var len = renderables.length;
-    var size;
-    this._currentRenderableSize[0] = 0;
-    this._currentRenderableSize[1] = 0;
-    this._currentRenderableSize[2] = 0;
-    for (; i < len ; i++) {
-        size = renderables[i].getSize();
-        this._currentRenderableSize[0] = size[0] > this._currentRenderableSize[0] ? size[0] : this._currentRenderableSize[0];
-        this._currentRenderableSize[1] = size[1] > this._currentRenderableSize[1] ? size[1] : this._currentRenderableSize[1];
-        this._currentRenderableSize[2] = size[2] > this._currentRenderableSize[2] ? size[2] : this._currentRenderableSize[2];
-    }
-    return this._currentRenderableSize;
-};
-
-module.exports = ComponentStore;
-
-},{"./Layer":89}],86:[function(require,module,exports){
-'use strict';
-
+var Dispatch = require('./Dispatcher');
 var Node = require('./Node');
-var RenderProxy = require('./RenderProxy');
+var Size = require('./Size');
 
 /**
- * Context is the top-level node in the scene graph (= tree node).
- * As such, it populates the internal MessageQueue with commands received by
- * subsequent child-nodes. The Context is being updated by the Clock on every
- * FRAME and therefore recursively updates the scene grpah.
+ * Context is the bottom of the scene graph. It is it's own
+ * parent and provides the global updater to the scene graph.
  *
- * @class  Context
+ * @class Context
  * @constructor
- * 
- * @param {String} [selector=body]  query selector used as container for
- *                                  context
+ *
+ * @param {String} selector a string which is a dom selector
+ *                 signifying which dom element the context
+ *                 should be set upon
+ * @param {Famous} a class which conforms to Famous' interface
+ *                 it needs to be able to send methods to
+ *                 the renderers and update nodes in the scene graph
  */
-function Context (selector, messageQueue, globalDispatch, clock) {
-    this._messageQueue = messageQueue;
-    this._globalDispatch = globalDispatch;
-    this._clock = clock;
+function Context (selector, updater) {
+    if (!selector) throw new Error('Context needs to be created with a DOM selector');
+    if (!updater) throw new Error('Context needs to be created with a class like Famous');
 
-    this._clock.update(this);
+    Node.call(this);         // Context inherits from node
 
-    this.proxy = new RenderProxy(this);
-    this.node = new Node(this.proxy, this._globalDispatch);
-    this.selector = selector || 'body';
-    this.dirty = true;
-    this.dirtyQueue = [];
+    this._updater = updater; // The updater that will both
+                             // send messages to the renderers
+                             // and update dirty nodes 
 
-    this._messageQueue.enqueue('NEED_SIZE_FOR').enqueue(this.selector);
-    this._globalDispatch.targetedOn(this.selector, 'resize', this._receiveContextSize.bind(this));
+    this._dispatch = new Dispatch(this); // instantiates a dispatcher
+                                         // to send events to the scene
+                                         // graph below this context
+    
+    this._selector = selector; // reference to the DOM selector
+                               // that represents the elemnent
+                               // in the dom that this context
+                               // inhabits
+
+    this.onMount(this, selector); // Mount the context to itself
+                                  // (it is its own parent)
+    
+    this._updater                  // message a request for the dom
+        .message('NEED_SIZE_FOR')  // size of the context so that
+        .message(selector);        // the scene graph has a total size
+
+    this.show(); // the context begins shown (it's already present in the dom)
+
 }
 
+// Context inherits from node
+Context.prototype = Object.create(Node.prototype);
+Context.prototype.constructor = Context;
+
 /**
- * Adds a child to the internal list of child-nodes.
+ * Context getUpdater function returns the passed in updater
  *
- * @method addChild
- * @chainable
- *
- * @return {Context}    this
+ * @return {Famous} the updater for this Context
  */
-Context.prototype.addChild = function addChild () {
-    return this.node.addChild();
+Context.prototype.getUpdater = function getUpdater () {
+    return this._updater;
 };
 
 /**
- * Removes a node returned by `addChild` from the Context's immediate children.
+ * Returns the selector that the context was instantiated with
  *
- * @method  removeChild
- * @chainable
- * 
- * @param  {Node} node   node to be removed
- * @return {Context}     this
+ * @return {String} dom selector
  */
-Context.prototype.removeChild = function removeChild (node) {
-    this.node.removeChild(node);
-    return this;
+Context.prototype.getSelector = function getSelector () {
+    return this._selector;
 };
 
 /**
- * Recursively updates all children.
+ * Returns the dispatcher of the context. Used to send events
+ * to the nodes in the scene graph.
  *
- * @method  update
- * @chainable
- * 
- * @return {Context}    this
+ * @return {Dispatcher} the Context's Dispatcher
  */
-Context.prototype.update = function update () {
-    this.node.update();
-    return this;
+Context.prototype.getDispatch = function getDispatch () {
+    return this._dispatch;
 };
 
 /**
- * Returns the selector the Context is attached to. Terminates recursive
- * `getRenderPath` scheduled by `RenderProxy`.
+ * Receives an event. If the event is 'CONTEXT_RESIZE' it sets the size of the scene
+ * graph to the payload, which must be an array of numbers of at least
+ * length three representing the pixel size in 3 dimensions.
  *
- * @method  getRenderPath
- * @private
- * 
- * @return {String} selector
+ * @param {String} event
+ * @param {*} payload
  */
-Context.prototype.getRenderPath = function getRenderPath () {
-    return this.selector;
-};
+Context.prototype.onReceive = function onReceive (event, payload) {
+    // TODO: In the future the dom element that the context is attached to
+    // should have a representation as a component. It would be render sized
+    // and the context would receive its size the same way that any render size
+    // component receives its size.
+    if (event === 'CONTEXT_RESIZE') {
+        
+        if (payload.length < 2) 
+            throw new Error(
+                    'CONTEXT_RESIZE\'s payload needs to be at least a pair' +
+                    ' of pixel sizes'
+            );
 
-/**
- * Appends the passed in command to the internal MessageQueue, thus scheduling
- * it to be sent to the Main Thread on the next FRAME.
- *
- * @method  receive
- * @chainable
- * 
- * @param  {Object} command command to be enqueued
- * @return {Context}        Context
- */
-Context.prototype.receive = function receive (command) {
-    if (this.dirty) this.dirtyQueue.push(command);
-    else this._messageQueue.enqueue(command);
-    return this;
-};
+        this.setSizeMode(Size.ABSOLUTE, Size.ABSOLUTE, Size.ABSOLUTE);
+        this.setAbsoluteSize(payload[0],
+                             payload[1],
+                             payload[2] ? payload[2] : 0);
 
-/**
- * Method being executed whenever the context size changes.
- *
- * @method  _receiveContextSize
- * @chainable
- * @private
- * 
- * @param  {Array} size  new context size in the format `[width, height]`
- * @return {Context}     this
- */
-Context.prototype._receiveContextSize = function _receiveContextSize (size) {
-    this.node
-        .getDispatch()
-        .getContext()
-        .setAbsolute(size[0], size[1], 0);
-
-    if (this.dirty) {
-        this.dirty = false;
-        for (var i = 0, len = this.dirtyQueue.length ; i < len ; i++) this.receive(this.dirtyQueue.shift());
     }
-
-    return this;
 };
 
 module.exports = Context;
-},{"./Node":93,"./RenderProxy":99}],87:[function(require,module,exports){
+
+
+},{"./Dispatcher":69,"./Node":72,"./Size":73}],69:[function(require,module,exports){
 'use strict';
 
-/* global self, console */
+// TODO: Dispatcher should be generalized so that it can work on any Node
+// not just Contexts.
 
-var Clock = require('./Clock');
-var GlobalDispatch = require('./GlobalDispatch');
-var MessageQueue = require('./MessageQueue');
-var ProxyRegistry = require('./ProxyRegistry');
-var Context = require('./Context');
-
-var isWorker = typeof self !== 'undefined' && self.window !== self;
 
 /**
- * Famous is the toplevel object being exposed as a singleton inside the Web
- * Worker. It holds a reference to a Clock, MessageQueue and triggers events
- * on the GlobalDispatch. Incoming messages being sent from the Main Thread
- * are defined by the following production rules (EBNF):
+ * The Dispatcher class is used to propogate events down the
+ * scene graph.
  *
- * message = { commmand }
- * command = frame_command | with_command
- * frame_command = "FRAME", unix_timestamp
- * with_command = selector, { action }
- * action = "TRIGGER", event_type, event_object
- * 
- * @class  Famous
- * @constructor
- * @private
+ * @param {Context} Context on which it operates
  */
-function Famous() {
-    this._globalDispatch = new GlobalDispatch();
-    this._clock = new Clock();
-    this._messageQueue = new MessageQueue();
-    this._proxyRegistry = new ProxyRegistry(this._messageQueue);
-    this._contexts = [];
+function Dispatcher (context) {
 
-    var _this = this;
-    if (isWorker) {
-        self.addEventListener('message', function(ev) {
-            _this.postMessage(ev.data);
-        });
-    }
+    if (!context) throw new Error('Dispatch needs to be instantiated on a node');
+    
+    this._context = context; // A reference to the context
+                             // on which the dispatcher
+                             // operates
+
+    this._queue = []; // The queue is used for two purposes
+                      // 1. It is used to list indicies in the
+                      //    Nodes path which are then used to lookup
+                      //    a node in the scene graph.
+                      // 2. It is used to assist dispatching
+                      //    such that it is possible to do a breadth first
+                      //    traversal of the scene graph.
 }
 
 /**
- * Updates the internal Clock and flushes (clears and sends) the MessageQueue
- * to the Main Thread. step(time) is being called every time the Worker
- * receives a FRAME command.
+ * lookupNode takes a path and returns the node at the location specified
+ * by the path, if one exists. If not, it returns undefined.
  *
- * @method  step
- * @chainable
- * @private
+ * @param {String} The location of the node specified by its path
  * 
- * @param  {Number} time Unix timestamp
- * @return {Famous}      this
+ * @return {Node | undefined} The node at the requested path
  */
-Famous.prototype.step = function step (time) {
-    this._clock.step(time);
+Dispatcher.prototype.lookupNode = function lookupNode (location) {
+    if (!location) throw new Error('lookupNode must be called with a path');
 
-    var messages = this._messageQueue.getAll();
-    if (messages.length) {
-        if (isWorker) self.postMessage(messages);
-        else this.onmessage(messages);
+    var path = this._queue;
+
+    _splitTo(location, path);
+    
+    if (path[0] !== this._context.getSelector()) return void 0;
+
+    var children = this._context.getChildren();
+    var child;
+    var i = 1;
+    path[0] = this._context;
+
+    while (i < path.length) {
+        child = children[path[i]];
+        path[i] = child;
+        if (child) children = child.getChildren();
+        else return void 0;
+        i++;
     }
-    this._messageQueue.clear();
-    return this;
+
+    return child;
 };
 
 /**
- * postMessage(message) is being called every time the Worker Thread receives a
- * message from the Main Thread. `postMessage` is being used as a method name
- * to expose the same API as an actual Worker would. This drastically reduces
- * the complexity of maintaining a workerless build.
+ * dispatch takes an event name and a payload and dispatches it to the
+ * entire scene graph below the node that the dispatcher is on. The nodes
+ * receive the events in a breadth first traversal, meaning that parents
+ * have the opportunity to react to the event before children.
  *
- * @method  postMessage
- * @chainable
- * @public
- * 
- * @param  {Array} message  incoming message containing commands
- * @return {Famous}         this
+ * @param {String} event name
+ * @param {Any} payload
  */
-Famous.prototype.postMessage = function postMessage (message) {
-    while (message.length > 0) {
-        var command = message.shift();
+Dispatcher.prototype.dispatch = function dispatch (event, payload) {
+    if (!event) throw new Error('dispatch requires an event name as it\'s first argument');
+
+    var queue = this._queue;
+    var item;
+    var i;
+    var len;
+    var children;
+
+    queue.length = 0;
+    queue.push(this._context);
+
+    while (queue.length) {
+        item = queue.shift();
+        if (item.onReceive) item.onReceive(event, payload);
+        children = item.getChildren();
+        for (i = 0, len = children.length ; i < len ; i++) queue.push(children[i]);
+    }
+};
+
+/**
+ * dispatchUIevent takes a path, an event name, and a payload and dispatches them in
+ * a manner anologous to DOM bubbling. It first traverses down to the node specified at
+ * the path. That node receives the event first, and then every ancestor receives the event
+ * until the context.
+ *
+ * @param {String} the path of the node
+ * @param {String} the event name
+ * @param {Any} the payload
+ */
+Dispatcher.prototype.dispatchUIEvent = function dispatchUIEvent (path, event, payload) {
+    if (!path) throw new Error('dispatchUIEvent needs a valid path to dispatch to');
+    if (!event) throw new Error('dispatchUIEvent needs an event name as its second argument');
+
+    var queue = this._queue;
+    var node;
+
+    payload.node = this.lookupNode(path); // After this call, the path is loaded into the queue
+                                          // (lookUp node doesn't clear the queue after the lookup)
+
+    while (queue.length) {
+        node = queue.pop(); // pop nodes off of the queue to move up the ancestor chain.
+        if (node.onReceive) node.onReceive(event, payload);
+    }
+};
+
+/**
+ * _splitTo is a private method which takes a path and splits it at every '/'
+ * pushing the result into the supplied array. This is a destructive change.
+ *
+ * @private
+ * @param {String} the specified path
+ * @param {Array} the array to which the result should be written
+ */
+function _splitTo (string, target) {
+    target.length = 0; // clears the array first.
+    var last = 0;
+
+    for (var i = 0, len = string.length ; i < len ; i++) {
+        if (string[i] === '/') {
+            target.push(string.substring(last, i));
+            last = i + 1;
+        }
+    }
+
+    if (i - last > 0) target.push(string.substring(last, i));
+
+    return target;
+}
+
+
+module.exports = Dispatcher;
+
+
+},{}],70:[function(require,module,exports){
+// TODO: This will wrap UI events as the bubble in the scene graph to allow .stopPropogation() to be called
+
+},{}],71:[function(require,module,exports){
+'use strict';
+
+// Check to see if we're in a worker
+var isWorker = typeof self !== 'undefined' && self.window !== self;
+
+var Clock = require('./Clock');
+var Context = require('./Context');
+
+/**
+ * Famous has two responsibilities, one to act as the highest level
+ * updater and another to send messages over to the renderers. It is
+ * a singleton.
+ */
+function Famous () {
+    this._updateQueue = []; // The updateQueue is a place where nodes
+                            // can place themselves in order to be
+                            // updated on the frame.
+    
+    this._nextUpdateQueue = []; // the nextUpdateQueue is used to queue
+                                // updates for the next tick.
+                                // this prevents infinite loops where during
+                                // an update a node continuously puts itself
+                                // back in the update queue.
+
+    this._contexts = {}; // a hash of all of the context's that this famous
+                         // is responsible for.
+
+    this._messages = []; // a queue of all of the draw commands to send to the
+                         // the renderers this frame.
+
+    this._inUpdate = false; // when the famous is updating this is true.
+                            // all requests for updates will get put in the
+                            // nextUpdateQueue
+
+    this._clock = new Clock(); // a clock to keep track of time for the scene
+                               // graph.
+
+    var _this = this;
+    if (isWorker)
+        self.addEventListener('message', function (ev) {
+            _this.postMessage(ev.data);
+        });
+}
+
+/**
+ * _update is the body of the update loop. The frame consists of
+ * pulling in appending the nextUpdateQueue to the currentUpdate queue
+ * then moving through the updateQueue and calling onUpdate with the current
+ * time on all nodes. While _update is called _inUpdate is set to true and 
+ * all requests to be placed in the update queue will be forwarded to the 
+ * nextUpdateQueue.
+ *
+ * @param {Number} The current time
+ */
+Famous.prototype._update = function _update (time) {
+    this._inUpdate = true;
+    var nextQueue = this._nextUpdateQueue;
+    var queue = this._updateQueue;
+    var item;
+
+    while (nextQueue.length) queue.unshift(nextQueue.pop());
+
+    while (queue.length) {
+        item = queue.shift();
+        if (item && item.onUpdate) item.onUpdate(time);
+    }
+
+    this._inUpdate = false;
+};
+
+Famous.prototype.requestUpdate = function requestUpdate (requester) {
+    if (!requester)
+        throw new Error(
+            'requestUpdate must be called with a class to be updated'
+        );
+
+    if (this._inUpdate) this.requestUpdateOnNextTick(requester);
+    else this._updateQueue.push(requester);
+};
+
+Famous.prototype.requestUpdateOnNextTick = function requestUpdateOnNextTick (requester) {
+    this._nextUpdateQueue.push(requester);
+};
+
+Famous.prototype.postMessage = function postMessage (messages) {
+    if (!messages)
+        throw new Error(
+            'postMessage must be called with an array of messages'
+        );
+
+    while (messages.length > 0) {
+        var command = messages.shift();
         switch (command) {
             case 'WITH':
-                this.handleWith(message);
+                this.handleWith(messages);
                 break;
             case 'FRAME':
-                this.handleFrame(message);
+                this.handleFrame(messages);
                 break;
             case 'INVOKE':
                 this.handleInvoke(message);
                 break;
             default:
-                console.error('Unknown command ' + command);
+                throw new Error('received unknown command: ' + command);
                 break;
         }
     }
     return this;
 };
 
-/**
- * Handles the FRAME command by removing FRAME and the unix timstamp from the
- * incoming message.
- *
- * @method handleFrame
- * @chainable
- * @private
- * 
- * @param  {Array} message  message as received as a Worker message
- * @return {Famous}         this
- */
-Famous.prototype.handleFrame = function handleFrame (message) {
-    this.step(message.shift());
-    return this;
-};
-
-Famous.prototype.handleInvoke = function handleInvoke (message) {
-    var id = message.shift();
-    var args = message.shift();
-    this._proxyRegistry.invokeCallback(id, args);
-    return this;
-};
-
-/**
- * Handles the WITH (and TRIGGER) command. Triggers the respective targeted
- * callbacks of the internal GlobalDispatch.
- *
- * @method  handleWith
- * @chainable
- * @private
- * 
- * @param  {Array} message  message as received as a Worker message
- * @return {Famous}         this
- */
-Famous.prototype.handleWith = function handleWith (message) {
-    var path = message.shift();
-    var command = message.shift();
+Famous.prototype.handleWith = function handleWith (messages) {
+    var path = messages.shift();
+    var command = messages.shift();
+    var i;
+    var len;
 
     switch (command) {
         case 'TRIGGER':
-            var type = message.shift();
-            var ev = message.shift();
-            this._globalDispatch.targetedTrigger(path, type, ev);
+            var type = messages.shift();
+            var ev = messages.shift();
+            
+            this.getContext(path).getDispatch().dispatchUIEvent(path, type, ev);
             break;
         default:
-            console.error('Unknown command ' + command);
+            throw new Error('received unknown command: ' + command);
             break;
     }
     return this;
 };
 
-/**
- * Intended to be overridden by the ThreadManager to maintain compatibility
- * with the Web Worker API.
- * 
- * @method onmessage
- * @override
- * @public
- */
-Famous.prototype.onmessage = function onmessage (message) {};
+Famous.prototype.handleFrame = function handleFrame (messages) {
+    if (!messages) throw new Error('handleFrame must be called with an array of messages');
+    if (!messages.length) throw new Error('FRAME must be sent with a time');
 
-// Use this when deprecation of `new Context` pattern is complete
-Famous.prototype.createContext = function createContext (selector) {
-    var context = new Context(selector, this._messageQueue, this._globalDispatch, this._clock);
-    this._contexts.push(context);
-    return context;
+    this.step(messages.shift());
+    return this;
 };
 
-/**
- * Returns the internal Clock, which can be used to schedule updates on a
- * frame-by-frame basis.
- * 
- * @method getClock
- * @public
- * 
- * @return {Clock} internal Clock
- */
+Famous.prototype.step = function step (time) {
+    if (time == null) throw new Error('step must be called with a time');
+
+    this._clock.step(time);
+
+    this._update(time);
+
+    if (this._messages.length) {
+        if (isWorker) self.postMessage(this._messages);
+        else this.onmessage(this._messages);
+    }
+    
+    this._messages.length = 0;
+
+    return this;
+};
+
+Famous.prototype.getContext = function getContext (selector) {
+    if (!selector) throw new Error('getContext must be called with a selector');
+
+    return this._contexts[selector.split('/')[0]];
+};
+
 Famous.prototype.getClock = function getClock () {
     return this._clock;
 };
 
-/**
- * Returns the internal MessageQueue, which can be used to schedule messages
- * to be sent on the next tick.
- *
- * @method  getMessageQueue
- * @public
- * 
- * @return {MessageQueue} internal MessageQueue
- */
-Famous.prototype.getMessageQueue = function getMessageQueue () {
-    return this._messageQueue;
+Famous.prototype.message = function message (command) {
+    this._messages.push(command);
+    return this;
 };
 
-/**
- * Returns the interal GlobalDispatch, which can be used to register event
- * listeners for global (same depth) or targeted (same path) events.
- *
- * @method  getGlobalDispatch
- * @public
- * 
- * @return {GlobalDispatch} internal GlobalDispatch
- */
-Famous.prototype.getGlobalDispatch = function getGlobalDispatch () {
-    return this._globalDispatch;
-};
+Famous.prototype.createContext = function createContext (selector) {
+    selector = selector || 'body';
 
-Famous.prototype.proxy = function proxy (target) {
-    return this._proxyRegistry.getInstance(target);
+    if (this._contexts[selector]) this._contexts[selector].dismount();
+    this._contexts[selector] = new Context(selector, this);
+    return this._contexts[selector];
 };
 
 module.exports = new Famous();
 
-},{"./Clock":84,"./Context":86,"./GlobalDispatch":88,"./MessageQueue":91,"./ProxyRegistry":97}],88:[function(require,module,exports){
+
+},{"./Clock":67,"./Context":68}],72:[function(require,module,exports){
 'use strict';
 
-var CallbackStore = require('famous-utilities').CallbackStore;
+var Transform = require('./Transform');
+var Size = require('./Size');
 
-/**
- * GlobalDispatch is being used in order to manage scene graph events. It
- * routes and manages events being registered on specific nodes, but also
- * provides the possibility to globally register event listeners on the
- * whole scene graph.
- *
- * @class  GlobalDispatch
- * @constructor
- * @private
- */
-function GlobalDispatch () {
-    this._targetedCallbacks = {};
-    this._globalCallbacks = [];
-}
+var TRANSFORM_PROCESSOR = new Transform();
+var SIZE_PROCESSOR = new Size();
 
-/**
- * Triggers the `event` defined by `key` (type of event) on a Node in the
- * scene graph hierarchy defined as a series of RenderProxy id's composing the
- * path exactly that Node.
- *
- * @method targetedTrigger
- * @chainable
- * 
- * @param  {String} path    path to the respective Node in the scene graph
- *                          defined as series of RenderProxy ids.
- * @param  {String} key     arbitrary event type (e.g. "click", "move")
- * @param  {Object} ev      event object
- * @return {GlobalDispatch} this    
- */
-GlobalDispatch.prototype.targetedTrigger = function targetedTrigger(path, key, ev) {
-    if (this._targetedCallbacks[path]) this._targetedCallbacks[path].trigger(key, ev);
-    return this;
-};
+var IDENT = [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+];
 
-/**
- * Registers an event listener for an event being emitted on a specific node in
- * the scene graph hierarchy.
- *
- * @method targetedOn
- * @chainable
- * 
- * @param  {String} path    path to the respective Node in the scene graph
- *                          defined as series of RenderProxy ids.
- * @param  {String} key     arbitrary event type (e.g. "click", "move")
- * @param  {Function} cb    callback function to be invoked whenever the event
- *                          defined by `path` and `key` is being triggered.
- * @return {GlobalDispatch} this
- */
-GlobalDispatch.prototype.targetedOn = function targetedOn (path, key, cb) {
-    if (!this._targetedCallbacks[path]) this._targetedCallbacks[path] = new CallbackStore();
-    this._targetedCallbacks[path].on(key, cb);
-    return this;
-};
+var ONES = [1, 1, 1];
 
-/**
- * Removes a previously via `targetedOn` registered event listener,
- *
- * @method targetedOff
- * @chainable
- * 
- * @param  {String} path    path to the respective Node in the scene graph
- *                          defined as series of RenderProxy ids.
- * @param  {String} key     arbitrary event type (e.g. "click", "move")
- * @param  {Function} cb    previously via `targetedOn` registered callback function
- * @return {GlobalDispatch} this
- */
-GlobalDispatch.prototype.targetedOff = function targetedOff (path, key, cb) {
-    if (this._targetedCallbacks[path]) this._targetedCallbacks[path].off(key, cb);
-    return this;
-};
+function Node () {
+    this._calculatedValues = {
+        transform: new Float32Array(IDENT),
+        size: new Float32Array(3)
+    };
 
-/**
- * Globally registers an event listener. Listeners registerd using this method
- * can not be triggered by their path, but only globally by the event they
- * have been registered on.
- *
- * @method  globalOn
- * @chainable
- * 
- * @param  {String} path    path to the respective Node in the scene graph
- *                          defined as series of RenderProxy ids. This will
- *                          only be used in order to extract `depth` of this
- *                          Node in the scene graph.
- * @param  {String}   key   arbitrary event type (e.g. "click", "move")
- * @param  {Function} cb    callback function to be called whenever an event
- *                          in the SceneGraph 
- * @return {GlobalDispatch} this
- */
-GlobalDispatch.prototype.globalOn = function globalOn (path, key, cb) {
-    var depth = path.split('/').length;
-    if (!this._globalCallbacks[depth]) this._globalCallbacks[depth] = new CallbackStore();
-    this._globalCallbacks[depth].on(key, cb);
-    return this;
-};
+    this._requestingUpdate = false;
+    this._inUpdate = false;
 
-// TODO @dan Do we need this?
-// FIXME different path, same depth, same callback -> would deregister cb
+    this._updateQueue = [];
+    this._nextUpdateQueue = [];
 
-/**
- * Removed an event listener that has previously been registered using
- * `globalOn`.
- *
- *
- * @method  globalOn
- * @chainable
- * 
- * @param  {String}   path  path to the respective node the listener has been
- *                          registered on. Used inly to extract the `depth`
- *                          from it.
- * @param  {String}   key   event type used for registering the event listener
- * @param  {Function} cb    registered callback function
- * @return {GlobalDispatch} this
- */
-GlobalDispatch.prototype.globalOff = function globalOff (path, key, cb) {
-    var depth = path.split('/').length;
-    if (this._globalCallbacks[depth]) this._globalCallbacks[depth].off(key, cb);
-    return this;
-}
-
-/**
- * Triggers all global event listeners registered on the specified type.
- *
- * @method  emit
- * @chainable
- * 
- * @param  {String} key     event type
- * @param  {Object} ev      event object
- * @return {GlobalDispatch} this
- */
-GlobalDispatch.prototype.emit = function emit (key, ev) {
-    for (var i = 0, len = this._globalCallbacks.length ; i < len ; i++)
-        if (this._globalCallbacks[i])
-            this._globalCallbacks[i].trigger(key, ev);
-    return this;
-};
-
-module.exports = GlobalDispatch;
-
-},{"famous-utilities":79}],89:[function(require,module,exports){
-'use strict';
-
-/**
- * Layers manage a set of components or renderables.
- * Components are expected to expose a `kill` method. Optionally they can
- * expose a clean method which will be called as soon as the layer they are
- * registered on is being cleaned and they are being dirty.
- *
- * @class  Layer
- * @constructor
- * @private
- */
-function Layer () {
+    this._freedComponentIndicies = [];
     this._components = [];
-    this._componentIsDirty = [];
+
+    this._freedChildIndicies = [];
+    this._children = [];
+
+    this._parent = null;
+    this._globalUpdater = null;
+
+    this.value = new Node.Spec();
 }
 
+Node.RELATIVE_SIZE = Size.RELATIVE;
+Node.ABSOLUTE_SIZE = Size.ABSOLUTE;
+Node.RENDER_SIZE = Size.RENDER;
+Node.DEFAULT_SIZE = Size.DEFAULT;
 
-/**
- * Clears all components by `kill`ing all components having `kill` set to a
- * truthy value and removing them from the Layer.
- * 
- * @method clear
- * @chainable
- * 
- * @return {Layer} this
- */
-Layer.prototype.clear = function clear () {
-    var components = this._components;
-    var componentIsDirty = this._componentIsDirty;
-    var i = 0;
-    var len = components.length;
-    var component;
-    for (; i < len ; i++) {
-        component = components.shift();
-        componentIsDirty.shift();
-        if (component.kill) component.kill();
-    }
-    return this;
+Node.Spec = function Spec () {
+    this.location = null;
+    this.showState = {
+        mounted: false,
+        shown: false,
+        opacity: 1
+    };
+    this.offsets = {
+        mountPoint: new Float32Array(3),
+        align: new Float32Array(3),
+        origin: new Float32Array(3)
+    };
+    this.vectors = {
+        position: new Float32Array(3),
+        rotation: new Float32Array(3),
+        scale: new Float32Array(ONES)
+    };
+    this.size = {
+        sizeMode: new Float32Array([Size.RELATIVE, Size.RELATIVE, Size.RELATIVE]),
+        proportional: new Float32Array(ONES),
+        differential: new Float32Array(3),
+        absolute: new Float32Array(3),
+        render: new Float32Array(3)
+    };
+    this.UIEvents = [];
 };
 
 /**
- * Returns an id which can be used in order to register a new component using
- * `registerAt`.
- *
- * @method  requestId
- * @chainable
- * 
- * @return {Number} new id
- */
-Layer.prototype.requestId = function requestId () {
-    return this._components.length;
-};
-
-/**
- * Registers the passed in component on the specified id. Does not dirty the
- * component.
- *
- * @method  registerAt
- * @chainable
- * 
- * @param  {Number} id              id to register component ad
- * @param  {Renderable|Component}   component or renderable to be registered
- * @return {Layer}                  this
- */
-Layer.prototype.registerAt = function registerAt (id, component) {
-    this._components[id] = component;
-    this._componentIsDirty[id] = false;
-    return this;
-};
-
-/**
- * Dirties the component regsitered at the specified id.
- *
- * @method  dirtyAt
- * @chainable
- * 
- * @param  {Number} id internal id of the component to be dirtied
- * @return {Layer}     this
- */
-Layer.prototype.dirtyAt = function dirtyAt (id) {
-    this._componentIsDirty[id] = true;
-    return this;
-};
-
-/**
- * Cleans the component registered at the specified id.
- *
- * @method  cleanAt
- * @chainable
- * 
- * @param  {Number} id  internal id of the component to be cleaned
- * @return {Layer}      this
- */
-Layer.prototype.cleanAt = function cleanAt (id) {
-    this._componentIsDirty[id] = this._components[id].clean ? this._components[id].clean() : true;
-    return this;
-};
-
-/**
- * Cleans all previously dirtied components.
- *
- * @method  clean
- * @chainable
- * 
- * @return {Layer} this
- */
-Layer.prototype.clean = function clean () {
-    var i = 0;
-    var len = this._components.length;
-    for (; i < len ; i++) if (this._componentIsDirty[i]) this.cleanAt(i);
-    return this;
-};
-
-/**
- * Returns the component registered at the specified id.
- *
- * @method  getAt
- * @chainable
- * 
- * @param  {Number} id                          internal id of the requested component
- * @return {Renderable|Component|undefined}     registered component (if any)
- */
-Layer.prototype.getAt = function getAt (id) {
-    return this._components[id];
-};
-
-/**
- * Returns set of all registered components.
- *
- * @method  get
- * 
- * @return {Array} array of previously registered components
- */
-Layer.prototype.get = function get () {
-    return this._components;
-};
-
-module.exports = Layer;
-
-},{}],90:[function(require,module,exports){
-'use strict';
-
-var RenderContext = require('./RenderContext');
-var ComponentStore = require('./ComponentStore');
-var RenderProxy = require('./RenderProxy');
-
-/**
- * As opposed to a Node, a LocalDispatch does not define hierarchical
- * structures within the scene graph. Thus removing the need to manage
- * children, but at the same time requiring the Node to delegate updates to its
- * own LocalDispatch and all subsequent Nodes.
- *
- * The primary responsibilty of the LocalDispatch is to provide the ability to
- * register events on a specific Node ("targeted events"), without inducing the
- * complexity of determining the Nodes location within the scene graph.
- *
- * It also holds a reference to a RenderContext, therefore being required to
- * delegate invocations of its update function to its RenderContext, which
- * consequently mutates the actual 3D transform matrix associated with the
- * Node.
- *
- * @class  LocalDispatch
- * @constructor
- *
- * @param {Node} node           Node being managed by the LocalDispatch.
- * @param {RenderProxy} proxy   RenderProxy associated with the managed Node's
- *                              parent.
- */
-function LocalDispatch (node, proxy) {
-    this._renderProxy = new RenderProxy(proxy);
-    this._context = new RenderContext(this);
-    this._componentStore = new ComponentStore(this);
-    this._node = node;
-}
-
-/**
- * Kills the componentstore of the LocalDispatchm therefore killing all
- * Renderables and Components registered for the managed node.
- *
- * @method kill
- * @chainable
- *
- * @return {LocalDispatch} this
- */
-LocalDispatch.prototype.kill = function kill () {
-    this._componentStore.kill();
-    return this;
-};
-
-/**
- * Returns the managed Node.
- *
- * @method getNode
- *
- * @return {Node} managed Node
- */
-LocalDispatch.prototype.getNode = function getNode () {
-    return this._node;
-};
-
-/**
- * Retrieves the RenderContext managed by the LocalDispatch.
- *
  * @method getContext
- *
- * @return {RenderContext}  RenderContext managed by the LocalDispatch
+ * @chainable
+ * 
+ * @deprecated Node can be used directly instead!
+ * @return {Node} this
  */
-LocalDispatch.prototype.getContext = function getContext () {
-    return this._context;
+Node.prototype.getContext = function getContext () {
+    console.warn(
+        'Node#getContext is deprecated!\n' +
+        'Nodes can be used directly!'
+    );
+    return this;
 };
 
 /**
- * Returns the RenderPath uniquely identifiying the Node managed by the
- * LocalDispatch in the scene graph.
- *
- * @method getRenderPath
- *
- * @return {String} RenderPath encoded as a string (e.g. "body/1/2/3")
+ * @method getDispatch
+ * @chainable
+ * 
+ * @deprecated Node can be used directly instead!
+ * @return {Node} this
  */
-LocalDispatch.prototype.getRenderPath = function getRenderPath () {
-    return this._renderProxy.getRenderPath();
+Node.prototype.getDispatch = function getDispatch () {
+    console.warn(
+        'Node#getDispatch is deprecated!\n' +
+        'Component constructors accept a Node instead!' +
+        'Use new Component(node) instead of new Component(node.getDispatch())!'
+    );
+    return this;
 };
 
 /**
- * Returns the RenderProxy managed by the LocalDispatch.
- *
  * @method getRenderProxy
- *
- * @return {RenderProxy} RenderProxy managed by the LocalDispatch.
- */
-LocalDispatch.prototype.getRenderProxy = function getRenderProxy () {
-    return this._renderProxy;
-};
-
-/**
- * Registers an event listener to be triggered whenever the specified event is
- * being triggered on the path defined by the RenderProxy attached to the
- * LocalDispatch describing the Node's location in the Scene graph.
- *
- * @method registerTargetedEvent
  * @chainable
- *
- * @param  {String}   event event type to listen on
- * @param  {Function} cb    event listener to be invoked whenever the event
- *                          is being triggered
- * @return {LocalDispatch}  this
+ * 
+ * @deprecated Node can be used directly instead!
+ * @return {Node} this
  */
-LocalDispatch.prototype.registerTargetedEvent = function registerTargetedEvent (event, cb) {
-    this._node._globalDispatch.targetedOn(this.getRenderPath(), event, cb);
+Node.prototype.getRenderProxy = function getRenderProxy () {
+    console.warn(
+        'Node#getRenderProxy is deprecated!\n' +
+        'RenderProxy functionality has been merged into Node!'
+    );
     return this;
 };
 
 /**
- * Register a global event event listener to be triggered whenever the
- * specified event is being triggered. Global in the context of events being
- * emitted in the scene graph means events being emitted on the same depth as
- * the Node.
- *
- * @method registerGlobalEvent
+ * @method getRenderPath
  * @chainable
  *
- * @param  {String}   event event type to listen on
- * @param  {Function} cb    event listener to be invoked whenever the event
- *                          is being triggered
- * @return {LocalDispatch}  this
+ * @deprecated Use #getLocation()
+ * @return {string} render path
  */
-LocalDispatch.prototype.registerGlobalEvent = function registerGlobalEvent (event, cb) {
-    this._node._globalDispatch.globalOn(this.getRenderPath(), event, cb);
-    return this;
-};
+Node.prototype.getRenderPath = function getRenderPath () {
+    console.warn(
+        'Node#getRenderPath is deprecated!\n' +
+        'Use Node#getLocation instead!'
+    );
+    return this.getLocation();
+}
 
 /**
- * Deregisters a global event listener that has previously been registered
- * using `registerGlobalEvent`.
- *
- * @method deregisterGlobalEvent
- * @chainable
- *
- * @param  {String}   event event type to listen on
- * @param  {Function} cb    event listener to be invoked whenever the event
- *                          is being triggered
- * @return {LocalDispatch}  this
- */
-LocalDispatch.prototype.deregisterGlobalEvent = function deregisterGlobalEvent (event, cb) {
-    this._node._globalDispatch.globalOff(this.getRenderPath(), event, cb);
-    return this;
-};
-
-/**
- * Triggers an event on the Node attached to the LocalDispatch. Events are
- * being managed by the GlobalDispatch.
- *
- *
- * @param  {String} event   event type to listen on
- * @param  {Object} payload event payload object to be passed in to every
- *                          callback function attached to the specified event
- *                          type
- * @return {LocalDispatch}  this
- */
-LocalDispatch.prototype.emit = function emit (event, payload) {
-    this._node._globalDispatch.emit(event, payload);
-    return this;
-};
-
-/**
- * Cleans all components associated with this component store.
- *
- * @method cleanCompoents
- * @chainable
- *
- * @return {LocalDispatch} this
- */
-LocalDispatch.prototype.cleanComponents = function cleanComponents () {
-    this._componentStore.cleanComponents();
-    return this;
-};
-
-/**
- * Cleans (updates) the RenderContext attached to this LocalDispatch.
- *
- * @method cleanRenderContext
- * @chainable
- *
- * @param  {RenderContext} parentNode   parent RenderContext
- * @return {LocalDispatch}              this
- */
-LocalDispatch.prototype.cleanRenderContext = function cleanRenderContext (parentNode) {
-    this._context.update(parentNode ? parentNode.getDispatch()._context : void 0);
-    return this;
-};
-
-/**
- * Cleans the underlying Layer managing renderables indirectly attached to the
- * LocalDispatch.
- *
- * @method cleanRenderables
- * @chainable
- *
- * @return {LocalDispatch}  this
- */
-LocalDispatch.prototype.cleanRenderables = function cleanRenderables () {
-    this._componentStore.cleanRenderables();
-    return this;
-};
-
-/**
- * Adds a component to the underlying ComponentStore.
- *
- * @method addComponent
- * @chainable
- *
- * @param {Component} component component to be added
- * @return {Number} id          id the component has been registered at on the
- *                              underlying ComponentStore
- */
-LocalDispatch.prototype.addComponent = function addComponent (component) {
-    var store = this._componentStore;
-    var id = store.requestComponentId();
-    store.registerComponentAt(id, component);
-    return id;
-};
-
-/**
- * Dirties the component registered at the specified id.
- * The id has typically been obtained using a previous invocation of
- * `addComponent`.
- *
- * @method dirtyComponent
- * @chainable
- *
- * @param  {Number} id      id obtained via `addComponent`
- * @return {LocalDispatch}  this
- */
-LocalDispatch.prototype.dirtyComponent = function dirtyComponent (id) {
-    this._componentStore.makeComponentDirtyAt(id);
-    return this;
-};
-
-/**
- * Adds a renderable to the underlying ComponentStore.
- *
  * @method addRenderable
  * @chainable
  *
- * @param {Renderable} renderable   renderable to be added
- * @return {Number} id              id the component has been registered at on the
- *                                  underlying ComponentStore
+ * @deprecated Use addComponent
+ * @param {*} component component to be added
+ * @return this
  */
-LocalDispatch.prototype.addRenderable = function addRenderable (renderable) {
-    var store = this._componentStore;
-    var id = store.requestRenderableId();
-    store.registerRenderableAt(id, renderable);
-    return id;
-};
-
-/**
- * Dirties the renderable registered at the specified id.
- *
- * @method dirtyRenderable
- * @chainable
- *
- * @param  {Number} id      id obtained via `addRenderable`
- * @return {LocalDispatch}  this
- */
-LocalDispatch.prototype.dirtyRenderable = function dirtyRenderable (id) {
-    this._componentStore.makeRenderableDirtyAt(id);
+Node.prototype.addRenderable = function addRenderable (component) {
+    console.warn("Node#addRenderable is depricated!\n use node.addComponent instead");
+    this.addComponent(component);
     return this;
 };
 
-// @dan TODO -> RenderContext Can we remove this redundancy?
 
-LocalDispatch.prototype.onTransformChange = function onTransformChange (cb) {
-    this._context.onTransformChange(cb);
+Node.prototype.getLocation = function getLocation () {
+    return this.value.location;
+};
+
+Node.prototype.getId = Node.prototype.getLocation;
+
+Node.prototype.emit = function emit (event, payload) {
+    var p = this.getParent();
+    while ((p = p.getParent()) !== p);
+    p.getDispatch().dispatch(event, payload);
+};
+
+// THIS WILL BE DEPRICATED
+Node.prototype.sendDrawCommand = function sendDrawCommand (message) {
+    this._globalUpdater.message(message);
     return this;
 };
 
-LocalDispatch.prototype.onSizeChange = function onSizeChange (cb) {
-    this._context.onSizeChange(cb);
-    return this;
+Node.prototype.getValue = function getValue () {
+    var numberOfChildren = this._children.length;
+    var numberOfComponents = this._components.length;
+    var i = 0;
+
+    var value = {
+        location: this.value.location,
+        spec: this.value,
+        components: new Array(numberOfComponents),
+        children: new Array(numberOfChildren)
+    };
+
+    for (; i < numberOfChildren ; i++)
+        value.children[i] = this._children[i].getValue();
+
+    for (i = 0 ; i < numberOfComponents ; i++)
+        if (this._components[i].getValue) 
+            value.components[i] = this._components[i].getValue();
+
+    return value;
 };
 
-LocalDispatch.prototype.onOpacityChange = function onOpacityChange (cb) {
-    this._context.onOpacityChange(cb);
-    return this;
+Node.prototype.getComputedValue = function getComputedValue () {
+    var numberOfChildren = this._children.length;
+
+    var value = {
+        location: this.value.location,
+        computedValues: this._calculatedValues,
+        children: new Array(numberOfChildren)
+    };
+
+    for (var i = 0 ; i < numberOfChildren ; i++)
+        value.children[i] = this._children[i].getComputedValue();
+
+    return value;
 };
 
-LocalDispatch.prototype.sendDrawCommand = function sendDrawCommand (command) {
-    this._renderProxy.receive(command);
-    return this;
-};
-
-LocalDispatch.prototype.setAbsolute = function setAbsolute (x, y, z) {
-    this._context.setAbsolute(x, y, z);
-    return this;
-};
-
-LocalDispatch.prototype.setDifferential = function setDifferential (x, y, z) {
-    this._context.setDifferential(x, y, z);
-    return this;
-};
-
-LocalDispatch.prototype.setProportions = function setProportions (x, y, z) {
-    this._context.setProportions(x, y, z);
-    return this;
-};
-
-LocalDispatch.prototype.getTotalRenderableSize = function getTotalRenderableSize () {
-    return this._componentStore.getRenderableSize();
-};
-
-LocalDispatch.prototype.getRenderables = function getRenderables () {
-    return this._componentStore.getRenderables();
-};
-
-LocalDispatch.prototype.hasRenderables = function hasRenderables () {
-    return !!this._componentStore.getRenderables().length;
-};
-
-LocalDispatch.prototype.dirtyRenderContext = function dirtyRenderContext () {
-    this._context.dirty();
-    return this;
-};
-
-LocalDispatch.prototype.update = function update (parent) {
-    this.cleanComponents()
-        .cleanRenderContext(parent)
-        .cleanRenderables();
-    return this;
-};
-
-module.exports = LocalDispatch;
-
-},{"./ComponentStore":85,"./RenderContext":98,"./RenderProxy":99}],91:[function(require,module,exports){
-'use strict';
-
-/**
- * Used for scheduling messages to be sent on the next FRAME.
- * The MessageQueue is being cleared after each `postMessage` in the `Famous`
- * singleton.
- *
- * @class  MessageQueue
- * @constructor
- * @private
- */
-function MessageQueue() {
-    this._messages = [];
-}
-
-/**
- * Pushes a message to the end of the queue to be sent on the next FRAME.
- *
- * @method  enqueue
- * @chainable
- * 
- * @param  {Object} message message to be appended to the queue
- * @return {MessageQueue}   this
- */
-MessageQueue.prototype.enqueue = function enqueue (message) {
-    this._messages.push(message);
-    return this;
-};
-
-/**
- * Returns an array of all messages currently scheduled for the next FRAME.
- *
- * @method  getAll
- * @chainable
- * 
- * @return {MessageQueue} this
- */
-MessageQueue.prototype.getAll = function getAll () {
-    return this._messages;
-};
-
-/**
- * Empties the queue.
- *
- * @method  clear
- * @chainable
- * 
- * @return {MessageQueue} this
- */
-MessageQueue.prototype.clear = function clear() {
-    this._messages.length = 0;
-    return this;
-};
-
-module.exports = MessageQueue;
-
-
-},{}],92:[function(require,module,exports){
-'use strict';
-
-var Align = require('./Align');
-
-/**
- * @class MountPoint
- * @extends {Align}
- * @constructor
- * @private
- */
-function MountPoint () {
-    Align.call(this);
-}
-
-MountPoint.prototype = Object.create(Align.prototype);
-MountPoint.prototype.constructor = MountPoint;
-
-MountPoint.prototype.update = function update (size) {
-    var x = size[0] * -this.x;
-    var y = size[1] * -this.y;
-    var z = size[2] * -(this.z - 0.5);
-    this.transform.setTranslation(x, y, z);
-    return this.transform;
-};
-
-module.exports = MountPoint;
-
-},{"./Align":83}],93:[function(require,module,exports){
-'use strict';
-
-var LocalDispatch = require('./LocalDispatch');
-
-/**
- * Nodes define hierarchy in the scene graph.
- *
- * @class  Node
- * @constructor
- * 
- * @param {RenderProxy}     [proxy]             proxy used for creating a new
- *                                              LocalDispatch if none has been provided
- * @param {GlobalDispatch}  globalDispatch      GlobalDispatch consecutively
- *                                              passed down from the Context
- * @param {LocalDispatch}   [localDispatch]     LocalDispatch
- */
-function Node (proxy, globalDispatch, localDispatch) {
-    this._localDispatch = localDispatch != null ? localDispatch : new LocalDispatch(this, proxy);
-    this._globalDispatch = globalDispatch;
-    this._children = [];
-}
-
-/**
- * Adds a child at the specified index. If index is `undefined`, the child
- * will be pushed to the end of the internal children array.
- *
- * @method  addChild
- * @chainable
- * 
- * @param   {Number} [index]    index the child should be inserted at
- * @return  {Node} added        new child node
- */
-Node.prototype.addChild = function addChild (index) {
-    var child = new this.constructor(this._localDispatch.getRenderProxy(), this._globalDispatch);
-    if (index == null) this._children.push(child);
-    else this._children.splice(index, 0, child);
-    return child;
-};
-
-/**
- * Removes the passed in node from the node's children. If the node is not an
- * immediate child of the node the method is being called on, the method will
- * fail silently.
- *
- * @method  removeChild
- * @chainable
- * 
- * @param  {Node} node   child node to be removed
- * @return {Node}        this
- */
-Node.prototype.removeChild = function removeChild (node) {
-    var index = this._children.indexOf(node);
-    if (index !== -1) {
-        var result = this._children.splice(index, 1);
-        result[0].kill();
-    }
-    return this;
-};
-
-/**
- * Removes the child node at the specified index. E.g. removeChild(0) removes
- * the node's first child, which consequently changes all remanining indices.
- *
- * @method  removeChildAtIndex
- * @chainable
- * 
- * @param  {Number} index index of the node to be removed in the internal
- *                        children array
- * @return {Node}       this
- */
-Node.prototype.removeChildAtIndex = function removeChildAtIndex (index) {
-    var result = this._children.splice(index, 1);
-    if (result.length) result[0].kill();
-    return this;
-};
-
-/**
- * Removes all children attached to this node.
- *
- * @method  removeAllChildren
- * @chainable
- * 
- * @return {Node} this
- */
-Node.prototype.removeAllChildren = function removeAllChildren () {
-    for (var i = 0, len = this._children.length ; i < len ; i++) {
-        this._children.pop().kill();
-    }
-    return this;
-};
-
-/**
- * Kills the Node by killing its local dispatch and removing all its children.
- * Used internally whenever a child is being removed.
- * 
- * @method  kill
- * @chainable
- * @private
- * 
- * @return {Node} this
- */
-Node.prototype.kill = function kill () {
-    this._localDispatch.kill();
-    this.removeAllChildren();
-    return this;
-};
-
-/**
- * Returns the local dispatch attached to this node.
- *
- * @method  getDispatch
- * 
- * @return {LocalDispatch} dispatch
- */
-Node.prototype.getDispatch = function getDispatch () {
-    return this._localDispatch;
-};
-
-
-/**
- * Returns the Node's children.
- *
- * @method getChildren
- * 
- * @return {Node[]} children of this Node
- */
 Node.prototype.getChildren = function getChildren () {
     return this._children;
 };
 
-/**
- * Recursively updates the node and all its children.
- *
- * @method  update
- * @chainable
- * 
- * @param  {Node} parent    parent node
- * @return {Node}           this
- */
-Node.prototype.update = function update (parent) {
-    this._localDispatch.update(parent);
-    for (var i = 0, len = this._children.length ; i < len ; i++)
-        this._children[i].update(this);
+Node.prototype.getParent = function getParent () {
+    return this._parent;
+};
+
+Node.prototype.requestUpdate = function requestUpdate (id) {
+    if (this._inUpdate) return this.requestUpdateOnNextTick(id);
+    this._updateQueue.push(id);
+    if (!this._requestingUpdate) this._requestUpdate();
+};
+
+Node.prototype.requestUpdateOnNextTick = function requestUpdateOnNextTick (id) {
+    this._nextUpdateQueue.push(id);
+};
+
+Node.prototype.getUpdater = function getUpdater () {
+    return this._globalUpdater;
+};
+
+Node.prototype.isMounted = function isMounted () {
+    return this.value.showState.mounted;
+};
+
+Node.prototype.isShown = function isShown () {
+    return this.value.showState.shown;
+};
+
+Node.prototype.getOpacity = function getOpacity () {
+    return this.value.showState.opacity;
+};
+
+Node.prototype.getMountPoint = function getMountPoint () {
+    return this.value.offsets.mountPoint;
+};
+
+Node.prototype.getAlign = function getAlign () {
+    return this.value.offsets.align;
+};
+
+Node.prototype.getOrigin = function getOrigin () {
+    return this.value.offsets.origin;
+};
+
+Node.prototype.getPosition = function getPosition () {
+    return this.value.vectors.position;
+};
+
+Node.prototype.getRotation = function getRotation () {
+    return this.value.vectors.rotation;
+};
+
+Node.prototype.getScale = function getScale () {
+    return this.value.vectors.scale;
+};
+
+Node.prototype.getSizeMode = function getSizeMode () {
+    return this.value.size.sizeMode;
+};
+
+Node.prototype.getProportionalSize = function getProportionalSize () {
+    return this.value.size.proportional;
+};
+
+Node.prototype.getDifferentialSize = function getDifferentialSize () {
+    return this.value.size.differential;
+};
+
+Node.prototype.getAbsoluteSize = function getAbsoluteSize () {
+    return this.value.size.absolute;
+};
+
+Node.prototype.getRenderSize = function getRenderSize () {
+    return this.value.size.render;
+};
+
+Node.prototype.getSize = function getSize () {
+    return this._calculatedValues.size;
+};
+
+Node.prototype.getTransform = function getTransform () {
+    return this._calculatedValues.transform;
+};
+
+Node.prototype.getUIEvents = function getUIEvents () {
+    return this.value.UIEvents;
+};
+
+Node.prototype.addChild = function addChild (child) {
+    var index = child ? this._children.indexOf(child) : -1;
+    child = child ? child : new Node();
+
+    if (index === -1) {
+        index = this._freedChildIndicies.length ? this._freedChildIndicies.pop() : this._children.length;
+        this._children[index] = child;
+
+        if (this.isMounted() && child.onMount) {
+            var myId = this.getId();
+            var childId = myId + '/' + index;
+            child.onMount(this, childId);
+        }
+    
+    }
+
+    return child;
+};
+
+Node.prototype.removeChild = function removeChild (child) {
+    var index = this._children.indexOf(child);
+    if (index !== -1) {
+        this._freedChildIndicies.push(index);
+
+        if (this.isMounted() && child.onDismount)
+            child.onDismount();
+
+        this._children[index] = null;
+    }
+};
+
+Node.prototype.addComponent = function addComponent (component) {
+    var index = this._components.indexOf(component);
+    if (index === -1) {
+        index = this._freedComponentIndicies.length ? this._freedComponentIndicies.pop() : this._components.length;
+        this._components[index] = component;
+
+        if (this.isMounted() && component.onMount)
+            component.onMount(this, index);
+
+        if (this.isShown() && component.onShow)
+            component.onShow();
+    }
+
+    return index;
+};
+
+Node.prototype.removeComponent = function removeComponent (component) {
+    var index = this._components.indexOf(component);
+    if (index !== -1) {
+        this._freedComponentIndicies.push(index);
+        if (this.isShown() && component.onHide)
+            component.onHide();
+
+        if (this.isMounted() && component.onDismount)
+            component.onDismount();
+
+        this._components[index] = null;
+    }
+};
+
+Node.prototype.addUIEvent = function addUIEvent (eventName) {
+    var UIEvents = this.getUIEvents();
+    var components = this._components;
+    var component;
+
+    if (UIEvents.indexOf(eventName) === -1) {
+        UIEvents.push(eventName);
+        for (var i = 0, len = components.length ; i < len ; i++) {
+            component = components[i];
+            if (component.onAddUIEvent) component.onAddUIEvent(eventName);
+        }
+    }
+};
+
+Node.prototype._requestUpdate = function _requestUpdate (force) {
+    if (force || (!this._requestingUpdate && this._globalUpdater)) {
+        this._globalUpdater.requestUpdate(this);
+        this._requestingUpdate = true;
+    }
+};
+
+Node.prototype._vec3OptionalSet = function _vec3OptionalSet (vec3, index, val) {
+    if (val != null && vec3[index] !== val) {
+        vec3[index] = val;
+        if (!this._requestingUpdate) this._requestUpdate();
+        return true;
+    }
+    return false;
+};
+
+Node.prototype.show = function show () {
+    var i = 0;
+    var items = this._components;
+    var len = items.length;
+    var item;
+
+    this.value.showState.shown = true;
+
+    for (; i < len ; i++) {
+        item = items[i];
+        if (item && item.onShow) item.onShow();
+    }
+
+    i = 0;
+    items = this._children;
+    len = items.length;
+
+    for (; i < len ; i++) {
+        item = items[i];
+        if (item && item.onParentShow) item.onParentShow();
+    }
+};
+
+Node.prototype.hide = function hide () {
+    var i = 0;
+    var items = this._components;
+    var len = items.length;
+    var item;
+
+    this.value.showState.shown = false;
+
+    for (; i < len ; i++) {
+        item = items[i];
+        if (item && item.onHide) item.onHide();
+    }
+
+    i = 0;
+    items = this._children;
+    len = items.length;
+
+    for (; i < len ; i++) {
+        item = items[i];
+        if (item && item.onParentHide) item.onParentHide();
+    }
+};
+
+Node.prototype.setAlign = function setAlign (x, y, z) {
+    var vec3 = this.value.offsets.align;
+    var propogate = false;
+
+    propogate = this._vec3OptionalSet(vec3, 0, x) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 1, y) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 2, z) || propogate;
+
+    if (propogate) {
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        x = vec3[0];
+        y = vec3[1];
+        z = vec3[2];
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onAlignChange) item.onAlignChange(x, y, z);
+        }
+    }
     return this;
 };
+
+Node.prototype.setMountPoint = function setMountPoint (x, y, z) {
+    var vec3 = this.value.offsets.mountPoint;
+    var propogate = false;
+
+    propogate = this._vec3OptionalSet(vec3, 0, x) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 1, y) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 2, z) || propogate;
+
+    if (propogate) {
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        x = vec3[0];
+        y = vec3[1];
+        z = vec3[2];
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onMountPointChange) item.onMountPointChange(x, y, z);
+        }
+    }
+    return this;
+};
+
+Node.prototype.setOrigin = function setOrigin (x, y, z) {
+    var vec3 = this.value.offsets.origin;
+    var propogate = false;
+
+    propogate = this._vec3OptionalSet(vec3, 0, x) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 1, y) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 2, z) || propogate;
+
+    if (propogate) {
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        x = vec3[0];
+        y = vec3[1];
+        z = vec3[2];
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onOriginChange) item.onOriginChange(x, y, z);
+        }
+    }
+    return this;
+};
+
+
+Node.prototype.setPosition = function setPosition (x, y, z) {
+    var vec3 = this.value.vectors.position;
+    var propogate = false;
+
+    propogate = this._vec3OptionalSet(vec3, 0, x) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 1, y) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 2, z) || propogate;
+
+    if (propogate) {
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        x = vec3[0];
+        y = vec3[1];
+        z = vec3[2];
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onPositionChange) item.onPositionChange(x, y, z);
+        }
+    }
+    return this;
+};
+
+Node.prototype.setRotation = function setRotation (x, y, z) {
+    var vec3 = this.value.vectors.rotation;
+    var propogate = false;
+
+    propogate = this._vec3OptionalSet(vec3, 0, x) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 1, y) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 2, z) || propogate;
+
+    if (propogate) {
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        x = vec3[0];
+        y = vec3[1];
+        z = vec3[2];
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onRotationChange) item.onRotationChange(x, y, z);
+        }
+    }
+    return this;
+};
+
+Node.prototype.setScale = function setScale (x, y, z) {
+    var vec3 = this.value.vectors.scale;
+    var propogate = false;
+
+    propogate = this._vec3OptionalSet(vec3, 0, x) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 1, y) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 2, z) || propogate;
+
+    if (propogate) {
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        x = vec3[0];
+        y = vec3[1];
+        z = vec3[2];
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onScaleChange) item.onScaleChange(x, y, z);
+        }
+    }
+    return this;
+};
+
+Node.prototype.setOpacity = function setOpacity (val) {
+    if (val != this.value.showState.opacity) {
+        this.value.showState.opacity = val;
+        if (!this._requestingUpdate) this._requestUpdate();
+
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onOpacityChange) item.onOpacityChange(val);
+        }
+    }
+    return this;
+};
+
+Node.prototype.setSizeMode = function setSizeMode (x, y, z) {
+    var vec3 = this.value.size.sizeMode;
+    var propogate = false;
+
+    propogate = this._vec3OptionalSet(vec3, 0, x) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 1, y) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 2, z) || propogate;
+
+    if (propogate) {
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        x = vec3[0];
+        y = vec3[1];
+        z = vec3[2];
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onSizeModeChange) item.onSizeModeChange(x, y, z);
+        }
+    }
+    return this;
+};
+
+Node.prototype.setProportionalSize = function setProportionalSize (x, y, z) {
+    var vec3 = this.value.size.proportional;
+    var propogate = false;
+
+    propogate = this._vec3OptionalSet(vec3, 0, x) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 1, y) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 2, z) || propogate;
+
+    if (propogate) {
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        x = vec3[0];
+        y = vec3[1];
+        z = vec3[2];
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onProportionalSizeChange) item.onProportionalSizeChange(x, y, z);
+        }
+    }
+    return this;
+};
+
+Node.prototype.setDifferentialSize = function setDifferentialSize (x, y, z) {
+    var vec3 = this.value.size.differential;
+    var propogate = false;
+
+    propogate = this._vec3OptionalSet(vec3, 0, x) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 1, y) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 2, z) || propogate;
+
+    if (propogate) {
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        x = vec3[0];
+        y = vec3[1];
+        z = vec3[2];
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onDifferentialSizeChange) item.onDifferentialSizeChange(x, y, z);
+        }
+    }
+    return this;
+};
+
+Node.prototype.setAbsoluteSize = function setAbsoluteSize (x, y, z) {
+    var vec3 = this.value.size.absolute;
+    var propogate = false;
+
+    propogate = this._vec3OptionalSet(vec3, 0, x) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 1, y) || propogate;
+    propogate = this._vec3OptionalSet(vec3, 2, z) || propogate;
+
+    if (propogate) {
+        var i = 0;
+        var list = this._components;
+        var len = list.length;
+        var item;
+        x = vec3[0];
+        y = vec3[1];
+        z = vec3[2];
+        for (; i < len ; i++) {
+            item = list[i];
+            if (item && item.onAbsoluteSizeChange) item.onAbsoluteSizeChange(x, y, z);
+        }
+    }
+    return this;
+};
+
+Node.prototype._transformChanged = function _transformChanged (transform) {
+    var i = 0;
+    var items = this._components;
+    var len = items.length;
+    var item;
+
+    for (; i < len ; i++) {
+        item = items[i];
+        if (item && item.onTransformChange) item.onTransformChange(transform);
+    }
+
+    i = 0;
+    items = this._children;
+    len = items.length;
+
+    for (; i < len ; i++) {
+        item = items[i];
+        if (item && item.onParentTransformChange) item.onParentTransformChange(transform);
+    }
+};
+
+Node.prototype._sizeChanged = function _sizeChanged (size) {
+    var i = 0;
+    var items = this._components;
+    var len = items.length;
+    var item;
+
+    for (; i < len ; i++) {
+        item = items[i];
+        if (item && item.onSizeChange) item.onSizeChange(size);
+    }
+
+    i = 0;
+    items = this._children;
+    len = items.length;
+
+    for (; i < len ; i++) {
+        item = items[i];
+        if (item && item.onParentSizeChange) item.onParentSizeChange(size);
+    }
+};
+
+// DEPRICATE
+Node.prototype.getFrame = function getFrame () {
+    return this._globalUpdater.getFrame();
+};
+
+Node.prototype.update = function update (time){
+    this._inUpdate = true;
+    var nextQueue = this._nextUpdateQueue;
+    var queue = this._updateQueue;
+    var item;
+
+    while (nextQueue.length) queue.unshift(nextQueue.pop());
+
+    while (queue.length) {
+        item = this._components[queue.shift()];
+        if (item && item.onUpdate) item.onUpdate(time);
+    }
+
+    var mySize = this.getSize();
+    var parent = this.getParent();
+    var parentSize = parent.getSize();
+    var myTransform = this.getTransform();
+    var parentTransform = parent.getTransform();
+    var sizeChanged = SIZE_PROCESSOR.fromSpecWithParent(parentSize, this.value, mySize);
+    mySize = this.getSize();
+ 
+    var transformChanged = TRANSFORM_PROCESSOR.fromSpecWithParent(this.getParent().getTransform(), this.value, mySize, parentSize, this.getTransform());
+    if (transformChanged) this._transformChanged(this.getTransform());
+    if (sizeChanged) this._sizeChanged(this.getSize());
+
+    this._inUpdate = false;
+    this._requestingUpdate = false;
+
+    if (this._nextUpdateQueue.length) {
+        this._globalUpdater.requestUpdateOnNextTick(this);
+        this._requestingUpdate = true;
+    }
+};
+
+Node.prototype.mount = function mount (parent, myId) {
+    if (this.isMounted()) return; 
+    var i = 0;
+    var list = this._components;
+    var len = list.length;
+    var item;
+
+    this._parent = parent;
+    this._globalUpdater = parent.getUpdater();
+    this.value.location = myId;
+    this.value.showState.mounted = true;
+
+    for (; i < len ; i++) {
+        item = list[i];
+        if (item.onMount) item.onMount(this, i);
+    }
+    
+    i = 0;
+    list = this._children;
+    len = list.length;
+    for (; i < len ; i++) {
+        item = list[i];
+        if (item.onParentMount) item.onParentMount(this, myId, i);
+    }
+
+    if (this._requestingUpdate) this._requestUpdate(true);
+};
+
+Node.prototype.dismount = function dismount () {
+    if (!this.isMounted()) return; 
+    var i = 0;
+    var list = this._components;
+    var len = list.length;
+    var item;
+
+    this.value.showState.mounted = false;
+    this.value.location = null;
+
+    this._parent.removeChild(this);
+
+    this._parent = null;
+
+    for (; i < len ; i++) {
+        item = list[i];
+        if (item.onDismount) item.onDismount();
+    }
+    
+    i = 0;
+    list = this._children;
+    len = list.length;
+    for (; i < len ; i++) {
+        item = list[i];
+        if (item.onParentDismount) item.onParentDismount();
+    }
+
+    if (!this._requestingUpdate) this._requestUpdate();
+    this._globalUpdater = null;
+};
+
+Node.prototype.onParentMount = function onParentMount (parent, parentId, index) {
+    this.mount(parent, parentId + '/' + index);
+};
+
+Node.prototype.onParentDismount = function onParentDismount () {
+    this.dismount();
+};
+
+Node.prototype.receive = function receive (type, ev) {
+    var i = 0;
+    var list = this._components;
+    var len = list.length;
+    var item;
+    for (; i < len ; i++) {
+        item = list[i];
+        if (item && item.onReceive) item.onReceive(type, ev);
+    }
+};
+
+Node.prototype.onUpdate = Node.prototype.update;
+
+Node.prototype.onParentShow = Node.prototype.show;
+
+Node.prototype.onParentHide = Node.prototype.hide;
+
+Node.prototype.onParentTransformChange = _requestUpdateWithoutArgs;
+
+Node.prototype.onParentSizeChange = _requestUpdateWithoutArgs;
+
+Node.prototype.onShow = Node.prototype.show;
+
+Node.prototype.onHide = Node.prototype.hide;
+
+Node.prototype.onMount = Node.prototype.mount;
+
+Node.prototype.onDismount = Node.prototype.dismount;
+
+Node.prototype.onReceive = Node.prototype.receive;
+
+function _requestUpdateWithoutArgs () {
+    if (!this._requestingUpdate) this._requestUpdate();
+}
 
 module.exports = Node;
 
-},{"./LocalDispatch":90}],94:[function(require,module,exports){
-'use strict';
-
-/**
- * Initilizes the Opacity primitive by settings its value to 1 (default value).
- * Hierarchically setting opacity does not affect the final, local opacity
- * being returned. Rather, this functionality needs to be implemented in the
- * corresponding render targets (e.g. DOM has blending by default).
- *
- * @class Opacity
- * @private
- * @constructor
- */
-function Opacity () {
-    this.value = 1;
-    this.isActive = false;
-    this.dirty = false;
+},{"./Size":73,"./Transform":74}],73:[function(require,module,exports){
+function Size (dispatch) {
+    this._size = new Float32Array(3);
 }
 
-/**
- * Sets, activates and dirties the internal notion of opacity being read by the
- * RenderContext.
- *
- * @method set
- * @chainable
- * @private
- * 
- * @param {Opacity} value new opacity to be set
- */
-Opacity.prototype.set = function set (value) {
-    this.isActive = true;
-    if (this.value !== value && value != null) {
-        this.value = value;
-        this.setDirty();
-    }
-    return this;
-};
+Size.RELATIVE = 0;
+Size.ABSOLUTE = 1;
+Size.RENDER = 2;
+Size.DEFAULT = 0;
 
-/**
- * Dirties the opacity.
- * This forces the RenderContext to trigger the `opacity` event on the next
- * invocation of the `update` method on RenderContext.
- *
- * @method setDirty
- * @chainable
- * @private
- *
- * @return {Opacity} this
- */
-Opacity.prototype.setDirty = function setDirty () {
-    this.dirty = true;
-    return this;
-};
-
-/**
- * Cleans the opacity. This sets its dirty flag to `false`, thus no longer
- * reading it in `update` of the RenderContext.
- *
- * @method clean
- * @chainable
- * @private
- * 
- * @return {Opacity} this
- */
-Opacity.prototype.clean = function clean () {
-    this.dirty = false;
-    return this;
-};
-
-module.exports = Opacity;
-
-},{}],95:[function(require,module,exports){
-'use strict';
-
-var Transform = require('./Transform');
-
-/**
- * The origin primitive defines the relative position of a point within a
- * RenderContext that should be used to apply further transformations on.
- *
- * @private
- * @class  Origin
- * @constructor
- */
-function Origin () {
-    this.x = 0;
-    this.y = 0;
-    this.z = 0.5;
-    this.isActive = false;
-    this.dirty = false;
-    this.toOriginTransform = new Transform();
-    this.fromOriginTransform = new Transform();
-}
-
-/**
- * Sets the relative position of the origin.
- *
- * @method  set
- * @private
- * @chainable
- *
- * @param {Number} x relative position to RenderContext in interval [0, 1]
- * @param {Number} y relative position to RenderContext in interval [0, 1]
- * @param {Number} z relative position to RenderContext in interval [0, 1]
- */
-Origin.prototype.set = function set (x, y, z) {
-    this.isActive = true;
-    if (this.x !== x && x != null) {
-        this.x = x;
-    }
-    if (this.y !== y && y != null) {
-        this.y = y;
-    }
-    if (this.z !== z && z != null) {
-        this.z = z;
-    }
-    return this;
-};
-
-Origin.prototype.update = function update (size) {
-    var x = size[0] * this.x;
-    var y = size[1] * this.y;
-    var z = size[2] * (this.z - 0.5);
-    this.toOriginTransform.setTranslation(-x, -y, -z);
-    this.fromOriginTransform.setTranslation(x, y, z);
-    return this.transform;
-};
-
-module.exports = Origin;
-
-},{"./Transform":101}],96:[function(require,module,exports){
-'use strict';
-
-/**
- * Proxies provide a way to access arbitrary global objects within a WebWorker.
- * 
- * @class Proxy
- * @constructor
- * @private
- * 
- * @param {String} target               window[target] refers to the proxied
- *                                      object
- * @param {MessageQueue} messageQueue   the message queue being used to append
- *                                      commands onto
- * @param {ProxyRegistry} proxyRegistry registry being used in order to
- *                                      register functions
- */
-function Proxy(target, messageQueue, proxyRegistry) {
-    this._target = target;
-    this._messageQueue = messageQueue;
-    this._proxyRegistry = proxyRegistry;
-}
-
-Proxy.prototype.invoke = function(methodName, args) {
-    this._messageQueue.enqueue('INVOKE');
-    this._messageQueue.enqueue(this._target);
-    this._messageQueue.enqueue(methodName);
-
-    var functionArgs = [];
-
-    var functionId;
-    for (var i = 0; i < args.length; i++) {
-        functionArgs[i] = null;
-        if (typeof args[i] === 'function') {
-            functionId = this._proxyRegistry.registerCallback(args[i]);
-            functionArgs[i] = functionId;
-            args[i] = null;
+Size.prototype.fromSpecWithParent = function fromSpecWithParent (parentSize, spec, target) {
+    var mode = spec.size.sizeMode;
+    var prev;
+    var changed = false;
+    for (var i = 0 ; i < 3 ; i++) {
+        switch (mode[i]) {
+            case Size.RELATIVE:
+                prev = target[i];
+                target[i] = parentSize[i] * spec.size.proportional[i] + spec.size.differential[i];
+                changed = changed || prev !== target[i];
+                break;
+            case Size.ABSOLUTE:
+                prev = target[i];
+                target[i] = spec.size.absolute[i];
+                changed = changed || prev !== target[i];
+                break;
+            case Size.Render:
+                break;
         }
     }
-    this._messageQueue.enqueue(args);
-    this._messageQueue.enqueue(functionArgs);
-};
-
-module.exports = Proxy;
-
-},{}],97:[function(require,module,exports){
-'use strict';
-
-var Proxy = require('./Proxy');
-
-function ProxyRegistry(messageQueue) {
-    this._proxies = {};
-    this._callbacks = {};
-    this._nextCallbackId = 0;
-    this._messageQueue = messageQueue;
-}
-
-ProxyRegistry.prototype.getInstance = function getInstance(target) {
-    if (!this._proxies[target]) this._proxies[target] = new Proxy(target, this._messageQueue, this);
-    return this._proxies[target];
-};
-
-ProxyRegistry.prototype.registerCallback = function registerCallback (callback) {
-    var id = this._nextCallbackId++;
-    this._callbacks[id] = callback;
-    return id;
-};
-
-ProxyRegistry.prototype.invokeCallback = function invokeCallback (id, args) {
-    // function in arguments returns value used by proxied object
-    // (conceptual limitation of offloading a synchronous process to a
-    // worker, which essentially turns it into an asynchronous operation)
-    // TL;DR We return this, because we can't do anything meaningful with the
-    // return value
-    if (this._callbacks[id].apply(null, args) !== undefined) {
-        console.warn('Return value of proxied functions are being ignored');
-    }
-    return this;
-};
-
-module.exports = ProxyRegistry;
-
-},{"./Proxy":96}],98:[function(require,module,exports){
-'use strict';
-
-var Transform = require('./Transform');
-var Origin = require('./Origin');
-var MountPoint = require('./MountPoint');
-var Align = require('./Align');
-var Opacity = require('./Opacity');
-var CallbackStore = require('famous-utilities').CallbackStore;
-var Size = require('./Size');
-
-var CHANGE = 'change';
-var TRANSFORM = 'transform';
-var SIZE = 'size';
-var ORIGIN = 'origin';
-var OPACITY = 'opacity';
-
-/**
- * A RenderContext does not have a notion of a nested scene graph hierarchy.
- * Its sole purpose it to manage the `origin`, `opacity`, `mountPoint`,
- * `align` and `size` primitives primitives by updating its internal transform
- * matrix.
- *
- * The RenderContext is being created by a LocalDisaptch, which delegates to
- * the RenderContext's update method on every `FRAME` in order to apply
- * corresponding updates to the transform matrix attached to the node and all
- * its children. While the scene graph is being traversed recursively, the RenderContext
- * does not have a notion of children. Instead, the Node recursively updates
- * its LocalDispatch (and therefore its RenderContext) and all its children.
- *
- * @class RenderContext
- * @constructor
- * @private
- *
- * @param {LocalDisaptch} dispatch
- */
-function RenderContext (dispatch) {
-    this._origin = new Origin(this);
-    this._opacity = new Opacity(this);
-    this._mountPoint = new MountPoint(this);
-    this._align = new Align(this);
-    this._transform = new Transform(this);
-    this._size = new Size(this);
-    this._events = new CallbackStore();
-    this._needsReflow = false;
-    this._recalcAll = true;
-    this._dispatch = dispatch;
-    this._noParent = false;
-}
-
-// TODO @dan Can we remove the CHANGE event? It has never been used.
-RenderContext.prototype.onChange = function onChange (cb) {
-    this._events.on(CHANGE, cb);
-    return this;
-};
-
-RenderContext.prototype.offChange = function offChange (cb) {
-    this._events.off(CHANGE, cb);
-    return this;
-};
-
-/**
- * Registers a callback function to be invoked whenever the transform attached
- * to the RenderContext changes.
- *
- * @method  onTransformChange
- * @chainable
- *
- * @param  {Function} cb    callback function to be invoked whenever the transform
- *                          attached to the RenderContext changes
- * @return {RenderContext}  this
- */
-RenderContext.prototype.onTransformChange = function onTransformChange (cb) {
-    this._events.on(TRANSFORM, cb);
-    return this;
-};
-
-/**
- * Deregisters a callback function previously attached to the `transform`
- * event using `onTransformChange`.
- *
- * @method  offTransformChange
- * @chainable
- *
- * @param  {Function} cb    callback function previously attached to the `transform`
- *                          event using `onTransformChange`
- * @return {RenderContext}  this
- */
-RenderContext.prototype.offTransformChange = function offTransformChange (cb) {
-    this._events.off(TRANSFORM, cb);
-    return this;
-};
-
-/**
- * Registers a callback function to be invoked whenever the size of the
- * RenderContext changes.
- *
- * @method  onSizeChange
- * @chainable
- *
- * @param  {Function} cb    callback function to be invoked whenever the size
- *                          of the RenderContext changes
- * @return {RenderContext}  this
- */
-RenderContext.prototype.onSizeChange = function onSizeChange (cb) {
-    this._events.on(SIZE, cb);
-    return this;
-};
-
-/**
- * Deregisters a callback function previously attached to the `size`
- * event using `onSizeChange`.
- *
- * @method  offSizeChange
- * @chainable
- *
- * @param  {Function} cb    callback function previously attached to the `size`
- *                          event using `onSizeChange`
- * @return {RenderContext}  this
- */
-RenderContext.prototype.offSizeChange = function offSizeChange (cb) {
-    this._events.off(SIZE, cb);
-    return this;
-};
-
-/**
- * Registers a callback function to be invoked whenever the transform attached
- * to the RenderContext changes.
- *
- * @method  onTransformChange
- * @chainable
- *
- * @param  {Function} cb    callback function to be invoked whenever the transform
- *                          attached to the RenderContext changed
- * @return {RenderContext}  this
- */
-RenderContext.prototype.onOpacityChange = function onOpacityChange (cb) {
-    this._events.on(OPACITY, cb);
-    return this;
-};
-
-/**
- * Deregisters a callback function previously attached to the `transform`
- * event using `onTransformChange`.
- *
- * @method  offTransformChange
- * @chainable
- *
- * @param  {Function} cb    callback function previously attached to the `transform`
- *                          event using `onTransformChange`
- * @return {RenderContext}  this
- */
-RenderContext.prototype.offOpacityChange = function offOpacityChange (cb) {
-    this._events.off(OPACITY, cb);
-    return this;
-};
-
-/**
- * Sets the opacity of the RenderContext.
- *
- * @method  setOpacity
- * @chainable
- *
- * @param {Number} opacity  opacity to be set on the RenderContext
- * @return {RenderContext}  this
- */
-RenderContext.prototype.setOpacity = function setOpacity (opacity) {
-    this._opacity.set(opacity);
-    return this;
-};
-
-/**
- * Sets the position of the RenderContext.
- *
- * @method setPosition
- * @chainable
- *
- * @param {Number} x        x position
- * @param {Number} y        y position
- * @param {Number} z        z position
- * @return {RenderContext}  this
- */
-RenderContext.prototype.setPosition = function setPosition (x, y, z) {
-    this._transform.setTranslation(x, y, z);
-    return this;
-};
-
-/**
- * Sets the absolute size of the RenderContext.
- *
- * @method setAbsolute
- * @chainable
- *
- * @param {Number} x        absolute allocated pixel space in x direction
- *                          (absolute width)
- * @param {Number} y        absolute allocated pixel space in y direction
- *                          (absolute height)
- * @param {Number} z        absolute allocated **pixel** space in z direction
- *                          (absolute depth)
- * @return {RenderContext}  this
- */
-RenderContext.prototype.setAbsolute = function setAbsolute (x, y, z) {
-    this._size.setAbsolute(x, y, z);
-    return this;
-};
-
-/**
- * Returns the absolute (pixel) size of the RenderContext.
- *
- * @method  getSize
- * @chainable
- *
- * @return {Number[]} 3D absolute **pixel** size
- */
-RenderContext.prototype.getSize = function getSize () {
-    return this._size.get();
-};
-
-/**
- * Sets the proportional size of the RenderContext, relative to its parent.
- *
- * @method  setProportions
- * @chainable
- *
- * @param {Number} x        proportional allocated relative space in x direction (relative width)
- * @param {Number} y        proportional allocated relative space in y direction (relative height)
- * @param {Number} z        proportional allocated relative space in z direction (relative depth)
- * @return {RenderContext}  this
- */
-RenderContext.prototype.setProportions = function setProportions (x, y, z) {
-    this._size.setProportions(x, y, z);
-    return this;
-};
-
-/**
- * Sets the differential size of the RenderContext. Differential sizing enables
- * adding an additional offset after applying an absolute and proportional size.
- *
- * @method  setDifferntial
- * @chainable
- *
- * @param {Number} x        absolute pixel size to be added in x direction
- *                          (additional width)
- * @param {Number} y        absolute pixel size to be added in y direction
- *                          (additional height)
- * @param {Number} z        absolute pixel size to be added in z direction
- *                          (additional depth)
- * @return {RenderContext}  this
- */
-RenderContext.prototype.setDifferential = function setDifferentials (x, y, z) {
-    this._size.setDifferential(x, y, z);
-    return this;
-};
-
-/**
- * Sets the rotation of the RenderContext in euler angles.
- *
- * @method  setRotation
- * @chainable
- *
- * @param {RenderContext} x     x rotation
- * @param {RenderContext} y     y rotation
- * @param {RenderContext} z     z rotation
- * @return {RenderContext}      this
- */
-RenderContext.prototype.setRotation = function setRotation (x, y, z) {
-    this._transform.setRotation(x, y, z);
-    return this;
-};
-
-/**
- * Sets the three dimensional scale of the RenderContext.
- *
- * @method  setScale
- * @chainable
- *
- * @param {Number} x        x scale
- * @param {Number} y        y scale
- * @param {Number} z        z scale
- * @return {RenderContext}  this
- */
-RenderContext.prototype.setScale = function setScale (x, y, z) {
-    this._transform.setScale(x, y, z);
-    return this;
-};
-
-/**
- * Sets the align of the RenderContext.
- *
- * @method  setAlign
- * @chainable
- *
- * @param {Number} x        x align
- * @param {Number} y        y align
- * @param {Number} z        z align
- * @return {RenderContext}  this
- */
-RenderContext.prototype.setAlign = function setAlign (x, y, z) {
-    this._align.set(x, y, z);
-    return this;
-};
-
-/**
- * Sets the origin of the RenderContext.
- *
- * @method  setOrigin
- * @chainable
- *
- * @param {Number} x        x origin
- * @param {Number} y        y origin
- * @param {Number} z        z origin
- * @return {RenderContext}  this
- */
-RenderContext.prototype.setOrigin = function setOrigin (x, y, z) {
-    this._origin.set(x, y, z);
-    return this;
-};
-
-/**
- * Sets the mount point of the RenderContext.
- * TODO Come up with some nice ASCII art
- *
- * @method  setMountPoint
- * @chainable
- *
- * @param {Number} x        mount point in x direction
- * @param {Number} y        mount point in y direction
- * @param {Number} z        mount point in z direction
- * @return {RenderContext}  this
- */
-RenderContext.prototype.setMountPoint = function setMountPoint (x, y, z) {
-    this._mountPoint.set(x, y, z);
-    return this;
-};
-
-RenderContext.prototype.dirty = function dirty () {
-    this._recalcAll = true;
-    return this;
-};
-
-var identSize = new Float32Array([0, 0, 0]);
-var identTrans = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-
-/**
- * Updates the RenderContext's internal transform matrix and emits
- * corresponding change events. Takes into account the parentContext's size
- * invalidations in order to maintain high throughput while still updating the
- * entire scene graph on every FRAME command.
- *
- * @method  update
- * @chainable
- *
- * @param  {RenderContext} parentContext    parent context passed down recrusively by
- *                                          the Node through the LocalDispatch
- * @return {RenderContext}                  this
- */
-RenderContext.prototype.update = function update (parentContext) {
-    var sizeInvalidations;
-
-    if (this._recalcAll || (!this._noParent && !parentContext)) {
-        sizeInvalidations = 7;
-    } else if (this._noParent && !parentContext) {
-        sizeInvalidations = 0;
-    } else {
-        sizeInvalidations = parentContext._size._previouslyInvalidated;
-    }
-
-    this._size._update(
-        sizeInvalidations,
-        parentContext ? parentContext._size.getTopDownSize() : identSize
-    );
-
-    var mySize = this._size.get();
-    var parentSize = parentContext ? parentContext._size.get() : identSize;
-    this._align.update(parentSize);
-    this._mountPoint.update(mySize);
-    this._origin.update(mySize);
-
-    var alignInvalidations;
-
-    if (this._recalcAll || (!this._noParent && !parentContext)) {
-        alignInvalidations = (1 << 16) - 1;
-    }
-    else if (this._noParent && !parentContext) {
-        alignInvalidations = 0;
-    }
-    else {
-        alignInvalidations = parentContext._origin.toOriginTransform._previouslyInvalidated;
-    }
-
-    this._align.transform._update(
-        alignInvalidations,
-        parentContext ? parentContext._origin.toOriginTransform._matrix : identTrans
-    );
-
-    this._mountPoint.transform._update(
-        this._align.transform._previouslyInvalidated,
-        this._align.transform._matrix
-    );
-
-    this._origin.fromOriginTransform._update(
-        this._mountPoint.transform._previouslyInvalidated,
-        this._mountPoint.transform._matrix
-    );
-
-    this._transform._update(
-        this._origin.fromOriginTransform._previouslyInvalidated,
-        this._origin.fromOriginTransform._matrix
-    );
-
-    this._origin.toOriginTransform._update(
-        this._transform._previouslyInvalidated,
-        this._transform._matrix
-    );
-
-    var worldTransform = this._origin.toOriginTransform;
-
-    if (worldTransform._previouslyInvalidated) {
-       this._events.trigger(TRANSFORM, worldTransform);
-    }
-
-    if (this._size._previouslyInvalidated)
-        this._events.trigger(SIZE, this._size);
-
-    if (this._opacity.dirty) {
-        this._events.trigger(OPACITY, this._opacity);
-        this._opacity.clean();
-    }
-
-    if (this._recalcAll) this._recalcAll = false;
-    if (!parentContext) this._noParent = true;
-
-    return this;
-};
-
-module.exports = RenderContext;
-
-},{"./Align":83,"./MountPoint":92,"./Opacity":94,"./Origin":95,"./Size":100,"./Transform":101,"famous-utilities":79}],99:[function(require,module,exports){
-'use strict';
-
-var index = 0;
-var SLASH = '/';
-
-/**
- * RenderProxy recursively delegates commands to its parent in order to queue
- * messages to be sent on the next FRAME and uniquely identifies the node it is
- * being managed by in the scene graph by exposing a global `path` describing
- * its location.
- * 
- * @class  RenderProxy
- * @constructor
- * @private
- * 
- * @param {RenderProxy|Context} parent parent used for recursively obtaining
- *                                     the path to the corresponding node
- */
-function RenderProxy (parent) {
-    this._parent = parent;
-    this._id = SLASH + index++;
-}
-
-/**
- * Retrieves the renderpath
- *
- * @method getRenderPath
- * 
- * @return {String} render path
- */
-RenderProxy.prototype.getRenderPath = function getRenderPath () {
-    return this._parent.getRenderPath() + this._id;
-};
-
-/**
- * Appends a command to the MessageQueue by recursively passing it up to its
- * parent until the top-level Context is being reached.
- *
- * @method  receive
- * @chainable
- * 
- * @param  {Object} command command to be appended to the MessageQueue.
- *                          Usually a string literal, but can be any object
- *                          that can be cloned by the by the structured clone
- *                          algorithm used to serialize messages to be sent to
- *                          the main thread. This includes object literals
- *                          containing circular references.
- * @return {RenderProxy}    this
- */
-RenderProxy.prototype.receive = function receive (command) {
-    this._parent.receive(command);
-    return this;
-};
-
-
-// @dan This is never being used. Can we remove it?
-
-RenderProxy.prototype.send = function send () {
-    this._parent.send();
-    return this;
-};
-
-module.exports = RenderProxy;
-
-},{}],100:[function(require,module,exports){
-'use strict';
-
-/**
- * The size primitive is being used internally by the RenderContext to manage
- * and update its respective transform matrix. It doesn't expose user-facing
- * APIs, but instead is being exposed on the RenderContext level in form of
- * various methods, e.g. `setProportional` and `setAbsolute`.
- *
- * @class Size
- * @constructor
- * @private
- * 
- * @param {RenderContext} context RenderContext the Size is being attached to
- */
-function Size (context) {
-    this._context = context;
-    this._size = [0, 0, 0];
-    this._proportions = [1, 1, 1];
-    this._differential = [0, 0, 0];
-    this._absolute = [0, 0, 0];
-    this._absoluteSized = [false, false, false];
-    this._bottomUpSize = [0, 0, 0];
-    this._invalidated = 0;
-    this._previouslyInvalidated = 0;
-}
-
-/**
- * Retrieves the current top-down, absolute pixel size. Incorporates it parent size.
- *
- * @method  get
- * @private
- * 
- * @return {Number[]} absolute pixel size
- */
-Size.prototype.get = function get () {
-    if (this._context._dispatch.hasRenderables())
-        return this._context._dispatch.getTotalRenderableSize();
-    else
-        return this.getTopDownSize();
-};
-
-/**
- * Sets the proportional size.
- *
- * @method setProportions
- * @chainable
- * @private
- * 
- * @param {Number|null} x
- * @param {Number|null} y
- * @param {Number|null} z
- */
-Size.prototype.setProportions = function setProportions(x, y, z) {
-    if (x !== this._proportions[0] && x != null) {
-        this._proportions[0] = x;
-        this._invalidated |= 1;
-    }
-    if (y !== this._proportions[1] && y != null) {
-        this._proportions[1] = y;
-        this._invalidated |= 2;
-    }
-    if (z !== this._proportions[2] && z != null) {
-        this._proportions[2] = z;
-        this._invalidated |= 4;
-    }
-    return this;
-};
-
-/**
- * Sets the differential size.
- *
- * @method  setDifferential
- * @chainable
- * @private
- * 
- * @param {Number|null} x
- * @param {Number|null} y
- * @param {Number|null} z
- */
-Size.prototype.setDifferential = function setDifferential (x, y, z) {
-    if (x !== this._differential[0] && x != null) {
-        this._differential[0] = x;
-        this._invalidated |= 1;
-    }
-    if (y !== this._differential[1] && y != null) {
-        this._differential[1] = y;
-        this._invalidated |= 2;
-    }
-    if (z !== this._differential[2] && z != null) {
-        this._differential[2] = z;
-        this._invalidated |= 4;
-    }
-    return this;
-};
-
-/**
- * Internal helper function called by `setAbsolute` in order to update the absolute size.
- * 
- * @method  _setAbsolute
- * @chainable
- * @private
- * 
- * @param {Number} x
- * @param {Number} y
- * @param {Number} z
- */
-Size.prototype._setAbsolute = function _setAbsolute (x, y, z) {
-    if (x !== this._absolute[0] && x != null) {
-        this._absolute[0] = x;
-        this._invalidated |= 1;
-    }
-    if (y !== this._absolute[1] && y != null) {
-        this._absolute[1] = y;
-        this._invalidated |= 2;
-    }
-    if (z !== this._absolute[2] && z != null) {
-        this._absolute[2] = z;
-        this._invalidated |= 4;
-    }
-    return this;
-};
-
-/**
- * Updates the internal notion of absolute sizing.
- *
- * @method  setAbsolute
- * @chainable
- * @private
- * 
- * @param {Number|null} x
- * @param {Number|null} y
- * @param {Number|null} z
- */
-Size.prototype.setAbsolute = function setAbsolute (x, y, z) {
-    this._absoluteSized[0] = x != null;
-    this._absoluteSized[1] = y != null;
-    this._absoluteSized[2] = z != null;
-    this._setAbsolute(x, y, z);
-    return this;
-};
-
-/**
- * Retrieves the top-down size.
- *
- * @method  getTopDownSize
- * @chainable
- * 
- * @return {Size} this
- */
-Size.prototype.getTopDownSize = function getTopDownSize () {
-    return this._size;
-};
-
-/**
- * Updates the size according to previously set invalidations.
- *
- * @method  _update
- * @private
- * 
- * @param  {Number} parentReport    bit scheme
- * @param  {Number[]} parentSize    absolute parent size
- * @return {Number}                 bit scheme
- */
-Size.prototype._update = function _update(parentReport, parentSize) {
-    this._invalidated |= parentReport;
-    if (this._invalidated & 1)
-        if (this._absoluteSized[0]) this._size[0] = this._absolute[0];
-        else this._size[0] = parentSize[0] * this._proportions[0] + this._differential[0];
-    if (this._invalidated & 2)
-        if (this._absoluteSized[1]) this._size[1] = this._absolute[1];
-        else this._size[1] = parentSize[1] * this._proportions[1] + this._differential[1];
-    if (this._invalidated & 4)
-        if (this._absoluteSized[2]) this._size[2] = this._absolute[2];
-        else this._size[2] = parentSize[2] * this._proportions[2] + this._differential[2];
-    this._previouslyInvalidated = this._invalidated;
-    this._invalidated = 0;
-    return this._previouslyInvalidated;
-};
-
-/**
- * Resets the internal managed size (parent size). Invalidates the primitive
- * and therefore recalculates the size on the next invocation of the _update
- * function.
- *
- * @method  toIdentity
- * @chainable
- * 
- * @return {Size} this
- */
-Size.prototype.toIdentity = function toIdentity () {
-    this._absolute[0] = this._absolute[1] = this._absolute[2] = 0;
-    this._differential[0] = this._differential[1] = this._differential[2] = 0;
-    this._proportions[0] = this._proportions[1] = this._proportions[2] = 1;
-    this._invalidated = 7;
-    return this;
+    return changed;
 };
 
 module.exports = Size;
 
-},{}],101:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 'use strict';
 
-// CONSTS
-var IDENTITY = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-
-// Functions to be run when an index is marked as invalidated
-Transform.prototype._validate = function _validate(counter, parent, translation, precalculated) {
-    switch (counter) {
-        case 0: return parent[0] * precalculated[0] + parent[4] * precalculated[1] + parent[8] * precalculated[2];
-        case 1: return parent[1] * precalculated[0] + parent[5] * precalculated[1] + parent[9] * precalculated[2];
-        case 2: return parent[2] * precalculated[0] + parent[6] * precalculated[1] + parent[10] * precalculated[2];
-        case 3: return parent[3] * precalculated[0] + parent[7] * precalculated[1] + parent[11] * precalculated[2];
-        case 4: return parent[0] * precalculated[3] + parent[4] * precalculated[4] + parent[8] * precalculated[5];
-        case 5: return parent[1] * precalculated[3] + parent[5] * precalculated[4] + parent[9] * precalculated[5];
-        case 6: return parent[2] * precalculated[3] + parent[6] * precalculated[4] + parent[10] * precalculated[5];
-        case 7: return parent[3] * precalculated[3] + parent[7] * precalculated[4] + parent[11] * precalculated[5];
-        case 8: return parent[0] * precalculated[6] + parent[4] * precalculated[7] + parent[8] * precalculated[8];
-        case 9: return parent[1] * precalculated[6] + parent[5] * precalculated[7] + parent[9] * precalculated[8];
-        case 10: return parent[2] * precalculated[6] + parent[6] * precalculated[7] + parent[10] * precalculated[8];
-        case 11: return parent[3] * precalculated[6] + parent[7] * precalculated[7] + parent[11] * precalculated[8];
-        case 12: return parent[0] * translation[0] + parent[4] * translation[1] + parent[8] * translation[2] + parent[12];
-        case 13: return parent[1] * translation[0] + parent[5] * translation[1] + parent[9] * translation[2] + parent[13];
-        case 14: return parent[2] * translation[0] + parent[6] * translation[1] + parent[10] * translation[2] + parent[14];
-        case 15: return parent[3] * translation[0] + parent[7] * translation[1] + parent[11] * translation[2] + parent[15];
-    }
-};
-
-// Map of invalidation numbers
-var DEPENDENTS = {
-    global: [4369, 8738, 17476, 34952, 4369, 8738, 17476, 34952, 4369, 8738, 17476, 34952, 4096, 8192, 16384, 32768],
-    local: {
-        translation: [61440, 61440, 61440],
-        rotation: [4095, 4095, 255],
-        scale: [4095, 4095, 4095]
-    }
-};
-
-/**
- * Transform is an object that is part of every RenderContext, Align and its
- * derivatives Origin and MountPoint.
- * It is responsible for updating its own notion of position in space and
- * incorporating its parent information.
- *
- * @class Transform
- * @constructor
- * @private
- */
-function Transform() {
-    this._matrix = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-    this._memory = new Float32Array([1, 0, 1, 0, 1, 0]);
-    this._vectors = {
-        translation: new Float32Array([0, 0, 0]),
-        rotation: new Float32Array([0, 0, 0]),
-        scale: new Float32Array([1, 1, 1])
-    };
-    this._invalidated = 0;
-    this._previouslyInvalidated = 0;
-
-    // precalculated values for validators
-    this._precalculated = new Float32Array(9);
-    // track what transformations were applied: [scale x, scale y, scale z, rotation x, rotaion y, rotation z]
-    this._tracktransforms = [false, false, false, false, false, false];
+function Transform () {
+    this._matrix = new Float32Array(16);
+    this._scratch = new Float32Array(67);
 }
 
-/**
- * Return the transform matrix that represents this Transform's values
- *   being applied to it's parent's global transform.
- *
- * @method getGlobalMatrix
- *
- * @return {Float32Array}   representation of this Transform being applied to
- *                          it's parent
- */
-Transform.prototype.getGlobalMatrix = function getGlobalMatrix() {
+Transform.prototype.get = function get () {
     return this._matrix;
 };
 
-/**
- * Return the vectorized information for this Transform's local
- *   transform.
- *
- * @method getLocalVectors
- *
- * @return {Object} object with translate, rotate, and scale keys
- */
-Transform.prototype.getLocalVectors = function getVectors() {
-    return this._vectors;
-};
+Transform.prototype.fromSpecWithParent = function fromSpecWithParent (parentMatrix, spec, mySize, parentSize, target) {
+    target = target ? target : this._matrix;
 
-/**
- * Updates the local invalidation scheme based on parent information
- *
- * @method _invalidateFromParent
- * @private
- *
- * @param  {Number} parentReport parent's invalidation
- */
-Transform.prototype._invalidateFromParent = function _invalidateFromParent(parentReport) {
-    var counter = 0;
-    while (parentReport) {
-        if (parentReport & 1) this._invalidated |= DEPENDENTS.global[counter];
-        counter++;
-        parentReport >>>= 1;
-    }
-};
+    // local cache of everything
+    var t00         = target[0];
+    var t01         = target[1];
+    var t02         = target[2];
+    var t03         = target[3];
+    var t10         = target[4];
+    var t11         = target[5];
+    var t12         = target[6];
+    var t13         = target[7];
+    var t20         = target[8];
+    var t21         = target[9];
+    var t22         = target[10];
+    var t23         = target[11];
+    var t30         = target[12];
+    var t31         = target[13];
+    var t32         = target[14];
+    var t33         = target[15];
+    var p00         = parentMatrix[0];
+    var p01         = parentMatrix[1];
+    var p02         = parentMatrix[2];
+    var p03         = parentMatrix[3];
+    var p10         = parentMatrix[4];
+    var p11         = parentMatrix[5];
+    var p12         = parentMatrix[6];
+    var p13         = parentMatrix[7];
+    var p20         = parentMatrix[8];
+    var p21         = parentMatrix[9];
+    var p22         = parentMatrix[10];
+    var p23         = parentMatrix[11];
+    var p30         = parentMatrix[12];
+    var p31         = parentMatrix[13];
+    var p32         = parentMatrix[14];
+    var p33         = parentMatrix[15];
+    var posX        = spec.vectors.position[0];
+    var posY        = spec.vectors.position[1];
+    var posZ        = spec.vectors.position[2];
+    var rotX        = spec.vectors.rotation[0];
+    var rotY        = spec.vectors.rotation[1];
+    var rotZ        = spec.vectors.rotation[2];
+    var scaleX      = spec.vectors.scale[0];
+    var scaleY      = spec.vectors.scale[1];
+    var scaleZ      = spec.vectors.scale[2];
+    var alignX      = spec.offsets.align[0] * parentSize[0];
+    var alignY      = spec.offsets.align[1] * parentSize[1];
+    var alignZ      = spec.offsets.align[2] * parentSize[2];
+    var mountPointX = spec.offsets.mountPoint[0] * mySize[0];
+    var mountPointY = spec.offsets.mountPoint[1] * mySize[1];
+    var mountPointZ = spec.offsets.mountPoint[2] * mySize[2];
+    var originX     = spec.offsets.origin[0] * mySize[0];
+    var originY     = spec.offsets.origin[1] * mySize[1];
+    var originZ     = spec.offsets.origin[2] * mySize[2];
+    var cosX        = Math.cos(rotX);
+    var cosY        = Math.cos(rotY);
+    var cosZ        = Math.cos(rotZ);
+    var sinX        = Math.sin(rotX);
+    var sinY        = Math.sin(rotY);
+    var sinZ        = Math.sin(rotZ);
+    var expr1       = (cosY * cosZ);
+    var expr2       = (cosX * sinZ + sinX * sinY * cosZ);
+    var expr3       = (sinX * sinZ - cosX * sinY * cosZ);
+    var expr4       = (-cosY * sinZ);
+    var expr5       = (cosX * cosZ - sinX * sinY * sinZ);
+    var expr6       = (sinX * cosZ + cosX * sinY * sinZ);
+    var expr7       = (-sinX * cosY);
+    var expr8       = (cosX * cosY);
 
-Transform.prototype._isIdentity = function _isIdentity() {
-    var vectors = this._vectors;
-    var trans = vectors.translation;
-    var rot = vectors.rotation;
-    var scale = vectors.scale;
-    return !(trans[0] || trans[1] || trans[2] || rot[0] || rot[1] || rot[2]) && (scale[0] === 1) && (scale[1] === 1) && (scale[2] === 1);
-};
+    target[0]  = ((((p00) * expr1) + ((p10) * expr2)) + ((p20) * expr3)) * (scaleX);
+    target[1]  = ((((p01) * expr1) + ((p11) * expr2)) + ((p21) * expr3)) * (scaleX);
+    target[2]  = ((((p02) * expr1) + ((p12) * expr2)) + ((p22) * expr3)) * (scaleX);
+    target[3]  = ((((p03) * expr1) + ((p13) * expr2)) + ((p23) * expr3)) * (scaleX);
+    target[4]  = ((((p00) * expr4) + ((p10) * expr5)) + ((p20) * expr6)) * (scaleY);
+    target[5]  = ((((p01) * expr4) + ((p11) * expr5)) + ((p21) * expr6)) * (scaleY);
+    target[6]  = ((((p02) * expr4) + ((p12) * expr5)) + ((p22) * expr6)) * (scaleY);
+    target[7]  = ((((p03) * expr4) + ((p13) * expr5)) + ((p23) * expr6)) * (scaleY);
+    target[8]  = ((((p00) * (sinY)) + ((p10) * expr7)) + ((p20) * expr8)) * (scaleZ);
+    target[9]  = ((((p01) * (sinY)) + ((p11) * expr7)) + ((p21) * expr8)) * (scaleZ);
+    target[10] = ((((p02) * (sinY)) + ((p12) * expr7)) + ((p22) * expr8)) * (scaleZ);
+    target[11] = ((((p03) * (sinY)) + ((p13) * expr7)) + ((p23) * expr8)) * (scaleZ);
+    target[12] = (((((((p00) * expr1) + ((p10) * expr2)) + ((p20) * expr3)) * (scaleX)) * ((-originX))) + ((((((p00) * expr4) + ((p10) * expr5)) + ((p20) * expr6)) * (scaleY)) * ((-originY)))) + (((((((p00) * (sinY)) + ((p10) * expr7)) + ((p20) * expr8)) * (scaleZ)) * ((-originZ))) + ((((p00) * (posX)) + ((p10) * (posY))) + (((p20) * (posZ)) + ((((p00) * (originX)) + ((p10) * (originY))) + (((p20) * (originZ)) + ((((p00) * ((-mountPointX))) + ((p10) * ((-mountPointY)))) + (((p20) * ((-mountPointZ))) + ((((p00) * (alignX)) + ((p10) * (alignY))) + (((p20) * (alignZ)) + (p30))))))))));
+    target[13] = (((((((p01) * expr1) + ((p11) * expr2)) + ((p21) * expr3)) * (scaleX)) * ((-originX))) + ((((((p01) * expr4) + ((p11) * expr5)) + ((p21) * expr6)) * (scaleY)) * ((-originY)))) + (((((((p01) * (sinY)) + ((p11) * expr7)) + ((p21) * expr8)) * (scaleZ)) * ((-originZ))) + ((((p01) * (posX)) + ((p11) * (posY))) + (((p21) * (posZ)) + ((((p01) * (originX)) + ((p11) * (originY))) + (((p21) * (originZ)) + ((((p01) * ((-mountPointX))) + ((p11) * ((-mountPointY)))) + (((p21) * ((-mountPointZ))) + ((((p01) * (alignX)) + ((p11) * (alignY))) + (((p21) * (alignZ)) + (p31))))))))));
+    target[14] = (((((((p02) * expr1) + ((p12) * expr2)) + ((p22) * expr3)) * (scaleX)) * ((-originX))) + ((((((p02) * expr4) + ((p12) * expr5)) + ((p22) * expr6)) * (scaleY)) * ((-originY)))) + (((((((p02) * (sinY)) + ((p12) * expr7)) + ((p22) * expr8)) * (scaleZ)) * ((-originZ))) + ((((p02) * (posX)) + ((p12) * (posY))) + (((p22) * (posZ)) + ((((p02) * (originX)) + ((p12) * (originY))) + (((p22) * (originZ)) + ((((p02) * ((-mountPointX))) + ((p12) * ((-mountPointY)))) + (((p22) * ((-mountPointZ))) + ((((p02) * (alignX)) + ((p12) * (alignY))) + (((p22) * (alignZ)) + (p32))))))))));
+    target[15] = (((((((p03) * expr1) + ((p13) * expr2)) + ((p23) * expr3)) * (scaleX)) * ((-originX))) + ((((((p03) * expr4) + ((p13) * expr5)) + ((p23) * expr6)) * (scaleY)) * ((-originY)))) + (((((((p03) * (sinY)) + ((p13) * expr7)) + ((p23) * expr8)) * (scaleZ)) * ((-originZ))) + ((((p03) * (posX)) + ((p13) * (posY))) + (((p23) * (posZ)) + ((((p03) * (originX)) + ((p13) * (originY))) + (((p23) * (originZ)) + ((((p03) * ((-mountPointX))) + ((p13) * ((-mountPointY)))) + (((p23) * ((-mountPointZ))) + ((((p03) * (alignX)) + ((p13) * (alignY))) + (((p23) * (alignZ)) + (p33))))))))));
 
-Transform.prototype._copyParent = function _copyParent(parentReport, parentMatrix) {
-    var report = this._invalidated;
-    if (parentReport) {
-        this._previouslyInvalidated = parentReport;
-        var counter = 0;
-        while (report) {
-            if (report & 1) this._matrix[counter] = parentMatrix[counter];
-            counter++;
-            report >>>= 1;
-        }
-    }
-
-    return report;
-};
-
-/**
- * Update the global matrix based on local and parent invalidations.
- *
- * @method  _update
- * @private
- *
- * @param  {Number} parentReport invalidations associated with the parent matrix
- * @param  {Array} parentMatrix parent transform matrix as an Array
- * @return {Number} invalidation scheme
- */
-Transform.prototype._update = function _update(parentReport, parentMatrix) {
-    if (!(parentReport || this._invalidated)) {
-        this._previouslyInvalidated = 0;
-        return 0;
-    }
-    if (parentReport) this._invalidateFromParent(parentReport);
-    if (!parentMatrix) parentMatrix = IDENTITY;
-    if (this._isIdentity()) return this._copyParent(parentReport, parentMatrix);
-    var update;
-    var counter = 0;
-    var invalidated = this._invalidated;
-
-    //prepare precalculations
-    this._precalculateTrMatrix();
-
-    // Based on invalidations update only the needed indicies
-    while (this._invalidated) {
-        if (this._invalidated & 1) {
-            update = this._validate(counter, parentMatrix, this._vectors.translation, this._precalculated);
-            if (update !== this._matrix[counter])
-                this._matrix[counter] = update;
-            else
-                invalidated &= ((1 << 16) - 1) ^ (1 << counter);
-        }
-
-        counter++;
-        this._invalidated >>>= 1;
-    }
-
-    this._previouslyInvalidated = invalidated;
-
-    return invalidated;
-};
-
-/**
- * Add extra translation to the current values.  Invalidates
- *   translation as needed.
- *
- * @method translate
- *
- * @param  {Number} x translation along the x-axis in pixels
- * @param  {Number} y translation along the y-axis in pixels
- * @param  {Number} z translation along the z-axis in pixels
- */
-Transform.prototype.translate = function translate(x, y, z) {
-    var translation = this._vectors.translation;
-    var dirty = false;
-
-    if (x) {
-        translation[0] += x;
-        dirty = true;
-    }
-
-    if (y) {
-        translation[1] += y;
-        dirty = true;
-    }
-
-    if (z) {
-        translation[2] += z;
-        dirty = true;
-    }
-
-    if (dirty) this._invalidated |= 61440;
-};
-
-/**
- * Add extra rotation to the current values.  Invalidates
- *   rotation as needed.
- *
- * @method rotate
- *
- * @param  {Number} x rotation about the x-axis in radians
- * @param  {Number} y rotation about the y-axis in radians
- * @param  {Number} z rotation about the z-axis in radians
- */
-Transform.prototype.rotate = function rotate(x, y, z) {
-    var rotation = this._vectors.rotation;
-    this.setRotation((x ? x : 0) + rotation[0], (y ? y : 0) + rotation[1], (z ? z : 0) + rotation[2]);
-};
-
-/**
- * Add extra scale to the current values.  Invalidates
- *   scale as needed.
- *
- * @method scale
- *
- * @param  {Number} x scale along the x-axis as a percent
- * @param  {Number} y scale along the y-axis as a percent
- * @param  {Number} z scale along the z-axis as a percent
- */
-Transform.prototype.scale = function scale(x, y, z) {
-    var scaleVector = this._vectors.scale;
-    var tracktransforms = this._tracktransforms;
-    var dirty = false;
-
-    if (x) {
-        scaleVector[0] += x;
-        dirty = dirty || true;
-        tracktransforms[0] = true;
-    }
-
-    if (y) {
-        scaleVector[1] += y;
-        dirty = dirty || true;
-        tracktransforms[1] = true;
-    }
-
-    if (z) {
-        scaleVector[2] += z;
-        dirty = dirty || true;
-        tracktransforms[2] = true;
-    }
-
-    if (dirty) this._invalidated |= 4095;
-};
-
-/**
- * Absolute set of the Transform's translation.  Invalidates
- *   translation as needed.
- *
- * @method setTranslation
- *
- * @param  {Number} x translation along the x-axis in pixels
- * @param  {Number} y translation along the y-axis in pixels
- * @param  {Number} z translation along the z-axis in pixels
- */
-Transform.prototype.setTranslation = function setTranslation(x, y, z) {
-    var translation = this._vectors.translation;
-    var dirty = false;
-
-    if (x !== translation[0] && x != null) {
-        translation[0] = x;
-        dirty = dirty || true;
-    }
-
-    if (y !== translation[1] && y != null) {
-        translation[1] = y;
-        dirty = dirty || true;
-    }
-
-    if (z !== translation[2] && z != null) {
-        translation[2] = z;
-        dirty = dirty || true;
-    }
-
-    if (dirty) this._invalidated |= 61440;
-};
-
-/**
- * Return the current translation.
- *
- * @method getTranslation
- *
- * @return {Float32Array} array representing the current translation
- */
-Transform.prototype.getTranslation = function getTranslation() {
-    return this._vectors.translation;
-};
-
-/**
- * Absolute set of the Transform's rotation.  Invalidates
- *   rotation as needed.
- *
- * @method setRotate
- *
- * @param  {Number} x rotation about the x-axis in radians
- * @param  {Number} y rotation about the y-axis in radians
- * @param  {Number} z rotation about the z-axis in radians
- */
-Transform.prototype.setRotation = function setRotation(x, y, z) {
-    var rotation = this._vectors.rotation;
-    var tracktransforms = this._tracktransforms;
-    var dirty = false;
-
-    if (x !== rotation[0] && x != null) {
-        rotation[0] = x;
-        this._memory[0] = Math.cos(x);
-        this._memory[1] = Math.sin(x);
-        dirty = dirty || true;
-        tracktransforms[3] = true;
-    }
-
-    if (y !== rotation[1] && y != null) {
-        rotation[1] = y;
-        this._memory[2] = Math.cos(y);
-        this._memory[3] = Math.sin(y);
-        dirty = dirty || true;
-        tracktransforms[4] = true;
-    }
-
-    if (z !== rotation[2] && z != null) {
-        rotation[2] = z;
-        this._memory[4] = Math.cos(z);
-        this._memory[5] = Math.sin(z);
-        this._invalidated |= 255;
-        tracktransforms[5] = true;
-    }
-
-    if (dirty) this._invalidated |= 4095;
-};
-
-/**
- * Return the current rotation.
- *
- * @method getRotation
- *
- * @return {Float32Array} array representing the current rotation
- */
-Transform.prototype.getRotation = function getRotation() {
-    return this._vectors.rotation;
-};
-
-/**
- * Absolute set of the Transform's scale.  Invalidates
- *   scale as needed.
- *
- * @method setScale
- *
- * @param  {Number} x scale along the x-axis as a percent
- * @param  {Number} y scale along the y-axis as a percent
- * @param  {Number} z scale along the z-axis as a percent
- */
-Transform.prototype.setScale = function setScale(x, y, z) {
-    var scale = this._vectors.scale;
-    var tracktransforms = this._tracktransforms;
-    var dirty = false;
-
-    if (x !== scale[0]) {
-        scale[0] = x;
-        dirty = dirty || true;
-        tracktransforms[0] = true;
-    }
-
-    if (y !== scale[1]) {
-        scale[1] = y;
-        dirty = dirty || true;
-        tracktransforms[1] = true;
-    }
-
-    if (z !== scale[2]) {
-        scale[2] = z;
-        dirty = dirty || true;
-        tracktransforms[2] = true;
-    }
-
-    if (dirty) this._invalidated |= 4095;
-};
-
-/**
- * Return the current scale.
- *
- * @method getScale
- *
- * @return {Float32Array} array representing the current scale
- */
-Transform.prototype.getScale = function getScale() {
-    return this._vectors.scale;
-};
-
-Transform.prototype.toIdentity = function toIdentity() {
-    this.setTranslation(0, 0, 0);
-    this.setRotation(0, 0, 0);
-    this.setScale(1, 1, 1);
-    return this;
-};
-
-Transform.prototype._precalculateAddRotation = function _precalculateAddRotation(isRotateX, isRotateY, isRotateZ) {
-    var precalculated = this._precalculated;
-    var memory = this._memory;
-
-    precalculated[1] = memory[0] * memory[5] + memory[1] * memory[3] * memory[4];
-    precalculated[2] = memory[1] * memory[5] - memory[0] * memory[3] * memory[4];
-    precalculated[4] = memory[0] * memory[4] - memory[1] * memory[3] * memory[5];
-    precalculated[5] = memory[1] * memory[4] + memory[0] * memory[3] * memory[5];
-
-    if(isRotateY || isRotateZ) { //by y or z
-        precalculated[0] = memory[2] * memory[4];
-        precalculated[3] = -memory[2] * memory[5];
-    }
-    else {
-        precalculated[0] = 1;
-        precalculated[3] = 0;
-    }
-
-    if(isRotateX || isRotateY) {  //by x or y
-        precalculated[7] = -memory[1] * memory[2];
-        precalculated[8] = memory[0] * memory[2];
-    }
-    else {
-        precalculated[7] = 0;
-        precalculated[8] = 1
-    }
-
-    precalculated[6] = isRotateY ? memory[3] : 0; //by y
-};
-
-Transform.prototype._precalculateAddScale = function _precalculateAddScale(isScaleX, isScaleY, isScaleZ, isRotated) {
-    var precalculated = this._precalculated;
-    var scale = this._vectors.scale;
-
-    if(isRotated) { // is rotated previously
-        if(isScaleX){  //by x
-            precalculated[0] *= scale[0];
-            precalculated[1] *= scale[0];
-            precalculated[2] *= scale[0];
-        }
-
-        if(isScaleY){  //by y
-            precalculated[3] *= scale[1];
-            precalculated[4] *= scale[1];
-            precalculated[5] *= scale[1];
-        }
-
-        if(isScaleZ){  //by z
-            precalculated[6] *= scale[2];
-            precalculated[7] *= scale[2];
-            precalculated[8] *= scale[2];
-        }
-    }
-    else { //not rotated
-        precalculated[0] = scale[0];
-        precalculated[4] = scale[1];
-        precalculated[8] = scale[2];
-        precalculated[1] = precalculated[2] = precalculated[3] = precalculated[5] = precalculated[6] = precalculated[7] = 0;
-    }
-};
-
-Transform.prototype._precalculatedSetDefault = function _precalculatedSetDefault() {
-    var precalculated = this._precalculated;
-    precalculated[0] = precalculated[4] = precalculated[8] = 1;
-    precalculated[1] = precalculated[2] = precalculated[3] = precalculated[5] = precalculated[6] = precalculated[7] = 0;
-};
-
-Transform.prototype._precalculateTrMatrix = function _precalculateTrMatrix() {
-    var tracktransforms = this._tracktransforms;
-
-    //rotation should go before scale checks
-    if(tracktransforms[3] || tracktransforms[4] || tracktransforms[5]){ // is rotate by x or y or z
-        this._precalculateAddRotation(tracktransforms[3], tracktransforms[4], tracktransforms[5]);
-
-        if(tracktransforms[0] || tracktransforms[1] || tracktransforms[2]){ // is scale with rotation
-            this._precalculateAddScale( tracktransforms[0], tracktransforms[1], tracktransforms[2], true);
-        }
-    }
-    else if(tracktransforms[0] || tracktransforms[1] || tracktransforms[2]){ //is scale w/o rotation
-        this._precalculateAddScale( tracktransforms[0], tracktransforms[1], tracktransforms[2], false);
-    }
-    else {
-        this._precalculatedSetDefault();
-    }
+    return t00 !== target[0] ||
+        t01 !== target[1] ||
+        t02 !== target[2] ||
+        t03 !== target[3] ||
+        t10 !== target[4] ||
+        t11 !== target[5] ||
+        t12 !== target[6] ||
+        t13 !== target[7] ||
+        t20 !== target[8] ||
+        t21 !== target[9] ||
+        t22 !== target[10] ||
+        t23 !== target[11] ||
+        t30 !== target[12] ||
+        t31 !== target[13] ||
+        t32 !== target[14] ||
+        t33 !== target[15];
 
 };
 
 module.exports = Transform;
 
-},{}],102:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 'use strict';
 
 module.exports = {
-    Align: require('./Align'),
-    ComponentStore: require('./ComponentStore'),
-    GlobalDispatch: require('./GlobalDispatch'),
+    Clock: require('./Clock'),
+    Event: require('./Event'),
     Context: require('./Context'),
     Famous: require('./Famous'),
-    Layer: require('./Layer'),
-    Clock: require('./Clock'),
-    LocalDispatch: require('./LocalDispatch'),
-    MountPoint: require('./MountPoint'),
+    Dispatcher: require('./Dispatcher'),
     Node: require('./Node'),
-    Opacity: require('./Opacity'),
-    Origin: require('./Origin'),
-    RenderContext: require('./RenderContext'),
-    RenderProxy: require('./RenderProxy'),
     Size: require('./Size'),
     Transform: require('./Transform')
 };
 
-},{"./Align":83,"./Clock":84,"./ComponentStore":85,"./Context":86,"./Famous":87,"./GlobalDispatch":88,"./Layer":89,"./LocalDispatch":90,"./MountPoint":92,"./Node":93,"./Opacity":94,"./Origin":95,"./RenderContext":98,"./RenderProxy":99,"./Size":100,"./Transform":101}],103:[function(require,module,exports){
+},{"./Clock":67,"./Context":68,"./Dispatcher":69,"./Event":70,"./Famous":71,"./Node":72,"./Size":73,"./Transform":74}],76:[function(require,module,exports){
 arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],104:[function(require,module,exports){
+},{"dup":32}],77:[function(require,module,exports){
 arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],105:[function(require,module,exports){
+},{"dup":33}],78:[function(require,module,exports){
 arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":103,"dup":34}],106:[function(require,module,exports){
+},{"./Curves":76,"dup":34}],79:[function(require,module,exports){
 arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],107:[function(require,module,exports){
+},{"dup":35}],80:[function(require,module,exports){
 arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":103,"./Easing":104,"./Transitionable":105,"./after":106,"dup":36}],108:[function(require,module,exports){
+},{"./Curves":76,"./Easing":77,"./Transitionable":78,"./after":79,"dup":36}],81:[function(require,module,exports){
 arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],109:[function(require,module,exports){
+},{"dup":42}],82:[function(require,module,exports){
 arguments[4][43][0].apply(exports,arguments)
-},{"dup":43,"famous-transitions":107}],110:[function(require,module,exports){
+},{"dup":43,"famous-transitions":80}],83:[function(require,module,exports){
 arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],111:[function(require,module,exports){
+},{"dup":44}],84:[function(require,module,exports){
 arguments[4][45][0].apply(exports,arguments)
-},{"dup":45}],112:[function(require,module,exports){
+},{"dup":45}],85:[function(require,module,exports){
 arguments[4][46][0].apply(exports,arguments)
-},{"dup":46}],113:[function(require,module,exports){
+},{"dup":46}],86:[function(require,module,exports){
 arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],114:[function(require,module,exports){
+},{"dup":47}],87:[function(require,module,exports){
 arguments[4][48][0].apply(exports,arguments)
-},{"dup":48}],115:[function(require,module,exports){
+},{"dup":48}],88:[function(require,module,exports){
 arguments[4][49][0].apply(exports,arguments)
-},{"./CallbackStore":108,"./Color":109,"./KeyCodes":110,"./MethodStore":111,"./ObjectManager":112,"./clone":113,"./flatClone":114,"./keyValueToArrays":116,"./loadURL":117,"./strip":118,"dup":49}],116:[function(require,module,exports){
+},{"./CallbackStore":81,"./Color":82,"./KeyCodes":83,"./MethodStore":84,"./ObjectManager":85,"./clone":86,"./flatClone":87,"./keyValueToArrays":89,"./loadURL":90,"./strip":91,"dup":49}],89:[function(require,module,exports){
 arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],117:[function(require,module,exports){
+},{"dup":50}],90:[function(require,module,exports){
 arguments[4][51][0].apply(exports,arguments)
-},{"dup":51}],118:[function(require,module,exports){
+},{"dup":51}],91:[function(require,module,exports){
 arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],119:[function(require,module,exports){
+},{"dup":52}],92:[function(require,module,exports){
+var CallbackStore = require('famous-utilities').CallbackStore;
+
+function DOMElement (node, options) {
+    if (typeof options === 'string') {
+        console.warn(
+            'HTMLElement constructor signature changed!\n' +
+            'Pass in an options object with {tagName: ' + options + '} instead.'
+        );
+        options = {
+            tagName: options
+        };
+    }
+
+    this._node = node;
+
+    this._requestingUpdate = false;
+
+    this._changeQueue = [];
+    
+    this._classes = ['fa-surface'];
+    this._requestingEventListeners = [];
+    this._styles = {
+        display: node.isShown() 
+    };
+    this._attributes = {};
+    this._content = '';
+
+    this._tagName = options && options.tagName ? options.tagName : 'div';
+    this._id = node.addComponent(this);
+
+    this._callbacks = new CallbackStore();
+
+    if (!options) return;
+
+    if (options.classes) {
+        for (var i = 0; i < options.classes.length; i++)
+            this.addClass(options.classes[i]);
+    }
+
+    if (options.attributes) {
+        for (var key in options.attributes)
+            this.setAttribute(key, options.attributes[key]);
+    }
+
+    if (options.properties) {
+        for (var key in options.properties)
+            this.setProperty(key, options.properties[key]);
+    }
+
+    if (options.id) this.setId(options.id);
+    if (options.content) this.setContent(options.content);
+}
+
+DOMElement.prototype.getValue = function getValue () {
+    return {
+        classes: this._classes,
+        styles: this._styles,
+        attributes: this._attributes,
+        content: this._content
+    };
+};
+
+DOMElement.prototype.onUpdate = function onUpdate () {
+    var node = this._node;
+    var queue = this._changeQueue;
+    var len = queue.length;
+
+    if (len && node) {
+        node.sendDrawCommand('WITH');
+        node.sendDrawCommand(node.getLocation());
+        node.sendDrawCommand('DOM');
+
+        while (len--) node.sendDrawCommand(queue.shift());
+    }
+
+    this._requestingUpdate = false;
+};
+
+DOMElement.prototype.onMount = function onMount (node, id) {
+    this._node = node;
+    this._id = id;
+    this.draw();
+    this.setAttribute('data-fa-path', node.getLocation());
+};
+
+DOMElement.prototype.onDismount = function onDismount () {
+    this.setProperty('display', 'none');
+    this.setAttribute('data-fa-path', '');
+    this._initialized = false;
+};
+
+DOMElement.prototype.onShow = function onShow () {
+    this.setProperty('display', 'block');
+};
+
+DOMElement.prototype.onHide = function onHide () {
+    this.setProperty('display', 'none');
+};
+
+DOMElement.prototype.onTransformChange = function onTransformChange (transform) {
+    this._changeQueue.push('CHANGE_TRANSFORM');
+    for (var i = 0, len = transform.length ; i < len ; i++)
+        this._changeQueue.push(transform[i]);
+
+    if (!this._requestingUpdate) this._requestUpdate();
+};
+
+DOMElement.prototype.onSizeChange = function onSizeChange (size) {
+    var sizeMode = this._node.getSizeMode();
+    var sizedX = sizeMode[0] !== Node.RENDER_SIZE;
+    var sizedY = sizeMode[1] !== Node.RENDER_SIZE;
+    if (this._initialized) 
+        this._changeQueue.push('CHANGE_SIZE',
+            sizedX ? size[0] : sizedX,
+            sizedY ? size[1] : sizedY);
+
+    if (!this._requestingUpdate) this._requestUpdate();
+    return this;
+};
+
+DOMElement.prototype.onAddUIEvent = function onAddUIEvent (UIEvent) {
+    this._changeQueue.push('ADD_EVENT_LISTENER', UIEvent, void 0, true, 'EVENT_END');
+    if (!this._requestingUpdate) this._requestUpdate();
+};
+
+DOMElement.prototype.onSizeModeChange = function onSizeModeChange (sizeMode) {
+    this.onSizeChange(this._node.getSize());
+}; 
+
+DOMElement.prototype._requestUpdate = function _requestUpdate () {
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+};
+
+DOMElement.prototype.init = function init () {
+    this._changeQueue.push('INIT_DOM', this._tagName);
+    this._initialized = true;
+    this.onTransformChange(this._node.getTransform());
+    this.onSizeChange(this._node.getSize());
+    if (!this._requestingUpdate) this._requestUpdate();
+};
+
+DOMElement.prototype.setId = function setId (id) {
+    this.setAttribute('id', id);
+    return this;
+};
+
+DOMElement.prototype.addClass = function addClass (value) {
+    if (this._classes.indexOf(value) < 0) {
+        if (this._initialized) this._changeQueue.push('ADD_CLASS', value);
+        this._classes.push(value);
+        if (!this._requestingUpdate) this._requestUpdate();
+        return this;
+    }
+
+    if (this._inDraw) {
+        if (this._initialized) this._changeQueue.push('ADD_CLASS', value);
+        if (!this._requestingUpdate) this._requestUpdate();
+    }
+    return this;
+};
+
+DOMElement.prototype.removeClass = function removeClass (value) {
+    var index = this._classes.indexOf(value);
+
+    if (index < 0) return this;
+
+    this._changeQueue.push('REMOVE_CLASS', value);
+
+    this._classes.splice(index, 1);
+
+    if (!this._requestingUpdate) this._requestUpdate();
+    return this;
+};
+
+DOMElement.prototype.setAttribute = function setAttribute (name, value) {
+    if (this._attributes[name] !== value || this._inDraw) {
+        this._attributes[name] = value;
+        if (this._initialized) this._changeQueue.push('CHANGE_ATTRIBUTE', name, value);
+        if (!this._requestUpdate) this._requestUpdate();
+    }
+    return this;
+};
+
+DOMElement.prototype.setProperty = function setProperty (name, value) {
+    if (this._styles[name] !== value || this._inDraw) {
+        this._styles[name] = value;
+        if (this._initialized) this._changeQueue.push('CHANGE_PROPERTY', name, value);
+        if (!this._requestingUpdate) this._requestUpdate();
+    }
+    return this;
+};
+
+DOMElement.prototype.setContent = function setContent (content) {
+    if (this._content !== content || this._inDraw) {
+        this._content = content;
+        if (this._initialized) this._changeQueue.push('CHANGE_CONTENT', content);
+        if (!this._requestingUpdate) this._requestUpdate();
+    }
+    return this;
+};
+
+DOMElement.prototype.on = function on (event, listener) {
+    return this._callbacks.on(event, listener);
+};
+
+DOMElement.prototype.onReceive = function onReceive (event, payload) {
+    this._callbacks.trigger(event, payload);
+};
+
+DOMElement.prototype.draw = function draw () {
+    var key;
+    var i;
+    var len;
+
+    this._inDraw = true;
+
+    this.init();
+
+    for (i = 0, len = this._classes.length ; i < len ; i++)
+        this.addClass(this._classes[i]);
+
+    this.setContent(this._content);
+
+    for (key in this._styles) 
+        if (this._styles[key])
+            this.setProperty(key, this._styles[key]);
+
+    for (key in this._attributes)
+        if (this._attributes[key])
+            this.setAttribute(key, this._attributes[key]);
+
+    this._inDraw = false;
+};
+
+module.exports = DOMElement;
+
+
+},{"famous-utilities":88}],93:[function(require,module,exports){
 'use strict';
 
+var DOMElement = require('./DOMElement');
 var CallbackStore = require('famous-utilities').CallbackStore;
 
 var WITH = 'WITH';
@@ -13711,362 +12481,22 @@ var RECALL = 'RECALL';
  * @component
  * @param {RenderNode} RenderNode to which the instance of Element will be a component of
  */
-function HTMLElement(dispatch, options) {
-    if (typeof options === 'string') {
-        console.warn(
-            'HTMLElement constructor signature changed!\n' +
-            'Pass in an options object with {tagName: ' + options + '} instead.'
-        );
-        options = {
-            tagName: options
-        };
-    }
-
-    options = options || {};
-    this._dispatch = dispatch;
-    this._id = dispatch.addRenderable(this);
-    this._queue = [];
-
-    this._tagName = options.tagName ? options.tagName : 'div';
-    this._transform = new Float32Array(16);
-    this._size = [0, 0, 0];
-    this._trueSized = [false, false];
-    this._opacity = 1;
-    this._properties = {};
-    this._classes = {};
-    this._attributes = {};
-    this._content = '';
-
-    this._queue.push(INIT_DOM);
-    this._queue.push(this._tagName);
-
-    this._callbacks = new CallbackStore();
-    this._dispatch.onTransformChange(this._receiveTransformChange.bind(this));
-    this._dispatch.onSizeChange(this._receiveSizeChange.bind(this));
-    this._dispatch.onOpacityChange(this._receiveOpacityChange.bind(this));
-
-    this._receiveTransformChange(this._dispatch.getContext()._transform);
-    this._receiveSizeChange(this._dispatch.getContext()._size);
-    this._receiveOpacityChange(this._dispatch.getContext()._opacity);
-
-    if (options == null) return;
-
-    if (options.classes) {
-        for (var i = 0; i < options.classes.length; i++)
-            this.addClass(options.classes[i]);
-    }
-
-    if (options.attributes) {
-        for (var key in options.attributes)
-            this.attribute(key, options.attributes[key]);
-    }
-
-    if (options.properties) {
-        for (var key in options.properties)
-            this.property(key, options.properties[key]);
-    }
-
-    if (options.id) this.id(options.id);
-    if (options.content) this.content(options.content);
-}
-
-// Return the name of the Element Class: 'element'
-HTMLElement.toString = function toString() {
-    return 'element';
-};
-
-HTMLElement.prototype.getState = function getState() {
-    return {
-        renderable: this.constructor.toString(),
-        tagName: this._tagName,
-        transform: this._transform,
-        size: this._size,
-        trueSized: this._trueSized,
-        opacity: this._opacity,
-        properties: this._properties,
-        classes: this._classes,
-        attributes: this._attributes,
-        content: this._content
-    };
-};
-
-HTMLElement.prototype.clean = function clean() {
-    var len = this._queue.length;
-    if (len) {
-    	var path = this._dispatch.getRenderPath();
-    	this._dispatch
-            .sendDrawCommand(WITH)
-            .sendDrawCommand(path);
-
-    	for (var i = 0 ; i < len ; i++)
-    	    this._dispatch.sendDrawCommand(this._queue.shift());
-    }
-    return false;
-};
-
-HTMLElement.prototype._receiveTransformChange = function _receiveTransformChange(transform) {
-    this._transform = transform._matrix;
-    this._dispatch.dirtyRenderable(this._id);
-    var queue = this._queue;
-    queue.push(CHANGE_TRANSFORM);
-    queue.push(transform._matrix[0]);
-    queue.push(transform._matrix[1]);
-    queue.push(transform._matrix[2]);
-    queue.push(transform._matrix[3]);
-    queue.push(transform._matrix[4]);
-    queue.push(transform._matrix[5]);
-    queue.push(transform._matrix[6]);
-    queue.push(transform._matrix[7]);
-    queue.push(transform._matrix[8]);
-    queue.push(transform._matrix[9]);
-    queue.push(transform._matrix[10]);
-    queue.push(transform._matrix[11]);
-    queue.push(transform._matrix[12]);
-    queue.push(transform._matrix[13]);
-    queue.push(transform._matrix[14]);
-    queue.push(transform._matrix[15]);
-};
-
-HTMLElement.prototype._receiveSizeChange = function _receiveSizeChange(size) {
-    this._size = size;
-    this._dispatch.dirtyRenderable(this._id);
-    var width = this._trueSized[0] ? this._trueSized[0] : size._size[0];
-    var height = this._trueSized[1] ? this._trueSized[1] : size._size[1];
-    this._queue.push('CHANGE_SIZE');
-    this._queue.push(width);
-    this._queue.push(height);
-    this._size[0] = width;
-    this._size[1] = height;
-};
-
-HTMLElement.prototype._receiveOpacityChange = function _receiveOpacityChange(opacity) {
-    this._opacity = opacity;
-    this.property('opacity', opacity.value);
-};
-
-HTMLElement.prototype.getSize = function getSize() {
-    return this._size;
-};
-
-HTMLElement.prototype.on = function on (ev, methods, properties) {
-    this.eventListener(ev, methods, properties);
-    return this;
-};
-
-HTMLElement.prototype.kill = function kill () {
-    this._dispatch.sendDrawCommand(WITH).sendDrawCommand(this._dispatch.getRenderPath()).sendDrawCommand('DOM').sendDrawCommand(RECALL);
-};
-
-/**
- * Set the value of a CSS property
- *
- * @method property
- * @chainable
- *
- * @param {String} key name of the property to set
- * @param {Any} value associated value for this property
- * @return {HTMLElement} current HTMLElement
- */
-HTMLElement.prototype.property = function property(key, value) {
-    this._properties[key] = value;
-    this._dispatch.dirtyRenderable(this._id);
-    this._queue.push(CHANGE_PROPERTY);
-    this._queue.push(key);
-    this._queue.push(value);
-    return this;
-};
-
-/**
- * The method by which a user tells the element to ignore the context
- *   size and get size from the content instead.
- *
- * @method trueSize
- * @chainable
- *
- * @param {Boolean} trueWidth
- * @param {Boolean} trueHeight
- * @return {HTMLElement} this
- */
-HTMLElement.prototype.trueSize = function trueSize(trueWidth, trueHeight) {
-    if (trueWidth === undefined) trueWidth = true;
-    if (trueHeight === undefined) trueHeight = true;
-
-    if (this._trueSized[0] !== trueWidth || this._trueSized[1] !== trueHeight) {
-        this._dispatch.dirtyRenderable(this._id);
-    }
-    this._trueSized[0] = trueWidth;
-    this._trueSized[1] = trueHeight;
-    return this;
-};
-
-/**
- * Set an attribute on the DOM element
- *
- * @method attribute
- * @chainable
- *
- * @param {String} key name of the attribute to set
- * @param {Any} value associated value for this attribute
- * @return {HTMLElement} current HTMLElement
- */
-HTMLElement.prototype.attribute = function attribute(key, value) {
-    this._attributes[key] = value;
-    this._dispatch.dirtyRenderable(this._id);
-    this._queue.push(CHANGE_ATTRIBUTE);
-    this._queue.push(key);
-    this._queue.push(value);
-    return this;
-};
-
-/**
- * Define a CSS class to be added to the DOM element
- *
- * @method addClass
- * @chainable
- *
- * @param {String} value name of the class
- * @return {HTMLElement} current HTMLElement
- */
-HTMLElement.prototype.addClass = function addClass(value) {
-    this._classes[value] = true;
-    this._dispatch.dirtyRenderable(this._id);
-    this._queue.push(ADD_CLASS);
-    this._queue.push(value);
-    return this;
-};
-/**
- * Define a CSS class to be removed from the DOM element
- *
- * @method removeClass
- * @chainable
- *
- * @param {String} value name of the class
- * @return {HTMLElement} current HTMLElement
- */
-HTMLElement.prototype.removeClass = function removeClass(value) {
-    delete this._classes[value];
-    this._dispatch.dirtyRenderable(this._id);
-    this._queue.push(REMOVE_CLASS);
-    this._queue.push(value);
-    return this;
-};
-
-/**
- * Define the id of the DOM element
- *
- * @method id
- * @chainable
- *
- * @param {String} value id
- * @return {HTMLElement} current HTMLElement
- */
-HTMLElement.prototype.id = function id(value) {
-    this._attributes.id = value;
-    this._dispatch.dirtyRenderable(this._id);
-    this._queue.push(CHANGE_ATTRIBUTE);
-    this._queue.push('id');
-    this._queue.push(value);
-    return this;
-};
-
-/**
- * Define the content of the DOM element
- *
- * @method content
- * @chainable
- *
- * @param {String|DOMElement|DocumentFragment} value content to be inserted into the DOM element
- * @return {HTMLElement} current HTMLElement
- */
-HTMLElement.prototype.content = function content(value) {
-    this._content = value;
-    this._dispatch.dirtyRenderable(this._id);
-    this._queue.push(CHANGE_CONTENT);
-    this._queue.push(value);
-    return this;
-};
-
-/**
- * Get a component of the RenderNode that the HTMLElement component is
- *   attached to by name.
- *
- * @method get
- *
- * @param {String} key name of the component to grab from the RenderNode
- * @return {Component} a component that exists on the RenderNode
- */
-HTMLElement.prototype.get = function get (key) {
-    return this.owner.get(key);
-};
-
-/**
- * Adds a command to add an eventListener to the current DOM HTMLElement.
- *   primarily used internally.
- *
- * @method eventListener
- * @chainable
- *
- * @param {String} ev the name of the DOM event to be targeted
- *
- * @return {Component} this
- */
-HTMLElement.prototype.eventListener = function eventListener (ev, methods, properties) {
-    this._dispatch.dirtyRenderable(this._id);
-    this._queue.push(ADD_EVENT_LISTENER);
-    this._queue.push(ev);
-    if (methods != null) this._queue.push(methods);
-    this._queue.push(EVENT_PROPERTIES);
-    if (properties != null) this._queue.push(properties);
-    this._queue.push(EVENT_END);
-    return this;
-};
-
-/**
- * isRenderable returns whether or not this HTMLElement currently has any Information to render
- *
- * @method isRenderable
- *
- * @return {Bool} whether or not this HTMLElement can be rendered
- */
-HTMLElement.prototype.isRenderable = function isRenderable () {
-    return !!this._queue.length;
-};
-
-/**
- * Clears the state on the HTMLElement so that it can be rendered next frame.
- *
- * @method clear
- * @chainable
- *
- * @return {HTMLElement} this
- */
-HTMLElement.prototype.clear = function clear () {
-    this._trueSized[0] = false;
-    this._trueSized[1] = false;
-
-    for (var i = 0, l = this._queue.length; i < l; i++)
-        this._queue.pop();
-
-    return this;
-};
+function HTMLElement(node, tagName) {
+    console.warn("HTMLElement was depricated\n use DOMElement");
+    return new DOMElement(node, tagName);
+} 
 
 module.exports = HTMLElement;
 
-},{"famous-utilities":115}],120:[function(require,module,exports){
+},{"./DOMElement":92,"famous-utilities":88}],94:[function(require,module,exports){
 'use strict';
 
 module.exports = {
-    HTMLElement: require('./HTMLElement')
+    HTMLElement: require('./HTMLElement'),
+    DOMElement: require('./DOMElement')
 };
 
-},{"./HTMLElement":119}],121:[function(require,module,exports){
-'use strict';
-
-module.exports = {
-    requestAnimationFrame: require('./requestAnimationFrame')
-};
-
-},{"./requestAnimationFrame":122}],122:[function(require,module,exports){
+},{"./DOMElement":92,"./HTMLElement":93}],95:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
  
@@ -14079,31 +12509,63 @@ module.exports = {
 var lastTime = 0;
 var vendors = ['ms', 'moz', 'webkit', 'o'];
 
-var rAF;
+var rAF, cAF;
 
 if (typeof window === 'object') {
     rAF = window.requestAnimationFrame;
-    for(var x = 0; x < vendors.length && !rAF; ++x) {
-        rAF = window[vendors[x]+'RequestAnimationFrame'];
+    cAF = window.cancelAnimationFrame || window.cancelRequestAnimationFrame;
+    for (var x = 0; x < vendors.length && !rAF; ++x) {
+        rAF = window[vendors[x] + 'RequestAnimationFrame'];
+        cAF = window[vendors[x] + 'CancelRequestAnimationFrame']
+            || window[vendors[x] + 'CancelAnimationFrame'];
+    }
+
+    if (rAF && !cAF) {
+        // cAF not supported.
+        // Fall back to setInterval for now (very rare).
+        rAF = null;
     }
 }
 
-rAF = rAF || function(callback) {
-    var currTime = new Date().getTime();
-    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-    var id = setTimeout(function() { callback(currTime + timeToCall); }, 
-      timeToCall);
-    lastTime = currTime + timeToCall;
-    return id;
+var now = Date.now ? Date.now : function () {
+    return new Date().getTime();
 };
 
-module.exports = rAF;
+if (!rAF) {
+    rAF = function(callback) {
+        var currTime = now();
+        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var id = setTimeout(function () {
+            callback(currTime + timeToCall);
+        }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
+    };
 
-},{}],123:[function(require,module,exports){
+    cAF = function (id) {
+        clearTimeout(id);
+    };
+}
+
+module.exports = {
+    requestAnimationFrame: rAF,
+    cancelAnimationFrame: cAF
+};
+
+},{}],96:[function(require,module,exports){
+'use strict';
+
+module.exports = {
+    requestAnimationFrame: require('./animationFrame').requestAnimationFrame,
+    cancelAnimationFrame: require('./animationFrame').cancelAnimationFrame
+};
+
+},{"./animationFrame":95}],97:[function(require,module,exports){
 'use strict';
 
 var polyfills = require('famous-polyfills');
 var rAF = polyfills.requestAnimationFrame;
+var cAF = polyfills.cancelAnimationFrame;
 
 var _now;
 if (typeof performance !== 'undefined') {
@@ -14149,18 +12611,19 @@ if (typeof document !== 'undefined') {
 function Engine() {
     this._updates = [];
     var _this = this;
-    this.looper = function(time) {
+    this._looper = function(time) {
         _this.loop(time);
     };
     this._stoppedAt = _now();
     this._sleep = 0;
     this._startOnVisibilityChange = true;
+    this._rAF = null;
     this.start();
-    rAF(this.looper);
 
     if (typeof document !== 'undefined') {
         document.addEventListener(VENDOR_VISIBILITY_CHANGE, function() {
             if (document[VENDOR_HIDDEN]) {
+                cAF(this._rAF);
                 var startOnVisibilityChange = _this._startOnVisibilityChange;
                 _this.stop();
                 _this._startOnVisibilityChange = startOnVisibilityChange;
@@ -14183,9 +12646,12 @@ function Engine() {
  * @return {Engine} this
  */
 Engine.prototype.start = function start() {
-    this._startOnVisibilityChange = true;
-    this._running = true;
-    this._sleep += _now() - this._stoppedAt;
+    if (!this._running) {
+        this._startOnVisibilityChange = true;
+        this._running = true;
+        this._sleep += _now() - this._stoppedAt;
+        this._rAF = rAF(this._looper);
+    }
     return this;
 };
 
@@ -14198,9 +12664,12 @@ Engine.prototype.start = function start() {
  * @return {Engine} this
  */
 Engine.prototype.stop = function stop() {
-    this._startOnVisibilityChange = false;
-    this._running = false;
-    this._stoppedAt = _now();
+    if (this._running) {
+        this._startOnVisibilityChange = false;
+        this._running = false;
+        this._stoppedAt = _now();
+        cAF(this._rAF);
+    }
     return this;
 };
 
@@ -14246,9 +12715,7 @@ Engine.prototype.step = function step (time) {
  */
 Engine.prototype.loop = function loop(time) {
     this.step(time - this._sleep);
-    if (this._running) {
-        rAF(this.looper);
-    }
+    this._rAF = rAF(this._looper);
     return this;
 };
 
@@ -14292,59 +12759,59 @@ Engine.prototype.noLongerUpdate = function noLongerUpdate(updateable) {
 
 module.exports = Engine;
 
-},{"famous-polyfills":121}],124:[function(require,module,exports){
+},{"famous-polyfills":96}],98:[function(require,module,exports){
 arguments[4][27][0].apply(exports,arguments)
-},{"dup":27}],125:[function(require,module,exports){
+},{"dup":27}],99:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"./Mat33":124,"dup":28}],126:[function(require,module,exports){
+},{"./Mat33":98,"dup":28}],100:[function(require,module,exports){
 arguments[4][29][0].apply(exports,arguments)
-},{"dup":29}],127:[function(require,module,exports){
+},{"dup":29}],101:[function(require,module,exports){
 arguments[4][30][0].apply(exports,arguments)
-},{"dup":30}],128:[function(require,module,exports){
+},{"dup":30}],102:[function(require,module,exports){
 arguments[4][31][0].apply(exports,arguments)
-},{"./Mat33":124,"./Quaternion":125,"./Vec2":126,"./Vec3":127,"dup":31}],129:[function(require,module,exports){
+},{"./Mat33":98,"./Quaternion":99,"./Vec2":100,"./Vec3":101,"dup":31}],103:[function(require,module,exports){
 arguments[4][27][0].apply(exports,arguments)
-},{"dup":27}],130:[function(require,module,exports){
+},{"dup":27}],104:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"./Mat33":129,"dup":28}],131:[function(require,module,exports){
+},{"./Mat33":103,"dup":28}],105:[function(require,module,exports){
 arguments[4][29][0].apply(exports,arguments)
-},{"dup":29}],132:[function(require,module,exports){
+},{"dup":29}],106:[function(require,module,exports){
 arguments[4][30][0].apply(exports,arguments)
-},{"dup":30}],133:[function(require,module,exports){
+},{"dup":30}],107:[function(require,module,exports){
 arguments[4][31][0].apply(exports,arguments)
-},{"./Mat33":129,"./Quaternion":130,"./Vec2":131,"./Vec3":132,"dup":31}],134:[function(require,module,exports){
+},{"./Mat33":103,"./Quaternion":104,"./Vec2":105,"./Vec3":106,"dup":31}],108:[function(require,module,exports){
 arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],135:[function(require,module,exports){
+},{"dup":32}],109:[function(require,module,exports){
 arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],136:[function(require,module,exports){
+},{"dup":33}],110:[function(require,module,exports){
 arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":134,"dup":34}],137:[function(require,module,exports){
+},{"./Curves":108,"dup":34}],111:[function(require,module,exports){
 arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],138:[function(require,module,exports){
+},{"dup":35}],112:[function(require,module,exports){
 arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":134,"./Easing":135,"./Transitionable":136,"./after":137,"dup":36}],139:[function(require,module,exports){
+},{"./Curves":108,"./Easing":109,"./Transitionable":110,"./after":111,"dup":36}],113:[function(require,module,exports){
 arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],140:[function(require,module,exports){
+},{"dup":42}],114:[function(require,module,exports){
 arguments[4][43][0].apply(exports,arguments)
-},{"dup":43,"famous-transitions":138}],141:[function(require,module,exports){
+},{"dup":43,"famous-transitions":112}],115:[function(require,module,exports){
 arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],142:[function(require,module,exports){
+},{"dup":44}],116:[function(require,module,exports){
 arguments[4][45][0].apply(exports,arguments)
-},{"dup":45}],143:[function(require,module,exports){
+},{"dup":45}],117:[function(require,module,exports){
 arguments[4][46][0].apply(exports,arguments)
-},{"dup":46}],144:[function(require,module,exports){
+},{"dup":46}],118:[function(require,module,exports){
 arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],145:[function(require,module,exports){
+},{"dup":47}],119:[function(require,module,exports){
 arguments[4][48][0].apply(exports,arguments)
-},{"dup":48}],146:[function(require,module,exports){
+},{"dup":48}],120:[function(require,module,exports){
 arguments[4][49][0].apply(exports,arguments)
-},{"./CallbackStore":139,"./Color":140,"./KeyCodes":141,"./MethodStore":142,"./ObjectManager":143,"./clone":144,"./flatClone":145,"./keyValueToArrays":147,"./loadURL":148,"./strip":149,"dup":49}],147:[function(require,module,exports){
+},{"./CallbackStore":113,"./Color":114,"./KeyCodes":115,"./MethodStore":116,"./ObjectManager":117,"./clone":118,"./flatClone":119,"./keyValueToArrays":121,"./loadURL":122,"./strip":123,"dup":49}],121:[function(require,module,exports){
 arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],148:[function(require,module,exports){
+},{"dup":50}],122:[function(require,module,exports){
 arguments[4][51][0].apply(exports,arguments)
-},{"dup":51}],149:[function(require,module,exports){
+},{"dup":51}],123:[function(require,module,exports){
 arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],150:[function(require,module,exports){
+},{"dup":52}],124:[function(require,module,exports){
 'use strict';
 
 var Vec3 = require('famous-math').Vec3;
@@ -14485,7 +12952,7 @@ DynamicGeometry.prototype.reset = function reset() {
     };
 
     return this;
-}
+};
 
 /**
  * Add a vertex to the polyhedron.
@@ -14569,7 +13036,7 @@ DynamicGeometry.prototype.getFeatureClosestToOrigin = function() {
         if (!feature) continue;
         if (feature.distance < min) {
             min = feature.distance;
-            closest = feature
+            closest = feature;
         }
     }
     return closest;
@@ -14617,11 +13084,13 @@ DynamicGeometry.prototype.reshape = function(referencePoint) {
     var vertexOnFeature;
     var featureVertices;
 
+    var i, j, len;
+
     // The removal of features creates a hole in the polyhedron -- frontierEdges maintains the edges
     // of this hole, each of which will form one edge of a new feature to be created
     var frontierEdges = [];
 
-    for (var i = 0, len = features.length; i < len; i++) {
+    for (i = 0, len = features.length; i < len; i++) {
         if (!features[i]) continue;
         featureVertices = features[i].vertexIndices;
         vertexOnFeature = vertices[featureVertices[0]].vertex;
@@ -14636,7 +13105,7 @@ DynamicGeometry.prototype.reshape = function(referencePoint) {
 
     var A = point;
     var a = this.lastVertexIndex;
-    for (var j = 0, len = frontierEdges.length; j < len; j++) {
+    for (j = 0, len = frontierEdges.length; j < len; j++) {
         if (!frontierEdges[j]) continue;
         var b = frontierEdges[j][0];
         var c = frontierEdges[j][1];
@@ -14645,7 +13114,7 @@ DynamicGeometry.prototype.reshape = function(referencePoint) {
 
         var AB = Vec3.subtract(B, A, AB_REGISTER);
         var AC = Vec3.subtract(C, A, AC_REGISTER);
-        var ABC = Vec3.cross(AB, AC, new Vec3())
+        var ABC = Vec3.cross(AB, AC, new Vec3());
         ABC.normalize();
 
         if (!referencePoint) {
@@ -14677,7 +13146,7 @@ DynamicGeometry.prototype.reshape = function(referencePoint) {
  * @return {Boolean} The result of the containment check.
  */
 DynamicGeometry.prototype.simplexContainsOrigin = function(direction, callback) {
-    var numVertices = this.vertices.length
+    var numVertices = this.vertices.length;
 
     var a = this.lastVertexIndex;
     var b = a - 1;
@@ -14695,17 +13164,20 @@ DynamicGeometry.prototype.simplexContainsOrigin = function(direction, callback) 
 
     var AO = Vec3.scale(A, -1, AO_REGISTER);
     var AB = Vec3.subtract(B, A, AB_REGISTER);
+    var AC, AD, BC, BD;
+    var ABC, ACD, ABD, BCD;
+    var distanceABC, distanceACD, distanceABD, distanceBCD;
 
     var vertexToRemove;
 
     if (numVertices === 4) {
         // Tetrahedron
-        var AC = Vec3.subtract(C, A, AC_REGISTER);
-        var AD = Vec3.subtract(D, A, AD_REGISTER);
+        AC = Vec3.subtract(C, A, AC_REGISTER);
+        AD = Vec3.subtract(D, A, AD_REGISTER);
 
-        var ABC = Vec3.cross(AB, AC, new Vec3());
-        var ACD = Vec3.cross(AC, AD, new Vec3());
-        var ABD = Vec3.cross(AB, AD, new Vec3());
+        ABC = Vec3.cross(AB, AC, new Vec3());
+        ACD = Vec3.cross(AC, AD, new Vec3());
+        ABD = Vec3.cross(AB, AD, new Vec3());
         ABC.normalize();
         ACD.normalize();
         ABD.normalize();
@@ -14715,20 +13187,18 @@ DynamicGeometry.prototype.simplexContainsOrigin = function(direction, callback) 
         // Don't need to check BCD because we would have just checked that in the previous iteration
         // -- we added A to the BCD triangle because A was in the direction of the origin.
 
-        var distanceABC = Vec3.dot(ABC, AO);
-        var distanceACD = Vec3.dot(ACD, AO);
-        var distanceABD = Vec3.dot(ABD, AO);
-
-        var EPSILON = 0.001;
+        distanceABC = Vec3.dot(ABC, AO);
+        distanceACD = Vec3.dot(ACD, AO);
+        distanceABD = Vec3.dot(ABD, AO);
 
         // Norms point away from origin -> origin is inside tetrahedron
-        if (distanceABC < EPSILON && distanceABD < EPSILON && distanceACD < EPSILON) {
-            var BC = Vec3.subtract(C, B, BC_REGISTER);
-            var BD = Vec3.subtract(D, B, BD_REGISTER);
-            var BCD = Vec3.cross(BC, BD, new Vec3());
+        if (distanceABC < 0.001 && distanceABD < 0.001 && distanceACD < 0.001) {
+            BC = Vec3.subtract(C, B, BC_REGISTER);
+            BD = Vec3.subtract(D, B, BD_REGISTER);
+            BCD = Vec3.cross(BC, BD, new Vec3());
             BCD.normalize();
             if (Vec3.dot(BCD, AB) <= 0) BCD.invert();
-            var distanceBCD = -1 * Vec3.dot(BCD,B)
+            distanceBCD = -1 * Vec3.dot(BCD,B);
             // Prep features for EPA
             this.addFeature(-distanceABC, ABC, [a,b,c]);
             this.addFeature(-distanceACD, ACD, [a,c,d]);
@@ -14751,7 +13221,7 @@ DynamicGeometry.prototype.simplexContainsOrigin = function(direction, callback) 
     }
     else if (numVertices === 3) {
         // Triangle
-        var AC = Vec3.subtract(C, A, AC_REGISTER);
+        AC = Vec3.subtract(C, A, AC_REGISTER);
         Vec3.cross(AB, AC, direction);
         if (Vec3.dot(direction, AO) <= 0) direction.invert();
     }
@@ -14776,8 +13246,10 @@ function ConvexHull(vertices, iterations) {
     iterations = iterations || 1e3;
     var hull = _computeConvexHull(vertices, iterations);
 
+    var i, len;
+
     var indices = [];
-    for (var i = 0, len = hull.features.length; i < len; i++) {
+    for (i = 0, len = hull.features.length; i < len; i++) {
         var f = hull.features[i];
         if (f) indices.push(f.vertexIndices);
     }
@@ -14786,18 +13258,18 @@ function ConvexHull(vertices, iterations) {
     var centroid = polyhedralProperties.centroid;
 
     var worldVertices = [];
-    for (var i = 0, len = hull.vertices.length; i < len; i++) {
+    for (i = 0, len = hull.vertices.length; i < len; i++) {
         worldVertices.push(Vec3.subtract(hull.vertices[i].vertex, centroid, new Vec3()));
     }
 
     var normals = [];
-    for (var i = 0, len = worldVertices.length; i < len; i++) {
+    for (i = 0, len = worldVertices.length; i < len; i++) {
         normals.push(Vec3.normalize(worldVertices[i], new Vec3()));
     }
 
     var graph = {};
     var _neighborMatrix = {};
-    for (var i = 0; i < indices.length; i++) {
+    for (i = 0; i < indices.length; i++) {
         var a = indices[i][0];
         var b = indices[i][1];
         var c = indices[i][2];
@@ -14841,7 +13313,7 @@ function ConvexHull(vertices, iterations) {
     this.normals = normals;
     this.polyhedralProperties = polyhedralProperties;
     this.graph = graph;
-};
+}
 
 /**
  * Performs the actual computation of the convex hull.
@@ -14865,8 +13337,10 @@ function _computeConvexHull(vertices, maxIterations) {
     var vertex;
     var furthest;
     var index;
+    var i, len;
+
     var max = -Infinity;
-    for (var i = 0; i < vertices.length; i++) {
+    for (i = 0; i < vertices.length; i++) {
         vertex = vertices[i];
         if (vertex === A || vertex === B) continue;
         var AV = Vec3.subtract(vertex, A, VEC_REGISTER);
@@ -14888,12 +13362,8 @@ function _computeConvexHull(vertices, maxIterations) {
     var ABC = Vec3.cross(AB, AC, new Vec3());
     ABC.normalize();
 
-    var dot;
-    var vertex;
-    var furthest;
-    var index;
-    var max = -Infinity;
-    for (var i = 0; i < vertices.length; i++) {
+    max = -Infinity;
+    for (i = 0; i < vertices.length; i++) {
         vertex = vertices[i];
         if (vertex === A || vertex === B || vertex === C) continue;
         dot = Vec3.dot(Vec3.subtract(vertex, A, VEC_REGISTER), ABC);
@@ -14936,7 +13406,7 @@ function _computeConvexHull(vertices, maxIterations) {
     hull.addFeature(null, BCD, [b, c, d]);
 
     var assigned = {};
-    for (var i = 0, len = hull.vertices.length; i < len; i++) {
+    for (i = 0, len = hull.vertices.length; i < len; i++) {
        assigned[hull.vertices[i].index] = true;
     }
 
@@ -14951,12 +13421,12 @@ function _computeConvexHull(vertices, maxIterations) {
     var iteration = 0;
     while (iteration++ < maxIterations) {
         var currentFeature = null;
-        for (var i = 0; i < features.length; i++) {
+        for (i = 0, len = features.length; i < len; i++) {
             if (!features[i] || features[i].done) continue;
             currentFeature = features[i];
-            var furthest = null;
-            var index = null;
-            var A = hull.vertices[currentFeature.vertexIndices[0]].vertex;
+            furthest = null;
+            index = null;
+            A = hull.vertices[currentFeature.vertexIndices[0]].vertex;
             var s = _hullSupport(vertices, currentFeature.normal);
             furthest = s.vertex;
             index = s.index;
@@ -15022,7 +13492,9 @@ function _computePolyhedralProperties(vertices, indices) {
     var gy = [];
     var gz = [];
 
-    for (var i = 0, len = indices.length; i < len; i++) {
+    var i, len;
+
+    for (i = 0, len = indices.length; i < len; i++) {
         var A = vertices[indices[i][0]].vertex;
         var B = vertices[indices[i][1]].vertex;
         var C = vertices[indices[i][2]].vertex;
@@ -15076,7 +13548,7 @@ function _computePolyhedralProperties(vertices, indices) {
     var minY = Infinity, maxY = -Infinity;
     var minZ = Infinity, maxZ = -Infinity;
 
-    for (var i = 0, len = vertices.length; i < len; i++) {
+    for (i = 0, len = vertices.length; i < len; i++) {
         var vertex = vertices[i].vertex;
         if (vertex.x < minX) minX = vertex.x;
         if (vertex.x > maxX) maxX = vertex.x;
@@ -15102,7 +13574,7 @@ function _computePolyhedralProperties(vertices, indices) {
         volume: volume,
         centroid: centroid,
         eulerTensor: eulerTensor
-    }
+    };
 }
 
 module.exports = {
@@ -15110,7 +13582,7 @@ module.exports = {
     ConvexHull: ConvexHull
 };
 
-},{"famous-math":133,"famous-utilities":146}],151:[function(require,module,exports){
+},{"famous-math":107,"famous-utilities":120}],125:[function(require,module,exports){
 'use strict';
 
 var Particle = require('./bodies/Particle');
@@ -15185,7 +13657,7 @@ function PhysicsEngine(options) {
  * @param {Number} y The y component.
  * @param {Number} z The z component.
  */
-PhysicsEngine.prototype.setOrigin = function(x, y, z) {
+PhysicsEngine.prototype.setOrigin = function setOrigin(x, y, z) {
     this.origin.set(x, y, z);
     return this;
 };
@@ -15200,10 +13672,10 @@ PhysicsEngine.prototype.setOrigin = function(x, y, z) {
  * @param {Number} y The y component.
  * @param {Number} z The z component.
  */
-PhysicsEngine.prototype.setOrientation = function(w, x, y, z) {
+PhysicsEngine.prototype.setOrientation = function setOrientation(w, x, y, z) {
     this.orientation.set(w, x, y, z).normalize();
     return this;
-}
+};
 
 /**
  * Private helper method to store an element in a library array.
@@ -15325,7 +13797,7 @@ PhysicsEngine.prototype.addConstraint = function addConstraint(constraint) {
  * @param {Particle} body The body to stop tracking.
  */
 PhysicsEngine.prototype.removeBody = function removeBody(body) {
-    _removeElement(this, body, 'bodies')
+    _removeElement(this, body, 'bodies');
 };
 
 /**
@@ -15335,7 +13807,7 @@ PhysicsEngine.prototype.removeBody = function removeBody(body) {
  * @param {Force} force The force to stop tracking.
  */
 PhysicsEngine.prototype.removeForce = function removeForce(force) {
-    _removeElement(this, force, 'forces')
+    _removeElement(this, force, 'forces');
 };
 
 /**
@@ -15345,7 +13817,7 @@ PhysicsEngine.prototype.removeForce = function removeForce(force) {
  * @param {Constraint} constraint The constraint to stop tracking.
  */
 PhysicsEngine.prototype.removeConstraint = function removeConstraint(constraint) {
-    _removeElement(this, constraint, 'constraints')
+    _removeElement(this, constraint, 'constraints');
 };
 
 /**
@@ -15371,49 +13843,52 @@ PhysicsEngine.prototype.update = function update(time) {
     delta += (time - this.time) * speed;
     this.time = time;
 
+    var i, len;
+    var force, body, constraint;
+
     while(delta > step) {
-        for (var i = 0, len = this.prestep.length; i < len; i++) {
+        for (i = 0, len = this.prestep.length; i < len; i++) {
             this.prestep[i](time, dt);
         }
 
         // Update Forces on particles
-        for (var i = 0, numForces = forces.length; i < numForces; i++) {
-            var force = forces[i];
+        for (i = 0, len = forces.length; i < len; i++) {
+            force = forces[i];
             if (force === null) continue;
             force.update(time, dt);
         }
 
         // Tentatively update velocities
-        for (var i = 0, numBodies = bodies.length; i < numBodies; i++) {
-            var body = bodies[i];
+        for (i = 0, len = bodies.length; i < len; i++) {
+            body = bodies[i];
             if (body === null) continue;
             _integrateVelocity(body, dt);
         }
 
         // Prep constraints for solver
-        for (var i = 0, numConstraints = constraints.length; i < numConstraints; i++) {
-            var constraint = constraints[i];
+        for (i = 0, len = constraints.length; i < len; i++) {
+            constraint = constraints[i];
             if (constraint === null) continue;
             constraint.update(time, dt);
         }
 
         // Iteratively resolve constraints
         for (var j = 0, numIterations = this.iterations; j < numIterations; j++) {
-            for (var i = 0; i < numConstraints; i++) {
-                var constraint = constraints[i];
+            for (i = 0, len = constraints.length; i < len; i++) {
+                constraint = constraints[i];
                 if (constraint === null) continue;
                 constraint.resolve(time, dt);
             }
         }
 
         // Increment positions and orientations
-        for (var i = 0; i < numBodies; i++) {
-            var body = bodies[i];
+        for (i = 0, len = bodies.length; i < len; i++) {
+            body = bodies[i];
             if (body === null) continue;
             _integratePose(body, dt);
         }
 
-        for (var i = 0, len = this.poststep.length; i < len; i++) {
+        for (i = 0, len = this.poststep.length; i < len; i++) {
             this.poststep[i](time, dt);
         }
 
@@ -15440,7 +13915,6 @@ PhysicsEngine.prototype.getTransform = function getTransform(body) {
     var q = body.orientation;
     var rot = q;
     var loc = p;
-    var ZYX;
 
     if (oq.w !== 1) {
         rot = Quaternion.multiply(q, oq, QUAT_REGISTER);
@@ -15474,7 +13948,7 @@ function _integrateVelocity(body, dt) {
     body.inverseInertia.vectorMultiply(body.angularMomentum, body.angularVelocity);
     body.force.clear();
     body.torque.clear();
-};
+}
 
 /**
  * Update the Particle position and orientation based off current translational and angular velocities.
@@ -15527,11 +14001,11 @@ function _integratePose(body, dt) {
     q.normalize();
 
     body.updateInertia();
-};
+}
 
 module.exports = PhysicsEngine;
 
-},{"./bodies/Particle":154,"./constraints/Constraint":159,"./forces/Force":171,"famous-math":133}],152:[function(require,module,exports){
+},{"./bodies/Particle":128,"./constraints/Constraint":133,"./forces/Force":145,"famous-math":107}],126:[function(require,module,exports){
 'use strict';
 
 var Vec3 = require('famous-math').Vec3;
@@ -15573,7 +14047,7 @@ Box.prototype.constructor = Box;
 
 module.exports = Box;
 
-},{"./ConvexBodyFactory":153,"famous-math":133}],153:[function(require,module,exports){
+},{"./ConvexBodyFactory":127,"famous-math":107}],127:[function(require,module,exports){
 'use strict';
 
 var Particle = require('../bodies/Particle');
@@ -15690,12 +14164,13 @@ function ConvexBodyFactory(hull) {
      */
     ConvexBody.prototype.support = function support(direction) {
         var vertices = this.vertices;
+        var vertex, dot, furthest;
         var max = -Infinity;
         for (var i = 0, len = vertices.length; i < len; i++) {
-            var vertex = vertices[i];
-            var dot = Vec3.dot(vertex,direction);
+            vertex = vertices[i];
+            dot = Vec3.dot(vertex,direction);
             if (dot > max) {
-                var furthest = vertex;
+                furthest = vertex;
                 max = dot;
             }
         }
@@ -15797,7 +14272,7 @@ function _computeInertiaProperties(T) {
 
 module.exports = ConvexBodyFactory;
 
-},{"../Geometry":150,"../bodies/Particle":154,"famous-math":133}],154:[function(require,module,exports){
+},{"../Geometry":124,"../bodies/Particle":128,"famous-math":107}],128:[function(require,module,exports){
 'use strict';
 
 var Vec3 = require('famous-math').Vec3;
@@ -15809,7 +14284,6 @@ var CallbackStore = require('famous-utilities').CallbackStore;
 var ZERO_VECTOR = new Vec3();
 
 var MAT1_REGISTER = new Mat33();
-var QUAT_REGISTER = new Mat33();
 
 var _ID = 0;
 /**
@@ -16091,7 +14565,7 @@ Particle.prototype.getAngularVelocity = function getAngularVelocity() {
  */
 Particle.prototype.setAngularVelocity = function setAngularVelocity(x,y,z) {
     this.angularVelocity.set(x,y,z);
-    var I = Mat33.inverse(this.inverseInertia, MAT1_REGISTER)
+    var I = Mat33.inverse(this.inverseInertia, MAT1_REGISTER);
     if (I) I.vectorMultiply(this.angularVelocity, this.angularMomentum);
     else this.angularMomentum.clear();
     return this;
@@ -16195,7 +14669,7 @@ Particle.prototype.applyTorque = function applyTorque(torque) {
  * @param {Vec3} impulse
  */
 Particle.prototype.applyImpulse = function applyImpulse(impulse) {
-    this.momentum.add(impulse)
+    this.momentum.add(impulse);
     Vec3.scale(this.momentum, this.inverseMass, this.velocity);
     return this;
 };
@@ -16213,14 +14687,14 @@ Particle.prototype.applyAngularImpulse = function applyAngularImpulse(angularImp
 };
 
 /**
- * Used in collision detection. The support function should take in a Vec3 direction
- * and return the point on the body's shape furthest in that direction.
+ * Used in collision detection. The support function should accept a Vec3 direction
+ * and return the point on the body's shape furthest in that direction. For point particles,
+ * this returns the zero vector.
  *
  * @method support
- * @param {Vec3} direction
  * @return {Vec3}
  */
-Particle.prototype.support = function support(direction) {
+Particle.prototype.support = function support() {
     return ZERO_VECTOR;
 };
 
@@ -16234,11 +14708,10 @@ Particle.prototype.updateShape = function updateShape() {};
 
 module.exports = Particle;
 
-},{"famous-math":133,"famous-utilities":146}],155:[function(require,module,exports){
+},{"famous-math":107,"famous-utilities":120}],129:[function(require,module,exports){
 'use strict';
 
 var Particle = require('./Particle');
-var Mat33 = require('famous-math').Mat33;
 var Vec3 = require('famous-math').Vec3;
 
 var SUPPORT_REGISTER = new Vec3();
@@ -16329,11 +14802,10 @@ Sphere.prototype.support = function support(direction) {
  */
 module.exports = Sphere;
 
-},{"./Particle":154,"famous-math":133}],156:[function(require,module,exports){
+},{"./Particle":128,"famous-math":107}],130:[function(require,module,exports){
 'use strict';
 
 var Particle = require('./Particle');
-var Mat33 = require('famous-math').Mat33;
 var Vec3 = require('famous-math').Vec3;
 
 /**
@@ -16395,7 +14867,7 @@ Wall.prototype.constructor = Wall;
 
 module.exports = Wall;
 
-},{"./Particle":154,"famous-math":133}],157:[function(require,module,exports){
+},{"./Particle":128,"famous-math":107}],131:[function(require,module,exports){
 'use strict';
 
 var Constraint = require('./Constraint');
@@ -16403,9 +14875,6 @@ var Vec3 = require('famous-math').Vec3;
 var Mat33 = require('famous-math').Mat33;
 
 var DELTA_REGISTER = new Vec3();
-
-/** @const */
-var PI = Math.PI;
 
 /**
  *  A constraint that keeps a physics body a given direction away from a given
@@ -16437,7 +14906,7 @@ Angle.prototype.constructor = Angle;
  * @method init
  * @param {Object} options The options hash.
  */
-Angle.prototype.init = function(options) {
+Angle.prototype.init = function() {
     this.cosAngle = this.cosAngle || this.a.orientation.dot(this.b.orientation);
 };
 
@@ -16445,10 +14914,8 @@ Angle.prototype.init = function(options) {
  * Warmstart the constraint and prepare calculations used in .resolve.
  *
  * @method update
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Angle.prototype.update = function update(time, dt) {
+Angle.prototype.update = function update() {
     var a = this.a;
     var b = this.b;
 
@@ -16474,10 +14941,8 @@ Angle.prototype.update = function update(time, dt) {
  * Adds an angular impulse to a physics body's angular velocity.
  *
  * @method resolve
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Angle.prototype.resolve = function update(time, dt) {
+Angle.prototype.resolve = function update() {
     var a = this.a;
     var b = this.b;
 
@@ -16499,11 +14964,10 @@ Angle.prototype.resolve = function update(time, dt) {
 
 module.exports = Angle;
 
-},{"./Constraint":159,"famous-math":133}],158:[function(require,module,exports){
+},{"./Constraint":133,"famous-math":107}],132:[function(require,module,exports){
 'use strict';
 
 var Vec3 = require('famous-math').Vec3;
-var Quaternion = require('famous-math').Quaternion;
 var Constraint = require('./Constraint');
 
 var SweepAndPrune = require('./collision/SweepAndPrune');
@@ -16551,7 +15015,7 @@ function CollisionData(penetration, normal, worldContactA, worldContactB, localC
     this.worldContactB = worldContactB;
     this.localContactA = localContactA;
     this.localContactB = localContactB;
-};
+}
 
 /**
  * Used by ObjectManager to reset the object with different data.
@@ -16593,7 +15057,7 @@ Collision.prototype.constructor = Collision;
  * @method init
  * @param {Object} options The options hash.
  */
-Collision.prototype.init = function(options) {
+Collision.prototype.init = function() {
     if (this.broadPhase) {
         if (this.broadPhase instanceof Function) this.broadPhase = new this.broadPhase(this.targets);
     }
@@ -16613,12 +15077,13 @@ Collision.prototype.init = function(options) {
  Collision.prototype.update = function update(time, dt) {
     this.contactManifoldTable.update(dt);
     if (this.targets.length === 0) return;
-    for (var i = 0, len = this.targets.length; i < len; i++) {
+    var i, len;
+    for (i = 0, len = this.targets.length; i < len; i++) {
         this.targets[i].updateShape();
     }
     var potentialCollisions = this.broadPhase.update();
     var pair;
-    for (var i = 0, len = potentialCollisions.length; i < len; i++) {
+    for (i = 0, len = potentialCollisions.length; i < len; i++) {
         (pair = potentialCollisions[i]) && this.applyNarrowPhase(pair);
     }
     this.contactManifoldTable.prepContacts(dt);
@@ -16720,7 +15185,6 @@ Collision.prototype.applyNarrowPhase = function applyNarrowPhase(targets) {
  * @param {Sphere} sphere2
  */
 function sphereIntersectSphere(context, sphere1, sphere2) {
-    var options = context.options;
     var p1 = sphere1.position;
     var p2 = sphere2.position;
     var relativePosition = Vec3.subtract(p2, p1, new Vec3());
@@ -16868,7 +15332,7 @@ Collision.BruteForceAABB = BruteForce.BruteForceAABB;
 
 module.exports = Collision;
 
-},{"./Constraint":159,"./collision/BruteForce":166,"./collision/ContactManifold":167,"./collision/ConvexCollisionDetection":168,"./collision/SweepAndPrune":169,"famous-math":133,"famous-utilities":146}],159:[function(require,module,exports){
+},{"./Constraint":133,"./collision/BruteForce":140,"./collision/ContactManifold":141,"./collision/ConvexCollisionDetection":142,"./collision/SweepAndPrune":143,"famous-math":107,"famous-utilities":120}],133:[function(require,module,exports){
 'use strict';
 
 var _ID = 0;
@@ -16884,7 +15348,7 @@ function Constraint(options) {
     this.setOptions(options);
 
     this._ID = _ID++;
-};
+}
 
 /**
  * Decorates the Constraint with the options object.
@@ -16912,7 +15376,7 @@ Constraint.prototype.init = function init(options) {};
  * @param {Number} time The current time in the physics engine.
  * @param {Number} dt The physics engine frame delta.
  */
-Constraint.prototype.update = function update(time, dt) {}
+Constraint.prototype.update = function update(time, dt) {};
 
 /**
  * Apply impulses to resolve the constraint.
@@ -16921,11 +15385,11 @@ Constraint.prototype.update = function update(time, dt) {}
  * @param {Number} time The current time in the physics engine.
  * @param {Number} dt The physics engine frame delta.
  */
-Constraint.prototype.resolve = function resolve(time, dt) {}
+Constraint.prototype.resolve = function resolve(time, dt) {};
 
 module.exports = Constraint;
 
-},{}],160:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 'use strict';
 
 var Constraint = require('./Constraint');
@@ -16969,10 +15433,9 @@ Curve.prototype.constructor = Curve;
  * Initialize the Curve. Sets defaults if a property was not already set.
  *
  * @method init
- * @param {Object} options The options hash.
  */
-Curve.prototype.init = function(options) {
-    this.equation1 = this.equation1 || function(x, y, z) {
+Curve.prototype.init = function() {
+    this.equation1 = this.equation1 || function() {
         return 0;
     };
     this.equation2 = this.equation2 || function(x, y, z) {
@@ -17005,8 +15468,6 @@ Curve.prototype.update = function update(time, dt) {
 
     var f = this.equation1;
     var g = this.equation2;
-    var dampingRatio = this.dampingRatio;
-    var period = this.period;
 
     var _c = this.damping;
     var _k = this.stiffness;
@@ -17016,14 +15477,13 @@ Curve.prototype.update = function update(time, dt) {
         var ID = body._ID;
         if (body.immune) continue;
 
-        var v = body.velocity;
         var p = body.position;
         var m = body.mass;
 
         var gamma;
         var beta;
 
-        if (period === 0) {
+        if (this.period === 0) {
             gamma = 0;
             beta = 1;
         } else {
@@ -17070,10 +15530,8 @@ Curve.prototype.update = function update(time, dt) {
  * Adds a curve impulse to a physics body.
  *
  * @method resolve
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Curve.prototype.resolve = function resolve(time, dt) {
+Curve.prototype.resolve = function resolve() {
     var targets = this.targets;
 
     var normals = this.normals;
@@ -17102,7 +15560,7 @@ Curve.prototype.resolve = function resolve(time, dt) {
 };
 
 module.exports = Curve;
-},{"./Constraint":159,"famous-math":133}],161:[function(require,module,exports){
+},{"./Constraint":133,"famous-math":107}],135:[function(require,module,exports){
 'use strict';
 
 var Constraint = require('./Constraint');
@@ -17146,13 +15604,12 @@ Direction.prototype.constructor = Direction;
  * Initialize the Direction. Sets defaults if a property was not already set.
  *
  * @method init
- * @param {Object} options The options hash.
  */
-Direction.prototype.init = function(options) {
+Direction.prototype.init = function() {
     this.direction = this.direction || Vec3.subtract(this.b.position, this.a.position, new Vec3());
     this.direction.normalize();
     this.minLength = this.minLength || 0;
-    this.period = this.period || .2;
+    this.period = this.period || 0.2;
     this.dampingRatio = this.dampingRatio || 0.5;
 
     this.stiffness = 4 * PI * PI / (this.period * this.period);
@@ -17175,9 +15632,6 @@ Direction.prototype.update = function update(time, dt) {
     var impulse = IMPULSE_REGISTER;
     var directionVector = DIRECTION_REGISTER;
 
-    var dampingRatio = this.dampingRatio;
-    var period = this.period;
-
     var p1 = a.position;
     var w1 = a.inverseMass;
 
@@ -17199,7 +15653,7 @@ Direction.prototype.update = function update(time, dt) {
     var gamma;
     var beta;
 
-    if (period === 0) {
+    if (this.period === 0) {
         gamma = 0;
         beta  = 1;
     }
@@ -17230,10 +15684,8 @@ Direction.prototype.update = function update(time, dt) {
  * Adds an impulse to a physics body's velocity due to the constraint
  *
  * @method resolve
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Direction.prototype.resolve = function update(time, dt) {
+Direction.prototype.resolve = function update() {
     var a = this.a;
     var b = this.b;
 
@@ -17261,7 +15713,7 @@ Direction.prototype.resolve = function update(time, dt) {
 
 module.exports = Direction;
 
-},{"./Constraint":159,"famous-math":133}],162:[function(require,module,exports){
+},{"./Constraint":133,"famous-math":107}],136:[function(require,module,exports){
 'use strict';
 
 var Constraint = require('./Constraint');
@@ -17304,9 +15756,8 @@ Distance.prototype.constructor = Distance;
  * Initialize the Distance. Sets defaults if a property was not already set.
  *
  * @method init
- * @param {Object} options The options hash.
  */
-Distance.prototype.init = function(options) {
+Distance.prototype.init = function() {
     this.length = this.length || Vec3.subtract(this.b.position, this.a.position, P_REGISTER).length();
     this.minLength = this.minLength || 0;
     this.period = this.period || 0.2;
@@ -17331,11 +15782,6 @@ Distance.prototype.update = function(time, dt) {
     var diffP = P_REGISTER;
     var impulse = IMPULSE_REGISTER;
 
-    var period = this.period;
-    var dampingRatio = this.dampingRatio;
-
-    var minLength = this.minLength;
-
     var length = this.length;
 
     var p1 = a.position;
@@ -17357,7 +15803,7 @@ Distance.prototype.update = function(time, dt) {
     var gamma;
     var beta;
 
-    if (period === 0) {
+    if (this.period === 0) {
         gamma = 0;
         beta  = 1;
     }
@@ -17388,18 +15834,14 @@ Distance.prototype.update = function(time, dt) {
  * Apply impulses to resolve the constraint.
  *
  * @method resolve
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Distance.prototype.resolve = function resolve(time, dt) {
+Distance.prototype.resolve = function resolve() {
     var a = this.a;
     var b = this.b;
 
     var impulse = IMPULSE_REGISTER;
     var diffV = V_REGISTER;
 
-    var dampingRatio = this.dampingRatio;
-    var period = this.period;
     var minLength = this.minLength;
 
     var dist = this.distance;
@@ -17421,7 +15863,7 @@ Distance.prototype.resolve = function resolve(time, dt) {
 
 module.exports = Distance;
 
-},{"./Constraint":159,"famous-math":133}],163:[function(require,module,exports){
+},{"./Constraint":133,"famous-math":107}],137:[function(require,module,exports){
 'use strict';
 
 var Constraint = require('./Constraint');
@@ -17437,9 +15879,6 @@ var VB1_REGISTER = new Vec3();
 var VB2_REGISTER = new Vec3();
 var WxR_REGISTER = new Vec3();
 var DELTA_REGISTER = new Vec3();
-
-/** @const */
-var PI = Math.PI;
 
 /**
  *  A constraint that confines two bodies to the plane defined by the axis of the hinge.
@@ -17471,9 +15910,8 @@ Hinge.prototype.constructor = Hinge;
  * Initialize the Hinge. Sets defaults if a property was not already set.
  *
  * @method init
- * @param {Object} options The options hash.
  */
-Hinge.prototype.init = function(options) {
+Hinge.prototype.init = function() {
     var w = this.anchor;
 
     var u = this.axis.normalize();
@@ -17513,9 +15951,6 @@ Hinge.prototype.init = function(options) {
 Hinge.prototype.update = function(time, dt) {
     var a = this.a;
     var b = this.b;
-
-    var period = this.period;
-    var dampingRatio = this.dampingRatio;
 
     var axisA = a.orientation.rotateVector(this.bodyAxisA, this.axisA);
     var axisB = b.orientation.rotateVector(this.bodyAxisB, this.axisB);
@@ -17560,7 +15995,7 @@ Hinge.prototype.update = function(time, dt) {
 
     var invEffMass = new Mat33([imA + imB,0,0,0,imA + imB,0,0,0,imA + imB]);
 
-    Mat33.add(invEffInertia, invEffMass, this.effMassMatrix)
+    Mat33.add(invEffInertia, invEffMass, this.effMassMatrix);
     this.effMassMatrix.inverse();
 
     var invIAt1xA = a.inverseInertia.vectorMultiply(t1xA, VEC1_REGISTER);
@@ -17602,10 +16037,8 @@ Hinge.prototype.update = function(time, dt) {
  * Apply impulses to resolve the constraint.
  *
  * @method resolve
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Hinge.prototype.resolve = function resolve(time, dt) {
+Hinge.prototype.resolve = function resolve() {
     var a = this.a;
     var b = this.b;
 
@@ -17653,7 +16086,7 @@ Hinge.prototype.resolve = function resolve(time, dt) {
 
 module.exports = Hinge;
 
-},{"./Constraint":159,"famous-math":133}],164:[function(require,module,exports){
+},{"./Constraint":133,"famous-math":107}],138:[function(require,module,exports){
 'use strict';
 
 var Constraint = require('./Constraint');
@@ -17663,14 +16096,9 @@ var Quaternion = require('famous-math').Quaternion;
 
 var VEC1_REGISTER = new Vec3();
 var VEC2_REGISTER = new Vec3();
-var NORMAL_REGISTER = new Vec3();
-var IMPULSE_REGISTER = new Vec3();
 var VB1_REGISTER = new Vec3();
 var VB2_REGISTER = new Vec3();
 var WxR_REGISTER = new Vec3();
-
-/** @const */
-var PI = Math.PI;
 
 /**
  *  A constraint that maintains positions and orientations with respect to a specific anchor point.
@@ -17701,9 +16129,8 @@ Point2Point.prototype.constructor = Point2Point;
  * Initialize the Point2Point. Sets defaults if a property was not already set.
  *
  * @method init
- * @param {Object} options The options hash.
  */
-Point2Point.prototype.init = function(options) {
+Point2Point.prototype.init = function() {
     var w = this.anchor;
 
     var a = this.a;
@@ -17730,9 +16157,6 @@ Point2Point.prototype.update = function(time, dt) {
     var a = this.a;
     var b = this.b;
 
-    var period = this.period;
-    var dampingRatio = this.dampingRatio;
-
     var rA = a.orientation.rotateVector(this.bodyRA, this.rA);
     var rB = b.orientation.rotateVector(this.bodyRB, this.rB);
 
@@ -17755,7 +16179,7 @@ Point2Point.prototype.update = function(time, dt) {
 
     var invEffMass = new Mat33([imA + imB,0,0,0,imA + imB,0,0,0,imA + imB]);
 
-    Mat33.add(invEffInertia, invEffMass, this.effMassMatrix)
+    Mat33.add(invEffInertia, invEffMass, this.effMassMatrix);
     this.effMassMatrix.inverse();
 
     var impulse = this.impulse;
@@ -17777,10 +16201,8 @@ Point2Point.prototype.update = function(time, dt) {
  * Apply impulses to resolve the constraint.
  *
  * @method resolve
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Point2Point.prototype.resolve = function resolve(time, dt) {
+Point2Point.prototype.resolve = function resolve() {
     var a = this.a;
     var b = this.b;
 
@@ -17808,7 +16230,7 @@ Point2Point.prototype.resolve = function resolve(time, dt) {
 
 module.exports = Point2Point;
 
-},{"./Constraint":159,"famous-math":133}],165:[function(require,module,exports){
+},{"./Constraint":133,"famous-math":107}],139:[function(require,module,exports){
 'use strict';
 
 /**
@@ -17826,11 +16248,8 @@ function AABB(body) {
         z: []
     };
     this.update();
-};
+}
 
-
-var CONVEX = 1 << 0;
-var BOX = 1 << 1;
 var SPHERE = 1 << 2;
 var WALL = 1 << 3;
 
@@ -17926,9 +16345,6 @@ AABB.prototype.update = function() {
  * @param {AABB} aabb2
  */
 AABB.checkOverlap = function(aabb1, aabb2) {
-    var pos1 = aabb1.position;
-    var pos2 = aabb2.position;
-
     var vertices1 = aabb1.vertices;
     var vertices2 = aabb2.vertices;
 
@@ -17958,7 +16374,7 @@ AABB.vertexThreshold = 100;
 
 module.exports = AABB;
 
-},{}],166:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 'use strict';
 
 var AABB = require('./AABB');
@@ -17971,13 +16387,13 @@ var AABB = require('./AABB');
  * @param {Particles[]} targets
  * @param {Object} options
  */
-function BruteForceAABB(targets, options) {
+function BruteForceAABB(targets) {
     this._volumes = [];
     this._entityRegistry = {};
     for (var i = 0; i < targets.length; i++) {
         this.add(targets[i]);
     }
-};
+}
 
 /**
  * Start tracking a Particle.
@@ -17985,7 +16401,7 @@ function BruteForceAABB(targets, options) {
  * @method add
  * @param {Particle} body
  */
-BruteForceAABB.prototype.add = function(body) {
+BruteForceAABB.prototype.add = function add(body) {
     var boundingVolume = new AABB(body);
 
     this._entityRegistry[body._ID] = body;
@@ -17998,7 +16414,7 @@ BruteForceAABB.prototype.add = function(body) {
  * @method update
  * @return {Particle[][]}
  */
-BruteForceAABB.prototype.update = function() {
+BruteForceAABB.prototype.update = function update() {
     var _volumes = this._volumes;
     var _entityRegistry = this._entityRegistry;
 
@@ -18015,7 +16431,7 @@ BruteForceAABB.prototype.update = function() {
         }
     }
     return result;
-}
+};
 
 /**
  * The most simple yet computationally intensive broad-phase. Immediately passes its targets to the narrow-phase,
@@ -18023,9 +16439,8 @@ BruteForceAABB.prototype.update = function() {
  *
  * @class BruteForce
  * @param {Particle[]} targets
- * @param {Object} options
  */
-function BruteForce(targets, options) {
+function BruteForce(targets) {
     this.targets = targets;
 }
 
@@ -18035,7 +16450,7 @@ function BruteForce(targets, options) {
  * @method add
  * @param {Particle} body
  */
-BruteForce.prototype.add = function(body) {
+BruteForce.prototype.add = function add(body) {
     this.targets.push(body);
 };
 
@@ -18045,22 +16460,18 @@ BruteForce.prototype.add = function(body) {
  * @method update
  * @return {Particle[][]}
  */
-BruteForce.prototype.update = function() {
+BruteForce.prototype.update = function update() {
     return [this.targets];
 };
 
 module.exports.BruteForceAABB = BruteForceAABB;
 module.exports.BruteForce = BruteForce;
 
-},{"./AABB":165}],167:[function(require,module,exports){
+},{"./AABB":139}],141:[function(require,module,exports){
 'use strict';
 
 var Vec3 = require('famous-math').Vec3;
 var ObjectManager = require('famous-utilities').ObjectManager;
-
-var MANIFOLD = 'Manifold';
-var CONTACT = 'Contact';
-var COLLISIONDATA = 'CollisionData';
 
 ObjectManager.register('Manifold', Manifold);
 ObjectManager.register('Contact', Contact);
@@ -18108,7 +16519,7 @@ function ContactManifoldTable() {
     this.manifolds = [];
     this.collisionMatrix = {};
     this._IDPool = [];
-};
+}
 
 /**
  * Create a new contact manifold. Tracked by the collisionMatrix according to
@@ -18122,7 +16533,7 @@ function ContactManifoldTable() {
  * @return {ContactManifold}
  */
 ContactManifoldTable.prototype.addManifold = function addManifold(lowID, highID, bodyA, bodyB) {
-    var collisionMatrix = this.collisionMatrix
+    var collisionMatrix = this.collisionMatrix;
     collisionMatrix[lowID] = collisionMatrix[lowID] || {};
 
     var index = this._IDPool.length ? this._IDPool.pop() : this.manifolds.length;
@@ -18194,14 +16605,13 @@ ContactManifoldTable.prototype.prepContacts = function prepContacts(dt) {
  * Resolve all contact manifolds.
  *
  * @method resolveManifolds
- * @param {Number} dt
  */
-ContactManifoldTable.prototype.resolveManifolds = function resolveManifolds(dt) {
+ContactManifoldTable.prototype.resolveManifolds = function resolveManifolds() {
     var manifolds = this.manifolds;
     for (var i = 0, len = manifolds.length; i < len; i++) {
         var manifold = manifolds[i];
         if (!manifold) continue;
-        manifold.resolveContacts(dt);
+        manifold.resolveContacts();
     }
 };
 
@@ -18235,7 +16645,7 @@ ContactManifoldTable.prototype.registerContact = function registerContact(bodyA,
         bodyB.events.trigger('collision:start', manifold);
     } else {
         manifold = manifolds[ collisionMatrix[lowID][highID] ];
-        manifold.contains(collisionData)
+        manifold.contains(collisionData);
         manifold.addContact(bodyA, bodyB, collisionData);
     }
 };
@@ -18261,7 +16671,7 @@ function Manifold(lowID, highID, bodyA, bodyB) {
     this.bodyB = bodyB;
 
     this.lru = 0;
-};
+}
 
 /**
  * Used by ObjectManager to reset the object with different data.
@@ -18351,10 +16761,9 @@ Manifold.prototype.contains = function contains(collisionData) {
  * Return true or false to indicate that the Manifold still contains at least one Contact.
  *
  * @method update
- * @param {Number} dt
  * @return {Boolean} whether or not the manifold persists
  */
-Manifold.prototype.update = function update(dt) {
+Manifold.prototype.update = function update() {
     var contacts = this.contacts;
     var bodyA = this.bodyA;
     var bodyB = this.bodyB;
@@ -18370,8 +16779,8 @@ Manifold.prototype.update = function update(dt) {
         var rA = data.localContactA;
         var rB = data.localContactB;
 
-        var cached_wA = data.worldContactA
-        var cached_wB = data.worldContactB
+        var cached_wA = data.worldContactA;
+        var cached_wB = data.worldContactB;
 
         var wA = Vec3.add(posA, rA, WA_REGISTER);
         var wB = Vec3.add(posB, rB, WB_REGISTER);
@@ -18395,13 +16804,12 @@ Manifold.prototype.update = function update(dt) {
  * Resolve all contacts.
  *
  * @method resolveContacts
- * @param {Number} dt
  */
-Manifold.prototype.resolveContacts = function resolveContacts(dt) {
+Manifold.prototype.resolveContacts = function resolveContacts() {
     var contacts = this.contacts;
     for (var i = 0, len = contacts.length; i < len; i++) {
         if (!contacts[i]) continue;
-        contacts[i].resolve(dt);
+        contacts[i].resolve();
     }
 };
 
@@ -18428,7 +16836,7 @@ function Contact(bodyA, bodyB, collisionData) {
     this.angImpulseB = new Vec3();
 
     if (collisionData) this.init();
-};
+}
 
 /**
  * Used by ObjectManager to reset the object with different data.
@@ -18504,7 +16912,7 @@ Contact.prototype.init = function init() {
 
     this.restitution = Math.min(bodyA.restitution, bodyB.restitution);
     this.friction = bodyA.friction * bodyB.friction;
-}
+};
 
 /**
  * Warm start the Contact, prepare for the iterative solver, and reset impulses.
@@ -18521,8 +16929,6 @@ Contact.prototype.update = function update(dt) {
     var rBodyB = data.localContactB;
 
     var n = data.normal;
-    var t1 = this.tangent1;
-    var t2 = this.tangent2;
 
     var vb1 = Vec3.add(bodyA.velocity, Vec3.cross(bodyA.angularVelocity, rBodyA, WxR_REGISTER), VB1_REGISTER);
     var vb2 = Vec3.add(bodyB.velocity, Vec3.cross(bodyB.angularVelocity, rBodyB, WxR_REGISTER), VB2_REGISTER);
@@ -18560,9 +16966,8 @@ Contact.prototype.update = function update(dt) {
  * Apply impulses to resolve the contact and simulate friction.
  *
  * @method resolve
- * @param {Number} dt
  */
-Contact.prototype.resolve = function resolve(dt) {
+Contact.prototype.resolve = function resolve() {
     var data = this.data;
     var bodyA = this.bodyA;
     var bodyB = this.bodyB;
@@ -18618,11 +17023,10 @@ Contact.prototype.resolve = function resolve(dt) {
 
 module.exports = ContactManifoldTable;
 
-},{"famous-math":133,"famous-utilities":146}],168:[function(require,module,exports){
+},{"famous-math":107,"famous-utilities":120}],142:[function(require,module,exports){
 'use strict';
 
 var Vec3 = require('famous-math').Vec3;
-var Geometry = require('../../Geometry');
 var ObjectManager = require('famous-utilities').ObjectManager;
 
 ObjectManager.register('GJK_EPASupportPoint', GJK_EPASupportPoint);
@@ -18678,14 +17082,15 @@ GJK_EPASupportPoint.prototype.reset = function reset(vertex, worldVertexA, world
  */
 function freeGJK_EPADynamicGeometry(geometry) {
     var vertices = geometry.vertices;
-    var i = vertices.length;
+    var i;
+    i = vertices.length;
     while (i--) {
         var v = vertices.pop();
         if (v !== null) OMFreeGJK_EPASupportPoint(v);
     }
     geometry.numVertices = 0;
     var features = geometry.features;
-    var i = features.length
+    i = features.length;
     while (i--) {
         var f = features.pop();
         if (f !== null) OMFreeDynamicGeometryFeature(f);
@@ -18819,7 +17224,7 @@ function EPA(body1, body2, polytope) {
 module.exports.GJK = GJK;
 module.exports.EPA = EPA;
 
-},{"../../Geometry":150,"famous-math":133,"famous-utilities":146}],169:[function(require,module,exports){
+},{"famous-math":107,"famous-utilities":120}],143:[function(require,module,exports){
 'use strict';
 
 var AABB = require('./AABB');
@@ -18836,9 +17241,8 @@ var AXES = ['x', 'y', 'z'];
  *
  * @class SweepAndPrune
  * @param {Body[]} targets
- * @param {Object} options
  */
-function SweepAndPrune(targets, options) {
+function SweepAndPrune(targets) {
     this._sweepVolumes = [];
     this._entityRegistry = {};
     this._boundingVolumeRegistry = {};
@@ -18851,7 +17255,7 @@ function SweepAndPrune(targets, options) {
     for (var i = 0; i < targets.length; i++) {
         this.add(targets[i]);
     }
-};
+}
 
 /**
  * Start tracking a body in the broad-phase.
@@ -18882,8 +17286,9 @@ SweepAndPrune.prototype.add = function(body) {
 SweepAndPrune.prototype.remove = function remove(body) {
     this._entityRegistry[body._ID] = null;
     this._boundingVolumeRegistry[body._ID] = null;
+    var i, len;
     var index;
-    for (var i = 0, len = this._sweepVolumes.length; i < len; i++) {
+    for (i = 0, len = this._sweepVolumes.length; i < len; i++) {
         if (this._sweepVolumes[i]._ID === body._ID) {
             index = i;
             break;
@@ -18891,24 +17296,25 @@ SweepAndPrune.prototype.remove = function remove(body) {
     }
     this._sweepVolumes.splice(index, 1);
     var endpoints = this.endpoints;
+    var point;
 
     var xs = [];
-    for (var i = 0, len = endpoints.x.length; i < len; i++) {
-        var point = endpoints.x[i];
-        if (point._ID !== body._ID) xs.push(point)
+    for (i = 0, len = endpoints.x.length; i < len; i++) {
+        point = endpoints.x[i];
+        if (point._ID !== body._ID) xs.push(point);
     }
     var ys = [];
-    for (var i = 0, len = endpoints.y.length; i < len; i++) {
-        var point = endpoints.y[i];
-        if (point._ID !== body._ID) ys.push(point)
+    for (i = 0, len = endpoints.y.length; i < len; i++) {
+        point = endpoints.y[i];
+        if (point._ID !== body._ID) ys.push(point);
     }
     var zs = [];
-    for (var i = 0, len = endpoints.z.length; i < len; i++) {
-        var point = endpoints.z[i];
-        if (point._ID !== body._ID) zs.push(point)
+    for (i = 0, len = endpoints.z.length; i < len; i++) {
+        point = endpoints.z[i];
+        if (point._ID !== body._ID) zs.push(point);
     }
     endpoints.x = xs;
-    endpoints.y = yz;
+    endpoints.y = ys;
     endpoints.z = zs;
 };
 
@@ -18925,7 +17331,9 @@ SweepAndPrune.prototype.update = function() {
     var _entityRegistry = this._entityRegistry;
     var _boundingVolumeRegistry = this._boundingVolumeRegistry;
 
-    for (var j = 0, len = _sweepVolumes.length; j < len; j++) {
+    var i, j, k, len;
+
+    for (j = 0, len = _sweepVolumes.length; j < len; j++) {
         _sweepVolumes[j].update();
     }
 
@@ -18934,14 +17342,13 @@ SweepAndPrune.prototype.update = function() {
     var overlapsMatrix = this.overlapsMatrix;
     var _IDPool = this._IDPool;
 
-    for (var k = 0; k < 3; k++) {
+    for (k = 0; k < 3; k++) {
         var axis = AXES[k];
         // Insertion sort:
         var endpointAxis = endpoints[axis];
-        for (var j = 1, len = endpointAxis.length; j < len; j++) {
+        for (j = 1, len = endpointAxis.length; j < len; j++) {
             var current = endpointAxis[j];
             var val = current.value;
-            var i = j - 1;
             var swap;
             var row;
             var index;
@@ -18949,6 +17356,8 @@ SweepAndPrune.prototype.update = function() {
             var highID;
             var cID;
             var sID;
+
+            i = j - 1;
             while (i >= 0 && (swap = endpointAxis[i]).value > val) {
                 // A swap occurence indicates that current and swap either just started or just stopped overlapping
 
@@ -19007,9 +17416,9 @@ function SweepVolume(boundingVolume) {
         x: [{_ID: boundingVolume._ID, side: 0, value: null}, {_ID: boundingVolume._ID, side: 1, value: null}],
         y: [{_ID: boundingVolume._ID, side: 0, value: null}, {_ID: boundingVolume._ID, side: 1, value: null}],
         z: [{_ID: boundingVolume._ID, side: 0, value: null}, {_ID: boundingVolume._ID, side: 1, value: null}]
-    }
+    };
     this.update();
-};
+}
 
 /**
  * Update the endpoints to reflect the current location of the AABB.
@@ -19020,7 +17429,6 @@ SweepVolume.prototype.update = function() {
     var boundingVolume = this._boundingVolume;
     boundingVolume.update();
 
-    var pos = boundingVolume.position;
     var points = this.points;
 
     for (var i = 0; i < 3; i++) {
@@ -19032,7 +17440,7 @@ SweepVolume.prototype.update = function() {
 
 module.exports = SweepAndPrune;
 
-},{"./AABB":165}],170:[function(require,module,exports){
+},{"./AABB":139}],144:[function(require,module,exports){
 'use strict';
 
 var Force = require('./Force');
@@ -19084,7 +17492,7 @@ Drag.LINEAR = function LINEAR(v) {
  * @method init
  * @param {Object} options The options hash.
  */
-Drag.prototype.init = function(options) {
+Drag.prototype.init = function() {
     this.max = this.max || Infinity;
     this.strength = this.strength || 1;
     this.type = this.type || Drag.LINEAR;
@@ -19094,10 +17502,8 @@ Drag.prototype.init = function(options) {
  * Apply the force.
  *
  * @method update
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Drag.prototype.update = function update(time, dt) {
+Drag.prototype.update = function update() {
     var targets = this.targets;
     var type = this.type;
 
@@ -19118,7 +17524,7 @@ Drag.prototype.update = function update(time, dt) {
 
 module.exports = Drag;
 
-},{"./Force":171,"famous-math":133}],171:[function(require,module,exports){
+},{"./Force":145,"famous-math":107}],145:[function(require,module,exports){
 'use strict';
 
 var _ID = 0;
@@ -19195,7 +17601,7 @@ Force.prototype.update = function update(time, dt) {};
 
 module.exports = Force;
 
-},{}],172:[function(require,module,exports){
+},{}],146:[function(require,module,exports){
 'use strict';
 
 var Force = require('./Force');
@@ -19271,10 +17677,8 @@ Gravity1D.prototype.init = function(options) {
  * Apply the force.
  *
  * @method update
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Gravity1D.prototype.update = function(time, dt) {
+Gravity1D.prototype.update = function() {
     var targets = this.targets;
 
     var force = FORCE_REGISTER;
@@ -19286,14 +17690,14 @@ Gravity1D.prototype.update = function(time, dt) {
     for (var i = 0, len = targets.length; i < len; i++) {
         var target = targets[i];
         var magnitude = a * target.mass;
-        Vec3.scale(acceleration, (magnitude > max ? max : magnitude) * invA, force)
+        Vec3.scale(acceleration, (magnitude > max ? max : magnitude) * invA, force);
         target.applyForce(force);
     }
 };
 
 module.exports = Gravity1D;
 
-},{"./Force":171,"famous-math":133}],173:[function(require,module,exports){
+},{"./Force":145,"famous-math":107}],147:[function(require,module,exports){
 'use strict';
 
 var Force = require('./Force');
@@ -19320,9 +17724,8 @@ Gravity3D.prototype.constructor = Gravity3D;
  * Initialize the Force. Sets defaults if a property was not already set.
  *
  * @method init
- * @param {Object} options The options hash.
  */
-Gravity3D.prototype.init = function(options) {
+Gravity3D.prototype.init = function() {
     this.max = this.max || Infinity;
     this.strength = this.strength || 200;
 };
@@ -19331,10 +17734,8 @@ Gravity3D.prototype.init = function(options) {
  * Apply the force.
  *
  * @method update
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Gravity3D.prototype.update = function(time, dt) {
+Gravity3D.prototype.update = function() {
     var source = this.source;
     var targets = this.targets;
 
@@ -19363,7 +17764,7 @@ Gravity3D.prototype.update = function(time, dt) {
 
 module.exports = Gravity3D;
 
-},{"./Force":171,"famous-math":133}],174:[function(require,module,exports){
+},{"./Force":145,"famous-math":107}],148:[function(require,module,exports){
 'use strict';
 
 var Force = require('./Force');
@@ -19402,10 +17803,9 @@ RotationalDrag.QUADRATIC = function QUADRATIC(omega) {
  *
  * @attribute LINEAR
  * @type Function
- * @param {Vec3} omega
  * @return {Number}
  */
-RotationalDrag.LINEAR = function LINEAR(omega) {
+RotationalDrag.LINEAR = function LINEAR() {
     return 1;
 };
 
@@ -19413,9 +17813,8 @@ RotationalDrag.LINEAR = function LINEAR(omega) {
  * Initialize the Force. Sets defaults if a property was not already set.
  *
  * @method init
- * @param {Object} options The options hash.
  */
-RotationalDrag.prototype.init = function init(options) {
+RotationalDrag.prototype.init = function init() {
     this.max = this.max || Infinity;
     this.strength = this.strength || 1;
     this.type = this.type || RotationalDrag.LINEAR;
@@ -19425,10 +17824,8 @@ RotationalDrag.prototype.init = function init(options) {
  * Adds a rotational drag force to a physics body's torque accumulator.
  *
  * @method update
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-RotationalDrag.prototype.update = function update(time, dt) {
+RotationalDrag.prototype.update = function update() {
     var targets = this.targets;
     var type = this.type;
 
@@ -19445,13 +17842,9 @@ RotationalDrag.prototype.update = function update(time, dt) {
     }
 };
 
-function clamp(value, lower, upper) {
-    return value < lower ? lower : value > upper ? upper : value;
-}
-
 module.exports = RotationalDrag;
 
-},{"./Force":171,"famous-math":133}],175:[function(require,module,exports){
+},{"./Force":145,"famous-math":107}],149:[function(require,module,exports){
 'use strict';
 
 var Force = require('./Force');
@@ -19510,10 +17903,8 @@ RotationalSpring.prototype.init = function init(options) {
  * Adds a torque force to a physics body's torque accumulator.
  *
  * @method update
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-RotationalSpring.prototype.update = function update(time, dt) {
+RotationalSpring.prototype.update = function update() {
     var source = this.source;
     var targets = this.targets;
 
@@ -19568,7 +17959,7 @@ RotationalSpring.prototype.update = function update(time, dt) {
 
 module.exports = RotationalSpring;
 
-},{"./Force":171,"famous-math":133}],176:[function(require,module,exports){
+},{"./Force":145,"famous-math":107}],150:[function(require,module,exports){
 'use strict';
 
 var Force = require('./Force');
@@ -19606,10 +17997,10 @@ var PI = Math.PI;
  * @return {Number} unscaled force
  */
 Spring.FENE = function(dist, rMax) {
-    var rMaxSmall = rMax * .99;
+    var rMaxSmall = rMax * 0.99;
     var r = Math.max(Math.min(dist, rMaxSmall), -rMaxSmall);
     return r / (1 - r * r/(rMax * rMax));
-},
+};
 
 /**
  * A Hookean spring force, linear in the displacement
@@ -19619,9 +18010,9 @@ Spring.FENE = function(dist, rMax) {
  * @param {Number} dist current distance target is from source body
  * @return {Number} unscaled force
  */
-Spring.HOOKE = function(dist, rMax) {
+Spring.HOOKE = function(dist) {
     return dist;
-}
+};
 
 /**
  * Initialize the Force. Sets defaults if a property was not already set.
@@ -19654,10 +18045,8 @@ Spring.prototype.init = function(options) {
  * Apply the force.
  *
  * @method update
- * @param {Number} time The current time in the physics engine.
- * @param {Number} dt The physics engine frame delta.
  */
-Spring.prototype.update = function(time, dt) {
+Spring.prototype.update = function() {
     var source = this.source;
     var targets = this.targets;
 
@@ -19710,7 +18099,7 @@ Spring.prototype.update = function(time, dt) {
 
 module.exports = Spring;
 
-},{"./Force":171,"famous-math":133}],177:[function(require,module,exports){
+},{"./Force":145,"famous-math":107}],151:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -19741,229 +18130,107 @@ module.exports = {
     Geometry: require('./Geometry')
 };
 
-},{"./Geometry":150,"./PhysicsEngine":151,"./bodies/Box":152,"./bodies/ConvexBodyFactory":153,"./bodies/Particle":154,"./bodies/Sphere":155,"./bodies/Wall":156,"./constraints/Angle":157,"./constraints/Collision":158,"./constraints/Constraint":159,"./constraints/Curve":160,"./constraints/Direction":161,"./constraints/Distance":162,"./constraints/Hinge":163,"./constraints/Point2Point":164,"./forces/Drag":170,"./forces/Force":171,"./forces/Gravity1D":172,"./forces/Gravity3D":173,"./forces/RotationalDrag":174,"./forces/RotationalSpring":175,"./forces/Spring":176}],178:[function(require,module,exports){
-arguments[4][121][0].apply(exports,arguments)
-},{"./requestAnimationFrame":179,"dup":121}],179:[function(require,module,exports){
-arguments[4][122][0].apply(exports,arguments)
-},{"dup":122}],180:[function(require,module,exports){
+},{"./Geometry":124,"./PhysicsEngine":125,"./bodies/Box":126,"./bodies/ConvexBodyFactory":127,"./bodies/Particle":128,"./bodies/Sphere":129,"./bodies/Wall":130,"./constraints/Angle":131,"./constraints/Collision":132,"./constraints/Constraint":133,"./constraints/Curve":134,"./constraints/Direction":135,"./constraints/Distance":136,"./constraints/Hinge":137,"./constraints/Point2Point":138,"./forces/Drag":144,"./forces/Force":145,"./forces/Gravity1D":146,"./forces/Gravity3D":147,"./forces/RotationalDrag":148,"./forces/RotationalSpring":149,"./forces/Spring":150}],152:[function(require,module,exports){
+arguments[4][95][0].apply(exports,arguments)
+},{"dup":95}],153:[function(require,module,exports){
+arguments[4][96][0].apply(exports,arguments)
+},{"./animationFrame":152,"dup":96}],154:[function(require,module,exports){
 arguments[4][27][0].apply(exports,arguments)
-},{"dup":27}],181:[function(require,module,exports){
+},{"dup":27}],155:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"./Mat33":180,"dup":28}],182:[function(require,module,exports){
+},{"./Mat33":154,"dup":28}],156:[function(require,module,exports){
 arguments[4][29][0].apply(exports,arguments)
-},{"dup":29}],183:[function(require,module,exports){
+},{"dup":29}],157:[function(require,module,exports){
 arguments[4][30][0].apply(exports,arguments)
-},{"dup":30}],184:[function(require,module,exports){
+},{"dup":30}],158:[function(require,module,exports){
 arguments[4][31][0].apply(exports,arguments)
-},{"./Mat33":180,"./Quaternion":181,"./Vec2":182,"./Vec3":183,"dup":31}],185:[function(require,module,exports){
+},{"./Mat33":154,"./Quaternion":155,"./Vec2":156,"./Vec3":157,"dup":31}],159:[function(require,module,exports){
 arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],186:[function(require,module,exports){
+},{"dup":32}],160:[function(require,module,exports){
 arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],187:[function(require,module,exports){
+},{"dup":33}],161:[function(require,module,exports){
 arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":185,"dup":34}],188:[function(require,module,exports){
+},{"./Curves":159,"dup":34}],162:[function(require,module,exports){
 arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],189:[function(require,module,exports){
+},{"dup":35}],163:[function(require,module,exports){
 arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":185,"./Easing":186,"./Transitionable":187,"./after":188,"dup":36}],190:[function(require,module,exports){
+},{"./Curves":159,"./Easing":160,"./Transitionable":161,"./after":162,"dup":36}],164:[function(require,module,exports){
 arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],191:[function(require,module,exports){
+},{"dup":32}],165:[function(require,module,exports){
 arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],192:[function(require,module,exports){
+},{"dup":33}],166:[function(require,module,exports){
 arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":190,"dup":34}],193:[function(require,module,exports){
+},{"./Curves":164,"dup":34}],167:[function(require,module,exports){
 arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],194:[function(require,module,exports){
+},{"dup":35}],168:[function(require,module,exports){
 arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":190,"./Easing":191,"./Transitionable":192,"./after":193,"dup":36}],195:[function(require,module,exports){
+},{"./Curves":164,"./Easing":165,"./Transitionable":166,"./after":167,"dup":36}],169:[function(require,module,exports){
 arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],196:[function(require,module,exports){
+},{"dup":42}],170:[function(require,module,exports){
 arguments[4][43][0].apply(exports,arguments)
-},{"dup":43,"famous-transitions":194}],197:[function(require,module,exports){
+},{"dup":43,"famous-transitions":168}],171:[function(require,module,exports){
 arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],198:[function(require,module,exports){
+},{"dup":44}],172:[function(require,module,exports){
 arguments[4][45][0].apply(exports,arguments)
-},{"dup":45}],199:[function(require,module,exports){
+},{"dup":45}],173:[function(require,module,exports){
 arguments[4][46][0].apply(exports,arguments)
-},{"dup":46}],200:[function(require,module,exports){
+},{"dup":46}],174:[function(require,module,exports){
 arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],201:[function(require,module,exports){
+},{"dup":47}],175:[function(require,module,exports){
 arguments[4][48][0].apply(exports,arguments)
-},{"dup":48}],202:[function(require,module,exports){
+},{"dup":48}],176:[function(require,module,exports){
 arguments[4][49][0].apply(exports,arguments)
-},{"./CallbackStore":195,"./Color":196,"./KeyCodes":197,"./MethodStore":198,"./ObjectManager":199,"./clone":200,"./flatClone":201,"./keyValueToArrays":203,"./loadURL":204,"./strip":205,"dup":49}],203:[function(require,module,exports){
+},{"./CallbackStore":169,"./Color":170,"./KeyCodes":171,"./MethodStore":172,"./ObjectManager":173,"./clone":174,"./flatClone":175,"./keyValueToArrays":177,"./loadURL":178,"./strip":179,"dup":49}],177:[function(require,module,exports){
 arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],204:[function(require,module,exports){
+},{"dup":50}],178:[function(require,module,exports){
 arguments[4][51][0].apply(exports,arguments)
-},{"dup":51}],205:[function(require,module,exports){
+},{"dup":51}],179:[function(require,module,exports){
 arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],206:[function(require,module,exports){
+},{"dup":52}],180:[function(require,module,exports){
 arguments[4][53][0].apply(exports,arguments)
-},{"./Position":214,"dup":53}],207:[function(require,module,exports){
+},{"./Position":188,"dup":53}],181:[function(require,module,exports){
 arguments[4][54][0].apply(exports,arguments)
-},{"dup":54}],208:[function(require,module,exports){
+},{"dup":54}],182:[function(require,module,exports){
 arguments[4][55][0].apply(exports,arguments)
-},{"dup":55}],209:[function(require,module,exports){
+},{"dup":55}],183:[function(require,module,exports){
 arguments[4][56][0].apply(exports,arguments)
-},{"dup":56,"famous-utilities":202}],210:[function(require,module,exports){
+},{"dup":56,"famous-utilities":176}],184:[function(require,module,exports){
 arguments[4][57][0].apply(exports,arguments)
-},{"dup":57,"famous-math":184,"famous-utilities":202}],211:[function(require,module,exports){
+},{"dup":57,"famous-math":158,"famous-utilities":176}],185:[function(require,module,exports){
 arguments[4][58][0].apply(exports,arguments)
-},{"./Position":214,"dup":58}],212:[function(require,module,exports){
+},{"./Position":188,"dup":58}],186:[function(require,module,exports){
 arguments[4][59][0].apply(exports,arguments)
-},{"dup":59,"famous-transitions":189}],213:[function(require,module,exports){
+},{"dup":59,"famous-transitions":163}],187:[function(require,module,exports){
 arguments[4][60][0].apply(exports,arguments)
-},{"./Position":214,"dup":60}],214:[function(require,module,exports){
+},{"./Position":188,"dup":60}],188:[function(require,module,exports){
 arguments[4][61][0].apply(exports,arguments)
-},{"dup":61,"famous-transitions":189}],215:[function(require,module,exports){
+},{"dup":61,"famous-transitions":163}],189:[function(require,module,exports){
 arguments[4][62][0].apply(exports,arguments)
-},{"./Position":214,"dup":62}],216:[function(require,module,exports){
+},{"./Position":188,"dup":62}],190:[function(require,module,exports){
 arguments[4][63][0].apply(exports,arguments)
-},{"./Position":214,"dup":63}],217:[function(require,module,exports){
+},{"./Position":188,"dup":63}],191:[function(require,module,exports){
 arguments[4][64][0].apply(exports,arguments)
-},{"dup":64,"famous-transitions":189}],218:[function(require,module,exports){
+},{"dup":64,"famous-core":75,"famous-transitions":163}],192:[function(require,module,exports){
 arguments[4][65][0].apply(exports,arguments)
-},{"dup":65,"famous-utilities":202}],219:[function(require,module,exports){
+},{"dup":65,"famous-utilities":176}],193:[function(require,module,exports){
 arguments[4][66][0].apply(exports,arguments)
-},{"./Align":206,"./Camera":207,"./EventEmitter":208,"./EventHandler":209,"./GestureHandler":210,"./MountPoint":211,"./Opacity":212,"./Origin":213,"./Position":214,"./Rotation":215,"./Scale":216,"./Size":217,"./UIEventHandler":218,"dup":66}],220:[function(require,module,exports){
+},{"./Align":180,"./Camera":181,"./EventEmitter":182,"./EventHandler":183,"./GestureHandler":184,"./MountPoint":185,"./Opacity":186,"./Origin":187,"./Position":188,"./Rotation":189,"./Scale":190,"./Size":191,"./UIEventHandler":192,"dup":66}],194:[function(require,module,exports){
 'use strict';
 
-var DEALLOCATION_ERROR = new Error('Can\'t deallocate non-allocated element');
+var ElementCache = require('./ElementCache');
+
+// an enumeration of potential vendor prefixes.
+var VENDOR_PREFIXES = ['', '-ms-', '-webkit-', '-moz-', '-o-'];
 
 /**
- * Internal helper object to Container that handles the process of
- *   creating and allocating DOM elements within a managed div.
- *   Private.
+ * A private function for determining if a css property
+ * has a vendor prefix.
  *
- * @class ElementAllocator
- * @constructor
- *
- * @param {DOMElement} container document element in which Famo.us content will be inserted
+ * @param {String} property
  */
-function ElementAllocator(container) {
-    if (!container) container = document.createDocumentFragment();
-    this._container = container;
-    this._nodeCount = 0;
-
-    this._allocatedNodes = {};
-    this._deallocatedNodes = {};
-}
-
-/**
- * Allocate an element of specified type from the pool.
- *
- * @method allocate
- *
- * @param {String} type type of element, e.g. 'div'
- *
- * @return {DOMElement} allocated document element
- */
-ElementAllocator.prototype.allocate = function allocate(type) {
-    type = type.toLowerCase();
-    var result;
-    var nodeStore = this._deallocatedNodes[type];
-    if (nodeStore && nodeStore.length > 0) {
-        result = nodeStore.pop();
-    }
-    else {
-        result = document.createElement(type);
-        this._container.appendChild(result);
-    }
-    this._allocatedNodes[type] = this._allocatedNodes[type] ? this._allocatedNodes[type] : [];
-    this._allocatedNodes[type].push(result);
-    this._nodeCount++;
-    result.style.display = '';
-    return result;
-};
-
-/**
- * De-allocate an element of specified type to the pool.
- *
- * @method deallocate
- *
- * @param {DOMElement} element document element to deallocate
- */
-ElementAllocator.prototype.deallocate = function deallocate(element) {
-    var type = element.nodeName.toLowerCase();
-    this._deallocatedNodes[type] = this._deallocatedNodes[type] ? this._deallocatedNodes[type] : [];
-    var allocatedNodeStore = this._allocatedNodes[type];
-    var deallocatedNodeStore = this._deallocatedNodes[type];
-    if (!allocatedNodeStore) throw DEALLOCATION_ERROR;
-    var index = allocatedNodeStore.indexOf(element);
-    if (index === -1) throw DEALLOCATION_ERROR;
-    allocatedNodeStore.splice(index, 1);
-    deallocatedNodeStore.push(element);
-
-    this._nodeCount--;
-};
-
-ElementAllocator.prototype.setContainer = function setContainer(container) {
-    this._container = container;
-
-    var nodeType, i;
-    for (nodeType in this._deallocatedNodes) {
-        for (i = 0; i < this._deallocatedNodes[nodeType].length; i++) {
-            this._container.appendChild(this._deallocatedNodes[nodeType][i]);
-        }
-        for (i = 0; i < this._allocatedNodes[nodeType].length; i++) {
-            this._container.appendChild(this._allocatedNodes[nodeType][i]);
-        }
-    }
-};
-
-
-ElementAllocator.prototype.getContainer = function getContainer() {
-    return this._container;
-};
-
-/**
- * Get count of total allocated nodes in the document.
- *
- * @method getNodeCount
- *
- * @return {Number} total node count
- */
-ElementAllocator.prototype.getNodeCount = function getNodeCount() {
-    return this._nodeCount;
-};
-
-module.exports = ElementAllocator;
-
-},{}],221:[function(require,module,exports){
-'use strict';
-
-var ElementAllocator = require('./ElementAllocator');
-
-var CHANGE_TRANSFORM = 'CHANGE_TRANSFORM';
-var CHANGE_TRANSFORM_ORIGIN = 'CHANGE_TRANSFORM_ORIGIN';
-var CHANGE_PROPERTY = 'CHANGE_PROPERTY';
-var ADD_CLASS = 'ADD_CLASS';
-var REMOVE_CLASS = 'REMOVE_CLASS';
-var CHANGE_CONTENT = 'CHANGE_CONTENT';
-var ADD_EVENT_LISTENER = 'ADD_EVENT_LISTENER';
-var EVENT_PROPERTIES = 'EVENT_PROPERTIES';
-var EVENT_END = 'EVENT_END';
-var RECALL = 'RECALL';
-var CHANGE_SIZE = 'CHANGE_SIZE';
-var CHANGE_ATTRIBUTE = 'CHANGE_ATTRIBUTE';
-
-var DIV = 'div';
-var TRANSFORM = 'transform';
-var TRANSFORM_ORIGIN = 'transform-origin';
-var FA_SURFACE = 'fa-surface';
-var ZERO_COMMA = '0,';
-var MATRIX3D = 'matrix3d(';
-var COMMA = ',';
-var CLOSE_PAREN = ')';
-
-var PERCENT = '%';
-var PERCENT_SPACE = '% ';
-
-var vendorPrefixes = ['', '-ms-', '-webkit-', '-moz-', '-o-'];
-
 function vendorPrefix(property) {
-    for (var i = 0; i < vendorPrefixes.length; i++) {
-        var prefixed = vendorPrefixes[i] + property;
+    for (var i = 0; i < VENDOR_PREFIXES.length; i++) {
+        var prefixed = VENDOR_PREFIXES[i] + property;
         if (document.documentElement.style[prefixed] === '') {
             return prefixed;
         }
@@ -19971,50 +18238,67 @@ function vendorPrefix(property) {
     return property;
 }
 
-var VENDOR_TRANSFORM = vendorPrefix(TRANSFORM);
-var VENDOR_TRANSFORM_ORIGIN = vendorPrefix(TRANSFORM_ORIGIN);
+// the prefixed transform property.
+var TRANSFORM = vendorPrefix('transform');
 
-function VirtualElement (target, path, renderer, parent, rootElement, root) {
-    this._path = path;
-    this._target = target;
-    this._renderer = renderer;
-    this._parent = parent;
-    this._receivedMatrix = new Float32Array(16);
-    this._finalMatrix = new Float32Array(16);
-    this._invertedParent = [];
-    target.classList.add(FA_SURFACE);
-    this._allocator = new ElementAllocator(target);
-    this._properties = {};
-    this._attributes = {};
+/**
+ * DOMRenderer is a class responsible for adding elements
+ * to the DOM and writing to those elements.
+ * there is a DOMRenderer per context, represented as an
+ * element and a selector. It is instantiated in the 
+ * context class.
+ *
+ * @class DOMRenderer
+ * 
+ * @param {HTMLElement} an element.
+ * @param {String} the selector of the element.
+ * @param {Compositor}
+ */
+function DOMRenderer (element, selector, compositor) {
+    this._compositor = compositor; // a reference to the compositor
+
+    this._target = null; // a register for holding the current
+                         // element that the Renderer is operating
+                         // upon
+
+    this._parent = null; // a register for holding the parent
+                         // of the target
+
+    this._path = null; // a register for holding the path of the target
+                       // this register must be set first, and then
+                       // children, target, and parent are all looked
+                       // up from that.
+
+    this._children = []; // a register for holding the children of the
+                         // current target.
+
+    this._root = new ElementCache(element, selector); // the root
+                                                      // of the dom tree that this
+                                                      // renderer is responsible
+                                                      // for
+
+    this._selector = selector;
+    
+    this._elements = {};
+
+    this._elements[selector] = this._root;
+
+    this.perspectiveTransform = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+    this._VPtransform = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+
     this._eventListeners = {};
-    this._content = '';
-    this._children = {};
-    this._size = [0, 0, 0];
-    this._tagName = DIV;
-    this._rootElement = rootElement || this;
-    this._finalTransform = new Float32Array(16);
-    this._MV = new Float32Array(16);
-    this._perspectiveTransform = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-    this._isRoot = root ? root : false;
 }
 
-VirtualElement.prototype.getTarget = function getTarget () {
-    return this._target;
-};
+DOMRenderer.prototype.addEventListener = function addEventListener(path, type, properties, preventDefault) {
+    if (!this._eventListeners[type]) {
+        this._eventListeners[type] = {};
+        this._root.element.addEventListener(type, this._triggerEvent.bind(this));
+    }
 
-VirtualElement.prototype.addChild = function addChild(path, index, tagName) {
-    this._tagName = tagName;
-
-    var div = this._allocator.allocate(tagName);
-    var child = new VirtualElement(div, path, this._renderer, this, this._rootElement);
-
-    this._children[index] = child;
-
-    return child;
-};
-
-VirtualElement.prototype.getChild = function getChild(index) {
-    return this._children[index];
+    this._eventListeners[type][path] = {
+        properties: properties,
+        preventDefault: preventDefault
+    };
 };
 
 function _mirror(item, target, reference) {
@@ -20038,209 +18322,314 @@ function _mirror(item, target, reference) {
     }
 }
 
-function _stripEvent (ev, methods, properties) {
-    var result = {};
+function _makeTarget (ev) {
+    var target = ev.target;
+    var result = {
+        tagName: target.tagName,
+        id: target.getAttribute('id'),
+        classes: []
+    };
+    for (var i = 0, len = target.classList.length ; i < len ; i++)
+        result.classes[i] = target.classList[i];
+    return result;
+}
+
+function _stripEvent (ev, properties, path) {
+    var result = {
+        path: path,
+        target: _makeTarget(ev),
+        node: null
+    };
     var i, len;
-    for (i = 0, len = methods.length; i < len; i++) {
-        ev[methods[i]]();
-    }
-    for (i = 0, len = properties.length; i < len; i++) {
+    for (i = 0, len = properties ? properties.length : 0; i < len; i++) {
         var prop = properties[i];
         _mirror(prop, result, ev);
     }
+    result.timeStamp = ev.timeStamp;
+    result.time = ev.timeStamp;
     switch (ev.type) {
         case 'mousedown':
         case 'mouseup':
         case 'click':
-            result.x = ev.x;
-            result.y = ev.y;
-            result.timeStamp = ev.timeStamp;
-            break;
         case 'mousemove':
             result.x = ev.x;
             result.y = ev.y;
-            result.movementX = ev.movementX;
-            result.movementY = ev.movementY;
+            result.timeStamp = ev.timeStamp;
+            result.pageX = ev.pageX;
+            result.pageY = ev.pageY;
             break;
         case 'wheel':
             result.deltaX = ev.deltaX;
             result.deltaY = ev.deltaY;
             break;
+        case 'touchstart':
+        case 'touchmove':
+        case 'touchend':
+           result.targetTouches = [];
+           for (var i = 0 ; i < ev.targetTouches.length ; i++) {
+               result.targetTouches.push({
+                   pageX: ev.targetTouches[i].pageX,
+                   pageY: ev.targetTouches[i].pageY,
+                   identifier: ev.targetTouches[i].identifier
+               });
+           }
     }
+    
     return result;
 }
 
-VirtualElement.prototype.dispatchEvent = function (ev, methods, properties, payload) {
-    this._renderer.sendEvent(this._path, ev, _stripEvent(payload, methods, properties));
-};
-
-VirtualElement.prototype._getSize = function _getSize () {
-    this._size[0] = this._target.offsetWidth;
-    this._size[1] = this._target.offsetHeight;
-    return this._size;
-};
-
-VirtualElement.prototype.draw = function draw(renderState) {
-    var m = this._finalMatrix;
-    var perspectiveTransform = renderState.perspectiveTransform;
-
-    this._perspectiveTransform[8] = perspectiveTransform[11] * ((this._rootElement._size[0] * 0.5)),
-    this._perspectiveTransform[9] = perspectiveTransform[11] * ((this._rootElement._size[1] * 0.5));
-    this._perspectiveTransform[11] = perspectiveTransform[11];
-
-    if (this._parent) {
-        invert(this._invertedParent, this._parent._receivedMatrix);
-        multiply(this._finalMatrix, this._invertedParent, this._receivedMatrix);
-    }
-
-    if (this._parent._isRoot) {
-        multiply(
-            this._MV,
-            renderState.viewTransform,
-            this._finalMatrix
-        );
-
-        multiply(
-            this._finalTransform,
-            this._perspectiveTransform,
-            this._MV
-        );
-    }
-
-    var finalTransform = this._parent._isRoot ? this._finalTransform : this._finalMatrix;
-
-    this._target.style[VENDOR_TRANSFORM] = stringifyMatrix(finalTransform);
-};
-
-VirtualElement.prototype.setMatrix = function setMatrix (m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15) {
-    this._receivedMatrix[0] = m0;
-    this._receivedMatrix[1] = m1;
-    this._receivedMatrix[2] = m2;
-    this._receivedMatrix[3] = m3;
-    this._receivedMatrix[4] = m4;
-    this._receivedMatrix[5] = m5;
-    this._receivedMatrix[6] = m6;
-    this._receivedMatrix[7] = m7;
-    this._receivedMatrix[8] = m8;
-    this._receivedMatrix[9] = m9;
-    this._receivedMatrix[10] = m10;
-    this._receivedMatrix[11] = m11;
-    this._receivedMatrix[12] = m12;
-    this._receivedMatrix[13] = m13;
-    this._receivedMatrix[14] = m14;
-    this._receivedMatrix[15] = m15;
-
-    this._finalMatrix[0] = m0;
-    this._finalMatrix[1] = m1;
-    this._finalMatrix[2] = m2;
-    this._finalMatrix[3] = m3;
-    this._finalMatrix[4] = m4;
-    this._finalMatrix[5] = m5;
-    this._finalMatrix[6] = m6;
-    this._finalMatrix[7] = m7;
-    this._finalMatrix[8] = m8;
-    this._finalMatrix[9] = m9;
-    this._finalMatrix[10] = m10;
-    this._finalMatrix[11] = m11;
-    this._finalMatrix[12] = m12;
-    this._finalMatrix[13] = m13;
-    this._finalMatrix[14] = m14;
-    this._finalMatrix[15] = m15;
-};
-
-VirtualElement.prototype.changeSize = function changeSize(width, height) {
-    this._size[0] = width;
-    this._size[1] = height;
-    if (width !== true) {
-        this.setProperty('width', width + 'px');
-    } else {
-        this.setProperty('width', '');
-    }
-    if (height !== true) {
-        this.setProperty('height', height + 'px');
-    } else {
-        this.setProperty('height', '');
-    }
-}
-
-VirtualElement.prototype.addClass = function addClass (className) {
-    this._target.classList.add(className);
-};
-
-VirtualElement.prototype.removeClass = function removeClass (className) {
-    this._target.classList.remove(className);
-};
-
-VirtualElement.prototype.setProperty = function setProperty (key, value) {
-    if (this._properties[key] !== value) {
-        this._properties[key] = value;
-        this._target.style[key] = value;
-    }
-};
-
-VirtualElement.prototype.setAttribute = function setAttribute (key, value) {
-    if (this._attributes[key] !== value) {
-        this._attributes[key] = value;
-        this._target.setAttribute(key, value);
-    }
-};
-
-VirtualElement.prototype.setContent = function setContent (content) {
-    if (this._content !== content) {
-        this._content = content;
-        this._target.innerHTML = content;
-    }
-};
-
-VirtualElement.prototype.addEventListener = function addEventListener (name, listener) {
-    this._eventListeners[name] = this._eventListeners[name] || [];
-    if (this._eventListeners[name].indexOf(listener) === -1) {
-        this._eventListeners[name].push(listener);
-        this._target.addEventListener(name, listener);
-    }
-};
-
-VirtualElement.prototype.removeEventListener = function removeEventListener (name, listener) {
-    if (this._eventListeners[name]) {
-        var index = this._eventListeners[name].indexOf(listener);
-        if (index !== -1) {
-            this._eventListeners[name].splice(index, 1);
-            this._target.removeEventListener(name, listener);
+DOMRenderer.prototype._triggerEvent = function _triggerEvent(ev) {
+    var evPath = ev.path ? ev.path : _getPath(ev);
+    for (var i = 0; i < evPath.length; i++) {
+        if (!evPath[i].dataset) continue;
+        var path = evPath[i].dataset.faPath;
+        if (this._eventListeners[ev.type][path]) {
+            this._compositor.sendEvent(path, ev.type, _stripEvent(ev, this._eventListeners[ev.type][path].properties, path));
+            ev.stopPropagation();
+            if (this._eventListeners[ev.type][path].preventDefault) {
+                ev.preventDefault();
+            }
+            break;
         }
     }
 };
 
-/**
- * A helper function for serializing a transform its corresponding
- * css string representation.
- *
- * @method stringifyMatrix
- * @private
- *
- * @param {Transform} A sixteen value transform.
- *
- * @return {String} a string of format "matrix3d(m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15)"
- */
+function _getPath (ev) {
+    var path = [];
+    var node = ev.target;
+    while (node != document.body) {
+        path.push(node);
+        node = node.parentNode;
+    }
+    return path;
+}
+
+DOMRenderer.prototype.getSize = function getSize () {
+    return [this._root.element.offsetWidth, this._root.element.offsetHeight];
+};
+
+DOMRenderer.prototype._getSize = DOMRenderer.prototype.getSize;
+
+DOMRenderer.prototype.draw = function draw (renderState) {
+    if (renderState.perspectiveDirty) {
+        this.perspectiveDirty = true;
+
+        this.perspectiveTransform[0] = renderState.perspectiveTransform[0];
+        this.perspectiveTransform[1] = renderState.perspectiveTransform[1];
+        this.perspectiveTransform[2] = renderState.perspectiveTransform[2];
+        this.perspectiveTransform[3] = renderState.perspectiveTransform[3];
+
+        this.perspectiveTransform[4] = renderState.perspectiveTransform[4];
+        this.perspectiveTransform[5] = renderState.perspectiveTransform[5];
+        this.perspectiveTransform[6] = renderState.perspectiveTransform[6];
+        this.perspectiveTransform[7] = renderState.perspectiveTransform[7];
+
+        this.perspectiveTransform[8] = renderState.perspectiveTransform[8];
+        this.perspectiveTransform[9] = renderState.perspectiveTransform[9];
+        this.perspectiveTransform[10] = renderState.perspectiveTransform[10];
+        this.perspectiveTransform[11] = renderState.perspectiveTransform[11];
+
+        this.perspectiveTransform[12] = renderState.perspectiveTransform[12];
+        this.perspectiveTransform[13] = renderState.perspectiveTransform[13];
+        this.perspectiveTransform[14] = renderState.perspectiveTransform[14];
+        this.perspectiveTransform[15] = renderState.perspectiveTransform[15];
+    }
+
+    if (renderState.viewDirty || renderState.perspectiveDirty) {
+        multiply(this._VPtransform, this.perspectiveTransform, renderState.viewTransform);
+        this._root.element.style[TRANSFORM] = stringifyMatrix(this._VPtransform);
+    }
+};
+
+DOMRenderer.prototype._assertPathLoaded = function _asserPathLoaded () {
+    if (!this._path) throw new Error('path not loaded');
+};
+
+DOMRenderer.prototype._assertParentLoaded = function _assertParentLoaded () {
+    if (!this._parent) throw new Error('parent not loaded');
+};
+
+DOMRenderer.prototype._assertChildrenLoaded = function _assertChildrenLoaded () {
+    if (!this._children) throw new Error('children not loaded');
+};
+
+DOMRenderer.prototype.findParent = function findParent () {
+    this._assertPathLoaded();
+
+    var path = this._path;
+    var parent;
+
+    while (!parent && path.length) {
+        path = path.substring(0, path.lastIndexOf('/'));
+        parent = this._elements[path];
+    }
+    this._parent = parent;
+    return parent;
+};
+
+DOMRenderer.prototype.findChildren = function findChildren (array) {
+    this._assertPathLoaded();
+    
+    var path = this._path;
+    var keys = Object.keys(this._elements);
+    var i = 0;
+    var len;
+    array = array ? array : this._children;
+
+    this._children.length = 0;
+
+    while (i < keys.length) {
+        if (keys[i].indexOf(path) === -1 || keys[i] === path) keys.splice(i, 1);
+        else i++;
+    }
+    var currentPath;
+    var j = 0;
+    for (i = 0 ; i < keys.length ; i++) {
+        currentPath = keys[i];
+        for (j = 0 ; j < keys.length ; j++) {
+            if (i !== j && keys[j].indexOf(currentPath) !== -1) {
+                keys.splice(j, 1);
+                i--;
+            }
+        }
+    }
+    for (i = 0, len = keys.length ; i < len ; i++)
+        array[i] = this._elements[keys[i]];
+
+    return array;
+};
+
+DOMRenderer.prototype.findTarget = function findTarget () {
+    this._target = this._elements[this._path];
+    return this._target;
+};
+
+DOMRenderer.prototype.loadPath = function loadPath (path) {
+    this._path = path;
+    return this._path;
+};
+
+DOMRenderer.prototype.insertEl = function insertEl (tagName) {
+    if (!this._target ||
+         this._target.element.tagName.toLowerCase() === tagName.toLowerCase()) {
+        
+        this.findParent();
+        this.findChildren();
+        
+        this._assertParentLoaded();
+        this._assertChildrenLoaded();
+
+        if (this._target) this._parent.element.removeChild(this._target.element);
+ 
+        this._target = new ElementCache(document.createElement(tagName), this._path);
+        this._parent.element.appendChild(this._target.element);
+        this._elements[this._path] = this._target;
+        
+        for (var i = 0, len = this._children.length ; i < len ; i++) {
+            this._target.element.appendChild(this._children[i].element);
+        }
+    }
+};
+
+DOMRenderer.prototype._assertTargetLoaded = function _assertTargetLoaded () {
+    if (!this._target) throw new Error('No target loaded');
+};
+
+DOMRenderer.prototype.setProperty = function setProperty (name, value) {
+    this._assertTargetLoaded();
+    this._target.element.style[name] = value;
+};
+
+DOMRenderer.prototype.setSize = function setSize (width, height) {
+    this._assertTargetLoaded();
+    this._target.element.style.width = (width === true) ? '' : width + 'px';
+    this._target.element.style.height = (height === true) ? '' : height + 'px';
+};
+
+DOMRenderer.prototype.setAttribute = function setAttribute (name, value) {
+    this._assertTargetLoaded();
+    this._target.element.setAttribute(name, value);
+};
+
+DOMRenderer.prototype.setContent = function setContent (content) {
+    this._assertTargetLoaded();
+    this.findChildren(this._path);
+
+    // Temporary solution
+    for (var i = 0 ; i < this._children.length ; i++) {
+        this._target.element.removeChild(this._children[i].element);
+    }
+
+    this._target.element.innerHTML = content;
+
+    for (var i = 0 ; i < this._children.length ; i++)
+        this._target.element.appendChild(this._children[i].element);
+};
+
+DOMRenderer.prototype.setMatrix = function setMatrix (transform) { 
+    this._assertTargetLoaded();
+    this.findParent();
+    var worldTransform = this._target.worldTransform;
+    var changed = false
+
+    if (transform)
+        for (var i = 0, len = 16 ; i < len ; i++) {
+            changed = changed ? changed : worldTransform[i] === transform[i];
+            worldTransform[i] = transform[i];
+        }
+    else changed = true;
+
+    if (changed) {
+        invert(this._target.invertedParent, this._parent.worldTransform);
+        multiply(this._target.finalTransform, this._target.invertedParent, worldTransform);
+
+        // TODO: this is a temporary fix for draw commands
+        // coming in out of order
+        var children = this.findChildren([]);
+        var previousPath = this._path;
+        var previousTarget = this._target;
+        for (i = 0, len = children.length ; i < len ; i++) {
+            this._target = children[i];
+            this._path = this._target.path;
+            this.setMatrix();
+        }
+        this._path = previousPath;
+        this._target = previousTarget;
+    }
+
+    this._target.element.style[TRANSFORM] = stringifyMatrix(this._target.finalTransform);
+};
+
+DOMRenderer.prototype.addClass = function addClass (domClass) {
+    this._assertTargetLoaded();
+    this._target.element.classList.add(domClass);
+};
+
+DOMRenderer.prototype.removeClass = function removeClass (domClass) {
+    this._assertTargetLoaded();
+    this._target.element.classList.remove(domClass);
+};
+
 function stringifyMatrix(m) {
-    var r = MATRIX3D;
+    var r = 'matrix3d(';
 
-    r += (m[0] < 0.000001 && m[0] > -0.000001) ? ZERO_COMMA : m[0] + COMMA;
-    r += (m[1] < 0.000001 && m[1] > -0.000001) ? ZERO_COMMA : m[1] + COMMA;
-    r += (m[2] < 0.000001 && m[2] > -0.000001) ? ZERO_COMMA : m[2] + COMMA;
-    r += (m[3] < 0.000001 && m[3] > -0.000001) ? ZERO_COMMA : m[3] + COMMA;
-    r += (m[4] < 0.000001 && m[4] > -0.000001) ? ZERO_COMMA : m[4] + COMMA;
-    r += (m[5] < 0.000001 && m[5] > -0.000001) ? ZERO_COMMA : m[5] + COMMA;
-    r += (m[6] < 0.000001 && m[6] > -0.000001) ? ZERO_COMMA : m[6] + COMMA;
-    r += (m[7] < 0.000001 && m[7] > -0.000001) ? ZERO_COMMA : m[7] + COMMA;
-    r += (m[8] < 0.000001 && m[8] > -0.000001) ? ZERO_COMMA : m[8] + COMMA;
-    r += (m[9] < 0.000001 && m[9] > -0.000001) ? ZERO_COMMA : m[9] + COMMA;
-    r += (m[10] < 0.000001 && m[10] > -0.000001) ? ZERO_COMMA : m[10] + COMMA;
-    r += (m[11] < 0.000001 && m[11] > -0.000001) ? ZERO_COMMA : m[11] + COMMA;
-    r += (m[12] < 0.000001 && m[12] > -0.000001) ? ZERO_COMMA : m[12] + COMMA;
-    r += (m[13] < 0.000001 && m[13] > -0.000001) ? ZERO_COMMA : m[13] + COMMA;
-    r += (m[14] < 0.000001 && m[14] > -0.000001) ? ZERO_COMMA : m[14] + COMMA;
+    r += (m[0] < 0.000001 && m[0] > -0.000001) ? '0,' : m[0] + ',';
+    r += (m[1] < 0.000001 && m[1] > -0.000001) ? '0,' : m[1] + ',';
+    r += (m[2] < 0.000001 && m[2] > -0.000001) ? '0,' : m[2] + ',';
+    r += (m[3] < 0.000001 && m[3] > -0.000001) ? '0,' : m[3] + ',';
+    r += (m[4] < 0.000001 && m[4] > -0.000001) ? '0,' : m[4] + ',';
+    r += (m[5] < 0.000001 && m[5] > -0.000001) ? '0,' : m[5] + ',';
+    r += (m[6] < 0.000001 && m[6] > -0.000001) ? '0,' : m[6] + ',';
+    r += (m[7] < 0.000001 && m[7] > -0.000001) ? '0,' : m[7] + ',';
+    r += (m[8] < 0.000001 && m[8] > -0.000001) ? '0,' : m[8] + ',';
+    r += (m[9] < 0.000001 && m[9] > -0.000001) ? '0,' : m[9] + ',';
+    r += (m[10] < 0.000001 && m[10] > -0.000001) ? '0,' : m[10] + ',';
+    r += (m[11] < 0.000001 && m[11] > -0.000001) ? '0,' : m[11] + ',';
+    r += (m[12] < 0.000001 && m[12] > -0.000001) ? '0,' : m[12] + ',';
+    r += (m[13] < 0.000001 && m[13] > -0.000001) ? '0,' : m[13] + ',';
+    r += (m[14] < 0.000001 && m[14] > -0.000001) ? '0,' : m[14] + ',';
 
-    r += m[15] + CLOSE_PAREN;
+    r += m[15] + ')';
     return r;
 }
 
@@ -20302,149 +18691,218 @@ function multiply (out, a, b) {
         b8 = b[8], b9 = b[9], b10 = b[10], b11 = b[11],
         b12 = b[12], b13 = b[13], b14 = b[14], b15 = b[15];
 
-    out[0] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
-    out[1] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
-    out[2] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
-    out[3] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+    var changed = false;
+    var out0, out1, out2, out3;
+
+    out0 = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+    out1 = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+    out2 = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+    out3 = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
+    changed = changed ?
+              changed : out0 == out[0] ||
+                        out1 == out[1] ||
+                        out2 == out[2] ||
+                        out3 == out[3];
+
+    out[0] = out0;
+    out[1] = out1;
+    out[2] = out2;
+    out[3] = out3;
 
     b0 = b4; b1 = b5; b2 = b6; b3 = b7;
-    out[4] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
-    out[5] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
-    out[6] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
-    out[7] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+    out0 = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+    out1 = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+    out2 = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+    out3 = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
+    changed = changed ?
+              changed : out0 == out[4] ||
+                        out1 == out[5] ||
+                        out2 == out[6] ||
+                        out3 == out[7];
+
+    out[4] = out0;
+    out[5] = out1;
+    out[6] = out2;
+    out[7] = out3;
 
     b0 = b8; b1 = b9; b2 = b10; b3 = b11;
-    out[8] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
-    out[9] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
-    out[10] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
-    out[11] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+    out0 = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+    out1 = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+    out2 = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+    out3 = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
+    changed = changed ?
+              changed : out0 == out[8] ||
+                        out1 == out[9] ||
+                        out2 == out[10] ||
+                        out3 == out[11];
+
+    out[8] = out0;
+    out[9] = out1;
+    out[10] = out2;
+    out[11] = out3;
 
     b0 = b12; b1 = b13; b2 = b14; b3 = b15;
-    out[12] = b0*a00 + b1*a10 + b2*a20 + b3*a30;
-    out[13] = b0*a01 + b1*a11 + b2*a21 + b3*a31;
-    out[14] = b0*a02 + b1*a12 + b2*a22 + b3*a32;
-    out[15] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+    out0 = b0*a00 + b1*a10 + b2*a20 + b3*a30;
+    out1 = b0*a01 + b1*a11 + b2*a21 + b3*a31;
+    out2 = b0*a02 + b1*a12 + b2*a22 + b3*a32;
+    out3 = b0*a03 + b1*a13 + b2*a23 + b3*a33;
+
+    changed = changed ?
+              changed : out0 == out[12] ||
+                        out1 == out[13] ||
+                        out2 == out[14] ||
+                        out3 == out[15];
+
+    out[12] = out0;
+    out[13] = out1;
+    out[14] = out2;
+    out[15] = out3;
 
     return out;
 }
 
-module.exports = VirtualElement;
+module.exports = DOMRenderer;
 
-},{"./ElementAllocator":220}],222:[function(require,module,exports){
+
+},{"./ElementCache":195}],195:[function(require,module,exports){
+'use strict';
+
+var ident = [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+];
+
+function ElementCache (element, path) {
+    this.element = element;
+    this.path = path;
+    this.worldTransform = new Float32Array(ident);
+    this.invertedParent = new Float32Array(ident);
+    this.finalTransform = new Float32Array(ident);
+    this.postRenderSize = new Float32Array(2);
+};
+
+module.exports = ElementCache;
+
+
+},{}],196:[function(require,module,exports){
 'use strict';
 
 module.exports = {
-    ElementAllocator: require('./ElementAllocator'),
-    VirtualElement: require('./VirtualElement')
+    DOMRenderer: require('./DOMRenderer')
 };
 
-},{"./ElementAllocator":220,"./VirtualElement":221}],223:[function(require,module,exports){
+},{"./DOMRenderer":194}],197:[function(require,module,exports){
 arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],224:[function(require,module,exports){
+},{"dup":32}],198:[function(require,module,exports){
 arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],225:[function(require,module,exports){
+},{"dup":33}],199:[function(require,module,exports){
 arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":223,"dup":34}],226:[function(require,module,exports){
+},{"./Curves":197,"dup":34}],200:[function(require,module,exports){
 arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],227:[function(require,module,exports){
+},{"dup":35}],201:[function(require,module,exports){
 arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":223,"./Easing":224,"./Transitionable":225,"./after":226,"dup":36}],228:[function(require,module,exports){
+},{"./Curves":197,"./Easing":198,"./Transitionable":199,"./after":200,"dup":36}],202:[function(require,module,exports){
 arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],229:[function(require,module,exports){
+},{"dup":42}],203:[function(require,module,exports){
 arguments[4][43][0].apply(exports,arguments)
-},{"dup":43,"famous-transitions":227}],230:[function(require,module,exports){
+},{"dup":43,"famous-transitions":201}],204:[function(require,module,exports){
 arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],231:[function(require,module,exports){
+},{"dup":44}],205:[function(require,module,exports){
 arguments[4][45][0].apply(exports,arguments)
-},{"dup":45}],232:[function(require,module,exports){
+},{"dup":45}],206:[function(require,module,exports){
 arguments[4][46][0].apply(exports,arguments)
-},{"dup":46}],233:[function(require,module,exports){
+},{"dup":46}],207:[function(require,module,exports){
 arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],234:[function(require,module,exports){
+},{"dup":47}],208:[function(require,module,exports){
 arguments[4][48][0].apply(exports,arguments)
-},{"dup":48}],235:[function(require,module,exports){
+},{"dup":48}],209:[function(require,module,exports){
 arguments[4][49][0].apply(exports,arguments)
-},{"./CallbackStore":228,"./Color":229,"./KeyCodes":230,"./MethodStore":231,"./ObjectManager":232,"./clone":233,"./flatClone":234,"./keyValueToArrays":236,"./loadURL":237,"./strip":238,"dup":49}],236:[function(require,module,exports){
+},{"./CallbackStore":202,"./Color":203,"./KeyCodes":204,"./MethodStore":205,"./ObjectManager":206,"./clone":207,"./flatClone":208,"./keyValueToArrays":210,"./loadURL":211,"./strip":212,"dup":49}],210:[function(require,module,exports){
 arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],237:[function(require,module,exports){
+},{"dup":50}],211:[function(require,module,exports){
 arguments[4][51][0].apply(exports,arguments)
-},{"dup":51}],238:[function(require,module,exports){
+},{"dup":51}],212:[function(require,module,exports){
 arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],239:[function(require,module,exports){
+},{"dup":52}],213:[function(require,module,exports){
 arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],240:[function(require,module,exports){
+},{"dup":32}],214:[function(require,module,exports){
 arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],241:[function(require,module,exports){
+},{"dup":33}],215:[function(require,module,exports){
 arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":239,"dup":34}],242:[function(require,module,exports){
+},{"./Curves":213,"dup":34}],216:[function(require,module,exports){
 arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],243:[function(require,module,exports){
+},{"dup":35}],217:[function(require,module,exports){
 arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":239,"./Easing":240,"./Transitionable":241,"./after":242,"dup":36}],244:[function(require,module,exports){
+},{"./Curves":213,"./Easing":214,"./Transitionable":215,"./after":216,"dup":36}],218:[function(require,module,exports){
 arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],245:[function(require,module,exports){
+},{"dup":42}],219:[function(require,module,exports){
 arguments[4][43][0].apply(exports,arguments)
-},{"dup":43,"famous-transitions":243}],246:[function(require,module,exports){
+},{"dup":43,"famous-transitions":217}],220:[function(require,module,exports){
 arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],247:[function(require,module,exports){
+},{"dup":44}],221:[function(require,module,exports){
 arguments[4][45][0].apply(exports,arguments)
-},{"dup":45}],248:[function(require,module,exports){
+},{"dup":45}],222:[function(require,module,exports){
 arguments[4][46][0].apply(exports,arguments)
-},{"dup":46}],249:[function(require,module,exports){
+},{"dup":46}],223:[function(require,module,exports){
 arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],250:[function(require,module,exports){
+},{"dup":47}],224:[function(require,module,exports){
 arguments[4][48][0].apply(exports,arguments)
-},{"dup":48}],251:[function(require,module,exports){
+},{"dup":48}],225:[function(require,module,exports){
 arguments[4][49][0].apply(exports,arguments)
-},{"./CallbackStore":244,"./Color":245,"./KeyCodes":246,"./MethodStore":247,"./ObjectManager":248,"./clone":249,"./flatClone":250,"./keyValueToArrays":252,"./loadURL":253,"./strip":254,"dup":49}],252:[function(require,module,exports){
+},{"./CallbackStore":218,"./Color":219,"./KeyCodes":220,"./MethodStore":221,"./ObjectManager":222,"./clone":223,"./flatClone":224,"./keyValueToArrays":226,"./loadURL":227,"./strip":228,"dup":49}],226:[function(require,module,exports){
 arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],253:[function(require,module,exports){
+},{"dup":50}],227:[function(require,module,exports){
 arguments[4][51][0].apply(exports,arguments)
-},{"dup":51}],254:[function(require,module,exports){
+},{"dup":51}],228:[function(require,module,exports){
 arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],255:[function(require,module,exports){
+},{"dup":52}],229:[function(require,module,exports){
 arguments[4][27][0].apply(exports,arguments)
-},{"dup":27}],256:[function(require,module,exports){
+},{"dup":27}],230:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"./Mat33":255,"dup":28}],257:[function(require,module,exports){
+},{"./Mat33":229,"dup":28}],231:[function(require,module,exports){
 arguments[4][29][0].apply(exports,arguments)
-},{"dup":29}],258:[function(require,module,exports){
+},{"dup":29}],232:[function(require,module,exports){
 arguments[4][30][0].apply(exports,arguments)
-},{"dup":30}],259:[function(require,module,exports){
+},{"dup":30}],233:[function(require,module,exports){
 arguments[4][31][0].apply(exports,arguments)
-},{"./Mat33":255,"./Quaternion":256,"./Vec2":257,"./Vec3":258,"dup":31}],260:[function(require,module,exports){
+},{"./Mat33":229,"./Quaternion":230,"./Vec2":231,"./Vec3":232,"dup":31}],234:[function(require,module,exports){
 arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],261:[function(require,module,exports){
+},{"dup":32}],235:[function(require,module,exports){
 arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],262:[function(require,module,exports){
+},{"dup":33}],236:[function(require,module,exports){
 arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":260,"dup":34}],263:[function(require,module,exports){
+},{"./Curves":234,"dup":34}],237:[function(require,module,exports){
 arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],264:[function(require,module,exports){
+},{"dup":35}],238:[function(require,module,exports){
 arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":260,"./Easing":261,"./Transitionable":262,"./after":263,"dup":36}],265:[function(require,module,exports){
+},{"./Curves":234,"./Easing":235,"./Transitionable":236,"./after":237,"dup":36}],239:[function(require,module,exports){
 arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],266:[function(require,module,exports){
+},{"dup":42}],240:[function(require,module,exports){
 arguments[4][43][0].apply(exports,arguments)
-},{"dup":43,"famous-transitions":264}],267:[function(require,module,exports){
+},{"dup":43,"famous-transitions":238}],241:[function(require,module,exports){
 arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],268:[function(require,module,exports){
+},{"dup":44}],242:[function(require,module,exports){
 arguments[4][45][0].apply(exports,arguments)
-},{"dup":45}],269:[function(require,module,exports){
+},{"dup":45}],243:[function(require,module,exports){
 arguments[4][46][0].apply(exports,arguments)
-},{"dup":46}],270:[function(require,module,exports){
+},{"dup":46}],244:[function(require,module,exports){
 arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],271:[function(require,module,exports){
+},{"dup":47}],245:[function(require,module,exports){
 arguments[4][48][0].apply(exports,arguments)
-},{"dup":48}],272:[function(require,module,exports){
+},{"dup":48}],246:[function(require,module,exports){
 arguments[4][49][0].apply(exports,arguments)
-},{"./CallbackStore":265,"./Color":266,"./KeyCodes":267,"./MethodStore":268,"./ObjectManager":269,"./clone":270,"./flatClone":271,"./keyValueToArrays":273,"./loadURL":274,"./strip":275,"dup":49}],273:[function(require,module,exports){
+},{"./CallbackStore":239,"./Color":240,"./KeyCodes":241,"./MethodStore":242,"./ObjectManager":243,"./clone":244,"./flatClone":245,"./keyValueToArrays":247,"./loadURL":248,"./strip":249,"dup":49}],247:[function(require,module,exports){
 arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],274:[function(require,module,exports){
+},{"dup":50}],248:[function(require,module,exports){
 arguments[4][51][0].apply(exports,arguments)
-},{"dup":51}],275:[function(require,module,exports){
+},{"dup":51}],249:[function(require,module,exports){
 arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],276:[function(require,module,exports){
+},{"dup":52}],250:[function(require,module,exports){
 'use strict';
 
 var Geometry = require('./Geometry');
@@ -20626,7 +19084,7 @@ DynamicGeometry.prototype.getTextureCoords = function () {
 
 module.exports = DynamicGeometry;
 
-},{"./Geometry":277}],277:[function(require,module,exports){
+},{"./Geometry":251}],251:[function(require,module,exports){
 'use strict';
 
 var GeometryIds = 0;
@@ -20682,7 +19140,7 @@ function Geometry(options) {
 
 module.exports = Geometry;
 
-},{}],278:[function(require,module,exports){
+},{}],252:[function(require,module,exports){
 'use strict';
 
 var Vec3 = require('famous-math').Vec3;
@@ -21163,7 +19621,7 @@ GeometryHelper.trianglesToLines = function triangleToLines(indices, out) {
 
 module.exports = GeometryHelper;
 
-},{"famous-math":259}],279:[function(require,module,exports){
+},{"famous-math":233}],253:[function(require,module,exports){
 var loadURL        = require('famous-utilities').loadURL;
 var GeometryHelper = require('./GeometryHelper');
 
@@ -21571,7 +20029,7 @@ function flatten(arr) {
 
 module.exports = OBJLoader;
 
-},{"./GeometryHelper":278,"famous-utilities":272}],280:[function(require,module,exports){
+},{"./GeometryHelper":252,"famous-utilities":246}],254:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -21591,7 +20049,7 @@ module.exports = {
     Geometry: require('./Geometry'),
     OBJLoader: require('./OBJLoader'),
 };
-},{"./DynamicGeometry":276,"./Geometry":277,"./GeometryHelper":278,"./OBJLoader":279,"./primitives/Box":281,"./primitives/Circle":282,"./primitives/Cylinder":283,"./primitives/GeodesicSphere":284,"./primitives/Icosahedron":285,"./primitives/ParametricCone":286,"./primitives/Plane":287,"./primitives/Sphere":288,"./primitives/Tetrahedron":289,"./primitives/Torus":290,"./primitives/Triangle":291}],281:[function(require,module,exports){
+},{"./DynamicGeometry":250,"./Geometry":251,"./GeometryHelper":252,"./OBJLoader":253,"./primitives/Box":255,"./primitives/Circle":256,"./primitives/Cylinder":257,"./primitives/GeodesicSphere":258,"./primitives/Icosahedron":259,"./primitives/ParametricCone":260,"./primitives/Plane":261,"./primitives/Sphere":262,"./primitives/Tetrahedron":263,"./primitives/Torus":264,"./primitives/Triangle":265}],255:[function(require,module,exports){
 'use strict';
 
 var Geometry = require('../Geometry');
@@ -21660,7 +20118,7 @@ function BoxGeometry(options) {
 
 module.exports = BoxGeometry;
 
-},{"../Geometry":277}],282:[function(require,module,exports){
+},{"../Geometry":251}],256:[function(require,module,exports){
 'use strict';
 
 var Geometry       = require('../Geometry');
@@ -21731,7 +20189,7 @@ function getBuffers(detail) {
 
 module.exports = Circle;
 
-},{"../Geometry":277}],283:[function(require,module,exports){
+},{"../Geometry":251}],257:[function(require,module,exports){
 'use strict';
 
 var Geometry       = require('../Geometry');
@@ -21791,7 +20249,7 @@ Cylinder.generator = function generator(r, u, v, pos) {
 
 module.exports = Cylinder;
 
-},{"../Geometry":277,"../GeometryHelper":278}],284:[function(require,module,exports){
+},{"../Geometry":251,"../GeometryHelper":252}],258:[function(require,module,exports){
 'use strict';
 
 var Geometry       = require('../Geometry');
@@ -21847,7 +20305,7 @@ function GeodesicSphere (options) {
 
 module.exports = GeodesicSphere;
 
-},{"../Geometry":277,"../GeometryHelper":278}],285:[function(require,module,exports){
+},{"../Geometry":251,"../GeometryHelper":252}],259:[function(require,module,exports){
 'use strict';
 
 var Geometry = require('../Geometry');
@@ -21901,7 +20359,7 @@ function Icosahedron() {
 
 module.exports = Icosahedron;
 
-},{"../Geometry":277,"../GeometryHelper":278}],286:[function(require,module,exports){
+},{"../Geometry":251,"../GeometryHelper":252}],260:[function(require,module,exports){
 'use strict';
 
 var Geometry = require('../Geometry');
@@ -21959,7 +20417,7 @@ ParametricCone.generator = function generator(r, u, v, pos) {
 
 module.exports = ParametricCone;
 
-},{"../Geometry":277,"../GeometryHelper":278}],287:[function(require,module,exports){
+},{"../Geometry":251,"../GeometryHelper":252}],261:[function(require,module,exports){
 'use strict';
 
 var Geometry = require('../Geometry');
@@ -22013,7 +20471,7 @@ function Plane(options) {
 
 module.exports = Plane;
 
-},{"../Geometry":277}],288:[function(require,module,exports){
+},{"../Geometry":251}],262:[function(require,module,exports){
 'use strict';
 
 var Geometry = require('../Geometry');
@@ -22076,7 +20534,7 @@ ParametricSphere.generator = function generator(u, v, pos) {
 
 module.exports = ParametricSphere;
 
-},{"../Geometry":277,"../GeometryHelper":278}],289:[function(require,module,exports){
+},{"../Geometry":251,"../GeometryHelper":252}],263:[function(require,module,exports){
 'use strict';
 
 var Geometry = require('../Geometry');
@@ -22156,7 +20614,7 @@ function Tetrahedron(options) {
 
 module.exports = Tetrahedron;
 
-},{"../Geometry":277,"../GeometryHelper":278}],290:[function(require,module,exports){
+},{"../Geometry":251,"../GeometryHelper":252}],264:[function(require,module,exports){
 'use strict';
 
 var Geometry = require('../Geometry');
@@ -22216,7 +20674,7 @@ Torus.generator = function generator(c, a, u, v, pos) {
 
 module.exports = Torus;
 
-},{"../Geometry":277,"../GeometryHelper":278}],291:[function(require,module,exports){
+},{"../Geometry":251,"../GeometryHelper":252}],265:[function(require,module,exports){
 'use strict';
 
 var Geometry       = require('../Geometry');
@@ -22267,7 +20725,7 @@ function Triangle (options) {
 
 module.exports = Triangle;
 
-},{"../Geometry":277,"../GeometryHelper":278}],292:[function(require,module,exports){
+},{"../Geometry":251,"../GeometryHelper":252}],266:[function(require,module,exports){
 module.exports = noop
 
 function noop() {
@@ -22277,7 +20735,7 @@ function noop() {
   )
 }
 
-},{}],293:[function(require,module,exports){
+},{}],267:[function(require,module,exports){
 module.exports = programify
 
 function programify(vertex, fragment, uniforms, attributes) {
@@ -22289,12 +20747,12 @@ function programify(vertex, fragment, uniforms, attributes) {
   };
 }
 
-},{}],294:[function(require,module,exports){
+},{}],268:[function(require,module,exports){
 "use strict";
 var glslify = require("glslify");
-var shaders = require("glslify/simple-adapter.js")("\n#define GLSLIFY 1\n\nmat3 a_x_getNormalMatrix(in mat4 t) {\n  mat3 matNorm;\n  mat4 a = t;\n  float a00 = a[0][0], a01 = a[0][1], a02 = a[0][2], a03 = a[0][3], a10 = a[1][0], a11 = a[1][1], a12 = a[1][2], a13 = a[1][3], a20 = a[2][0], a21 = a[2][1], a22 = a[2][2], a23 = a[2][3], a30 = a[3][0], a31 = a[3][1], a32 = a[3][2], a33 = a[3][3], b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11, b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30, b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32, det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n  det = 1.0 / det;\n  matNorm[0][0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;\n  matNorm[0][1] = (a12 * b08 - a10 * b11 - a13 * b07) * det;\n  matNorm[0][2] = (a10 * b10 - a11 * b08 + a13 * b06) * det;\n  matNorm[1][0] = (a02 * b10 - a01 * b11 - a03 * b09) * det;\n  matNorm[1][1] = (a00 * b11 - a02 * b08 + a03 * b07) * det;\n  matNorm[1][2] = (a01 * b08 - a00 * b10 - a03 * b06) * det;\n  matNorm[2][0] = (a31 * b05 - a32 * b04 + a33 * b03) * det;\n  matNorm[2][1] = (a32 * b02 - a30 * b05 - a33 * b01) * det;\n  matNorm[2][2] = (a30 * b04 - a31 * b02 + a33 * b00) * det;\n  return matNorm;\n}\nfloat b_x_inverse(float m) {\n  return 1.0 / m;\n}\nmat2 b_x_inverse(mat2 m) {\n  return mat2(m[1][1], -m[0][1], -m[1][0], m[0][0]) / (m[0][0] * m[1][1] - m[0][1] * m[1][0]);\n}\nmat3 b_x_inverse(mat3 m) {\n  float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2];\n  float a10 = m[1][0], a11 = m[1][1], a12 = m[1][2];\n  float a20 = m[2][0], a21 = m[2][1], a22 = m[2][2];\n  float b01 = a22 * a11 - a12 * a21;\n  float b11 = -a22 * a10 + a12 * a20;\n  float b21 = a21 * a10 - a11 * a20;\n  float det = a00 * b01 + a01 * b11 + a02 * b21;\n  return mat3(b01, (-a22 * a01 + a02 * a21), (a12 * a01 - a02 * a11), b11, (a22 * a00 - a02 * a20), (-a12 * a00 + a02 * a10), b21, (-a21 * a00 + a01 * a20), (a11 * a00 - a01 * a10)) / det;\n}\nmat4 b_x_inverse(mat4 m) {\n  float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3], a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3], a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3], a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3], b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11, b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30, b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32, det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n  return mat4(a11 * b11 - a12 * b10 + a13 * b09, a02 * b10 - a01 * b11 - a03 * b09, a31 * b05 - a32 * b04 + a33 * b03, a22 * b04 - a21 * b05 - a23 * b03, a12 * b08 - a10 * b11 - a13 * b07, a00 * b11 - a02 * b08 + a03 * b07, a32 * b02 - a30 * b05 - a33 * b01, a20 * b05 - a22 * b02 + a23 * b01, a10 * b10 - a11 * b08 + a13 * b06, a01 * b08 - a00 * b10 - a03 * b06, a30 * b04 - a31 * b02 + a33 * b00, a21 * b02 - a20 * b04 - a23 * b00, a11 * b07 - a10 * b09 - a12 * b06, a00 * b09 - a01 * b07 + a02 * b06, a31 * b01 - a30 * b03 - a32 * b00, a20 * b03 - a21 * b01 + a22 * b00) / det;\n}\nfloat c_x_transpose(float m) {\n  return m;\n}\nmat2 c_x_transpose(mat2 m) {\n  return mat2(m[0][0], m[1][0], m[0][1], m[1][1]);\n}\nmat3 c_x_transpose(mat3 m) {\n  return mat3(m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1], m[0][2], m[1][2], m[2][2]);\n}\nmat4 c_x_transpose(mat4 m) {\n  return mat4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2], m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);\n}\nvec4 applyTransform(vec4 pos) {\n  mat4 MVMatrix = view * transform;\n  pos.x += 1.0;\n  pos.y -= 1.0;\n  pos.xyz *= size * 0.5;\n  pos.y *= -1.0;\n  v_Position = (MVMatrix * pos).xyz;\n  MVMatrix[0][1] *= -1.0;\n  MVMatrix[1][1] *= -1.0;\n  MVMatrix[2][1] *= -1.0;\n  MVMatrix[3][1] *= -1.0;\n  mat4 MVPMatrix = perspective * MVMatrix;\n  pos = MVPMatrix * pos;\n  pos.x /= (resolution.x * 0.5);\n  pos.y /= (resolution.y * 0.5);\n  pos.x -= 1.0;\n  pos.y += 1.0;\n  pos.z *= -0.00001;\n  return pos;\n}\n#vert_definitions\n\nvec3 calculateOffset(vec3 ID) {\n  \n  #vert_applications\n  return vec3(0.0);\n}\nvoid main() {\n  gl_PointSize = 10.0;\n  vec3 invertedNormals = normals;\n  invertedNormals.y *= -1.0;\n  v_Normal = c_x_transpose(mat3(b_x_inverse(transform))) * invertedNormals;\n  v_TextureCoordinate = texCoord;\n  vec3 offsetPos = pos + calculateOffset(positionOffset);\n  gl_Position = applyTransform(vec4(offsetPos, 1.0));\n}", "\n#define GLSLIFY 1\n\n#float_definitions\n\nfloat a_x_applyMaterial(float ID) {\n  \n  #float_applications\n  return 1.;\n}\n#vec_definitions\n\nvec3 a_x_applyMaterial(vec3 ID) {\n  \n  #vec_applications\n  return vec3(.5);\n}\nvec3 b_x_applyLight(in vec3 material) {\n  int numLights = int(u_NumLights);\n  float lambertianTerm;\n  vec3 finalColor = vec3(0.0);\n  vec3 normal = normalize(v_Normal);\n  vec3 ambientLight = u_AmbientLight * material;\n  vec3 eyeVector = vec3(-v_Position);\n  vec3 diffuse, specular, lightDirection;\n  for(int i = 0; i < 4; i++) {\n    if(i >= numLights)\n      break;\n    diffuse = vec3(0.0, 0.0, 0.0);\n    specular = vec3(0.0, 0.0, 0.0);\n    lightDirection = normalize(u_LightPosition[i].xyz - v_Position);\n    lambertianTerm = dot(lightDirection, normal);\n    if(lambertianTerm > 0.0 && glossiness > 0.0) {\n      diffuse = material * lambertianTerm;\n      vec3 E = normalize(eyeVector);\n      vec3 R = reflect(lightDirection, normal);\n      float specularWeight = pow(max(dot(R, E), 0.0), glossiness);\n      specular = u_LightColor[i].rgb * specularWeight;\n      finalColor += diffuse + specular;\n    } else {\n      lambertianTerm = max(lambertianTerm, 0.0);\n      finalColor += u_LightColor[i].rgb * material * lambertianTerm;\n    }\n  }\n  return ambientLight + finalColor;\n}\nvoid main() {\n  vec3 material = baseColor.r >= 0.0 ? baseColor : a_x_applyMaterial(baseColor);\n  bool lightsEnabled = (u_FlatShading == 0.0) && (u_NumLights > 0.0 || length(u_AmbientLight) > 0.0);\n  vec3 color = lightsEnabled ? b_x_applyLight(material) : material;\n  gl_FragColor = vec4(color, opacity);\n}", [], []);
+var shaders = require("glslify/simple-adapter.js")("\n#define GLSLIFY 1\n\nmat3 a_x_getNormalMatrix(in mat4 t) {\n  mat3 matNorm;\n  mat4 a = t;\n  float a00 = a[0][0], a01 = a[0][1], a02 = a[0][2], a03 = a[0][3], a10 = a[1][0], a11 = a[1][1], a12 = a[1][2], a13 = a[1][3], a20 = a[2][0], a21 = a[2][1], a22 = a[2][2], a23 = a[2][3], a30 = a[3][0], a31 = a[3][1], a32 = a[3][2], a33 = a[3][3], b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11, b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30, b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32, det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n  det = 1.0 / det;\n  matNorm[0][0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;\n  matNorm[0][1] = (a12 * b08 - a10 * b11 - a13 * b07) * det;\n  matNorm[0][2] = (a10 * b10 - a11 * b08 + a13 * b06) * det;\n  matNorm[1][0] = (a02 * b10 - a01 * b11 - a03 * b09) * det;\n  matNorm[1][1] = (a00 * b11 - a02 * b08 + a03 * b07) * det;\n  matNorm[1][2] = (a01 * b08 - a00 * b10 - a03 * b06) * det;\n  matNorm[2][0] = (a31 * b05 - a32 * b04 + a33 * b03) * det;\n  matNorm[2][1] = (a32 * b02 - a30 * b05 - a33 * b01) * det;\n  matNorm[2][2] = (a30 * b04 - a31 * b02 + a33 * b00) * det;\n  return matNorm;\n}\nfloat b_x_inverse(float m) {\n  return 1.0 / m;\n}\nmat2 b_x_inverse(mat2 m) {\n  return mat2(m[1][1], -m[0][1], -m[1][0], m[0][0]) / (m[0][0] * m[1][1] - m[0][1] * m[1][0]);\n}\nmat3 b_x_inverse(mat3 m) {\n  float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2];\n  float a10 = m[1][0], a11 = m[1][1], a12 = m[1][2];\n  float a20 = m[2][0], a21 = m[2][1], a22 = m[2][2];\n  float b01 = a22 * a11 - a12 * a21;\n  float b11 = -a22 * a10 + a12 * a20;\n  float b21 = a21 * a10 - a11 * a20;\n  float det = a00 * b01 + a01 * b11 + a02 * b21;\n  return mat3(b01, (-a22 * a01 + a02 * a21), (a12 * a01 - a02 * a11), b11, (a22 * a00 - a02 * a20), (-a12 * a00 + a02 * a10), b21, (-a21 * a00 + a01 * a20), (a11 * a00 - a01 * a10)) / det;\n}\nmat4 b_x_inverse(mat4 m) {\n  float a00 = m[0][0], a01 = m[0][1], a02 = m[0][2], a03 = m[0][3], a10 = m[1][0], a11 = m[1][1], a12 = m[1][2], a13 = m[1][3], a20 = m[2][0], a21 = m[2][1], a22 = m[2][2], a23 = m[2][3], a30 = m[3][0], a31 = m[3][1], a32 = m[3][2], a33 = m[3][3], b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11, b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30, b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32, det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;\n  return mat4(a11 * b11 - a12 * b10 + a13 * b09, a02 * b10 - a01 * b11 - a03 * b09, a31 * b05 - a32 * b04 + a33 * b03, a22 * b04 - a21 * b05 - a23 * b03, a12 * b08 - a10 * b11 - a13 * b07, a00 * b11 - a02 * b08 + a03 * b07, a32 * b02 - a30 * b05 - a33 * b01, a20 * b05 - a22 * b02 + a23 * b01, a10 * b10 - a11 * b08 + a13 * b06, a01 * b08 - a00 * b10 - a03 * b06, a30 * b04 - a31 * b02 + a33 * b00, a21 * b02 - a20 * b04 - a23 * b00, a11 * b07 - a10 * b09 - a12 * b06, a00 * b09 - a01 * b07 + a02 * b06, a31 * b01 - a30 * b03 - a32 * b00, a20 * b03 - a21 * b01 + a22 * b00) / det;\n}\nfloat c_x_transpose(float m) {\n  return m;\n}\nmat2 c_x_transpose(mat2 m) {\n  return mat2(m[0][0], m[1][0], m[0][1], m[1][1]);\n}\nmat3 c_x_transpose(mat3 m) {\n  return mat3(m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1], m[0][2], m[1][2], m[2][2]);\n}\nmat4 c_x_transpose(mat4 m) {\n  return mat4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2], m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);\n}\nvec4 applyTransform(vec4 pos) {\n  mat4 MVMatrix = view * transform;\n  pos.x += 1.0;\n  pos.y -= 1.0;\n  pos.xyz *= size * 0.5;\n  pos.y *= -1.0;\n  v_Position = (MVMatrix * pos).xyz;\n  MVMatrix[0][1] *= -1.0;\n  MVMatrix[1][1] *= -1.0;\n  MVMatrix[2][1] *= -1.0;\n  MVMatrix[3][1] *= -1.0;\n  mat4 MVPMatrix = perspective * MVMatrix;\n  pos = MVPMatrix * pos;\n  pos.x /= (resolution.x * 0.5);\n  pos.y /= (resolution.y * 0.5);\n  pos.x -= 1.0;\n  pos.y += 1.0;\n  pos.z *= -0.00001;\n  return pos;\n}\n#vert_definitions\n\nvec3 calculateOffset(vec3 ID) {\n  \n  #vert_applications\n  return vec3(0.0);\n}\nvoid main() {\n  gl_PointSize = 10.0;\n  vec3 invertedNormals = normals;\n  invertedNormals.y *= -1.0;\n  v_Normal = c_x_transpose(mat3(b_x_inverse(transform))) * invertedNormals;\n  v_TextureCoordinate = texCoord;\n  vec3 offsetPos = pos + calculateOffset(positionOffset);\n  gl_Position = applyTransform(vec4(offsetPos, 1.0));\n}", "\n#define GLSLIFY 1\n\n#float_definitions\n\nfloat a_x_applyMaterial(float ID) {\n  \n  #float_applications\n  return 1.;\n}\n#vec_definitions\n\nvec3 a_x_applyMaterial(vec3 ID) {\n  \n  #vec_applications\n  return vec3(.5);\n}\nvec3 b_x_applyLight(in vec3 material) {\n  int numLights = int(u_NumLights);\n  float lambertianTerm;\n  vec3 finalColor = vec3(0.0);\n  vec3 normal = normalize(v_Normal);\n  vec3 ambientLight = u_AmbientLight * material;\n  vec3 eyeVector = vec3(-v_Position);\n  vec3 diffuse, specular, lightDirection;\n  for(int i = 0; i < 4; i++) {\n    if(i >= numLights)\n      break;\n    diffuse = vec3(0.0, 0.0, 0.0);\n    specular = vec3(0.0, 0.0, 0.0);\n    lightDirection = normalize(u_LightPosition[i].xyz - v_Position);\n    lambertianTerm = dot(lightDirection, normal);\n    if(lambertianTerm > 0.0 && glossiness > 0.0) {\n      diffuse = material * lambertianTerm;\n      vec3 E = normalize(eyeVector);\n      vec3 R = reflect(lightDirection, normal);\n      float specularWeight = pow(max(dot(R, E), 0.0), glossiness);\n      specular = u_LightColor[i].rgb * specularWeight;\n      finalColor += diffuse + specular;\n    } else {\n      lambertianTerm = max(lambertianTerm, 0.0);\n      finalColor += u_LightColor[i].rgb * material * lambertianTerm;\n    }\n  }\n  return ambientLight + finalColor;\n}\nvoid main() {\n  vec3 material = baseColor.r >= 0.0 ? baseColor : a_x_applyMaterial(baseColor);\n  bool lightsEnabled = (u_FlatShading == 0.0) && (u_NumLights > 0.0 || length(u_AmbientLight) > 0.0);\n  vec3 color = lightsEnabled ? b_x_applyLight(material) : material;\n  gl_FragColor = vec4(color, opacity);\n  if(int(baseColor.r) == -1)\n    gl_FragColor = texture2D(image, v_TextureCoordinate);\n  \n}", [], []);
 module.exports = shaders;
-},{"glslify":292,"glslify/simple-adapter.js":293}],295:[function(require,module,exports){
+},{"glslify":266,"glslify/simple-adapter.js":267}],269:[function(require,module,exports){
 'use strict';
 
 /**
@@ -22340,7 +20798,7 @@ Buffer.prototype.subData = function subData() {
 
 module.exports = Buffer;
 
-},{}],296:[function(require,module,exports){
+},{}],270:[function(require,module,exports){
 'use strict';
 
 var INDICES = 'indices';
@@ -22459,7 +20917,7 @@ BufferRegistry.prototype.allocate = function allocate(geometryId, name, value, s
 
 module.exports = BufferRegistry;
 
-},{"./Buffer":295}],297:[function(require,module,exports){
+},{"./Buffer":269}],271:[function(require,module,exports){
 'use strict';
 
 // Generates a checkerboard pattern to be used as a placeholder texture
@@ -22478,7 +20936,7 @@ module.exports = (function() {
     return context.canvas;
 })();
 
-},{}],298:[function(require,module,exports){
+},{}],272:[function(require,module,exports){
 'use strict';
 
 var Utility = require('famous-utilities');
@@ -22700,7 +21158,10 @@ Program.prototype.resetProgram = function resetProgram() {
     this.cachedUniforms = {};
 
     fragmentHeader.push('uniform sampler2D image;\n');
-    vertexHeader.push('uniform sampler2D image;\n');
+
+    if (this.applicationVert.length > 1) {
+        vertexHeader.push('uniform sampler2D image;\n');
+    }
 
     for(i = 0; i < this.uniformNames.length; i++) {
         name = this.uniformNames[i], value = this.uniformValues[i];
@@ -22893,7 +21354,7 @@ Program.prototype.compileShader = function compileShader(shader, source) {
 
 module.exports = Program;
 
-},{"famous-utilities":251,"famous-webgl-shaders":294}],299:[function(require,module,exports){
+},{"famous-utilities":225,"famous-webgl-shaders":268}],273:[function(require,module,exports){
 'use strict';
 
 /**
@@ -23047,7 +21508,7 @@ function isPowerOfTwo(width, height) {
 
 module.exports = Texture;
 
-},{}],300:[function(require,module,exports){
+},{}],274:[function(require,module,exports){
 'use strict';
 
 var Texture = require('./Texture');
@@ -23157,9 +21618,9 @@ WebGLRenderer.prototype.getWebGLContext = function getWebGLContext(canvas) {
  *
  * @method createLight
  *
- * @param {String} path Path used as id of new light in lightRegistry.
+ * @param {String} Path used as id of new light in lightRegistry.
  *
- * @return {Object} Newly create light spec.
+ * @return {Object} Newly created light spec.
  */
 WebGLRenderer.prototype.createLight = function createLight(path) {
     this.numLights++;
@@ -23175,9 +21636,9 @@ WebGLRenderer.prototype.createLight = function createLight(path) {
  *
  * @method createMesh
  *
- * @param {String} path Path used as id of new mesh in meshRegistry.
+ * @param {String} Path used as id of new mesh in meshRegistry.
  *
- * @return {Object} Newly create mesh spec.
+ * @return {Object} Newly created mesh spec.
  */
 WebGLRenderer.prototype.createMesh = function createMesh(path) {
     this.meshRegistryKeys.push(path);
@@ -23190,6 +21651,17 @@ WebGLRenderer.prototype.createMesh = function createMesh(path) {
         texture: null
     };
 };
+
+
+/**
+ * Creates or retreives cutout
+ *
+ * @method getOrSetCutout
+ *
+ * @param {String} Path used as id of new mesh in meshRegistry.
+ *
+ * @return {Object} Newly created cutout spec.
+ */
 
 WebGLRenderer.prototype.getOrSetCutout = function getOrSetCutout(path) {
     var geometry;
@@ -23219,14 +21691,35 @@ WebGLRenderer.prototype.getOrSetCutout = function getOrSetCutout(path) {
 
 };
 
+/**
+ * Creates or retreives cutout
+ *
+ * @method setCutoutUniform
+ *
+ * @param {String} Path used as id of cutout in cutout registry.
+ * @param {String} uniformLocation identifier used to upload value
+ * @param {Array} value of uniform data 
+ *
+ */
+
 WebGLRenderer.prototype.setCutoutUniform = function setCutoutUniform(path, uniformName, uniformValue) {
     var cutout = this.getOrSetCutout(path);
 
     var index = cutout.uniformKeys.indexOf(uniformName);
 
     cutout.uniformValues[index] = uniformValue;
-}
+};
 
+
+/**
+ * Edits the options field on a mesh
+ *
+ * @method setMeshOptions
+ *
+ * @param {String} Path used as id of cutout in cutout registry.
+ * @param {Object} map of draw options for mesh
+ *
+**/
 WebGLRenderer.prototype.setMeshOptions = function(path, options) {
     var mesh = this.meshRegistry[path] || this.createMesh(path);
 
@@ -23234,6 +21727,18 @@ WebGLRenderer.prototype.setMeshOptions = function(path, options) {
     return this;
 };
 
+
+/**
+ * Changes the color of the fixed intensity lighting in the scene
+ *
+ * @method setAmbientLightColor
+ *
+ * @param {String} path used as id of light
+ * @param {Number} red channel
+ * @param {Number} green channel
+ * @param {Number} blue channel
+ *
+**/
 WebGLRenderer.prototype.setAmbientLightColor = function setAmbientLightColor(path, r, g, b) {
     this.ambientLightColor[0] = r;
     this.ambientLightColor[1] = g;
@@ -23241,6 +21746,18 @@ WebGLRenderer.prototype.setAmbientLightColor = function setAmbientLightColor(pat
     return this;
 };
 
+
+/**
+ * Changes the location of the light in the scene
+ *
+ * @method setLightPosition
+ *
+ * @param {String} path used as id of light
+ * @param {Number} x position
+ * @param {Number} y position
+ * @param {Number} z position
+ *
+**/
 WebGLRenderer.prototype.setLightPosition = function setLightPosition(path, x, y, z) {
     var light = this.lightRegistry[path] || this.createLight(path);
 
@@ -23250,6 +21767,18 @@ WebGLRenderer.prototype.setLightPosition = function setLightPosition(path, x, y,
     return this;
 };
 
+
+/**
+ * Changes the color of a dynamic intensity lighting in the scene
+ *
+ * @method setLightColor
+ *
+ * @param {String} path used as id of light in light Registry.
+ * @param {Number} red channel
+ * @param {Number} green channel
+ * @param {Number} blue channel
+ *
+**/
 WebGLRenderer.prototype.setLightColor = function setLightColor(path, r, g, b) {
     var light = this.lightRegistry[path] || this.createLight(path);
 
@@ -23258,7 +21787,16 @@ WebGLRenderer.prototype.setLightColor = function setLightColor(path, r, g, b) {
     light.color[2] = b;
     return this;
 };
-
+/**
+ * Compiles material spec into program shader
+ *
+ * @method handleMateriaInput
+ *
+ * @param {String} Path used as id of cutout in cutout registry.
+ * @param {String} which rendering input the material is bound to
+ * @param {Object} material spec
+ *
+**/
 WebGLRenderer.prototype.handleMaterialInput = function handleMaterialInput(path, name, material) {
     var mesh = this.meshRegistry[path] || this.createMesh(path);
 
@@ -23268,6 +21806,18 @@ WebGLRenderer.prototype.handleMaterialInput = function handleMaterialInput(path,
     return this.updateSize();
 };
 
+/**
+ * Changes the geometry data of a mesh
+ *
+ * @method setGeometry
+ *
+ * @param {String} Path used as id of cutout in cutout registry.
+ * @param {Object} Geometry object containing vertex data to be drawn
+ * @param {Number} primitive identifier
+ * @param {Boolean} will the geometry data change?
+ *
+**/
+
 WebGLRenderer.prototype.setGeometry = function setGeometry(path, geometry, drawType, dynamic) {
     var mesh = this.meshRegistry[path] || this.createMesh(path);
 
@@ -23276,8 +21826,18 @@ WebGLRenderer.prototype.setGeometry = function setGeometry(path, geometry, drawT
     mesh.dynamic = dynamic;
 
     return this;
-}
+};
 
+/**
+ * Uploads a new value for the uniform data when the mesh is being drawn
+ *
+ * @method setMeshUniform
+ *
+ * @param {String} Path used as id of mesh in mesh registry
+ * @param {String} uniformLocation identifier used to upload value
+ * @param {Array} value of uniform data 
+ *
+**/
 WebGLRenderer.prototype.setMeshUniform = function setMeshUniform(path, uniformName, uniformValue) {
     var mesh = this.meshRegistry[path] || this.createMesh(path);
 
@@ -23291,6 +21851,20 @@ WebGLRenderer.prototype.setMeshUniform = function setMeshUniform(path, uniformNa
         mesh.uniformValues[index] = uniformValue;
     }
 }
+
+/**
+ * Triggers the 'draw' phase of the WebGLRenderer.  Iterates through registries
+ * to set uniforms, set attributes and issue draw commands for renderables.
+ *
+ * @method bufferData
+ *
+ * @param {String} Path used as id of mesh in mesh registry
+ * @param {Number} Id of geometry in geometry registry
+ * @param {String} Attribute location name
+ * @param {Array} Vertex data 
+ * @param {Number} The dimensions of the vertex
+ */
+
 
 WebGLRenderer.prototype.bufferData = function bufferData(path, geometryId, bufferName, bufferValue, bufferSpacing) {
     this.bufferRegistry.allocate(geometryId, bufferName, bufferValue, bufferSpacing);
@@ -23484,7 +22058,7 @@ WebGLRenderer.prototype.drawBuffers = function drawBuffers(vertexBuffers, mode, 
 };
 
 /**
- * Allocates an array buffer where vertex data is sent to via compile.
+ * Wraps draw methods in bound frame buffer
  *
  * @method renderOffscreen
  *
@@ -23550,6 +22124,9 @@ function checkFrameBufferStatus(gl) {
  * Size is retreived from the container object of the renderer.
  *
  * @method updateSize
+ * 
+ * @param {Array} width, height and depth of canvas
+ * 
  */
 WebGLRenderer.prototype.updateSize = function updateSize(size) {
     if (size) {
@@ -23662,7 +22239,7 @@ function handleTexture(input) {
 
 module.exports = WebGLRenderer;
 
-},{"./Buffer":295,"./BufferRegistry":296,"./Checkerboard":297,"./Program":298,"./Texture":299,"./radixSort":302,"famous-webgl-geometries":280}],301:[function(require,module,exports){
+},{"./Buffer":269,"./BufferRegistry":270,"./Checkerboard":271,"./Program":272,"./Texture":273,"./radixSort":276,"famous-webgl-geometries":254}],275:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -23674,7 +22251,7 @@ module.exports = {
     Texture: require('./Texture')
 };
 
-},{"./Buffer":295,"./BufferRegistry":296,"./Checkerboard":297,"./Program":298,"./Texture":299,"./WebGLRenderer":300}],302:[function(require,module,exports){
+},{"./Buffer":269,"./BufferRegistry":270,"./Checkerboard":271,"./Program":272,"./Texture":273,"./WebGLRenderer":274}],276:[function(require,module,exports){
 var radixBits = 11,
     maxRadix = 1 << (radixBits),
     radixMask = maxRadix - 1,
@@ -23763,7 +22340,7 @@ function sort(list, registry) {
 
 module.exports = sort;
 
-},{}],303:[function(require,module,exports){
+},{}],277:[function(require,module,exports){
 'use strict';
 
 var VirtualElement = require('famous-dom-renderers').VirtualElement;
@@ -23813,12 +22390,11 @@ Compositor.prototype.sendEvent = function sendEvent(path, ev, payload) {
  * @param  {Array} commands     remaining message queue received from the
  *                              WebWorker, used to shift single messages from
  */
-Compositor.prototype.handleWith = function handleWith (commands) {
-    var path = commands[commands.index++];
+Compositor.prototype.handleWith = function handleWith (iterator, commands) {
+    var path = commands[iterator];
     var pathArr = path.split('/');
     var context = this.getOrSetContext(pathArr.shift());
-
-    context.receive(pathArr, path, commands);
+    return context.receive(pathArr, path, commands, iterator);
 };
 
 /**
@@ -23850,9 +22426,8 @@ Compositor.prototype.getOrSetContext = function getOrSetContext(selector) {
  * @param  {Array} commands     remaining message queue received from the
  *                              WebWorker, used to shift single messages from
  */
-Compositor.prototype.giveSizeFor = function giveSizeFor(commands) {
-    var selector = commands[commands.index++];
-
+Compositor.prototype.giveSizeFor = function giveSizeFor(iterator, commands) {
+    var selector = commands[iterator];
     var size = this.getOrSetContext(selector).getRootSize();
     this.sendResize(selector, size);
     var _this = this;
@@ -23876,7 +22451,7 @@ Compositor.prototype.giveSizeFor = function giveSizeFor(commands) {
  * @param  {Array} size         new context size
  */
 Compositor.prototype.sendResize = function sendResize (selector, size) {
-    this._outCommands.push('WITH', selector, 'TRIGGER', 'resize', size);
+    this._outCommands.push('WITH', selector, 'TRIGGER', 'CONTEXT_RESIZE', size);
     this._sentResize = true;
 };
 
@@ -23918,29 +22493,28 @@ Compositor.prototype.invoke = function invoke (target, methodName, args, functio
  */
 Compositor.prototype.drawCommands = function drawCommands() {
     var commands = this._inCommands;
-    var command = commands[commands.index++];
-
+    var localIterator = 0;
+    var command = commands[localIterator];
     while (command) {
         switch (command) {
             case 'WITH':
-                this.handleWith(commands);
+                localIterator = this.handleWith(++localIterator, commands);
                 break;
 
             case 'INVOKE':
                 this.invoke(
-                    commands[commands.index++],
-                    commands[commands.index++],
-                    commands[commands.index++],
-                    commands[commands.index++]
+                    commands[++localIterator],
+                    commands[++localIterator],
+                    commands[++localIterator],
+                    commands[++localIterator]
                 );
                 break;
 
             case 'NEED_SIZE_FOR':
-                this.giveSizeFor(commands);
+                this.giveSizeFor(++localIterator, commands);
                 break;
         }
-
-        command = commands[commands.index++];
+        command = commands[++localIterator];
     }
 
     // TODO: Switch to associative arrays here...
@@ -23973,7 +22547,6 @@ Compositor.prototype.receiveCommands = function receiveCommands(commands) {
  * @method clearCommands
  */
 Compositor.prototype.clearCommands = function clearCommands() {
-    this._inCommands.index = 0;
     this._inCommands.length = 0;
     this._outCommands.length = 0;
     this._sentResize = false;
@@ -23981,12 +22554,13 @@ Compositor.prototype.clearCommands = function clearCommands() {
 
 module.exports = Compositor;
 
-},{"./Context":304,"famous-dom-renderers":222,"famous-utilities":235}],304:[function(require,module,exports){
-var VirtualElement = require('famous-dom-renderers').VirtualElement;
+},{"./Context":278,"famous-dom-renderers":196,"famous-utilities":209}],278:[function(require,module,exports){
 var WebGLRenderer = require('famous-webgl-renderers').WebGLRenderer;
 var Camera = require('famous-components').Camera;
+var DOMRenderer = require('famous-dom-renderers').DOMRenderer;
 
 function Context(selector, compositor) {
+    this._compositor = compositor;
     this._rootEl = document.querySelector(selector);
     if (this._rootEl === document.body) {
         window.addEventListener('resize', this.updateSize.bind(this));
@@ -23995,23 +22569,23 @@ function Context(selector, compositor) {
     var DOMLayerEl = document.createElement('div');
     DOMLayerEl.style.width = '100%';
     DOMLayerEl.style.height = '100%';
+    DOMLayerEl.style.transformStyle = 'preserve-3d';
+    DOMLayerEl.style.webkitTransformStyle = 'preserve-3d';
     this._rootEl.appendChild(DOMLayerEl);
-    this.DOMRenderer = new VirtualElement(DOMLayerEl, selector, compositor, undefined, undefined, true);
-    this.DOMRenderer.setMatrix(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-    
-    this.WebGLRenderer;
-    this.canvas = document.createElement('canvas');
-    this.canvas.className = 'famous-webgl';
-    this._rootEl.appendChild(this.canvas);
+    this.DOMRenderer = new DOMRenderer(DOMLayerEl, selector, compositor); 
+ 
+    this.WebGLRenderer = null;
+    this.canvas = null;
 
     this._renderState = {
         projectionType: Camera.ORTHOGRAPHIC_PROJECTION,
         perspectiveTransform: new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
-        viewTransform: new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
+        viewTransform: new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]),
+        viewDirty: false,
+        perspectiveDirty: false
     };
 
     this._size = [];
-    this._renderers = [];
     this._children = {};
     this._elementHash = {};
 
@@ -24031,8 +22605,10 @@ Context.prototype.updateSize = function () {
     this._size[1] = height;
     this._size[2] = (width > height) ? width : height;
 
-    this.canvas.width  = width;
-    this.canvas.height = height;
+    if (this.canvas) {
+        this.canvas.width  = width;
+        this.canvas.height = height;
+    }
 
     if (this.WebGLRenderer) this.WebGLRenderer.updateSize(this._size);
 
@@ -24040,62 +22616,57 @@ Context.prototype.updateSize = function () {
 }
 
 Context.prototype.draw = function draw() {
-    for (var i = 0; i < this._renderers.length; i++) {
-        this._renderers[i].draw(this._renderState);
-    }
+    this.DOMRenderer.draw(this._renderState);
+    if (this.WebGLRenderer) this.WebGLRenderer.draw(this._renderState);
+
+    if (this._renderState.perspectiveDirty) this._renderState.perspectiveDirty = false;
+    if (this._renderState.viewDirty) this._renderState.viewDirty = false;
 };
 
 Context.prototype.getRootSize = function getRootSize() {
-    return this._size;
+    return this.DOMRenderer.getSize();
 };
 
 Context.prototype.initWebGL = function initWebGL() {
-    this._renderers.push((this.WebGLRenderer = new WebGLRenderer(this.canvas)));
-    this.WebGLRenderer.updateSize(this._size);
+    this.canvas = document.createElement('canvas');
+    this.canvas.className = 'famous-webgl';
+    this._rootEl.appendChild(this.canvas);
+    this.WebGLRenderer = new WebGLRenderer(this.canvas);
+    this.updateSize();
 };
 
-Context.prototype.receive = function receive(pathArr, path, commands) {
+Context.prototype.receive = function receive(pathArr, path, commands, iterator) {
     var pointer;
     var parentEl;
     var element;
     var id;
+    var localIterator = iterator;
 
-    var command = commands[commands.index++];
-
+    var command = commands[++localIterator];
+    this.DOMRenderer.loadPath(path);
+    this.DOMRenderer.findTarget();
     while (command) {
+
         switch (command) {
             case 'INIT_DOM':
-                id = pathArr.shift();
-                pointer = this._children;
-                parentEl = this.DOMRenderer;
-
-                while (pathArr.length) {
-                    pointer = pointer[id] = pointer[id] || {};
-                    if (pointer.DOM) parentEl = pointer.DOM;
-                    id = pathArr.shift();
-                }
-                pointer = pointer[id] = pointer[id] || {};
-                element = parentEl.addChild(path, id, commands[commands.index++]);
-                this._elementHash[path] = element;
-                this._renderers.push((pointer.DOM = element));
+                this.DOMRenderer.insertEl(commands[++localIterator]);
                 break;
 
             case 'CHANGE_TRANSFORM':
-                if (!element) element = this._elementHash[path];
+                for (var i = 0 ; i < 16 ; i++) this._meshTransform[i] = commands[++localIterator];
 
-                for (var i = 0; i < 16; i++) {
-                    this._meshTransform[i] = commands[commands.index++];
-                }
-                element.setMatrix.apply(element, this._meshTransform);
-                if (this.WebGLRenderer) this.WebGLRenderer.setCutoutUniform(path, 'transform', this._meshTransform);
+                this.DOMRenderer.setMatrix(this._meshTransform);
+
+                if (this.WebGLRenderer)
+                    this.WebGLRenderer.setCutoutUniform(path, 'transform', this._meshTransform);
+                
                 break;
 
             case 'CHANGE_SIZE':
-                if (!element) element = this._elementHash[path];
-                var width = commands[commands.index++];
-                var height = commands[commands.index++];
+                var width = commands[++localIterator];
+                var height = commands[++localIterator];
 
-                element.changeSize(width, height);
+                this.DOMRenderer.setSize(width, height);
                 if (this.WebGLRenderer) {
                     this._meshSize[0] = width;
                     this._meshSize[1] = height;
@@ -24104,69 +22675,52 @@ Context.prototype.receive = function receive(pathArr, path, commands) {
                 break;
 
             case 'CHANGE_PROPERTY':
-                if (!element) element = this._elementHash[path];
                 if (this.WebGLRenderer) this.WebGLRenderer.getOrSetCutout(path);
-                element.setProperty(commands[commands.index++], commands[commands.index++]);
+                this.DOMRenderer.setProperty(commands[++localIterator], commands[++localIterator]);
                 break;
 
             case 'CHANGE_CONTENT':
-                if (!element) element = this._elementHash[path];
                 if (this.WebGLRenderer) this.WebGLRenderer.getOrSetCutout(path);
-                element.setContent(commands[commands.index++]);
+                this.DOMRenderer.setContent(commands[++localIterator]);
                 break;
 
             case 'CHANGE_ATTRIBUTE':
-                if (!element) element = this._elementHash[path];
                 if (this.WebGLRenderer) this.WebGLRenderer.getOrSetCutout(path);
-                element.setAttribute(commands[commands.index++], commands[commands.index++]);
+                this.DOMRenderer.setAttribute(commands[++localIterator], commands[++localIterator]);
                 break;
 
             case 'ADD_CLASS':
-                if (!element) element = this._elementHash[path];
                 if (this.WebGLRenderer) this.WebGLRenderer.getOrSetCutout(path);
-                element.addClass(commands[commands.index++]);
+                this.DOMRenderer.addClass(commands[++localIterator]); 
                 break;
 
             case 'REMOVE_CLASS':
-                if (!element) element = this._elementHash[path];
                 if (this.WebGLRenderer) this.WebGLRenderer.getOrSetCutout(path);
-                element.removeClass(commands[commands.index++]);
+                this.DOMRenderer.removeClass(commands[++localIterator]);
                 break;
 
             case 'ADD_EVENT_LISTENER':
-                if (!element) element = this._elementHash[path];
                 if (this.WebGLRenderer) this.WebGLRenderer.getOrSetCutout(path);
-                var ev = commands[commands.index++];
-                var methods;
-                var properties;
-                var c;
-                while ((c = commands[commands.index++]) !== 'EVENT_PROPERTIES') methods = c;
-                while ((c = commands[commands.index++]) !== 'EVENT_END') properties = c;
-                methods = methods || [];
-                properties = properties || [];
-                element.addEventListener(ev, element.dispatchEvent.bind(element, ev, methods, properties));
-                break;
 
-            case 'RECALL':
-                if (!element) element = this._elementHash[path];
-                element.setProperty('display', 'none');
-                element._parent._allocator.deallocate(element._target);
-                this._renderers.splice(this._renderers.indexOf(element), 1);
-                delete this._elementHash[path];
+                var type = commands[++localIterator];
+                var properties = commands[++localIterator];
+                var preventDefault = commands[++localIterator];
+
+                this.DOMRenderer.addEventListener(path, type, properties, preventDefault);
                 break;
 
             case 'GL_SET_DRAW_OPTIONS': 
                 if (!this.WebGLRenderer) this.initWebGL();
-                this.WebGLRenderer.setMeshOptions(path, commands[commands.index++]);
+                this.WebGLRenderer.setMeshOptions(path, commands[++localIterator]);
                 break;
 
             case 'GL_AMBIENT_LIGHT':
                 if (!this.WebGLRenderer) this.initWebGL();
                 this.WebGLRenderer.setAmbientLightColor(
                     path,
-                    commands[commands.index++],
-                    commands[commands.index++],
-                    commands[commands.index++]
+                    commands[++localIterator],
+                    commands[++localIterator],
+                    commands[++localIterator]
                 );
                 break;
 
@@ -24174,9 +22728,9 @@ Context.prototype.receive = function receive(pathArr, path, commands) {
                 if (!this.WebGLRenderer) this.initWebGL();
                 this.WebGLRenderer.setLightPosition(
                     path,
-                    commands[commands.index++],
-                    commands[commands.index++],
-                    commands[commands.index++]
+                    commands[++localIterator],
+                    commands[++localIterator],
+                    commands[++localIterator]
                 );
                 break;
 
@@ -24184,9 +22738,9 @@ Context.prototype.receive = function receive(pathArr, path, commands) {
                 if (!this.WebGLRenderer) this.initWebGL();
                 this.WebGLRenderer.setLightColor(
                     path,
-                    commands[commands.index++],
-                    commands[commands.index++],
-                    commands[commands.index++]
+                    commands[++localIterator],
+                    commands[++localIterator],
+                    commands[++localIterator]
                 );
                 break;
 
@@ -24194,8 +22748,8 @@ Context.prototype.receive = function receive(pathArr, path, commands) {
                 if (!this.WebGLRenderer) this.initWebGL();
                 this.WebGLRenderer.handleMaterialInput(
                     path,
-                    commands[commands.index++],
-                    commands[commands.index++]
+                    commands[++localIterator],
+                    commands[++localIterator]
                 );
                 break;
 
@@ -24203,9 +22757,9 @@ Context.prototype.receive = function receive(pathArr, path, commands) {
                 if (!this.WebGLRenderer) this.initWebGL();
                 this.WebGLRenderer.setGeometry(
                     path,
-                    commands[commands.index++],
-                    commands[commands.index++],
-                    commands[commands.index++]
+                    commands[++localIterator],
+                    commands[++localIterator],
+                    commands[++localIterator]
                 );
                 break;
 
@@ -24213,8 +22767,8 @@ Context.prototype.receive = function receive(pathArr, path, commands) {
                 if (!this.WebGLRenderer) this.initWebGL();
                 this.WebGLRenderer.setMeshUniform(
                     path,
-                    commands[commands.index++],
-                    commands[commands.index++]
+                    commands[++localIterator],
+                    commands[++localIterator]
                 );
                 break;
 
@@ -24222,54 +22776,63 @@ Context.prototype.receive = function receive(pathArr, path, commands) {
                 if (!this.WebGLRenderer) this.initWebGL();
                 this.WebGLRenderer.bufferData(
                     path,
-                    commands[commands.index++],
-                    commands[commands.index++],
-                    commands[commands.index++],
-                    commands[commands.index++]
+                    commands[++localIterator],
+                    commands[++localIterator],
+                    commands[++localIterator],
+                    commands[++localIterator]
                 );
                 break;
 
             case 'PINHOLE_PROJECTION':
                 this._renderState.projectionType = Camera.PINHOLE_PROJECTION;
-                this._renderState.perspectiveTransform[11] = -1 / commands[commands.index++];
+                this._renderState.perspectiveTransform[11] = -1 / commands[++localIterator];
+
+                this._renderState.perspectiveDirty = true;
                 break;
 
             case 'ORTHOGRAPHIC_PROJECTION':
                 this._renderState.projectionType = Camera.ORTHOGRAPHIC_PROJECTION;
                 this._renderState.perspectiveTransform[11] = 0;
+
+                this._renderState.perspectiveDirty = true;
                 break;
 
             case 'CHANGE_VIEW_TRANSFORM':
-                this._renderState.viewTransform[0] = commands[commands.index++];
-                this._renderState.viewTransform[1] = commands[commands.index++];
-                this._renderState.viewTransform[2] = commands[commands.index++];
-                this._renderState.viewTransform[3] = commands[commands.index++];
+                this._renderState.viewTransform[0] = commands[++localIterator];
+                this._renderState.viewTransform[1] = commands[++localIterator];
+                this._renderState.viewTransform[2] = commands[++localIterator];
+                this._renderState.viewTransform[3] = commands[++localIterator];
 
-                this._renderState.viewTransform[4] = commands[commands.index++];
-                this._renderState.viewTransform[5] = commands[commands.index++];
-                this._renderState.viewTransform[6] = commands[commands.index++];
-                this._renderState.viewTransform[7] = commands[commands.index++];
+                this._renderState.viewTransform[4] = commands[++localIterator];
+                this._renderState.viewTransform[5] = commands[++localIterator];
+                this._renderState.viewTransform[6] = commands[++localIterator];
+                this._renderState.viewTransform[7] = commands[++localIterator];
 
-                this._renderState.viewTransform[8] = commands[commands.index++];
-                this._renderState.viewTransform[9] = commands[commands.index++];
-                this._renderState.viewTransform[10] = commands[commands.index++];
-                this._renderState.viewTransform[11] = commands[commands.index++];
+                this._renderState.viewTransform[8] = commands[++localIterator];
+                this._renderState.viewTransform[9] = commands[++localIterator];
+                this._renderState.viewTransform[10] = commands[++localIterator];
+                this._renderState.viewTransform[11] = commands[++localIterator];
 
-                this._renderState.viewTransform[12] = commands[commands.index++];
-                this._renderState.viewTransform[13] = commands[commands.index++];
-                this._renderState.viewTransform[14] = commands[commands.index++];
-                this._renderState.viewTransform[15] = commands[commands.index++];
+                this._renderState.viewTransform[12] = commands[++localIterator];
+                this._renderState.viewTransform[13] = commands[++localIterator];
+                this._renderState.viewTransform[14] = commands[++localIterator];
+                this._renderState.viewTransform[15] = commands[++localIterator];
+
+                this._renderState.viewDirty = true;
                 break;
 
-            case 'WITH': return commands.index--;
+            case 'WITH': return localIterator - 1;
         }
 
-        command = commands[commands.index++];
+        command = commands[++localIterator];
     }
+
+    return localIterator;
 };
 
 module.exports = Context;
-},{"famous-components":219,"famous-dom-renderers":222,"famous-webgl-renderers":301}],305:[function(require,module,exports){
+
+},{"famous-components":193,"famous-dom-renderers":196,"famous-webgl-renderers":275}],279:[function(require,module,exports){
 'use strict';
 
 /**
@@ -24333,7 +22896,7 @@ ThreadManager.prototype.update = function update (time) {
 
 module.exports = ThreadManager;
 
-},{}],306:[function(require,module,exports){
+},{}],280:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -24341,7 +22904,7 @@ module.exports = {
     ThreadManager: require('./ThreadManager')
 };
 
-},{"./Compositor":303,"./ThreadManager":305}],307:[function(require,module,exports){
+},{"./Compositor":277,"./ThreadManager":279}],281:[function(require,module,exports){
 'use strict';
 
 var sessionHistorySupport = window.history && window.history.pushState && window.history.replaceState;
@@ -24514,7 +23077,7 @@ History.prototype.getState = function getState() {
 
 module.exports = History;
 
-},{}],308:[function(require,module,exports){
+},{}],282:[function(require,module,exports){
 'use strict';
 
 var _History = require('./History');
@@ -24719,7 +23282,7 @@ function _addInitialRoutes(routes, scope) {
 
 module.exports = Router;
 
-},{"./History":307}],309:[function(require,module,exports){
+},{"./History":281}],283:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -24727,7 +23290,7 @@ module.exports = {
     Router: require('./Router')
 };
 
-},{"./History":307,"./Router":308}],310:[function(require,module,exports){
+},{"./History":281,"./Router":282}],284:[function(require,module,exports){
 module.exports = function (css, customDocument) {
   var doc = customDocument || document;
   if (doc.createStyleSheet) {
@@ -24766,14 +23329,66 @@ module.exports.byUrl = function(url) {
   }
 };
 
-},{}],311:[function(require,module,exports){
+},{}],285:[function(require,module,exports){
 var css = "html {\n    width: 100%;\n    height: 100%;\n    margin: 0px;\n    padding: 0px;\n    overflow: hidden;\n    -webkit-transform-style: preserve-3d;\n    transform-style: preserve-3d;\n}\n\nbody {\n    position: absolute;\n    width: 100%;\n    height: 100%;\n    margin: 0px;\n    padding: 0px;\n    -webkit-transform-style: preserve-3d;\n    transform-style: preserve-3d;\n    -webkit-font-smoothing: antialiased;\n    -webkit-tap-highlight-color: transparent;\n    -webkit-perspective: 0;\n    perspective: none;\n    overflow: hidden;\n}\n\n.famous-container, .famous-group {\n    position: absolute;\n    top: 0px;\n    left: 0px;\n    bottom: 0px;\n    right: 0px;\n    overflow: visible;\n    -webkit-transform-style: preserve-3d;\n    transform-style: preserve-3d;\n    -webkit-backface-visibility: visible;\n    backface-visibility: visible;\n    pointer-events: none;\n}\n\n.famous-group {\n    width: 0px;\n    height: 0px;\n    margin: 0px;\n    padding: 0px;\n    -webkit-transform-style: preserve-3d;\n    transform-style: preserve-3d;\n}\n\n.fa-surface {\n    position: absolute;\n    -webkit-transform-origin: 0% 0%;\n    transform-origin: 0% 0%;\n    -webkit-backface-visibility: visible;\n    backface-visibility: visible;\n    -webkit-transform-style: preserve-3d;\n    transform-style: preserve-3d; /* performance */\n    -webkit-tap-highlight-color: transparent;\n    pointer-events: auto;\n    z-index: 1; /* HACK to account for browser issues with eventing on the same z-plane*/\n}\n\n.fa-content {\n    position: absolute;\n}\n\n.famous-container-group {\n    position: relative;\n    width: 100%;\n    height: 100%;\n}\n\n.fa-container {\n    position: absolute;\n    -webkit-transform-origin: center center;\n    transform-origin: center center;\n    overflow: hidden;\n}\n\ncanvas.famous-webgl {\n    pointer-events: none;\n    position: absolute;\n    z-index: 1;\n    top: 0px;\n    left: 0px;\n}"; (require("/Users/imtiazmajeed/Desktop/Code/famous/framework/state-manager/node_modules/famous/node_modules/famous-stylesheets/node_modules/cssify"))(css); module.exports = css;
-},{"/Users/imtiazmajeed/Desktop/Code/famous/framework/state-manager/node_modules/famous/node_modules/famous-stylesheets/node_modules/cssify":310}],312:[function(require,module,exports){
+},{"/Users/imtiazmajeed/Desktop/Code/famous/framework/state-manager/node_modules/famous/node_modules/famous-stylesheets/node_modules/cssify":284}],286:[function(require,module,exports){
 'use strict';
 
 require('./famous.css');
 
-},{"./famous.css":311}],313:[function(require,module,exports){
+},{"./famous.css":285}],287:[function(require,module,exports){
+arguments[4][32][0].apply(exports,arguments)
+},{"dup":32}],288:[function(require,module,exports){
+arguments[4][33][0].apply(exports,arguments)
+},{"dup":33}],289:[function(require,module,exports){
+arguments[4][34][0].apply(exports,arguments)
+},{"./Curves":287,"dup":34}],290:[function(require,module,exports){
+arguments[4][35][0].apply(exports,arguments)
+},{"dup":35}],291:[function(require,module,exports){
+arguments[4][36][0].apply(exports,arguments)
+},{"./Curves":287,"./Easing":288,"./Transitionable":289,"./after":290,"dup":36}],292:[function(require,module,exports){
+arguments[4][32][0].apply(exports,arguments)
+},{"dup":32}],293:[function(require,module,exports){
+arguments[4][33][0].apply(exports,arguments)
+},{"dup":33}],294:[function(require,module,exports){
+arguments[4][34][0].apply(exports,arguments)
+},{"./Curves":292,"dup":34}],295:[function(require,module,exports){
+arguments[4][35][0].apply(exports,arguments)
+},{"dup":35}],296:[function(require,module,exports){
+arguments[4][36][0].apply(exports,arguments)
+},{"./Curves":292,"./Easing":293,"./Transitionable":294,"./after":295,"dup":36}],297:[function(require,module,exports){
+arguments[4][42][0].apply(exports,arguments)
+},{"dup":42}],298:[function(require,module,exports){
+arguments[4][43][0].apply(exports,arguments)
+},{"dup":43,"famous-transitions":296}],299:[function(require,module,exports){
+arguments[4][44][0].apply(exports,arguments)
+},{"dup":44}],300:[function(require,module,exports){
+arguments[4][45][0].apply(exports,arguments)
+},{"dup":45}],301:[function(require,module,exports){
+arguments[4][46][0].apply(exports,arguments)
+},{"dup":46}],302:[function(require,module,exports){
+arguments[4][47][0].apply(exports,arguments)
+},{"dup":47}],303:[function(require,module,exports){
+arguments[4][48][0].apply(exports,arguments)
+},{"dup":48}],304:[function(require,module,exports){
+arguments[4][49][0].apply(exports,arguments)
+},{"./CallbackStore":297,"./Color":298,"./KeyCodes":299,"./MethodStore":300,"./ObjectManager":301,"./clone":302,"./flatClone":303,"./keyValueToArrays":305,"./loadURL":306,"./strip":307,"dup":49}],305:[function(require,module,exports){
+arguments[4][50][0].apply(exports,arguments)
+},{"dup":50}],306:[function(require,module,exports){
+arguments[4][51][0].apply(exports,arguments)
+},{"dup":51}],307:[function(require,module,exports){
+arguments[4][52][0].apply(exports,arguments)
+},{"dup":52}],308:[function(require,module,exports){
+arguments[4][27][0].apply(exports,arguments)
+},{"dup":27}],309:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"./Mat33":308,"dup":28}],310:[function(require,module,exports){
+arguments[4][29][0].apply(exports,arguments)
+},{"dup":29}],311:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"dup":30}],312:[function(require,module,exports){
+arguments[4][31][0].apply(exports,arguments)
+},{"./Mat33":308,"./Quaternion":309,"./Vec2":310,"./Vec3":311,"dup":31}],313:[function(require,module,exports){
 arguments[4][32][0].apply(exports,arguments)
 },{"dup":32}],314:[function(require,module,exports){
 arguments[4][33][0].apply(exports,arguments)
@@ -24784,112 +23399,60 @@ arguments[4][35][0].apply(exports,arguments)
 },{"dup":35}],317:[function(require,module,exports){
 arguments[4][36][0].apply(exports,arguments)
 },{"./Curves":313,"./Easing":314,"./Transitionable":315,"./after":316,"dup":36}],318:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],319:[function(require,module,exports){
-arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],320:[function(require,module,exports){
-arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":318,"dup":34}],321:[function(require,module,exports){
-arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],322:[function(require,module,exports){
-arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":318,"./Easing":319,"./Transitionable":320,"./after":321,"dup":36}],323:[function(require,module,exports){
 arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],324:[function(require,module,exports){
+},{"dup":42}],319:[function(require,module,exports){
 arguments[4][43][0].apply(exports,arguments)
-},{"dup":43,"famous-transitions":322}],325:[function(require,module,exports){
+},{"dup":43,"famous-transitions":317}],320:[function(require,module,exports){
 arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],326:[function(require,module,exports){
+},{"dup":44}],321:[function(require,module,exports){
 arguments[4][45][0].apply(exports,arguments)
-},{"dup":45}],327:[function(require,module,exports){
+},{"dup":45}],322:[function(require,module,exports){
 arguments[4][46][0].apply(exports,arguments)
-},{"dup":46}],328:[function(require,module,exports){
+},{"dup":46}],323:[function(require,module,exports){
 arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],329:[function(require,module,exports){
+},{"dup":47}],324:[function(require,module,exports){
 arguments[4][48][0].apply(exports,arguments)
-},{"dup":48}],330:[function(require,module,exports){
+},{"dup":48}],325:[function(require,module,exports){
 arguments[4][49][0].apply(exports,arguments)
-},{"./CallbackStore":323,"./Color":324,"./KeyCodes":325,"./MethodStore":326,"./ObjectManager":327,"./clone":328,"./flatClone":329,"./keyValueToArrays":331,"./loadURL":332,"./strip":333,"dup":49}],331:[function(require,module,exports){
+},{"./CallbackStore":318,"./Color":319,"./KeyCodes":320,"./MethodStore":321,"./ObjectManager":322,"./clone":323,"./flatClone":324,"./keyValueToArrays":326,"./loadURL":327,"./strip":328,"dup":49}],326:[function(require,module,exports){
 arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],332:[function(require,module,exports){
+},{"dup":50}],327:[function(require,module,exports){
 arguments[4][51][0].apply(exports,arguments)
-},{"dup":51}],333:[function(require,module,exports){
+},{"dup":51}],328:[function(require,module,exports){
 arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],334:[function(require,module,exports){
-arguments[4][27][0].apply(exports,arguments)
-},{"dup":27}],335:[function(require,module,exports){
-arguments[4][28][0].apply(exports,arguments)
-},{"./Mat33":334,"dup":28}],336:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"dup":29}],337:[function(require,module,exports){
-arguments[4][30][0].apply(exports,arguments)
-},{"dup":30}],338:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"./Mat33":334,"./Quaternion":335,"./Vec2":336,"./Vec3":337,"dup":31}],339:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],340:[function(require,module,exports){
-arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],341:[function(require,module,exports){
-arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":339,"dup":34}],342:[function(require,module,exports){
-arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],343:[function(require,module,exports){
-arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":339,"./Easing":340,"./Transitionable":341,"./after":342,"dup":36}],344:[function(require,module,exports){
-arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],345:[function(require,module,exports){
-arguments[4][43][0].apply(exports,arguments)
-},{"dup":43,"famous-transitions":343}],346:[function(require,module,exports){
-arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],347:[function(require,module,exports){
-arguments[4][45][0].apply(exports,arguments)
-},{"dup":45}],348:[function(require,module,exports){
-arguments[4][46][0].apply(exports,arguments)
-},{"dup":46}],349:[function(require,module,exports){
-arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],350:[function(require,module,exports){
-arguments[4][48][0].apply(exports,arguments)
-},{"dup":48}],351:[function(require,module,exports){
-arguments[4][49][0].apply(exports,arguments)
-},{"./CallbackStore":344,"./Color":345,"./KeyCodes":346,"./MethodStore":347,"./ObjectManager":348,"./clone":349,"./flatClone":350,"./keyValueToArrays":352,"./loadURL":353,"./strip":354,"dup":49}],352:[function(require,module,exports){
-arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],353:[function(require,module,exports){
-arguments[4][51][0].apply(exports,arguments)
-},{"dup":51}],354:[function(require,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],355:[function(require,module,exports){
-arguments[4][276][0].apply(exports,arguments)
-},{"./Geometry":356,"dup":276}],356:[function(require,module,exports){
-arguments[4][277][0].apply(exports,arguments)
-},{"dup":277}],357:[function(require,module,exports){
-arguments[4][278][0].apply(exports,arguments)
-},{"dup":278,"famous-math":338}],358:[function(require,module,exports){
-arguments[4][279][0].apply(exports,arguments)
-},{"./GeometryHelper":357,"dup":279,"famous-utilities":351}],359:[function(require,module,exports){
-arguments[4][280][0].apply(exports,arguments)
-},{"./DynamicGeometry":355,"./Geometry":356,"./GeometryHelper":357,"./OBJLoader":358,"./primitives/Box":360,"./primitives/Circle":361,"./primitives/Cylinder":362,"./primitives/GeodesicSphere":363,"./primitives/Icosahedron":364,"./primitives/ParametricCone":365,"./primitives/Plane":366,"./primitives/Sphere":367,"./primitives/Tetrahedron":368,"./primitives/Torus":369,"./primitives/Triangle":370,"dup":280}],360:[function(require,module,exports){
-arguments[4][281][0].apply(exports,arguments)
-},{"../Geometry":356,"dup":281}],361:[function(require,module,exports){
-arguments[4][282][0].apply(exports,arguments)
-},{"../Geometry":356,"dup":282}],362:[function(require,module,exports){
-arguments[4][283][0].apply(exports,arguments)
-},{"../Geometry":356,"../GeometryHelper":357,"dup":283}],363:[function(require,module,exports){
-arguments[4][284][0].apply(exports,arguments)
-},{"../Geometry":356,"../GeometryHelper":357,"dup":284}],364:[function(require,module,exports){
-arguments[4][285][0].apply(exports,arguments)
-},{"../Geometry":356,"../GeometryHelper":357,"dup":285}],365:[function(require,module,exports){
-arguments[4][286][0].apply(exports,arguments)
-},{"../Geometry":356,"../GeometryHelper":357,"dup":286}],366:[function(require,module,exports){
-arguments[4][287][0].apply(exports,arguments)
-},{"../Geometry":356,"dup":287}],367:[function(require,module,exports){
-arguments[4][288][0].apply(exports,arguments)
-},{"../Geometry":356,"../GeometryHelper":357,"dup":288}],368:[function(require,module,exports){
-arguments[4][289][0].apply(exports,arguments)
-},{"../Geometry":356,"../GeometryHelper":357,"dup":289}],369:[function(require,module,exports){
-arguments[4][290][0].apply(exports,arguments)
-},{"../Geometry":356,"../GeometryHelper":357,"dup":290}],370:[function(require,module,exports){
-arguments[4][291][0].apply(exports,arguments)
-},{"../Geometry":356,"../GeometryHelper":357,"dup":291}],371:[function(require,module,exports){
+},{"dup":52}],329:[function(require,module,exports){
+arguments[4][250][0].apply(exports,arguments)
+},{"./Geometry":330,"dup":250}],330:[function(require,module,exports){
+arguments[4][251][0].apply(exports,arguments)
+},{"dup":251}],331:[function(require,module,exports){
+arguments[4][252][0].apply(exports,arguments)
+},{"dup":252,"famous-math":312}],332:[function(require,module,exports){
+arguments[4][253][0].apply(exports,arguments)
+},{"./GeometryHelper":331,"dup":253,"famous-utilities":325}],333:[function(require,module,exports){
+arguments[4][254][0].apply(exports,arguments)
+},{"./DynamicGeometry":329,"./Geometry":330,"./GeometryHelper":331,"./OBJLoader":332,"./primitives/Box":334,"./primitives/Circle":335,"./primitives/Cylinder":336,"./primitives/GeodesicSphere":337,"./primitives/Icosahedron":338,"./primitives/ParametricCone":339,"./primitives/Plane":340,"./primitives/Sphere":341,"./primitives/Tetrahedron":342,"./primitives/Torus":343,"./primitives/Triangle":344,"dup":254}],334:[function(require,module,exports){
+arguments[4][255][0].apply(exports,arguments)
+},{"../Geometry":330,"dup":255}],335:[function(require,module,exports){
+arguments[4][256][0].apply(exports,arguments)
+},{"../Geometry":330,"dup":256}],336:[function(require,module,exports){
+arguments[4][257][0].apply(exports,arguments)
+},{"../Geometry":330,"../GeometryHelper":331,"dup":257}],337:[function(require,module,exports){
+arguments[4][258][0].apply(exports,arguments)
+},{"../Geometry":330,"../GeometryHelper":331,"dup":258}],338:[function(require,module,exports){
+arguments[4][259][0].apply(exports,arguments)
+},{"../Geometry":330,"../GeometryHelper":331,"dup":259}],339:[function(require,module,exports){
+arguments[4][260][0].apply(exports,arguments)
+},{"../Geometry":330,"../GeometryHelper":331,"dup":260}],340:[function(require,module,exports){
+arguments[4][261][0].apply(exports,arguments)
+},{"../Geometry":330,"dup":261}],341:[function(require,module,exports){
+arguments[4][262][0].apply(exports,arguments)
+},{"../Geometry":330,"../GeometryHelper":331,"dup":262}],342:[function(require,module,exports){
+arguments[4][263][0].apply(exports,arguments)
+},{"../Geometry":330,"../GeometryHelper":331,"dup":263}],343:[function(require,module,exports){
+arguments[4][264][0].apply(exports,arguments)
+},{"../Geometry":330,"../GeometryHelper":331,"dup":264}],344:[function(require,module,exports){
+arguments[4][265][0].apply(exports,arguments)
+},{"../Geometry":330,"../GeometryHelper":331,"dup":265}],345:[function(require,module,exports){
 'use strict';
 
 var TextureRegistry = require('./TextureRegistry');
@@ -25128,7 +23691,7 @@ expressions.Texture = function (source) {
     return expressions.image([], { texture: source });
 };
 
-},{"./TextureRegistry":372}],372:[function(require,module,exports){
+},{"./TextureRegistry":346}],346:[function(require,module,exports){
 'use strict';
 
 /*
@@ -25184,101 +23747,89 @@ TextureRegistry.get = function get(accessor) {
 
 module.exports = TextureRegistry;
 
-},{}],373:[function(require,module,exports){
+},{}],347:[function(require,module,exports){
 'use strict';
 
 module.exports = {
     Material: require('./Material'),
     TextureRegistry: require('./TextureRegistry')
 };
-},{"./Material":371,"./TextureRegistry":372}],374:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],375:[function(require,module,exports){
-arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],376:[function(require,module,exports){
-arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":374,"dup":34}],377:[function(require,module,exports){
-arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],378:[function(require,module,exports){
-arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":374,"./Easing":375,"./Transitionable":376,"./after":377,"dup":36}],379:[function(require,module,exports){
+},{"./Material":345,"./TextureRegistry":346}],348:[function(require,module,exports){
 arguments[4][27][0].apply(exports,arguments)
-},{"dup":27}],380:[function(require,module,exports){
+},{"dup":27}],349:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"./Mat33":379,"dup":28}],381:[function(require,module,exports){
+},{"./Mat33":348,"dup":28}],350:[function(require,module,exports){
 arguments[4][29][0].apply(exports,arguments)
-},{"dup":29}],382:[function(require,module,exports){
+},{"dup":29}],351:[function(require,module,exports){
 arguments[4][30][0].apply(exports,arguments)
-},{"dup":30}],383:[function(require,module,exports){
+},{"dup":30}],352:[function(require,module,exports){
 arguments[4][31][0].apply(exports,arguments)
-},{"./Mat33":379,"./Quaternion":380,"./Vec2":381,"./Vec3":382,"dup":31}],384:[function(require,module,exports){
+},{"./Mat33":348,"./Quaternion":349,"./Vec2":350,"./Vec3":351,"dup":31}],353:[function(require,module,exports){
 arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],385:[function(require,module,exports){
+},{"dup":32}],354:[function(require,module,exports){
 arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],386:[function(require,module,exports){
+},{"dup":33}],355:[function(require,module,exports){
 arguments[4][34][0].apply(exports,arguments)
-},{"./Curves":384,"dup":34}],387:[function(require,module,exports){
+},{"./Curves":353,"dup":34}],356:[function(require,module,exports){
 arguments[4][35][0].apply(exports,arguments)
-},{"dup":35}],388:[function(require,module,exports){
+},{"dup":35}],357:[function(require,module,exports){
 arguments[4][36][0].apply(exports,arguments)
-},{"./Curves":384,"./Easing":385,"./Transitionable":386,"./after":387,"dup":36}],389:[function(require,module,exports){
+},{"./Curves":353,"./Easing":354,"./Transitionable":355,"./after":356,"dup":36}],358:[function(require,module,exports){
 arguments[4][42][0].apply(exports,arguments)
-},{"dup":42}],390:[function(require,module,exports){
+},{"dup":42}],359:[function(require,module,exports){
 arguments[4][43][0].apply(exports,arguments)
-},{"dup":43,"famous-transitions":388}],391:[function(require,module,exports){
+},{"dup":43,"famous-transitions":357}],360:[function(require,module,exports){
 arguments[4][44][0].apply(exports,arguments)
-},{"dup":44}],392:[function(require,module,exports){
+},{"dup":44}],361:[function(require,module,exports){
 arguments[4][45][0].apply(exports,arguments)
-},{"dup":45}],393:[function(require,module,exports){
+},{"dup":45}],362:[function(require,module,exports){
 arguments[4][46][0].apply(exports,arguments)
-},{"dup":46}],394:[function(require,module,exports){
+},{"dup":46}],363:[function(require,module,exports){
 arguments[4][47][0].apply(exports,arguments)
-},{"dup":47}],395:[function(require,module,exports){
+},{"dup":47}],364:[function(require,module,exports){
 arguments[4][48][0].apply(exports,arguments)
-},{"dup":48}],396:[function(require,module,exports){
+},{"dup":48}],365:[function(require,module,exports){
 arguments[4][49][0].apply(exports,arguments)
-},{"./CallbackStore":389,"./Color":390,"./KeyCodes":391,"./MethodStore":392,"./ObjectManager":393,"./clone":394,"./flatClone":395,"./keyValueToArrays":397,"./loadURL":398,"./strip":399,"dup":49}],397:[function(require,module,exports){
+},{"./CallbackStore":358,"./Color":359,"./KeyCodes":360,"./MethodStore":361,"./ObjectManager":362,"./clone":363,"./flatClone":364,"./keyValueToArrays":366,"./loadURL":367,"./strip":368,"dup":49}],366:[function(require,module,exports){
 arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],398:[function(require,module,exports){
+},{"dup":50}],367:[function(require,module,exports){
 arguments[4][51][0].apply(exports,arguments)
-},{"dup":51}],399:[function(require,module,exports){
+},{"dup":51}],368:[function(require,module,exports){
 arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],400:[function(require,module,exports){
-arguments[4][276][0].apply(exports,arguments)
-},{"./Geometry":401,"dup":276}],401:[function(require,module,exports){
-arguments[4][277][0].apply(exports,arguments)
-},{"dup":277}],402:[function(require,module,exports){
-arguments[4][278][0].apply(exports,arguments)
-},{"dup":278,"famous-math":383}],403:[function(require,module,exports){
-arguments[4][279][0].apply(exports,arguments)
-},{"./GeometryHelper":402,"dup":279,"famous-utilities":396}],404:[function(require,module,exports){
-arguments[4][280][0].apply(exports,arguments)
-},{"./DynamicGeometry":400,"./Geometry":401,"./GeometryHelper":402,"./OBJLoader":403,"./primitives/Box":405,"./primitives/Circle":406,"./primitives/Cylinder":407,"./primitives/GeodesicSphere":408,"./primitives/Icosahedron":409,"./primitives/ParametricCone":410,"./primitives/Plane":411,"./primitives/Sphere":412,"./primitives/Tetrahedron":413,"./primitives/Torus":414,"./primitives/Triangle":415,"dup":280}],405:[function(require,module,exports){
-arguments[4][281][0].apply(exports,arguments)
-},{"../Geometry":401,"dup":281}],406:[function(require,module,exports){
-arguments[4][282][0].apply(exports,arguments)
-},{"../Geometry":401,"dup":282}],407:[function(require,module,exports){
-arguments[4][283][0].apply(exports,arguments)
-},{"../Geometry":401,"../GeometryHelper":402,"dup":283}],408:[function(require,module,exports){
-arguments[4][284][0].apply(exports,arguments)
-},{"../Geometry":401,"../GeometryHelper":402,"dup":284}],409:[function(require,module,exports){
-arguments[4][285][0].apply(exports,arguments)
-},{"../Geometry":401,"../GeometryHelper":402,"dup":285}],410:[function(require,module,exports){
-arguments[4][286][0].apply(exports,arguments)
-},{"../Geometry":401,"../GeometryHelper":402,"dup":286}],411:[function(require,module,exports){
-arguments[4][287][0].apply(exports,arguments)
-},{"../Geometry":401,"dup":287}],412:[function(require,module,exports){
-arguments[4][288][0].apply(exports,arguments)
-},{"../Geometry":401,"../GeometryHelper":402,"dup":288}],413:[function(require,module,exports){
-arguments[4][289][0].apply(exports,arguments)
-},{"../Geometry":401,"../GeometryHelper":402,"dup":289}],414:[function(require,module,exports){
-arguments[4][290][0].apply(exports,arguments)
-},{"../Geometry":401,"../GeometryHelper":402,"dup":290}],415:[function(require,module,exports){
-arguments[4][291][0].apply(exports,arguments)
-},{"../Geometry":401,"../GeometryHelper":402,"dup":291}],416:[function(require,module,exports){
+},{"dup":52}],369:[function(require,module,exports){
+arguments[4][250][0].apply(exports,arguments)
+},{"./Geometry":370,"dup":250}],370:[function(require,module,exports){
+arguments[4][251][0].apply(exports,arguments)
+},{"dup":251}],371:[function(require,module,exports){
+arguments[4][252][0].apply(exports,arguments)
+},{"dup":252,"famous-math":352}],372:[function(require,module,exports){
+arguments[4][253][0].apply(exports,arguments)
+},{"./GeometryHelper":371,"dup":253,"famous-utilities":365}],373:[function(require,module,exports){
+arguments[4][254][0].apply(exports,arguments)
+},{"./DynamicGeometry":369,"./Geometry":370,"./GeometryHelper":371,"./OBJLoader":372,"./primitives/Box":374,"./primitives/Circle":375,"./primitives/Cylinder":376,"./primitives/GeodesicSphere":377,"./primitives/Icosahedron":378,"./primitives/ParametricCone":379,"./primitives/Plane":380,"./primitives/Sphere":381,"./primitives/Tetrahedron":382,"./primitives/Torus":383,"./primitives/Triangle":384,"dup":254}],374:[function(require,module,exports){
+arguments[4][255][0].apply(exports,arguments)
+},{"../Geometry":370,"dup":255}],375:[function(require,module,exports){
+arguments[4][256][0].apply(exports,arguments)
+},{"../Geometry":370,"dup":256}],376:[function(require,module,exports){
+arguments[4][257][0].apply(exports,arguments)
+},{"../Geometry":370,"../GeometryHelper":371,"dup":257}],377:[function(require,module,exports){
+arguments[4][258][0].apply(exports,arguments)
+},{"../Geometry":370,"../GeometryHelper":371,"dup":258}],378:[function(require,module,exports){
+arguments[4][259][0].apply(exports,arguments)
+},{"../Geometry":370,"../GeometryHelper":371,"dup":259}],379:[function(require,module,exports){
+arguments[4][260][0].apply(exports,arguments)
+},{"../Geometry":370,"../GeometryHelper":371,"dup":260}],380:[function(require,module,exports){
+arguments[4][261][0].apply(exports,arguments)
+},{"../Geometry":370,"dup":261}],381:[function(require,module,exports){
+arguments[4][262][0].apply(exports,arguments)
+},{"../Geometry":370,"../GeometryHelper":371,"dup":262}],382:[function(require,module,exports){
+arguments[4][263][0].apply(exports,arguments)
+},{"../Geometry":370,"../GeometryHelper":371,"dup":263}],383:[function(require,module,exports){
+arguments[4][264][0].apply(exports,arguments)
+},{"../Geometry":370,"../GeometryHelper":371,"dup":264}],384:[function(require,module,exports){
+arguments[4][265][0].apply(exports,arguments)
+},{"../Geometry":370,"../GeometryHelper":371,"dup":265}],385:[function(require,module,exports){
 'use strict';
-
-var Transitionable = require('famous-transitions').Transitionable;
 var Geometry = require('famous-webgl-geometries');
 
 /**
@@ -25292,107 +23843,51 @@ var Geometry = require('famous-webgl-geometries');
  * @param {LocalDispatch} dispatch LocalDispatch to be retrieved
  * @param {object} Options Optional params for configuring Mesh
  */
-function Mesh (dispatch, options) {
-    this.dispatch = dispatch;
-    this.queue = [];
-    this._id = dispatch.addRenderable(this);
+function Mesh (node, options) {
+    this._node = node;
+    this._changeQueue = [];
+    this._initialized = false;
+    this._requestingUpdate = false;
+    this._inDraw = false;
+    this.value = {
+        drawOptions: {},
+        color: null,
+        expressions: {},
+        geometry: null,
+        flatShading: false
+    }
 
-    this._glossiness = new Transitionable(0);
-    this._positionOffset = new Transitionable([0, 0, 0]);
-
-    this._size = [];
-    this._expressions = {};
-    this._flatShading = false;
-    this._geometry;
-    this._color;
-
-    this.dispatch.onTransformChange(this._receiveTransformChange.bind(this));
-    this.dispatch.onSizeChange(this._receiveSizeChange.bind(this));
-    this.dispatch.onOpacityChange(this._receiveOpacityChange.bind(this));
-
-    this._receiveTransformChange(this.dispatch.getContext()._transform);
-    this._receiveSizeChange(this.dispatch.getContext()._size);
-    this._receiveOpacityChange(this.dispatch.getContext()._opacity);
-
-    if (options) this.setOptions(options);
+    if (options) this.setDrawOptions(options);
+    this._id = node.addComponent(this);
 }
-
-/**
-* Returns the definition of the Class: 'Mesh'
-*
-* @method toString
-* @return {string} definition
-*/
-Mesh.toString = function toString() {
-    return 'Mesh';
-};
 
 /**
  * Pass custom options to Mesh, such as a 3 element map
  * which displaces the position of each vertex in world space.
  *
- * @method setOptions
+ * @method setDrawOptions
  * @chainable
  *
  * @param {Object} Options
  * @chainable
  */
-Mesh.prototype.setOptions = function setOptions(options) {
-    this.queue.push('GL_SET_DRAW_OPTIONS');
-    this.queue.push(options);
+Mesh.prototype.setDrawOptions = function setOptions (options) {
+    if (this.value.drawOptions.blendMode) {
+        this.value.drawOptions.blendMode = options.blendMode;
+        this._changeQueue.push('GL_SET_DRAW_OPTIONS');
+        this._changeQueue.push(options);
+    }
     return this;
 };
 
 /**
- * Receives transform change updates from the scene graph.
+ * Get the mesh's custom options.
  *
- * @private
+ * @method getDrawOptions
+ * @returns {Object} Options
  */
-Mesh.prototype._receiveTransformChange = function _receiveTransformChange(transform) {
-    this.dispatch.dirtyRenderable(this._id);
-    this.queue.push('GL_UNIFORMS');
-    this.queue.push('transform');
-    this.queue.push(transform._matrix);
-};
-
-/**
- * Receives size change updates from the scene graph.
- *
- * @private
- */
-Mesh.prototype._receiveSizeChange = function _receiveSizeChange(size) {
-    var size = size.getTopDownSize();
-    this.dispatch.dirtyRenderable(this._id);
-
-    this._size[0] = size[0];
-    this._size[1] = size[1];
-    this._size[2] = size[2];
-
-    this.queue.push('GL_UNIFORMS');
-    this.queue.push('size');
-    this.queue.push(size);
- };
-
-/**
- * Receives opacity change updates from the scene graph.
- *
- * @private
- */
-Mesh.prototype._receiveOpacityChange = function _receiveOpacityChange(opacity) {
-    this.dispatch.dirtyRenderable(this._id);
-    this.queue.push('GL_UNIFORMS');
-    this.queue.push('opacity');
-    this.queue.push(opacity.value);
-};
-
-/**
- * Returns the size of Mesh.
- *
- * @method getSize
- * @returns {array} Size Returns size
- */
-Mesh.prototype.getSize = function getSize() {
-    return this._size;
+Mesh.prototype.getDrawOptions = function getDrawOptions () {
+    return this.value.drawOptions;
 };
 
 /**
@@ -25405,23 +23900,21 @@ Mesh.prototype.getSize = function getSize() {
  * @param {Object} Options Various configurations for geometries.
  * @chainable
  */
-Mesh.prototype.setGeometry = function setGeometry(geometry, options) {
-    var i;
-    var key;
-    var buffers;
-    var bufferIndex;
-
+Mesh.prototype.setGeometry = function setGeometry (geometry, options) {
     if (typeof geometry === 'string') {
         if (!Geometry[geometry]) throw 'Invalid geometry: "' + geometry + '".';
         else geometry = new Geometry[geometry](options);
     }
 
-    if (this._geometry !== geometry) {
-        this.queue.push('GL_SET_GEOMETRY');
-        this.queue.push(geometry.id);
-        this.queue.push(geometry.spec.type);
-        this.queue.push(geometry.spec.dynamic);
-        this._geometry = geometry;
+    if (this.value.geometry !== geometry || this._inDraw) {
+        if (this._initialized) {
+            this._changeQueue.push('GL_SET_GEOMETRY');
+            this._changeQueue.push(geometry.id);
+            this._changeQueue.push(geometry.spec.type);
+            this._changeQueue.push(geometry.spec.dynamic);
+        }
+        if (!this._requestingUpdate) this._requestUpdate();
+        this.value.geometry = geometry;
     }
 
     return this;
@@ -25433,88 +23926,8 @@ Mesh.prototype.setGeometry = function setGeometry(geometry, options) {
  * @method getGeometry
  * @returns {Geometry} geometry Geometry of mesh
  */
-Mesh.prototype.getGeometry = function getGeometry() {
-    return this._geometry;
-};
-
-/**
-* Pushes invalidations commands, if any exist
-*
-* @private
-* @method _pushInvalidations
-*/
-Mesh.prototype._pushInvalidations = function _pushInvalidations(expressionName) {
-    var uniformKey;
-    var expression = this._expressions[expressionName];
-    if (expression) {
-        var i = expression.invalidations.length;
-        while (i--) {
-            uniformKey = expression.invalidations.pop();
-            this.dispatch.sendDrawCommand('GL_UNIFORMS');
-            this.dispatch.sendDrawCommand(uniformKey);
-            this.dispatch.sendDrawCommand(expression.uniforms[uniformKey]);
-        }
-    }
-};
-
-/**
-* Pushes active commands for any values that are in transition (active) state
-*
-* @private
-* @method _pushActiveCommands
-*/
-Mesh.prototype._pushActiveCommands = function _pushActiveCommands(property, command, value) {
-    if (this[property] && this[property].isActive()) {
-        this.dispatch.sendDrawCommand('GL_UNIFORMS');
-        this.dispatch.sendDrawCommand(command);
-        this.dispatch.sendDrawCommand(this[property][value || 'get']());
-        return true;
-    }
-};
-
-/**
-* Returns boolean: if true, renderable is to be updated on next engine tick
-*
-* @private
-* @method clean
-* @returns {boolean} Boolean
-*/
-Mesh.prototype.clean = function clean() {
-    var path = this.dispatch.getRenderPath();
-    var bufferIndex;
-    var i;
-
-    this.dispatch
-        .sendDrawCommand('WITH')
-        .sendDrawCommand(path);
-
-    if (this._geometry) {
-        i = this._geometry.spec.invalidations.length;
-        while (i--) {
-            bufferIndex = this._geometry.spec.invalidations.pop();
-            this.dispatch.sendDrawCommand('GL_BUFFER_DATA');
-            this.dispatch.sendDrawCommand(this._geometry.id);
-            this.dispatch.sendDrawCommand(this._geometry.spec.bufferNames[i]);
-            this.dispatch.sendDrawCommand(this._geometry.spec.bufferValues[i]);
-            this.dispatch.sendDrawCommand(this._geometry.spec.bufferSpacings[i]);
-        }
-    }
-
-    // If any invalidations exist, push them into the queue
-    this._pushInvalidations('baseColor');
-    this._pushInvalidations('positionOffset');
-
-    // If any values are active, push them into the queue
-    this._pushActiveCommands('_color', 'baseColor', 'getNormalizedRGB');
-    this._pushActiveCommands('_glossiness', 'glossiness');
-    this._pushActiveCommands('_positionOffset', 'positionOffset');
-
-    i = this.queue.length;
-    while (i--) {
-        this.dispatch.sendDrawCommand(this.queue.shift());
-    }
-
-    return this.queue.length;
+Mesh.prototype.getGeometry = function getGeometry () {
+    return this.value.geometry;
 };
 
 /**
@@ -25525,28 +23938,36 @@ Mesh.prototype.clean = function clean() {
 * @param {Object|Color} Material, image, vec3, or Color instance
 * @chainable
 */
-Mesh.prototype.setBaseColor = function setBaseColor(color) {
-    this.dispatch.dirtyRenderable(this._id);
+Mesh.prototype.setBaseColor = function setBaseColor (color) {
+    var uniformValue;
 
-    // If a material expression
     if (color._compile) {
-        this.queue.push('MATERIAL_INPUT');
-        this._expressions.baseColor = color;
-        color = color._compile();
-    }
-    // If a color component
-    else if (color.getNormalizedRGB) {
-        this.queue.push('GL_UNIFORMS');
-        this._expressions.baseColor = null;
-        this._color = color;
-        color = color.getNormalizedRGB();
+        this.value.expressions.baseColor = color;
+        uniformValue = color._compile(); 
+    } else if (color.getNormalizedRGB) {
+        this.value.expressions.baseColor = null;
+        this.value.color = color;
+        uniformValue = color.getNormalizedRGB();
     }
 
-    this.queue.push('baseColor');
-    this.queue.push(color);
+    if (this._initialized) {
+        // If a material expression
+        if (color._compile) {
+            this._changeQueue.push('MATERIAL_INPUT');
+        }
+
+        // If a color component
+        else if (color.getNormalizedRGB) {
+            this._changeQueue.push('GL_UNIFORMS');
+        }
+        this._changeQueue.push('baseColor');
+        this._changeQueue.push(uniformValue);
+    }
+
+    if (!this._requestingUpdate) this._requestUpdate();
+
     return this;
 };
-
 
 /**
  * Returns either the material expression or the color instance of Mesh.
@@ -25554,8 +23975,8 @@ Mesh.prototype.setBaseColor = function setBaseColor(color) {
  * @method getBaseColor
  * @returns {MaterialExpress|Color}
  */
-Mesh.prototype.getBaseColor = function getBaseColor() {
-    return this._expressions.baseColor || this._color;
+Mesh.prototype.getBaseColor = function getBaseColor () {
+    return this.value.expressions.baseColor || this.value.color;
 };
 
 /**
@@ -25565,12 +23986,17 @@ Mesh.prototype.getBaseColor = function getBaseColor() {
  * @param {boolean} Boolean
  * @chainable
  */
-Mesh.prototype.setFlatShading = function setFlatShading(bool) {
-    this.dispatch.dirtyRenderable(this._id);
-    this._flatShading = bool;
-    this.queue.push('GL_UNIFORMS');
-    this.queue.push('u_FlatShading');
-    this.queue.push(this._flatShading ? 1 : 0);
+Mesh.prototype.setFlatShading = function setFlatShading (bool) {
+    if (this._inDraw || this.value.flatShading !== bool) {
+        if (this._initialized) {
+            this._changeQueue.push('GL_UNIFORMS');
+            this._changeQueue.push('u_flatShading');
+            this._changeQueue.push(this.value.flatShading ? 1 : 0);        
+        }
+        this.value.flatShading = bool;
+        if (!this._requestingUpdate) this._requestUpdate();
+    }
+
     return this;
 };
 
@@ -25580,8 +24006,8 @@ Mesh.prototype.setFlatShading = function setFlatShading(bool) {
  * @method getFlatShading
  * @returns {Boolean} Boolean
  */
-Mesh.prototype.getFlatShading = function getFlatShading() {
-    return this._flatShading;
+Mesh.prototype.getFlatShading = function getFlatShading () {
+    return this.value.flatShading;
 };
 
 
@@ -25596,15 +24022,20 @@ Mesh.prototype.getFlatShading = function getFlatShading() {
  * @param {Object|Array} Material, Image or vec3
  * @return {Element} current Mesh
  */
-Mesh.prototype.setNormals = function setNormals(materialExpression) {
-    this.dispatch.dirtyRenderable(this._id);
+Mesh.prototype.setNormals = function setNormals (materialExpression) {
     if (materialExpression._compile) {
-        this._expressions.normals = materialExpression;
+        this.value.expressions.normals = materialExpression;
         materialExpression = materialExpression._compile();
     }
-    this.queue.push(typeof materialExpression === 'number' ? 'UNIFORM_INPUT' : 'MATERIAL_INPUT');
-    this.queue.push('normal');
-    this.queue.push(materialExpression);
+
+    if (this._initialized) {
+        this._changeQueue.push(typeof materialExpression === 'number' ? 'UNIFORM_INPUT' : 'MATERIAL_INPUT');
+        this._changeQueue.push('normal');
+        this._changeQueue.push(materialExpression);
+    }
+
+    if (!this._requestingUpdate) this._requestUpdate();
+
     return this;
 };
 
@@ -25614,8 +24045,8 @@ Mesh.prototype.setNormals = function setNormals(materialExpression) {
  * @method getNormals
  * @returns The normals expression for Mesh
  */
-Mesh.prototype.getNormals = function getNormals(materialExpression) {
-    return this._expressions.normals;
+Mesh.prototype.getNormals = function getNormals (materialExpression) {
+    return this.value.expressions.normals;
 };
 
 /**
@@ -25628,23 +24059,27 @@ Mesh.prototype.getNormals = function getNormals(materialExpression) {
  * @param {Function} Callback
  * @chainable
  */
-Mesh.prototype.setGlossiness = function setGlossiness(materialExpression, transition, cb) {
-    this.dispatch.dirtyRenderable(this._id);
+Mesh.prototype.setGlossiness = function setGlossiness (materialExpression, transition, cb) {
+    var glossiness;
 
     if (materialExpression._compile) {
-        this.queue.push('MATERIAL_INPUT');
-        this._expressions.glossiness = materialExpression;
-        materialExpression = materialExpression._compile();
+        this.value.expressions.glossiness = materialExpression;
+        glossiness = materialExpression._compile();
     }
     else {
-        this.queue.push('GL_UNIFORMS');
-        this._expressions.glossiness = null;
-        this._glossiness.set(materialExpression, transition, cb);
-        materialExpression = this._glossiness.get();
+        this.value.expressions.glossiness = null;
+        this.value.glossiness = materialExpression;
+        glossiness = this.value.glossiness;
     }
 
-    this.queue.push('glossiness');
-    this.queue.push(materialExpression);
+    if (this._initialized) {
+        this._changeQueue.push(materialExpression._compile ? 'GL_UNIFORMS' : 'MATERIAL_INPUT');
+        this._changeQueue.push('glossiness');
+        this._changeQueue.push(glossiness);
+    }
+
+    if (!this._requestingUpdate) this._requestUpdate();
+
     return this;
 };
 
@@ -25654,8 +24089,8 @@ Mesh.prototype.setGlossiness = function setGlossiness(materialExpression, transi
  * @method getGlossiness
  * @returns {MaterialExpress|Number}
  */
-Mesh.prototype.getGlossiness = function getGlossiness() {
-    return this._expressions.glossiness || this._glossiness.get();
+Mesh.prototype.getGlossiness = function getGlossiness () {
+    return this.value.expressions.glossiness || this.value.glossiness;
 };
 
 /**
@@ -25670,23 +24105,27 @@ Mesh.prototype.getGlossiness = function getGlossiness() {
  * @param {Function} Callback
  * @chainable
  */
-Mesh.prototype.setPositionOffset = function positionOffset(materialExpression, transition, cb) {
-    this.dispatch.dirtyRenderable(this._id);
+Mesh.prototype.setPositionOffset = function positionOffset (materialExpression, transition, cb) {
+    var uniformValue;
 
     if (materialExpression._compile) {
-        this.queue.push('MATERIAL_INPUT');
-        this._expressions.positionOffset = materialExpression;
-        materialExpression = materialExpression._compile();
+        this.value.expressions.positionOffset = materialExpression;
+        uniformValue = materialExpression._compile();
     }
     else {
-        this.queue.push('GL_UNIFORMS');
-        this._expressions.positionOffset = null;
-        this._positionOffset.set(materialExpression, transition, cb);
-        materialExpression = this._positionOffset.get();
+        this.value.expressions.positionOffset = null;
+        this.value.positionOffset = materialExpression;
+        uniformValue = this.value.positionOffset;
     }
 
-    this.queue.push('positionOffset');
-    this.queue.push(materialExpression);
+    if (this._initialized) {
+        this._changeQueue.push(materialExpression._compile ? 'MATERIAL_INPUT' : 'GL_UNIFORMS');
+        this._changeQueue.push('positionOffset');
+        this._changeQueue.push(uniformValue);
+    }
+
+    if (!this._requestingUpdate) this._requestUpdate();
+
     return this;
 };
 
@@ -25696,13 +24135,195 @@ Mesh.prototype.setPositionOffset = function positionOffset(materialExpression, t
  * @method getPositionOffset
  * @returns {MaterialExpress|Number}
  */
-Mesh.prototype.getPositionOffset = function getPositionOffset(materialExpression) {
-    return this._expressions.positionOffset || this._positionOffset.get();
+Mesh.prototype.getPositionOffset = function getPositionOffset (materialExpression) {
+    return this.value.expressions.positionOffset || this.value.positionOffset;
+};
+
+/**
+ * Get the mesh's custom options.
+ *
+ * @method getDrawOptions
+ * @returns {Object} Options
+ */
+Mesh.prototype.getMaterialExpressions = function getMaterialExpressions () {
+    return this.value.expressions;
+};
+
+Mesh.prototype.getValue = function getValue () {
+    return this.value;
+};
+
+Mesh.prototype._pushInvalidations = function pushInvalidations (expressionName) {
+    var uniformKey;
+    var expression = this.value.expressions[expressionName];
+    if (expression) {
+        var i = expression.invalidations.length;
+        while (i--) {
+            uniformKey = expression.invalidations.pop();
+            this._node.sendDrawCommand('GL_UNIFORMS');
+            this._node.sendDrawCommand(uniformKey);
+            this._node.sendDrawCommand(expression.uniforms[uniformKey]);
+        }
+    }
+};
+
+/**
+* Sends draw commands to the renderer
+*
+* @private
+* @method onUpdate
+*/
+Mesh.prototype.onUpdate = function onUpdate () {
+    var node = this._node;
+    var queue = this._changeQueue;
+
+    if (node) {
+        node.sendDrawCommand('WITH');
+        node.sendDrawCommand(node.getLocation());
+
+        if (this.value.geometry) {
+        i = this.value.geometry.spec.invalidations.length;
+            while (i--) {
+                var bufferIndex = this.value.geometry.spec.invalidations.pop();
+                node.sendDrawCommand('GL_BUFFER_DATA');
+                node.sendDrawCommand(this.value.geometry.id);
+                node.sendDrawCommand(this.value.geometry.spec.bufferNames[i]);
+                node.sendDrawCommand(this.value.geometry.spec.bufferValues[i]);
+                node.sendDrawCommand(this.value.geometry.spec.bufferSpacings[i]);
+            }
+        }
+
+        // If any invalidations exist, push them into the queue
+        if (this.value.color && this.value.color.isActive()) {
+            this._node.sendDrawCommand('GL_UNIFORMS');
+            this._node.sendDrawCommand('baseColor');
+            this._node.sendDrawCommand(this.value.color.getNormalizedRGB());
+            this._node.requestUpdateOnNextTick(this._id);
+        } else {
+            this._requestingUpdate = false;
+        }
+
+        // If any invalidations exist, push them into the queue
+        this._pushInvalidations('baseColor');
+        this._pushInvalidations('positionOffset');
+
+        for (var i = 0; i < queue.length; i++) {
+            node.sendDrawCommand(queue[i]);
+        }
+
+        queue.length = 0;
+    }
+
+};
+
+Mesh.prototype.onMount = function onMount (node, id) {
+    this._node = node;
+    this._id = id;
+
+    this.draw();
+};
+
+Mesh.prototype.onDismount = function onDismount () {
+    this._initialized = false;
+    this.onHide();
+};
+
+Mesh.prototype.onShow = function onShow () {
+    //TODO
+};
+
+Mesh.prototype.onHide = function onHide () {
+    //TODO
+};
+
+/**
+ * Receives transform change updates from the scene graph.
+ *
+ * @private
+ */
+Mesh.prototype.onTransformChange = function onTransformChange (transform) {
+    if (this._initialized) {
+        this._changeQueue.push('GL_UNIFORMS');
+        this._changeQueue.push('transform');
+        this._changeQueue.push(transform);        
+    }
+
+    if (!this._requestingUpdate) this._requestUpdate();
+};
+
+/**
+ * Receives size change updates from the scene graph.
+ *
+ * @private
+ */
+Mesh.prototype.onSizeChange = function onSizeChange (size) {
+    if (this._initialized) {
+        this._changeQueue.push('GL_UNIFORMS');
+        this._changeQueue.push('size');
+        this._changeQueue.push(size);
+    }
+
+    if (!this._requestingUpdate) this._requestUpdate();
+};
+
+/**
+ * Receives opacity change updates from the scene graph.
+ *
+ * @private
+ */
+Mesh.prototype.onOpacityChange = function onOpacityChange (opacity) {
+    if (this._initialized) {
+        this._changeQueue.push('GL_UNIFORMS');
+        this._changeQueue.push('opacity');
+        this._changeQueue.push(opacity);
+    }
+    
+    if (!this._requestingUpdate) this._requestUpdate();
+};
+
+Mesh.prototype.onAddUIEvent = function onAddUIEvent (UIEvent, methods, properties) {
+    //TODO
+};
+
+Mesh.prototype._requestUpdate = function _requestUpdate () {
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
+};
+
+Mesh.prototype.init = function init () {
+    this._initialized = true;
+    this.onTransformChange(this._node.getTransform());
+    this.onSizeChange(this._node.getSize());
+    this.onOpacityChange(this._node.getOpacity());
+    if (!this._requestingUpdate) this._requestUpdate();
+};
+
+Mesh.prototype.draw = function draw () {
+    var key;
+    var i;
+    var len;
+
+    this._inDraw = true;
+
+    this.init();
+
+    var value = this.getValue();
+    if (value.geometry != null) this.setGeometry(value.geometry);
+    if (value.color != null) this.setBaseColor(value.color);
+    if (value.drawOptions != null) this.setDrawOptions(value.drawOptions);
+    if (value.flatShading != null) this.setFlatShading(value.flatShading);
+    if (value.normals != null) this.setNormals(value.normals);
+    if (value.glossiness != null) this.setGlossiness(value.glossiness);
+    if (value.positionOffset != null) this.setPositionOffset(value.positionOffset);
+
+    this._inDraw = false;
 };
 
 module.exports = Mesh;
 
-},{"famous-transitions":378,"famous-webgl-geometries":404}],417:[function(require,module,exports){
+},{"famous-webgl-geometries":373}],386:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -25711,7 +24332,7 @@ module.exports = {
     AmbientLight: require('./lights/AmbientLight'),
 };
 
-},{"./Mesh":416,"./lights/AmbientLight":418,"./lights/PointLight":420}],418:[function(require,module,exports){
+},{"./Mesh":385,"./lights/AmbientLight":387,"./lights/PointLight":389}],387:[function(require,module,exports){
 'use strict';
 
 var Light = require('./Light');
@@ -25728,8 +24349,8 @@ var Light = require('./Light');
  * @param {LocalDispatch} dispatch LocalDispatch to be retrieved
  * from the corresponding Render Node
  */
-function AmbientLight(dispatch) {
-    Light.call(this, dispatch);
+function AmbientLight(node) {
+    Light.call(this, node);
     this.commands.color = 'GL_AMBIENT_LIGHT';
 };
 
@@ -25755,7 +24376,7 @@ AmbientLight.prototype.constructor = AmbientLight;
 
 module.exports = AmbientLight;
 
-},{"./Light":419}],419:[function(require,module,exports){
+},{"./Light":388}],388:[function(require,module,exports){
 'use strict';
 
 /**
@@ -25764,12 +24385,13 @@ module.exports = AmbientLight;
  * @class Light
  * @constructor
  * @component
- * @param {LocalDispatch} dispatch LocalDispatch to be retrieved
+ * @param {Node} node The controlling node
  * from the corresponding Render Node
  */
-function Light(dispatch) {
-    this._dispatch = dispatch;
-    this._id = dispatch.addComponent(this);
+function Light(node) {
+    this._node = node;
+    this._id = node.addComponent(this);
+    this._requestingUpdate = false;
     this.queue = [];
     this._color;
     this.commands = { color: 'GL_LIGHT_COLOR' };
@@ -25794,7 +24416,10 @@ Light.toString = function toString() {
 */
 Light.prototype.setColor = function setColor(color) {
     if (!color.getNormalizedRGB) return false;
-    this._dispatch.dirtyComponent(this._id);
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
     this._color = color;
     this.queue.push(this.commands.color);
     var rgb = this._color.getNormalizedRGB();
@@ -25815,39 +24440,38 @@ Light.prototype.getColor = function getColor(option) {
 };
 
 /**
-* Returns boolean: if true, component is to be updated on next engine tick
+* Sends draw commands to the renderer
 *
 * @private
-* @method clean
-* @returns {Boolean} Boolean
+* @method onUpdate
 */
-Light.prototype.clean = function clean() {
-    var path = this._dispatch.getRenderPath();
+Light.prototype.onUpdate = function clean() {
+    var path = this._node.getLocation();
 
-    this._dispatch
+    this._node
         .sendDrawCommand('WITH')
         .sendDrawCommand(path);
 
     var i = this.queue.length;
     while (i--) {
-        this._dispatch.sendDrawCommand(this.queue.shift());
+        this._node.sendDrawCommand(this.queue.shift());
     }
 
     if (this._color && this._color.isActive()) {
-        this._dispatch.sendDrawCommand(this.commands.color);
+        this._node.sendDrawCommand(this.commands.color);
         var rgb = this._color.getNormalizedRGB();
-        this._dispatch.sendDrawCommand(rgb[0]);
-        this._dispatch.sendDrawCommand(rgb[1]);
-        this._dispatch.sendDrawCommand(rgb[2]);
-        return true;
+        this._node.sendDrawCommand(rgb[0]);
+        this._node.sendDrawCommand(rgb[1]);
+        this._node.sendDrawCommand(rgb[2]);
+        this._node.requestUpdateOnNextTick(this._id);
+    } else {
+        this._requestingUpdate = false;
     }
-
-    return this.queue.length;
 };
 
 module.exports = Light;
 
-},{}],420:[function(require,module,exports){
+},{}],389:[function(require,module,exports){
 'use strict';
 
 var Light = require('./Light');
@@ -25862,11 +24486,10 @@ var Light = require('./Light');
  * @param {LocalDispatch} dispatch LocalDispatch to be retrieved
  * from the corresponding Render Node
  */
-function PointLight(dispatch) {
-    Light.call(this, dispatch);
+function PointLight(node) {
+    Light.call(this, node);
     this.commands.position = 'GL_LIGHT_POSITION';
-    this._receiveTransformChange(this._dispatch.getContext()._transform);
-    this._dispatch.onTransformChange(this._receiveTransformChange.bind(this));
+    this.onTransformChange(node.getTransform());
 };
 
 /**
@@ -25894,24 +24517,26 @@ PointLight.prototype.constructor = PointLight;
  *
  * @private
  */
-PointLight.prototype._receiveTransformChange = function _receiveTransformChange(transform) {
-    this._dispatch.dirtyComponent(this._id);
-
+PointLight.prototype.onTransformChange = function onTransformChange (transform) {
+    if (!this._requestingUpdate) {
+        this._node.requestUpdate(this._id);
+        this._requestingUpdate = true;
+    }
     this.queue.push(this.commands.position);
-    this.queue.push(transform._matrix[12]);
-    this.queue.push(transform._matrix[13]);
-    this.queue.push(transform._matrix[14]);
+    this.queue.push(transform[12]);
+    this.queue.push(transform[13]);
+    this.queue.push(transform[14]);
 };
 
 module.exports = PointLight;
 
-},{"./Light":419}],421:[function(require,module,exports){
-arguments[4][292][0].apply(exports,arguments)
-},{"dup":292}],422:[function(require,module,exports){
-arguments[4][293][0].apply(exports,arguments)
-},{"dup":293}],423:[function(require,module,exports){
-arguments[4][294][0].apply(exports,arguments)
-},{"dup":294,"glslify":421,"glslify/simple-adapter.js":422}],424:[function(require,module,exports){
+},{"./Light":388}],390:[function(require,module,exports){
+arguments[4][266][0].apply(exports,arguments)
+},{"dup":266}],391:[function(require,module,exports){
+arguments[4][267][0].apply(exports,arguments)
+},{"dup":267}],392:[function(require,module,exports){
+arguments[4][268][0].apply(exports,arguments)
+},{"dup":268,"glslify":390,"glslify/simple-adapter.js":391}],393:[function(require,module,exports){
 (function (process){
 var defined = require('defined');
 var createDefaultStream = require('./lib/default_stream');
@@ -26055,7 +24680,7 @@ function createHarness (conf_) {
 }
 
 }).call(this,require('_process'))
-},{"./lib/default_stream":425,"./lib/results":426,"./lib/test":427,"_process":12,"defined":431,"through":435}],425:[function(require,module,exports){
+},{"./lib/default_stream":394,"./lib/results":395,"./lib/test":396,"_process":12,"defined":400,"through":404}],394:[function(require,module,exports){
 (function (process){
 var through = require('through');
 var fs = require('fs');
@@ -26090,7 +24715,7 @@ module.exports = function () {
 };
 
 }).call(this,require('_process'))
-},{"_process":12,"fs":3,"through":435}],426:[function(require,module,exports){
+},{"_process":12,"fs":3,"through":404}],395:[function(require,module,exports){
 (function (process){
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
@@ -26283,7 +24908,7 @@ function has (obj, prop) {
 }
 
 }).call(this,require('_process'))
-},{"_process":12,"events":8,"inherits":432,"object-inspect":433,"resumer":434,"through":435}],427:[function(require,module,exports){
+},{"_process":12,"events":8,"inherits":401,"object-inspect":402,"resumer":403,"through":404}],396:[function(require,module,exports){
 (function (process,__dirname){
 var deepEqual = require('deep-equal');
 var defined = require('defined');
@@ -26783,7 +25408,7 @@ Test.skip = function (name_, _opts, _cb) {
 
 
 }).call(this,require('_process'),"/node_modules/tape/lib")
-},{"_process":12,"deep-equal":428,"defined":431,"events":8,"inherits":432,"path":11}],428:[function(require,module,exports){
+},{"_process":12,"deep-equal":397,"defined":400,"events":8,"inherits":401,"path":11}],397:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var objectKeys = require('./lib/keys.js');
 var isArguments = require('./lib/is_arguments.js');
@@ -26879,7 +25504,7 @@ function objEquiv(a, b, opts) {
   return typeof a === typeof b;
 }
 
-},{"./lib/is_arguments.js":429,"./lib/keys.js":430}],429:[function(require,module,exports){
+},{"./lib/is_arguments.js":398,"./lib/keys.js":399}],398:[function(require,module,exports){
 var supportsArgumentsClass = (function(){
   return Object.prototype.toString.call(arguments)
 })() == '[object Arguments]';
@@ -26901,7 +25526,7 @@ function unsupported(object){
     false;
 };
 
-},{}],430:[function(require,module,exports){
+},{}],399:[function(require,module,exports){
 exports = module.exports = typeof Object.keys === 'function'
   ? Object.keys : shim;
 
@@ -26912,16 +25537,16 @@ function shim (obj) {
   return keys;
 }
 
-},{}],431:[function(require,module,exports){
+},{}],400:[function(require,module,exports){
 module.exports = function () {
     for (var i = 0; i < arguments.length; i++) {
         if (arguments[i] !== undefined) return arguments[i];
     }
 };
 
-},{}],432:[function(require,module,exports){
+},{}],401:[function(require,module,exports){
 arguments[4][9][0].apply(exports,arguments)
-},{"dup":9}],433:[function(require,module,exports){
+},{"dup":9}],402:[function(require,module,exports){
 module.exports = function inspect_ (obj, opts, depth, seen) {
     if (!opts) opts = {};
     
@@ -27050,7 +25675,7 @@ function inspectString (str) {
     }
 }
 
-},{}],434:[function(require,module,exports){
+},{}],403:[function(require,module,exports){
 (function (process){
 var through = require('through');
 var nextTick = typeof setImmediate !== 'undefined'
@@ -27083,7 +25708,7 @@ module.exports = function (write, end) {
 };
 
 }).call(this,require('_process'))
-},{"_process":12,"through":435}],435:[function(require,module,exports){
+},{"_process":12,"through":404}],404:[function(require,module,exports){
 (function (process){
 var Stream = require('stream')
 
@@ -27195,13 +25820,12 @@ function through (write, end, opts) {
 
 
 }).call(this,require('_process'))
-},{"_process":12,"stream":24}],436:[function(require,module,exports){
+},{"_process":12,"stream":24}],405:[function(require,module,exports){
 'use strict';
 
 var test = require('tape');
 var path = require('path');
 var Famous = require('famous').core.Famous;
-var Clock = Famous.getClock();
 var Transitionable = require('famous').transitions.Transitionable;
 
 var StateManager = require('./../lib');
@@ -27229,7 +25853,7 @@ test('StateManager', function(t) {
     globalObserverFlag = true;
   }
 
-  var SM = new StateManager(dogState, Clock, Transitionable);
+  var SM = new StateManager(dogState, Famous, Transitionable);
 
   console.log('GETTER');
   t.equal(SM.getState('age'), 4, 'should get state');
@@ -27404,4 +26028,4 @@ test('StateManager', function(t) {
   t.end();
 });
 
-},{"./../lib":1,"famous":26,"path":11,"tape":424}]},{},[436]);
+},{"./../lib":1,"famous":26,"path":11,"tape":393}]},{},[405]);

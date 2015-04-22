@@ -3,7 +3,6 @@
 var test = require('tape');
 var path = require('path');
 var Famous = require('famous').core.Famous;
-var Clock = Famous.getClock();
 var Transitionable = require('famous').transitions.Transitionable;
 
 var StateManager = require('./../lib');
@@ -31,7 +30,7 @@ test('StateManager', function(t) {
     globalObserverFlag = true;
   }
 
-  var SM = new StateManager(dogState, Clock, Transitionable);
+  var SM = new StateManager(dogState, Famous, Transitionable);
 
   console.log('GETTER');
   t.equal(SM.getState('age'), 4, 'should get state');
