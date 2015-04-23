@@ -2,8 +2,5 @@
   "name": "framework-utilities",
   "version": "0.3.2",
   "description": "simple utility functions for Famo.us BEST Framework",
-  "license": "MPLv2",
-  "dependencies": {
-    "lodash.isequal": "^3.0.1"
-  }
+  "license": "MPLv2"
 }
