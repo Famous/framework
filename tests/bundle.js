@@ -136,30 +136,42 @@ StateManager.prototype.thenSet = function thenSet(key, value, transition) {
  */
 StateManager.prototype.setState = function setState(key, value, transition) {
     var previousState = this.get(key) || 0;
-    var transitionableExists = isTransitionable.call(this, key);
+    var stringifiedKey = JSON.stringify(key);
+    var transitionableExists = isTransitionable.call(this, stringifiedKey);
 
-    if (isArray(key)) key = JSON.stringify(key);
+    if (!transition && transitionableExists) {
+        if (isArray(key)) key = JSON.stringify(key);
+        this._transitionables[key].halt();
+        this._setTransitionable(key, previousState, value, {});
+        return this;
+    }
 
     if (transition) {
-        // make sure we have a reference to a transitionable
+        // stringify nested keys before setting transitionable
+        if (isArray(key)) key = JSON.stringify(key);
+
+        // create a new transitionable if it doesn't exist already
         if (!transitionableExists) {
             this._transitionables[key] = new this._Transitionable(previousState);
         }
+        // if one exists, halt it
         else {
-            // we already have a t9able; halt it so we can start anew
             this._transitionables[key].halt();
         }
 
         this._setTransitionable(key, previousState, value, transition);
     }
     else {
-        // If this used to be a t9able and isn't anymore,
+        // If this used to be a transitionable and isn't anymore,
         // clean up by halting and removing
-        if (transitionableExists) this._transitionables[key].halt();
-        delete this._transitionables[key];
+        if (transitionableExists) this._transitionables[JSON.stringify(key)].halt();
+        delete this._transitionables[JSON.stringify(key)];
 
-        this._state[key] = value;
-        this._notifyObservers(key, value);
+        // this._state[key] = value;
+        setObject(key, value, this._state);
+
+        if (isArray(key)) this._notifyObservers(key[0], value);
+        if (isString(key)) this._notifyObservers(key, value);
     }
 
     this._setLatestStateChange(key, value);
@@ -272,104 +284,104 @@ StateManager.prototype.chain = function chain(key) {
 /**
  * Add function
  */
-StateManager.prototype.add = function add(amount) {
-    this.operate(amount, '+');
+StateManager.prototype.add = function add(amount, transition) {
+    this.operate(amount, '+', transition);
     return this;
 }
 
 /**
  * Subtract function
  */
-StateManager.prototype.subtract = function subtract(amount) {
-    this.operate(amount, '-');
+StateManager.prototype.subtract = function subtract(amount, transition) {
+    this.operate(amount, '-', transition);
     return this;
 }
 
 /**
  * Multiply function
  */
-StateManager.prototype.multiply = function multiply(amount) {
-    this.operate(amount, '*');
+StateManager.prototype.multiply = function multiply(amount, transition) {
+    this.operate(amount, '*', transition);
     return this;
 }
 
 /**
  * Multiply by PI function
  */
-StateManager.prototype.timesPI = function timesPI() {
-    this.multiply(Math.PI);
+StateManager.prototype.timesPI = function timesPI(transition) {
+    this.multiply(Math.PI, transition);
     return this;
 }
 
 /**
  * Divide function
  */
-StateManager.prototype.divide = function divide(amount) {
-    this.operate(amount, '/')
+StateManager.prototype.divide = function divide(amount, transition) {
+    this.operate(amount, '/', transition);
     return this;
 }
 
 /**
  * Power function
  */
-StateManager.prototype.pow = function pow(amount) {
-    this.operate(amount, 'pow');
+StateManager.prototype.pow = function pow(amount, transition) {
+    this.operate(amount, 'pow', transition);
     return this;
 }
 
 /**
  * Square root function
  */
-StateManager.prototype.sqrt = function sqrt() {
-    this.operate(null, 'sqrt');
+StateManager.prototype.sqrt = function sqrt(transition) {
+    this.operate(null, 'sqrt', transition);
     return this;
 }
 
 /**
  * Absolute value function
  */
-StateManager.prototype.abs = function abs() {
-    this.operate(null, 'abs');
+StateManager.prototype.abs = function abs(transition) {
+    this.operate(null, 'abs', transition);
     return this;
 }
 
 /**
  * Sine function
  */
-StateManager.prototype.sin = function sin() {
-    this.operate(null, 'sin');
+StateManager.prototype.sin = function sin(transition) {
+    this.operate(null, 'sin', transition);
     return this;
 }
 
 /**
  * Cosine function
  */
-StateManager.prototype.cos = function cos() {
-    this.operate(null, 'cos');
+StateManager.prototype.cos = function cos(transition) {
+    this.operate(null, 'cos', transition);
     return this;
 }
 
 /**
  * Tangent function
  */
-StateManager.prototype.tan = function tan() {
-    this.operate(null, 'tan');
+StateManager.prototype.tan = function tan(transition) {
+    this.operate(null, 'tan', transition);
     return this;
 }
 
 /**
  * Ceiling function
  */
-StateManager.prototype.ceil = function ceil() {
-    this.operate(null, 'ceil');
+StateManager.prototype.ceil = function ceil(transition) {
+    this.operate(null, 'ceil', transition);
     return this;
 }
 
 /**
  * Flooring function
  */
-StateManager.prototype.floor = function floor() {
-    this.operate(null, 'floor');
+StateManager.prototype.floor = function floor(transition) {
+    this.operate(null, 'floor', transition);
     return this;
 }
 
@@ -425,10 +437,10 @@ StateManager.prototype.toInt = function toInt() {
  * Main operate function to keep code
  * DRY with many operator functions.
  */
-StateManager.prototype.operate = function operate(amount, operation) {
+StateManager.prototype.operate = function operate(amount, operation, transition) {
     var key = this._currentState;
     var newValue = this._operator.operate(operation, this.getState(key), amount);
-    this.setState(key, newValue);
+    this.setState(key, newValue, transition);
 }
 
 /**
@@ -438,8 +450,8 @@ StateManager.prototype.operate = function operate(amount, operation) {
 StateManager.prototype.addOperator = function setOperator(operationName, func) {
     this._operator.addOperation(operationName, func);
 
-    StateManager.prototype[operationName] = function(amount) {
-        this.operate(amount, operationName);
+    StateManager.prototype[operationName] = function(amount, transition) {
+        this.operate(amount, operationName, transition);
         return this;
     }
     return this;
@@ -476,8 +488,8 @@ StateManager.prototype.onUpdate = function onUpdate() {
             if (t && t.isActive()) {
                 setObject(key, t.get(), this._state);
                 var parsedKey = parse(key);
-                if (isString(parsedKey)) this._notifyObservers(parse(key));
-                if (isArray(parsedKey)) this._notifyObservers(parse(key)[0]);
+                if (isString(parsedKey)) this._notifyObservers(parsedKey);
+                if (isArray(parsedKey)) this._notifyObservers(parsedKey[0]);
             }
         }
     }
@@ -494,12 +506,15 @@ function isTransitionable(key) {
 function setObject(key, val, object) {
     key = parse(key);
     if (isString(key)) {
+        console.log('string', key)
         object[key] = val;
     }
     else if (isArray(key)) {
+        console.log('array', key)
         var targetKey = key[key.length - 1];
         var hostObject = traverse(object, key);
         hostObject[targetKey] = val;
+        console.log(hostObject, targetKey, val)
     }
 }
 
@@ -525,7 +540,7 @@ function traverse(object, path) {
         else return traverse(object[path.slice(0, 1)], path.slice(1, path.length));
     }
     else {
-        console.error('Incorrect path');
+        console.error('Incorrect path: ' + path[0]);
     }
 }
 
