@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "best-function-parser": "git+ssh://git@github.famo.us:framework/function-parser#v0.1.0",
-    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#v0.1.2",
+    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#v0.1.3",
     "famous": "git+ssh://git@github.famo.us:platform/famous#20150416",
     "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#v0.3.0",
     "jade": "^1.9.2",
