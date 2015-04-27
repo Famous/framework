@@ -227,7 +227,12 @@ BEST.register('famous:examples:clickable-square', {
         '  </famous:core:dom-element>' +
         '</famous:core:view>',
     behaviors: {
-        '#context': { 'size': [200, 200] },
+        '#context': {
+            'size': [200, 200],
+            'position': function(offset) {
+                return [offset, offset]
+            }
+        },
         '#surface': {
             'template': function(count) { return { count: count }; },
             'style': {
@@ -243,9 +248,76 @@ BEST.register('famous:examples:clickable-square', {
                 $state.set('count', $state.get('count') + 1);
                 console.log('Click event: ', $payload);
             }
+        },
+        '$public': {
+            'hello' : function() {
+                console.log('hello!');
+            }
         }
     },
-    states: { count: 0 }
+    states: {
+        count: 0,
+        offset: 0
+    }
 });
 
-BEST.execute('famous:examples:clickable-square', 'body');
+BEST.register('arkady.pevzner:control-flow:repeat', {
+    tree: '' +
+    '<famous:core:view class="view">'+
+        '<famous:core:dom-element class="square">'+
+            '<div>square</div>'+
+        '</famous:core:dom-element>'+
+
+        '<famous:core:view class="label-view">' +
+            '<famous:core:dom-element class="label-dom">'+
+                '<div>hello world</div>'+
+            '</famous:core:dom-element>'+
+        '</famous:core:view class="label-view">' +
+    '</famous:core:view>',
+
+    behaviors: {
+        '.view' : {
+            size: [200, 200],
+            '$repeat' : function(count) {
+                var messages = [];
+                for (var i = 0; i < count; i++) {
+                    messages.push(
+                        {'position' : [0, 250 * i]}
+                    );
+                }
+                return messages;
+            },
+        },
+        '.square': {
+            style: {
+                'background-color' : 'red',
+                'color' : 'white'
+            }
+        },
+        '.label-view': {
+            position: [50, 50]
+        },
+        '.label-dom': {
+            style: {
+                'color': 'blue',
+                'font-weight' : 'bold'
+            }
+        }
+    },
+    events: {
+        '$public': {
+            'count' : function($state, $payload){
+                $state.set('count', $payload);
+            },
+            'horizontal-offset' : function($state, $payload){
+                $state.set('horizontalOffset', $payload);
+            },
+        }
+    },
+    states: {
+        count: 3,
+        horizontalOffset: 50
+    }
+});
+
+BEST.execute('arkady.pevzner:control-flow:repeat', 'body');
