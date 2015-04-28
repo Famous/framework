@@ -1,46 +1,63 @@
 BEST.register('famous:core:components', {
     events: {
         '$public': {
-            'align': function($align, $payload) { $align.set($payload[0], $payload[1], $payload[2] || 0); },
-            'align-x': function($align, $payload) { $align.setX($payload); },
-            'align-y': function($align, $payload) { $align.setY($payload); },
-            'align-z': function($align, $payload) { $align.setZ($payload); },
+            'align': function($famousNode, $payload) { $famousNode.setAlign($payload[0], $payload[1], $payload[2]); },
+            'align-x': function($famousNode, $payload) { $famousNode.setAlign($payload, null, null); },
+            'align-y': function($famousNode, $payload) { $famousNode.setAlign(null, $payload, null); },
+            'align-z': function($famousNode, $payload) { $famousNode.setAlign(null, null, $payload); },
+            
             'camera': function($camera, $payload) { $camera.set($payload[0], $payload[1]); },
-            'mount-point': function($mountPoint, $payload) { $mountPoint.set($payload[0], $payload[1], $payload[2] || 0); },
-            'mount-point-x': function($mountPoint, $payload) { $mountPoint.setX($payload); },
-            'mount-point-y': function($mountPoint, $payload) { $mountPoint.setY($payload); },
-            'mount-point-z': function($mountPoint, $payload) { $mountPoint.setZ($payload); },
-            'opacity': function($opacity, $payload) { $opacity.set($payload); },
-            'origin': function($origin, $payload) { $origin.set($payload[0], $payload[1], $payload[2] || 0); },
-            'origin-x': function($origin, $payload) { $origin.setX($payload); },
-            'origin-y': function($origin, $payload) { $origin.setY($payload); },
-            'origin-z': function($origin, $payload) { $origin.setZ($payload); },
-            'position': function($position, $payload) { $position.set($payload[0], $payload[1], $payload[2] || 0); },
-            'position-x': function($position, $payload) { $position.setX($payload); },
-            'position-y': function($position, $payload) { $position.setY($payload); },
-            'position-z': function($position, $payload) { $position.setZ($payload); },
-            'offset-position': function($position, $payload) {
-                var currentPos = $position.getState();
-                $position.set(
-                    currentPos.x + $payload[0] || 0,
-                    currentPos.y + $payload[1] || 0,
-                    currentPos.z + $payload[2] || 0
+
+            'mount-point': function($famousNode, $payload) { $famousNode.setMountPoint($payload[0], $payload[1], $payload[2]); },
+            'mount-point-x': function($famousNode, $payload) { $famousNode.setMountPoint($payload, null, null); },
+            'mount-point-y': function($famousNode, $payload) { $famousNode.setMountPoint(null, $payload, null); },
+            'mount-point-z': function($famousNode, $payload) { $famousNode.setMountPoint(null, null, $payload); },
+            
+            'opacity': function($famousNode, $payload) { $famousNode.setOpacity($payload); },
+            
+            'origin': function($famousNode, $payload) { $famousNode.setOrigin($payload[0], $payload[1], $payload[2]); },
+            'origin-x': function($famousNode, $payload) { $famousNode.setOrigin($payload, null, null); },
+            'origin-y': function($famousNode, $payload) { $famousNode.setOrigin(null, $payload, null); },
+            'origin-z': function($famousNode, $payload) { $famousNode.setOrigin(null, null, $payload); },
+            
+            'position': function($famousNode, $payload) { $famousNode.setPosition($payload[0], $payload[1], $payload[2]); },
+            'position-x': function($famousNode, $payload) { $famousNode.setPosition($payload, null, null); },
+            'position-y': function($famousNode, $payload) { $famousNode.setPosition(null, $payload, null); },
+            'position-z': function($famousNode, $payload) { $famousNode.setPosition(null, null, $payload); },
+            
+            'offset-position': function($famousNode, $payload) {
+                var currentPos = $famousNode.getPosition();
+                $famousNode.setPosition(
+                    currentPos[0] + $payload[0] || 0,
+                    currentPos[1] + $payload[1] || 0,
+                    currentPos[2] + $payload[2] || 0
                 );
             },
-            'rotation': function($rotation, $payload) { $rotation.set($payload[0], $payload[1], $payload[2] || 0); },
-            'rotation-x': function($rotation, $payload) { $rotation.setX($payload); },
-            'rotation-y': function($rotation, $payload) { $rotation.setY($payload); },
-            'rotation-z': function($rotation, $payload) { $rotation.setZ($payload); },
-            'scale': function($scale, $payload) { $scale.set($payload[0], $payload[1], $payload[2] || 1); },
-            'scale-x': function($scale, $payload) { $scale.setX($payload); },
-            'scale-y': function($scale, $payload) { $scale.setY($payload); },
-            'scale-z': function($scale, $payload) { $scale.setZ($payload); },
-            'size-absolute': function($size, $payload) {
-                $size.setMode(1, 1, 1);
-                $size.setAbsolute($payload[0], $payload[1], $payload[2]);
+
+            'rotation': function($famousNode, $payload) { $famousNode.setRotation($payload[0], $payload[1], $payload[2], $payload[3]); },
+            'rotation-x': function($famousNode, $payload) { $famousNode.setRotation($payload, null, null); },
+            'rotation-y': function($famousNode, $payload) { $famousNode.setRotation(null, $payload, null); },
+            'rotation-z': function($famousNode, $payload) { $famousNode.setRotation(null, null, $payload); },
+            
+            'scale': function($famousNode, $payload) { $famousNode.setScale($payload[0], $payload[1], $payload[2]); },
+            'scale-x': function($famousNode, $payload) { $famousNode.setScale($payload, null, null); },
+            'scale-y': function($famousNode, $payload) { $famousNode.setScale(null, $payload, null); },
+            'scale-z': function($famousNode, $payload) { $famousNode.setScale(null, null, $payload); },
+            
+            'size-absolute': function($famousNode, $payload) {
+                $famousNode.setSizeMode(1, 1, 1);
+                $famousNode.setAbsoluteSize($payload[0], $payload[1], $payload[2]);
             },
-            'size-proportional': function($size, $payload) { $size.setProportional($payload[0], $payload[1], $payload[2]); },
-            'size-differential': function($size, $payload) { $size.setDifferential($payload[0], $payload[1], $payload[2]); }
+            
+            'size-proportional': function($famousNode, $payload) {
+                $famousNode.setSizeMode(0, 0, 0);
+                $famousNode.setProportionalSize($payload[0], $payload[1], $payload[2]);
+            },
+
+            'size-differential': function($famousNode, $payload) {
+                $famousNode.setSizeMode(0, 0, 0);
+                $famousNode.setDifferentialSize($payload[0], $payload[1], $payload[2]);
+            }
         }
     }
 });
@@ -206,11 +223,11 @@ BEST.register('famous:core:view', {
 BEST.register('famous:events', {
     events: {
         '$public': {
-            '$miss': function($DOMElement, $component, $payload) {
+            '$miss': function($DOMElement, $famousNode, $payload) {
                 var eventName = $payload.eventName;
                 var listener = $payload.listener;
 
-                $component.famousNode.addUIEvent(eventName);
+                $famousNode.addUIEvent(eventName);
                 $DOMElement.on(eventName, function(event) {
                     listener(event);
                 });
@@ -243,10 +260,10 @@ BEST.register('famous:examples:clickable-square', {
         }
     },
     events: {
-        '#surface': {
+        '#context': {
             'famous:events:click': function($state, $payload) {
                 $state.set('count', $state.get('count') + 1);
-                console.log('Click event: ', $payload);
+                console.log('Click event on context: ', $payload);
             }
         },
         '$public': {
@@ -448,4 +465,4 @@ BEST.register('arkady.pevzner:dispatcher-test', {
     }
 });
 
-BEST.execute('arkady.pevzner:dispatcher-test', 'body');
+BEST.execute('famous:examples:clickable-square', 'body');
