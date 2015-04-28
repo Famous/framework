@@ -8,6 +8,7 @@
  * in the 'data/modules' folder up to storage.
  */
 
+var bundle = require('./../lib/bundle');
 var fs = require('fs');
 var lodash = require('lodash');
 var path = require('path');
@@ -48,7 +49,12 @@ function single(base, location, tag, cb) {
     var files = [];
     push(files, base, location, '');
     version.release(moduleName, tag, files, function(err, result) {
-        cb(err, result);
+        if (err) {
+            throw new Error('Error releasing version');
+        }
+        bundle.create(moduleName, tag, files, function(err, bundled) {
+            cb(err, bundled);
+        });
     });
 }
 
