@@ -6,7 +6,7 @@ var fs = require('fs');
 var path = require('path');
 
 tape('bundle', function(t) {
-    t.plan(1);
+    t.plan(2);
     t.ok(bundle, 'exports');
 
     var name = 'fixtures:entrypoint';
@@ -20,5 +20,6 @@ tape('bundle', function(t) {
     var tag = 'HEAD';
     bundle.create(name, tag, files, function(err, result) {
         console.log(result);
+        t.ok(result, 'bundles');
     });
 });
