@@ -261,47 +261,142 @@ BEST.register('famous:examples:clickable-square', {
     }
 });
 
-BEST.register('arkady.pevzner:control-flow:repeat', {
+BEST.register('arkady.pevzner:square', {
     tree: '' +
-    '<famous:core:view class="view">'+
-        '<famous:core:dom-element class="square">'+
-            '<div>square</div>'+
-        '</famous:core:dom-element>'+
+        '<famous:core:view id="button-view">' +
+        '  <famous:core:dom-element id="button">' +
+        '  </famous:core:dom-element>' +
+        '</famous:core:view>' +
 
-        '<famous:core:view class="label-view">' +
-            '<famous:core:dom-element class="label-dom">'+
-                '<div>hello world</div>'+
-            '</famous:core:dom-element>'+
-        '</famous:core:view class="label-view">' +
-    '</famous:core:view>',
+        '<famous:core:view id="square-view">' +
+        '  <famous:core:dom-element id="surface">' +
+        '  </famous:core:dom-element>' +
+
+        '  <famous:core:view id="label">' +
+        '     <famous:core:dom-element id="default-label">' +
+        '     </famous:core:dom-element>' +
+        '  </famous:core:view>' +
+        '</famous:core:view>',
 
     behaviors: {
-        '.view' : {
+        '#square-view' : {
+            'rotation-z' : function(rotationZ) {
+                return rotationZ;
+            },
+            position: function(position, offset) {
+                return [position[0], position[1] + offset];
+            },
+            origin: function(origin) {
+                return origin;
+            },
+            size: function(size) {
+                return size;
+            },
+            '$if' : function(showSquare) {
+                return showSquare;
+            }
+        },
+        '#surface' : {
+            content: function(content) {
+                return content;
+            },
+            style: function(backgroundColor) {
+                return {
+                    'background-color' : backgroundColor,
+                    'border' : '1px solid black'
+                }
+            }
+        },
+        '#label' : {
+            position: [0, 50],
+            $yield: true
+        },
+        '#default-label' : {
+            content: 'Default Label'
+        },
+        '#button' : {
+            style: {
+                'border': '1px solid black',
+                'text-align' : 'center',
+                'line-height' : '40px',
+                'cursor' : 'pointer'
+            },
+            content: 'show/hide'
+        },
+        '#button-view' : {
+            size: [80, 40],
+            position: [0, 0]
+        }
+    },
+    events: {
+        $public: {
+            'rotation-y' : function($state, $payload) {
+                $state.set('rotationY', $payload);
+            },
+            'rotation-z' : function($state, $payload) {
+                $state.set('rotationZ', $payload);
+            },
+            'position' : function($state, $payload) {
+                $state.set('position', $payload);
+            },
+            'content' : function($state, $payload) {
+                $state.set('content', $payload);
+            },
+            'origin' : function($state, $payload) {
+                $state.set('origin', $payload);
+            },
+            'size' : function($state, $payload) {
+                $state.set('size', $payload);
+            },
+            'background-color' : function($state, $payload) {
+                $state.set('backgroundColor', $payload);
+            }
+        },
+        '#button' : {
+            'famous:events:click': function($state, $payload) {
+                $state.set('showSquare', !$state.get('showSquare'));
+            }
+        }
+    },
+    states: {
+        backgroundColor: 'whitesmoke',
+        content: 'Square',
+        offset: 50,
+        position: [0, 0],
+        size: [200, 200],
+        showSquare: false
+    }
+});
+
+BEST.register('arkady.pevzner:control-flow:test', {
+    tree: '' +
+        '<arkady.pevzner:square class="repeat">'+
+        '   <famous:core:dom-element id="label">' +
+        '       <div>Yielded Label</div>' +
+        '   </famous:core:dom-element>' +
+        '</arkady.pevzner:square>',
+
+    behaviors: {
+        '.repeat' : {
             size: [200, 200],
-            '$repeat' : function(count) {
+            '$repeat' : function(count, horizontalOffset, backgroundColor) {
                 var messages = [];
                 for (var i = 0; i < count; i++) {
-                    messages.push(
-                        {'position' : [0, 250 * i]}
-                    );
+                    messages.push({
+                        'rotation-y': 0,
+                        'content': 'Node '+ i,
+                        'background-color' : backgroundColor
+                    });
                 }
                 return messages;
             },
-        },
-        '.square': {
-            style: {
-                'background-color' : 'red',
-                'color' : 'white'
-            }
-        },
-        '.label-view': {
-            position: [50, 50]
-        },
-        '.label-dom': {
-            style: {
-                'color': 'blue',
-                'font-weight' : 'bold'
-            }
+            'rotation-z': function($index, count) {
+                return (Math.PI * 2)/count * $index;
+            },
+            'position': function($index, horizontalOffset, verticalOffset) {
+                return [horizontalOffset, 250 * $index + verticalOffset];
+            },
+            origin: [0.5, 0.5]
         }
     },
     events: {
@@ -312,12 +407,20 @@ BEST.register('arkady.pevzner:control-flow:repeat', {
             'horizontal-offset' : function($state, $payload){
                 $state.set('horizontalOffset', $payload);
             },
+            'vertical-offset' : function($state, $payload){
+                $state.set('verticalOffset', $payload);
+            },
+            'background-color' : function($state, $payload) {
+                $state.set('backgroundColor', $payload);
+            }
         }
     },
     states: {
-        count: 3,
-        horizontalOffset: 50
+        count: 10,
+        horizontalOffset: 150,
+        verticalOffset: 150,
+        backgroundColor : 'whitesmoke'
     }
 });
 
-BEST.execute('arkady.pevzner:control-flow:repeat', 'body');
+BEST.execute('arkady.pevzner:square', 'body');
