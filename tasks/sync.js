@@ -63,7 +63,7 @@ function recursive(base, subdir, tag, cb) {
             if (validate.isModule(fullEntryPath)) {
                 single(base, partialPath, tag, cb);
             }
-            recursive(base, partialPath, tag); // Recursive
+            recursive(base, partialPath, tag, cb); // Recursive
         }
     });
 }

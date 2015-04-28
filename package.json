@@ -8,6 +8,7 @@
   "scripts": {
     "rerun-tests": "watch 'npm run test' lib",
     "watch": "node tasks/watch.js",
+    "sync-all": "node tasks/sync-all.js",
     "test": "tape test/*.spec.js"
   },
   "devDependencies": {

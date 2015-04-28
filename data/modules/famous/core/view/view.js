@@ -40,3 +40,4 @@ BEST.module('famous:core:view', {
         }
     }
 })
+.config({})

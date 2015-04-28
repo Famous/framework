@@ -1,4 +1,4 @@
-{
+({
     '$self': {
         '$yield' : true,
         'famous:core:components:align': function(align) {
@@ -89,4 +89,4 @@
             return sizeDifferential;
         }
     }
-}
+})

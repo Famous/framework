@@ -1,3 +1,7 @@
+function foo(){
+    console.log(1);
+}
+
 BEST.module('fixtures:entrypoint', {
     tree: '<view></view>',
     something: 'foo.js',

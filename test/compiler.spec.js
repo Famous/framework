@@ -5,21 +5,20 @@ var compiler = require('./../lib/compiler');
 var fs = require('fs');
 var path = require('path');
 
-tape('compiler', function(t) {
-    t.plan(1);
-    t.ok(compiler, 'exports');
-
-    var name = 'fixtures:entrypoint';
-    var content = fs.readFileSync(path.join(__dirname, 'fixtures', 'entrypoint.js'), { encoding: 'utf-8' });
-    var files = [
-        { path: 'entrypoint.js', content: content },
-        { path: 'foo.html', content: '<div></div>'},
-        { path: 'foo.jade', content: '#foo'},
-        { path: 'foo.js', content: 'alert(1);'}
-    ];
-    var bundle = {};
-    compiler.compile(name, files, bundle, function(err, result) {
-        console.log('----');
-        console.log(result);
-    });
-});
+//tape('compiler', function(t) {
+//    t.plan(2);
+//    t.ok(compiler, 'exports');
+//
+//    var name = 'fixtures:entrypoint';
+//    var content = fs.readFileSync(path.join(__dirname, 'fixtures', 'entrypoint.js'), { encoding: 'utf-8' });
+//    var files = [
+//        { path: 'entrypoint.js', content: content },
+//        { path: 'foo.html', content: '<div></div>'},
+//        { path: 'foo.jade', content: '#foo'},
+//        { path: 'foo.js', content: 'alert(1);'}
+//    ];
+//    var bundle = {};
+//    compiler.compile(name, files, bundle, null, function(err, result) {
+//        t.ok(result, 'compiles');
+//    });
+//});
