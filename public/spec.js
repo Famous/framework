@@ -353,8 +353,11 @@ BEST.register('arkady.pevzner:square', {
             }
         },
         '#button' : {
-            'famous:events:click': function($state, $payload) {
-                $state.set('showSquare', !$state.get('showSquare'));
+            'famous:events:click': function($state, $payload, $dispatcher) {
+                // $state.set('showSquare', !$state.get('showSquare'));
+                // console.log($payload);
+                $dispatcher.emit('custom-event',  'payload');
+
             }
         }
     },
@@ -364,7 +367,7 @@ BEST.register('arkady.pevzner:square', {
         offset: 50,
         position: [0, 0],
         size: [200, 200],
-        showSquare: false
+        showSquare: true
     }
 });
 
@@ -423,4 +426,26 @@ BEST.register('arkady.pevzner:control-flow:test', {
     }
 });
 
-BEST.execute('arkady.pevzner:square', 'body');
+BEST.register('arkady.pevzner:dispatcher-test', {
+    tree: '' +
+        '<arkady.pevzner:square class="square">'+
+        '</arkady.pevzner:square>',
+
+    behaviors: {
+        '.square' : {
+        }
+    },
+    events: {
+        '$public': {
+        },
+        '.square' : {
+            'custom-event' : function($state, $payload) {
+                console.log($payload);
+            }
+        }
+    },
+    states: {
+    }
+});
+
+BEST.execute('arkady.pevzner:dispatcher-test', 'body');
