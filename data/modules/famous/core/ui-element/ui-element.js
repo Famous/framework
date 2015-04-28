@@ -1,0 +1,169 @@
+BEST.module('famous:core:ui-element', {
+    tree: 'ui-element.html',
+    behaviors: {
+        '#view' : {
+            'align': function(align) {
+                return align;
+            },
+            'align-x': function(alignX) {
+                return alignX;
+            },
+            'align-y': function(alignY) {
+                return alignY;
+            },
+            'align-z': function(alignZ) {
+                return alignZ;
+            },
+            'mount-point': function(mountPoint) {
+                return mountPoint;
+            },
+            'mount-point-x': function(mountPointX) {
+                return mountPointX;
+            },
+            'mount-point-y': function(mountPointY) {
+                return mountPointY;
+            },
+            'mount-point-z': function(mountPointZ) {
+                return mountPointZ;
+            },
+            'opacity': function(opacity) {
+                return opacity;
+            },
+            'origin': function(origin) {
+                return origin;
+            },
+            'origin-x': function(originX) {
+                return originX;
+            },
+            'origin-y': function(originY) {
+                return originY;
+            },
+            'origin-z': function(originZ) {
+                return originZ;
+            },
+            'position': function(position) {
+                return position;
+            },
+            'position-x': function(positionX) {
+                return(positionX);
+            },
+            'position-y': function(positionY) {
+                return positionY;
+            },
+            'position-z': function(positionZ) {
+                return positionZ;
+            },
+            'offset-position': function(offsetPosition) {
+                return offsetPosition;
+            },
+            'rotation': function(rotation) {
+                return rotation;
+            },
+            'rotation-x': function(rotationX) {
+                return rotationX;
+            },
+            'rotation-y': function(rotationY) {
+                return rotationY;
+            },
+            'rotation-z': function(rotationZ) {
+                return rotationZ;
+            },
+            'scale': function(scale) {
+                return scale;
+            },
+            'scale-x': function(scaleX) {
+                return scaleX;
+            },
+            'scale-y': function(scaleY) {
+                return scaleY;
+            },
+            'scale-z': function(scaleZ) {
+                return scaleZ;
+            },
+            'size': function(size) {
+                return size;
+            },
+            'size-absolute': function(sizeAbsolute) {
+                return sizeAbsolute;
+            },
+            'size-proportional': function(sizeProportional) {
+                return sizeProportional;
+            },
+            'size-differential': function(sizeDifferential) {
+                return sizeDifferential;
+            }
+        },
+        '#element' : {
+            '$yield' : true,
+            'id': function(id) {
+                return id;
+            },
+            'content': function(content) {
+                return content;
+            },
+            'style': function(style) {
+                return style;
+            },
+            'attributes': function(attributes) {
+                return attributes;
+            },
+            'unselectable': function(unselectable) {
+                return unselectable;
+            },
+            'backface-visible': function(backfaceVisible) {
+                return backfaceVisible;
+            },
+            'box-shadow': function(boxShadow) {
+                return boxShadow;
+            },
+            'template': function(template) {
+                return template;
+            }
+        }
+    },
+    events: {
+        '$public': {
+            // famous:core:view events
+            'align': 'setter',
+            'align-x': 'setter|camel',
+            'align-y': 'setter|camel',
+            'align-z': 'setter|camel',
+            'mount-point': 'setter|camel',
+            'mount-point-x': 'setter|camel',
+            'mount-point-y': 'setter|camel',
+            'mount-point-z': 'setter|camel',
+            'opacity': 'setter',
+            'origin': 'setter',
+            'origin-x': 'setter|camel',
+            'origin-y': 'setter|camel',
+            'origin-z': 'setter|camel',
+            'position': 'setter',
+            'position-x': 'setter|camel',
+            'position-y': 'setter|camel',
+            'position-z': 'setter|camel',
+            'offset-position' : 'setter|camel',
+            'rotation': 'setter',
+            'rotation-x': 'setter|camel',
+            'rotation-y': 'setter|camel',
+            'rotation-z': 'setter|camel',
+            'scale': 'setter',
+            'scale-x': 'setter|camel',
+            'scale-y': 'setter|camel',
+            'scale-z': 'setter|camel',
+            'size': 'setter',
+            'size-absolute': 'setter|camel',
+            'size-proportional': 'setter|camel',
+            'size-differential': 'setter|camel',
+
+            // famous:core:dom-element events
+            'id': 'setter',
+            'content': 'setter',
+            'style': 'setter',
+            'attributes': 'setter',
+            'unselectable': 'setter',
+            'backface-visible': 'setter|camel',
+            'box-shadow': 'setter|camel',
+            'template': 'setter'
+        }
+    }
+});

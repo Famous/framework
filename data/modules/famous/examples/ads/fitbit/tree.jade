@@ -1,0 +1,26 @@
+view#container
+
+    //- Scene 1
+    ui-element#banner
+        p#banner Meet the family.
+
+    //- Scene 2
+    //- Fitbits repeated 4x in behaviors
+    view#fitbit-view
+        famous:examples:ads:helpers:hover-label-image.fitbit
+
+    //- findyourfit label
+    ui-element#find-fit
+        p#find-fit findyourfit
+
+    //- Bottom Bar
+    view#bottom-bar-container
+        //- background
+        dom-element#bottom-bar-background
+
+        //- logo
+        ui-element#fitbit-logo
+            img(src='@{famous:examples:ads:fitbit|assets/fitbit-fs8.png}')
+        //- color button
+        ui-element#color-button
+            p#color-button SHOP NOW

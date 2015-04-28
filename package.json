@@ -1,0 +1,36 @@
+{
+  "name": "best-ecosystem",
+  "version": "0.0.0",
+  "description": "Ecosystem service for BEST components",
+  "main": "index.js",
+  "author": "Matthew Trost <matthew@famo.us>",
+  "license": "Proprietary",
+  "scripts": {
+    "rerun-tests": "watch 'npm run test' lib",
+    "watch": "node tasks/watch.js",
+    "test": "tape test/*.spec.js"
+  },
+  "devDependencies": {
+    "async": "^0.9.0",
+    "crypto-js": "^3.1.4",
+    "lodash": "^3.7.0",
+    "node-watch": "^0.3.4",
+    "tap-spec": "^3.0.0",
+    "tape": "^4.0.0",
+    "testling": "^1.7.1"
+  },
+  "dependencies": {
+    "async": "^0.9.0",
+    "aws-sdk": "^2.1.25",
+    "babel": "^5.1.13",
+    "escodegen": "^1.6.1",
+    "esprima": "^2.2.0",
+    "estraverse": "^3.1.0",
+    "express": "^4.12.3",
+    "jade": "^1.9.2",
+    "jsdom": "^3.1.2",
+    "lodash": "^3.7.0",
+    "request": "^2.55.0",
+    "traverse": "^0.6.6"
+  }
+}

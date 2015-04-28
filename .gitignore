@@ -1,5 +1,6 @@
-secrets/*
+conf/secrets/*
 .DS_Store
 *.log
 node_modules
 build
+tmp/*

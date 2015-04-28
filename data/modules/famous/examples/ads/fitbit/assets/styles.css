@@ -1,0 +1,23 @@
+#banner {
+    color: rgb(71, 187, 179);
+    font-weight: 800;
+    font-size: 35px;
+    text-align: center;
+}
+
+#find-fit {
+    color: rgb(71, 187, 179);
+    font-weight: 800;
+    font-size: 30px;
+    text-align: center;
+}
+
+#color-button {
+    color: white;
+    border: 1px solid white;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 18px;
+    transition: all 0.25s ease;
+    cursor : pointer;
+}
