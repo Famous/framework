@@ -22,7 +22,7 @@ RUN cd $APP_HOME && \
 
 ENV LD_LIBRARY_PATH /lib-override
 
-EXPOSE 80
+EXPOSE 3000
 
 # Define user Docker will use on entry
 USER app
