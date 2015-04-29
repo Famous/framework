@@ -37,9 +37,17 @@ Edit `public/index.html` to change the deployed component.
 
 To create a component, or modify an existing one, use the `ecosystem` repo.
 
-You will need security credentials to make changes. Contact one of the developers.
+By default, your components will be synchronized/served via the `public/best-ecosystem` folder.
 
-As you save edits, your changes will be synchronized with Hub.
+But to synchronize/serve from the remote storage (Hub) ...
+
+### Publishing components
+
+When using the command line tools, prefix commands with `ECOSYSTEM_ENV=production`.
+
+E.g. `$ ECOSYSTEM_ENV=production npm run sync-all`.
+
+You will need security credentials to make changes. Contact one of the developers.
 
 Be careful when editing components that are not in your namespace folder!
 
