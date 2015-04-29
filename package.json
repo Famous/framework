@@ -20,9 +20,10 @@
     "serve-ecosystem": "cd node_modules/best-ecosystem && npm run serve",
     "watch-famous": "watchify node_modules/famous/index.js -t brfs -s Famous -o build/famous.bundle.js",
     "watch-lib": "watchify lib/index.js -s BEST -o build/best.bundle.js --debug --verbose",
+    "watch-ecosystem": "cd node_modules/best-ecosystem && npm run watch",
     "rerun-tests": "watch 'npm run test' lib",
     "watch-public": "watch 'npm run copy-public' public",
-    "watch-all": "npm run watch-public & npm run watch-lib & npm run watch-famous",
+    "watch-all": "npm run watch-public & npm run watch-lib & npm run watch-famous & npm run watch-ecosystem",
     "copy-public": "cp -r public/ build",
     "watch": "rm -rf build && mkdir build && npm run watch-all"
   },
