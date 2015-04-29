@@ -342,7 +342,9 @@ BEST.register('arkady.pevzner:square', {
         },
         '#button-view' : {
             size: [80, 40],
-            position: [0, 0]
+            position: function (buttonPosition) {
+                return buttonPosition;
+            }
         }
     },
     events: {
@@ -367,14 +369,15 @@ BEST.register('arkady.pevzner:square', {
             },
             'background-color' : function($state, $payload) {
                 $state.set('backgroundColor', $payload);
+            },
+            'button-position' : function($state, $payload) {
+                $state.set('buttonPosition', $payload);
             }
         },
         '#button' : {
             'famous:events:click': function($state, $payload, $dispatcher) {
-                // $state.set('showSquare', !$state.get('showSquare'));
-                // console.log($payload);
+                $state.set('showSquare', !$state.get('showSquare'));
                 $dispatcher.emit('custom-event',  'payload');
-
             }
         }
     },
@@ -383,6 +386,7 @@ BEST.register('arkady.pevzner:square', {
         content: 'Square',
         offset: 50,
         position: [0, 0],
+        buttonPosition: [0, 0],
         size: [200, 200],
         showSquare: true
     }
@@ -415,6 +419,9 @@ BEST.register('arkady.pevzner:control-flow:test', {
             },
             'position': function($index, horizontalOffset, verticalOffset) {
                 return [horizontalOffset, 250 * $index + verticalOffset];
+            },
+            'button-position': function($index, horizontalOffset, verticalOffset) {
+                return [0, 250 * $index + verticalOffset];
             },
             origin: [0.5, 0.5]
         }
@@ -457,7 +464,7 @@ BEST.register('arkady.pevzner:dispatcher-test', {
         },
         '.square' : {
             'custom-event' : function($state, $payload) {
-                console.log($payload);
+                console.log($payload)
             }
         }
     },
@@ -465,4 +472,10 @@ BEST.register('arkady.pevzner:dispatcher-test', {
     }
 });
 
-BEST.execute('famous:examples:clickable-square', 'body');
+
+
+// COMPONENTS:
+BEST.execute('arkady.pevzner:control-flow:test', 'body');
+// BEST.execute('arkady.pevzner:square', 'body');
+// BEST.execute('famous:examples:clickable-square', 'body');
+// BEST.execute('arkady.pevzner:dispatcher-test', 'body');
