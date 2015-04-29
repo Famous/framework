@@ -15,8 +15,9 @@
     "develop": "npm run watch & npm run serve & npm run rerun-tests",
     "test": "testling '' | tap-spec",
     "lint": "eslint lib && jscs lib",
-    "serve": "npm run serve-build",
+    "serve": "npm run serve-build & npm run serve-ecosystem",
     "serve-build": "serve build -p 1337",
+    "serve-ecosystem": "cd node_modules/best-ecosystem && npm run serve",
     "watch-famous": "watchify node_modules/famous/index.js -t brfs -s Famous -o build/famous.bundle.js",
     "watch-lib": "watchify lib/index.js -s BEST -o build/best.bundle.js --debug --verbose",
     "rerun-tests": "watch 'npm run test' lib",
@@ -44,6 +45,7 @@
     ]
   },
   "devDependencies": {
+    "best-ecosystem": "git+ssh://git@github.famo.us:framework/ecosystem#develop",
     "brfs": "^1.1.1",
     "browserify": "^8.1.3",
     "eslint": "^0.14.1",
@@ -66,6 +68,7 @@
     "famous": "git+ssh://git@github.famo.us:platform/famous#20150427",
     "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#v0.3.2",
     "jade": "^1.9.2",
-    "mustache": "^1.1.0"
+    "mustache": "^1.1.0",
+    "xhr": "^2.0.1"
   }
 }
