@@ -1,4 +1,4 @@
-BEST.module('famous:examples:clickable-square', {
+BEST.module('famous:examples:demos:clickable-square', {
     tree: 'clickable-square.html',
     behaviors: {
         '#context': {
