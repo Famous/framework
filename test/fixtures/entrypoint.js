@@ -19,5 +19,8 @@ BEST.scene('fixtures:entrypoint', {
 .config({
     imports: {
         'jim:project': ['thing']
+    },
+    dependencies: {
+        'famous:core:view': '0.1.1' // Intentionally set to a non-existant version
     }
 });
