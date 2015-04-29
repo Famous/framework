@@ -4,3 +4,4 @@ conf/secrets/*
 node_modules
 build
 tmp/*
+public/*

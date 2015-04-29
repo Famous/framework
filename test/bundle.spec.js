@@ -6,7 +6,7 @@ var fs = require('fs');
 var path = require('path');
 
 tape('bundle', function(t) {
-    t.plan(2);
+    t.plan(3);
     t.ok(bundle, 'exports');
 
     var name = 'fixtures:entrypoint';
@@ -19,7 +19,9 @@ tape('bundle', function(t) {
     ];
     var tag = 'HEAD';
     bundle.create(name, tag, files, function(err, result) {
-        console.log(result);
         t.ok(result, 'bundles');
     });
+
+    var url = bundle.getURL(name, tag);
+    t.equals(url, 'http://localhost:3000/best-ecosystem/fixtures/entrypoint/~bundles/HEAD/bundle.js');
 });

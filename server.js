@@ -8,15 +8,18 @@ app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
+app.use(express.static('public'));
 
 var bundle = require('./lib/bundle');
+var env = require('./lib/environment');
 
-var PORT = 3000;
+var PORT = env.PORT;
 
 app.get('/bundles/:name/:version.json', function(req, res) {
     var name = req.params['name'];
     var version = req.params['version'];
     var url = bundle.getURL(name, version);
+    console.log(url);
     if (url) {
         res.json({
             url: url
@@ -46,4 +49,5 @@ app.post('/bundles', function(req, res) {
 });
 
 app.listen(PORT);
+console.log('Starting up ecosystem-' + env.env);
 console.log('Listening on port ' + PORT + '...');

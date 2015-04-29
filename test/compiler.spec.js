@@ -21,7 +21,6 @@ tape('compiler', function(t) {
     var tag = 'HEAD';
     var packages = {};
     compiler.compile(name, tag, files, packages, intermediateCb, function(err, result) {
-        console.log(result);
         t.ok(result, 'compiles');
     });
 });
