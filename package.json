@@ -1,6 +1,6 @@
 {
   "name": "best",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Behavior Event State Template",
   "main": "lib/index.js",
   "repository": {
