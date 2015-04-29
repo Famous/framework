@@ -1,0 +1,22 @@
+{
+    "name": "fixtures:entrypoint",
+    "version": "HEAD",
+    "files": [
+        {
+            "path": "entrypoint.js",
+            "content": "function foo(){console.log(1);}BEST.scene('fixtures:entrypoint', {tree: '<view></view>',something: 'foo.js',another: {},lalalala: {foo: '@{yaya.jpg}'},events: {'mousemove': function() {return 1;},'foo-bar': 'setter|camel'}}).config({imports: {'jim:project': ['thing']}});"
+        },
+        {
+            "path": "foo.html",
+            "content": "<div></div>"
+        },
+        {
+            "path": "foo.jade",
+            "content": "#foo"
+        },
+        {
+            "path": "foo.js",
+            "content": "alert(1);"
+        }
+    ]
+}
