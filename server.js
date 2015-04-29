@@ -19,7 +19,6 @@ app.get('/bundles/:name/:version.json', function(req, res) {
     var name = req.params['name'];
     var version = req.params['version'];
     var url = bundle.getURL(name, version);
-    console.log(url);
     if (url) {
         res.json({
             url: url
