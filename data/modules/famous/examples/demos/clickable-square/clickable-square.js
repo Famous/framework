@@ -1,13 +1,14 @@
-BEST.module('famous:examples:demos:clickable-square', {
+BEST.module('famous:examples:clickable-square', {
     tree: 'clickable-square.html',
     behaviors: {
         '#context': {
-            'size': [200, 200]
+            'size': [200, 200],
+            'position': function(offset) {
+                return [offset, offset]
+            }
         },
         '#surface': {
-            'template': function(count) {
-                return { count: count };
-            },
+            'template': function(count) { return { count: count }; },
             'style': {
                 'background-color': 'gray',
                 'cursor': 'pointer'
@@ -16,13 +17,20 @@ BEST.module('famous:examples:demos:clickable-square', {
         }
     },
     events: {
-        '#surface': {
-            'famous:events:click': function($state) {
+        '#context': {
+            'famous:events:click': function($state, $payload) {
                 $state.set('count', $state.get('count') + 1);
+                console.log('Click event on context: ', $payload);
+            }
+        },
+        '$public': {
+            'hello' : function() {
+                console.log('hello!');
             }
         }
     },
     states: {
-        count: 0
+        count: 0,
+        offset: 0
     }
 });

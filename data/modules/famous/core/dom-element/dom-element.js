@@ -2,21 +2,11 @@ BEST.module('famous:core:dom-element', {
     behaviors: {
         '$self': {
             '$yield': true,
-            '$self:assign-id': function(id) {
-                return id;
-            },
-            '$self:assign-content': function(content) {
-                return content;
-            },
-            '$self:assign-style': function(style) {
-                return style;
-            },
-            '$self:assign-attributes': function(attributes) {
-                return attributes;
-            },
-            '$self:assign-locals': function(locals) {
-                return locals;
-            }
+            '$self:assign-id': function(id) { return id; },
+            '$self:assign-content': function(content) { return content; },
+            '$self:assign-style': function(style) { return style; },
+            '$self:assign-attributes': function(attributes) { return attributes; },
+            '$self:assign-locals': function(locals) { return locals; }
         }
     },
     events: {
@@ -30,18 +20,10 @@ BEST.module('famous:core:dom-element', {
                 }
                 $state.set('content', content);
             },
-            'id': function($state, $payload) {
-                $state.set('id', $payload);
-            },
-            'content': function($state, $payload) {
-                $state.set('content', $payload);
-            },
-            'style': function($state, $payload) {
-                $state.set('style', $payload);
-            },
-            'attributes': function($state, $payload) {
-                $state.set('attributes', $payload);
-            },
+            'id': function($state, $payload) { $state.set('id', $payload); },
+            'content': function($state, $payload) { $state.set('content', $payload); },
+            'style': function($state, $payload) { $state.set('style', $payload); },
+            'attributes': function($state, $payload) { $state.set('attributes', $payload); },
             'unselectable': function($state, $payload) {
                 if ($payload) {
                     var style = $state.get('style') || {};
@@ -66,17 +48,11 @@ BEST.module('famous:core:dom-element', {
                 style['box-shadow'] = $payload;
                 $state.set('style', style);
             },
-            'template': function($state, $payload) {
-                $state.set('locals', $payload);
-            },
+            'template': function($state, $payload) { $state.set('locals', $payload); },
         },
         '$private': {
-            'assign-id': function($DOMElement, $payload) {
-                $DOMElement.setId($payload);
-            },
-            'assign-content': function($DOMElement, $payload) {
-                $DOMElement.setContent($payload);
-            },
+            'assign-id': function($DOMElement, $payload) { $DOMElement.setId($payload); },
+            'assign-content': function($DOMElement, $payload) { $DOMElement.setContent($payload); },
             'assign-style': function($DOMElement, $payload) {
                 for (var styleName in $payload) {
                     $DOMElement.setProperty(styleName, $payload[styleName]);
