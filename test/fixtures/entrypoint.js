@@ -3,7 +3,7 @@ function foo(){
 }
 
 BEST.scene('fixtures:entrypoint', {
-    tree: '<view></view>',
+    tree: '<view></view><ui-element></ui-element>',
     something: 'foo.js',
     another: {},
     lalalala: {
@@ -21,6 +21,6 @@ BEST.scene('fixtures:entrypoint', {
         'jim:project': ['thing']
     },
     dependencies: {
-        'famous:core:view': '0.1.1' // Intentionally set to a non-existant version
+        'famous:core:view': 'HEAD' // Intentionally set to a non-existant version
     }
 });
