@@ -12,7 +12,7 @@
   },
   "homepage": "https://github.famo.us/framework/best",
   "scripts": {
-    "develop": "npm run watch & npm run serve & npm run rerun-tests",
+    "develop": "npm run watch & npm run serve",
     "test": "testling '' | tap-spec",
     "lint": "eslint lib && jscs lib",
     "serve": "npm run serve-build & npm run serve-ecosystem",
