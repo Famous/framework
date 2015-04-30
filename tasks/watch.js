@@ -37,7 +37,12 @@ watch(MODULES_DIR, function(filename) {
         var partialDir = moduleDir.replace(MODULES_DIR + SLASH, BLANK);
         var baseDir = MODULES_DIR;
         sync.single(baseDir, partialDir, DEFAULT_TAG, function(err, result) {
-            console.log('synced ' + partialDir, result);
+            if (err) {
+                console.error(err);
+            }
+            else {
+                console.log('synced ' + partialDir, result);
+            }
         });
     }
 });

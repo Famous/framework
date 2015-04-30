@@ -1,5 +1,6 @@
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
 var express = require('express');
+var morgan = require('morgan');
 
 var app = express();
 app.use(bodyParser.json())
@@ -9,6 +10,7 @@ app.use(function(req, res, next) {
     next();
 });
 app.use(express.static('public'));
+app.use(morgan('combined'));
 
 var bundle = require('./lib/bundle');
 var env = require('./lib/environment');
@@ -34,7 +36,7 @@ app.get('/bundles/:name/:version.json', function(req, res) {
 app.post('/bundles', function(req, res) {
     var body = req.body;
     if (!body.name || !body.version || !body.files) {
-        res.send(422).json({
+        res.status(422).json({
             error: 'Invalid params'
         });
     }
