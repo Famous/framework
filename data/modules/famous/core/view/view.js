@@ -56,10 +56,7 @@ BEST.module('famous:core:view', {
             'mount-point-y': function($state, $payload) { $state.set('mountPointY', $payload); },
             'mount-point-z': function($state, $payload) { $state.set('mountPointZ', $payload); },
             'opacity': function($state, $payload) { $state.set('opacity', $payload); },
-            'origin': function($state, $payload) { 
-                $state.set('origin', $payload); 
-                console.log('set origin', $payload);
-            },
+            'origin': function($state, $payload) { $state.set('origin', $payload); },
             'origin-x': function($state, $payload) { $state.set('originX', $payload); },
             'origin-y': function($state, $payload) { $state.set('originY', $payload); },
             'origin-z': function($state, $payload) { $state.set('originZ', $payload); },
