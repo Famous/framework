@@ -1,14 +1,14 @@
 BEST.module('arkady.pevzner:control-flow:repeat', {
     tree: 'repeat.html',
     behaviors: {
-        '.view' : {
+        '.row' : {
             size: [200, 200],
-            '$repeat' : function(count) {
+            '$repeat' : function(rowCount) {
                 var messages = [];
-                for (var i = 0; i < count; i++) {
-                    messages.push(
-                        {'position' : [0, 250 * i]}
-                    );
+                for (var i = 0; i < rowCount; i++) {
+                    messages.push({
+                        'row' : i
+                    });
                 }
                 return messages;
             },
@@ -29,23 +29,31 @@ BEST.module('arkady.pevzner:control-flow:repeat', {
             },
             position: [50, 50]
         },
-        '#column' : {
-            '$repeat' : function() {
-                return [0, 1, 2];
+        '.column' : {
+            '$repeat' : function(colCount) {
+                var messages = [];
+                for (var i = 0; i < colCount; i++) {
+                    messages.push({
+                        'col' : i
+                    });
+                }
+                return messages;
             },
-            'position' : function($index) {
+            'position' : function($index, $repeatPayload) {
                 return [$index * 300, 0]
-            }
+            },
         },
     },
     events: {
         '$public': {
-            'count' : 'setter',
+            'row-count' : 'setter|camel',
+            'col-count' : 'setter|camel',
             'horizontal-offset' : 'setter|camel'
         }
     },
     states: {
-        count: 3,
-        horizontalOffset: 50
+        rowCount: 5,
+        colCount: 3,
+        horizontalOffset: 50,
     }
 });
