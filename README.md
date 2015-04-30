@@ -63,6 +63,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 * [Imtiaz Majeed](mailto:imtiaz@famo.us)
 * [Jordan Papaleo](mailto:jordan@famo.us)
 
+## License
+
+This project is licenced under the MIT license. See [LICENSE.txt](LICENSE.txt).
+
 ## Copyright
 
-Copyright &copy; 2015 Famo.us Industries, Inc. All right reserved.
+Copyright (c) 2015 Famous Industries, Inc.
