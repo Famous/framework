@@ -65,6 +65,7 @@
   "dependencies": {
     "best-function-parser": "git+ssh://git@github.famo.us:framework/function-parser#master",
     "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#master",
+    "best-timelineUI": "git+ssh://git@github.famo.us:framework/timelineUI#master",
     "famous": "git+ssh://git@github.famo.us:platform/famous#20150429",
     "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#master",
     "mustache": "^1.1.0",
