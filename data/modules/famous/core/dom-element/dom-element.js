@@ -2,11 +2,11 @@ BEST.module('famous:core:dom-element', {
     behaviors: {
         '$self': {
             '$yield': true,
-            '$self:assign-id': function(id) { return id; },
-            '$self:assign-content': function(content) { return content; },
-            '$self:assign-style': function(style) { return style; },
-            '$self:assign-attributes': function(attributes) { return attributes; },
-            '$self:assign-locals': function(locals) { return locals; }
+            'assign-id': function(id) { return id; },
+            'assign-content': function(content) { return content; },
+            'assign-style': function(style) { return style; },
+            'assign-attributes': function(attributes) { return attributes; },
+            'assign-locals': function(locals) { return locals; }
         }
     },
     events: {
