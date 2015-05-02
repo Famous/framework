@@ -8,14 +8,14 @@ BEST.module('imtiaz.majeed:timeline:example', {
             'align': [0.5, 0.5]
         },
         '#circle': {
-            'style': function(borderRadius) {
+            'style': function(borderSize, borderRadius) {
                 return {
                     'background-color': 'whitesmoke',
-                    'border': '1px solid grey',
+                    'border': borderSize + 'px solid grey',
                     'text-align': 'center',
                     'line-height': '10',
                     'border-radius': borderRadius + '%',
-                    'cursor': 'pointer'
+                    'cursor': 'pointer',
                 }
             },
             'unselectable': true
@@ -31,21 +31,30 @@ BEST.module('imtiaz.majeed:timeline:example', {
     states: {
         size: [200, 200],
         borderRadius: 50,
+        borderSize: 1,
     },
     timelines: {
         'timeline1': {
-            duration: 3000,
+            duration: 10000,
             flexframes: {
+                0: {
+                    'size': [[200, 200]],
+                    'borderRadius': [50],
+                    'borderSize': [1]
+                },
                 '10%': {
                     'size': [[100, 100], {curve: 'outExpo'}],
-                    'borderRadius': [20, {curve: 'outBounce'}]
+                    'borderRadius': [20, {curve: 'outBounce'}],
+                    'borderSize': [50, {curve: 'outBounce'}]
                 },
                 '20%': {
-                    'size': [[300, 300], {curve: 'outBounce'}]
+                    'size': [[300, 300], {curve: 'outBounce'}],
+                    'borderSize': [3, {curve: 'easeInOut'}]
                 },
                 3000: {
                     'size': [[200, 200], {curve: 'easeInOut'}],
-                    'borderRadius': [50, {curve: 'outExpo'}]
+                    'borderRadius': [50, {curve: 'outExpo'}],
+                    'borderSize': [1, {curve: 'outBounce'}]
 
                 }
             }
