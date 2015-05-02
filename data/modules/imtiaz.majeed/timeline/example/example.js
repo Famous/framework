@@ -19,6 +19,20 @@ BEST.module('imtiaz.majeed:timeline:example', {
                 }
             },
             'unselectable': true
+        },
+        '#button': {
+            'size': [200, 50],
+            'position': [0, 250],
+            'style': {
+                'background-color': '#666',
+                'color': 'white',
+                'border-radius': '10px',
+                'font-size': '20px',
+                'font-weight': 'bold',
+                'line-height': '2.3',
+                'text-align': 'center',
+                'cursor': 'pointer'
+            }
         }
     },
     events: {
