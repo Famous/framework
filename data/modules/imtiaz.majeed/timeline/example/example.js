@@ -39,11 +39,14 @@ BEST.module('imtiaz.majeed:timeline:example', {
         '#button': {
             'famous:events:click': function($timelines, $state) {
                 var flag = $state.get('flag');
+
                 if (flag) {
+                    $timelines.get('timeline2').halt();
                     $timelines.get('timeline1').start();
                 }
                 else {
                     $timelines.get('timeline1').halt();
+                    $timelines.get('timeline2').start();
                 }
 
                 $state.set('flag', !flag);
@@ -61,24 +64,37 @@ BEST.module('imtiaz.majeed:timeline:example', {
             duration: 10000,
             flexframes: {
                 0: {
-                    'size': [[200, 200]],
-                    'borderRadius': [50],
-                    'borderSize': [1]
+                    'size': [[200, 200], {curve: 'outBounce'}],
+                    'borderRadius': [50, {curve: 'outBounce'}],
+                    'borderSize': [1, {curve: 'outBounce'}]
                 },
                 '10%': {
-                    'size': [[100, 100], {curve: 'outExpo'}],
+                    'size': [[100, 100], {curve: 'outBounce'}],
                     'borderRadius': [20, {curve: 'outBounce'}],
                     'borderSize': [50, {curve: 'outBounce'}]
                 },
                 '20%': {
                     'size': [[300, 300], {curve: 'outBounce'}],
-                    'borderSize': [3, {curve: 'easeInOut'}]
+                    'borderSize': [3, {curve: 'outBounce'}]
                 },
                 3000: {
-                    'size': [[200, 200], {curve: 'easeInOut'}],
-                    'borderRadius': [50, {curve: 'outExpo'}],
-                    'borderSize': [1, {curve: 'outBounce'}]
-
+                    'size': [[200, 200]],
+                    'borderRadius': [50],
+                    'borderSize': [1]
+                }
+            }
+        },
+        'timeline2': {
+            duration: 1000,
+            flexframes: {
+                0: {
+                    'size': [[200, 200], {curve: 'outBounce'}],
+                },
+                '50%': {
+                    'size': [[100, 100], {curve: 'outBounce'}]
+                },
+                1000: {
+                    'size': [[200, 200]]
                 }
             }
         }
