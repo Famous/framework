@@ -36,9 +36,17 @@ BEST.module('imtiaz.majeed:timeline:example', {
         }
     },
     events: {
-        '#circle': {
-            'famous:events:click': function($timelines, $state, $payload) {
-                $timelines.get('timeline1').start();
+        '#button': {
+            'famous:events:click': function($timelines, $state) {
+                var flag = $state.get('flag');
+                if (flag) {
+                    $timelines.get('timeline1').start();
+                }
+                else {
+                    $timelines.get('timeline1').halt();
+                }
+
+                $state.set('flag', !flag);
             }
         }
     },
@@ -46,6 +54,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
         size: [200, 200],
         borderRadius: 50,
         borderSize: 1,
+        flag: true
     },
     timelines: {
         'timeline1': {
