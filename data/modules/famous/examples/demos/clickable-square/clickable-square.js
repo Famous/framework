@@ -9,9 +9,11 @@ BEST.module('famous:examples:demos:clickable-square', {
         },
         '#surface': {
             'template': function(count) { return { count: count }; },
-            'style': {
-                'background-color': 'gray',
-                'cursor': 'pointer'
+            'style' : function(backgroundColor) {
+                return {
+                    'background-color' : backgroundColor,
+                    'cursor' : 'pointer'
+                }
             },
             'unselectable': true
         }
@@ -26,11 +28,13 @@ BEST.module('famous:examples:demos:clickable-square', {
         '$public': {
             'hello' : function() {
                 console.log('hello!');
-            }
+            },
+            'background-color' : 'setter|camel'
         }
     },
     states: {
         count: 0,
-        offset: 0
+        offset: 0,
+        backgroundColor: 'gray'
     }
 });
