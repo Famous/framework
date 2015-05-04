@@ -15,10 +15,7 @@ BEST.module('famous:core:components', {
             
             'opacity': function($famousNode, $payload) { $famousNode.setOpacity($payload); },
             
-            'origin': function($famousNode, $payload) {
-                $famousNode.setOrigin($payload[0], $payload[1], $payload[2]);
-                console.log('set origin to: ', $payload);
-            },
+            'origin': function($famousNode, $payload) {$famousNode.setOrigin($payload[0], $payload[1], $payload[2]); },
             'origin-x': function($famousNode, $payload) { $famousNode.setOrigin($payload, null, null); },
             'origin-y': function($famousNode, $payload) { $famousNode.setOrigin(null, $payload, null); },
             'origin-z': function($famousNode, $payload) { $famousNode.setOrigin(null, null, $payload); },
