@@ -82,12 +82,12 @@ BEST.module('famous:core:view', {
             'size-absolute-y': 'setter|camel',
             'size-absolute-z': 'setter|camel',
 
-            'size-proportional': 'setter',
+            'size-proportional': 'setter|camel',
             'size-proportional-x': 'setter|camel',
             'size-proportional-y': 'setter|camel',
             'size-proportional-z': 'setter|camel',
 
-            'size-differential': 'setter',
+            'size-differential': 'setter|camel',
             'size-differential-x': 'setter|camel',
             'size-differential-y': 'setter|camel',
             'size-differential-z': 'setter|camel',
