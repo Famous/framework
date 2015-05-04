@@ -1,6 +1,6 @@
 BEST.module('imtiaz.majeed:timeline:example', {
     behaviors: {
-        '#wrapper': {
+        '#circle-container': {
             'size': function(size) {
                 return size;
             },
@@ -20,36 +20,40 @@ BEST.module('imtiaz.majeed:timeline:example', {
             },
             'unselectable': true
         },
-        '#button': {
-            'size': [200, 50],
+        '#play-container': {
+            'size': [100, 25],
             'position': [0, 250],
-            'style': {
-                'background-color': '#666',
-                'color': 'white',
-                'border-radius': '10px',
-                'font-size': '20px',
-                'font-weight': 'bold',
-                'line-height': '2.3',
-                'text-align': 'center',
-                'cursor': 'pointer'
+            'align': [0.5, 0.5]
+        },
+        '#play-button': {
+            'style': function(buttonStyle) {
+                return buttonStyle;
+            }
+        },
+        '#pause-container': {
+            'size': [100, 25],
+            'position': [100, 250],
+            'align': [0.5, 0.5]
+        },
+        '#pause-button': {
+            'style': function(buttonStyle) {
+                return buttonStyle;
             }
         }
     },
     events: {
-        '#button': {
+        '#play-button': {
             'famous:events:click': function($timelines, $state) {
-                var flag = $state.get('flag');
-
-                if (flag) {
-                    $timelines.get('timeline2').halt();
-                    $timelines.get('timeline1').start();
-                }
-                else {
-                    $timelines.get('timeline1').halt();
-                    $timelines.get('timeline2').start();
-                }
-
-                $state.set('flag', !flag);
+                $timelines.get('bouncySize').start();
+                $timelines.get('bouncyBorder').start();
+                $timelines.get('bouncyThickness').start();
+            }
+        },
+        '#pause-button': {
+            'famous:events:click': function($timelines) {
+                $timelines.get('bouncySize').halt();
+                $timelines.get('bouncyBorder').halt();
+                $timelines.get('bouncyThickness').halt();
             }
         }
     },
@@ -57,44 +61,57 @@ BEST.module('imtiaz.majeed:timeline:example', {
         size: [200, 200],
         borderRadius: 50,
         borderSize: 1,
-        flag: true
+        buttonStyle: {
+            'background-color': '#666',
+            'color': 'white',
+            'border-radius': '10px',
+            'font-size': '20px',
+            'font-weight': 'bold',
+            'line-height': '1.2',
+            'text-align': 'center',
+            'cursor': 'pointer'
+        }
     },
     timelines: {
-        'timeline1': {
-            duration: 10000,
-            flexframes: {
-                0: {
-                    'size': [[200, 200], {curve: 'outBounce'}],
-                    'borderRadius': [50, {curve: 'outBounce'}],
-                    'borderSize': [1, {curve: 'outBounce'}]
-                },
-                '10%': {
-                    'size': [[100, 100], {curve: 'outBounce'}],
-                    'borderRadius': [20, {curve: 'outBounce'}],
-                    'borderSize': [50, {curve: 'outBounce'}]
-                },
-                '20%': {
-                    'size': [[300, 300], {curve: 'outBounce'}],
-                    'borderSize': [3, {curve: 'outBounce'}]
-                },
-                3000: {
-                    'size': [[200, 200]],
-                    'borderRadius': [50],
-                    'borderSize': [1]
-                }
-            }
-        },
-        'timeline2': {
+        'bouncyBorder': {
             duration: 1000,
             flexframes: {
                 0: {
-                    'size': [[200, 200], {curve: 'outBounce'}],
+                    'borderRadius': [50, {curve: 'easeInOut'}]
                 },
                 '50%': {
-                    'size': [[100, 100], {curve: 'outBounce'}]
+                    'borderRadius': [10, {curve: 'easeInOut'}]
+                },
+                1000: {
+                    'borderRadius': [50]
+                }
+            }
+        },
+        'bouncySize': {
+            duration: 1000,
+            flexframes: {
+                0: {
+                    'size': [[200, 200], {curve: 'easeInOut'}],
+                },
+                '50%': {
+                    'size': [[100, 100], {curve: 'easeInOut'}]
                 },
                 1000: {
                     'size': [[200, 200]]
+                }
+            }
+        },
+        'bouncyThickness': {
+            duration: 1000,
+            flexframes: {
+                0: {
+                    'borderSize': [1, {curve: 'easeInOut'}],
+                },
+                '50%': {
+                    'borderSize': [100, {curve: 'easeInOut'}]
+                },
+                1000: {
+                    'borderSize': [1]
                 }
             }
         }
