@@ -190,6 +190,14 @@ es.eachObjectProperty = function(objectExpression, iterator) {
     }
 };
 
+es.eachObjectPropertyOfType = function(objectExpression, type, iterator) {
+    es.eachObjectProperty(objectExpression, function(kn, ko, vv, vo, po, props) {
+        if (vo.type === type) {
+            iterator(kn, ko, vv, vo, po, props);
+        }
+    });
+};
+
 es.eachArrayElement = function(arrayExpression, iterator) {
     var elements = arrayExpression.elements;
     for (var i = 0; i < elements.length; i++) {
