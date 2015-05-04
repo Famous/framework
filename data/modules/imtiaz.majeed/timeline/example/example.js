@@ -4,6 +4,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
             'size': function(size) {
                 return size;
             },
+            'origin': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
             'align': [0.5, 0.5]
         },
@@ -84,6 +85,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
     },
     timelines: {
         'bouncyBorder': {
+            auto: true,
             duration: 1000,
             flexframes: {
                 0: {
@@ -98,6 +100,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
             }
         },
         'bouncySize': {
+            auto: true,
             duration: 1000,
             flexframes: {
                 0: {
@@ -112,6 +115,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
             }
         },
         'bouncyThickness': {
+            auto: true,
             duration: 1000,
             flexframes: {
                 0: {
