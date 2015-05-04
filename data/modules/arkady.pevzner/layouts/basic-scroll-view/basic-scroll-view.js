@@ -30,9 +30,7 @@ BEST.module('arkady.pevzner:layouts:basic-scroll-view', {
             'item-style' : 'setter|camel'
         },
         '#item' : {
-            'item-click' : function($dispatcher, $state, $payload) {
-
-            }
+            'item-click' : function($dispatcher, $state, $payload) {}
         }
     },
     states: {

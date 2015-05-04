@@ -1,18 +1,21 @@
 <view id='container'>
-    <arkady.pevzner:layouts:header-footer id='hf'>
+    <header-footer id='hf'>
         <view id='header'>
             <dom-element id='header-el'>
             </dom-element>
         </view>
 
         <view id='body'>
-            <arkady.pevzner:layouts:basic-scroll-view id='scroll-view'>
-            </arkady.pevzner:layouts:basic-scroll-view>
+            <two-panel-layout id='two-panel-layout'>
+                <basic-scroll-view id='scroll-view' class='left-panel'></basic-scroll-view>
+                <ui-element class='right-panel'></ui-element>
+            </two-panel-layout>
+            
         </view>
 
         <view id='footer'>
-            <dom-element id='footer-el'>
-            </dom-element>
+            <footer-bar id='footer-bar'>
+            </footer-bar>
         </view>
-    </arkady.pevzner:layouts:header-footer>
+    </header-footer>
 </view>
