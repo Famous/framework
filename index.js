@@ -56,7 +56,7 @@ es.ESPRIMA_OPTIONS = {
 };
 
 es.parse = function(code) {
-    parse(code, ESPRIMA_OPTIONS);
+    parse(code, es.ESPRIMA_OPTIONS);
 };
 
 es.traverse = function(ast, iterator) {
