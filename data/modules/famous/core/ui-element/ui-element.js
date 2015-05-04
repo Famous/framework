@@ -208,6 +208,51 @@ BEST.module('famous:core:ui-element', {
             'backface-visible': 'setter|camel',
             'box-shadow': 'setter|camel',
             'template': 'setter'
+        },
+
+        '#element' : {
+            'famous:events:click' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-click', $payload);
+            },
+            'famous:events:mouseup' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-mouseup', $payload);
+            },
+            'famous:events:mousedown' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-mousedown', $payload);
+            },
+            'famous:events:mousemove' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-mousemove', $payload);
+            },
+            'famous:events:dblclick' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-dblclick', $payload);
+            },
+            'famous:events:mouseover' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-mouseover', $payload);
+            },
+            'famous:events:mouseout' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-mouseout', $payload);
+            },
+            'famous:events:mouseenter' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-mouseenter', $payload);
+            },
+            'famous:events:mouseleave' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-mouseleave', $payload);
+            },
+            'famous:events:touchstart' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-touchstart', $payload);
+            },
+            'famous:events:touchend' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-touchend', $payload);
+            },
+            'famous:events:touchcancel' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-touchcancel', $payload);
+            },
+            'famous:events:touchleave' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-touchleave', $payload);
+            },
+            'famous:events:touchmove' : function($dispatcher, $payload) {
+                $dispatcher.emit('ui-touchmove', $payload);
+            }
         }
     }
 });
