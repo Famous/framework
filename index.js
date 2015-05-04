@@ -23,6 +23,7 @@ es.TYPES = {
     BINARY_EXPRESSION: 'BinaryExpression',
     CALL_EXPRESSION: 'CallExpression',
     CONDITIONAL_EXPRESSION: 'ConditionalExpression',
+    EXPRESSION_STATEMENT: 'ExpressionStatement',
     FUNCTION_EXPRESSION: 'FunctionExpression',
     IDENTIFIER: 'Identifier',
     LITERAL: 'Literal',
@@ -107,6 +108,7 @@ es.buildScopeDependant = function(subTree) {
 es.getBinaryValue = function(subTree) { return es.buildScopeDependant(subTree); };
 es.getCallValue = function(subTree) { return es.buildScopeDependant(subTree); };
 es.getConditionalValue = function(subTree) { return es.buildScopeDependant(subTree); };
+es.getExpressionStatementValue = function(subTree) { return es.buildScopeDependant(subTree); };
 es.getMemberValue = function(subTree) { return es.buildScopeDependant(subTree); };
 es.getNewExpressionValue = function(subTree) { return es.buildScopeDependant(subTree); };
 
@@ -152,6 +154,7 @@ es.getNativeValue = function(subTree) {
         case es.TYPES.BINARY_EXPRESSION: return es.getBinaryValue(subTree);
         case es.TYPES.CALL_EXPRESSION: return es.getCallValue(subTree);
         case es.TYPES.CONDITIONAL_EXPRESSION: return es.getConditionalValue(subTree);
+        case es.TYPES.EXPRESSION_STATEMENT: return es.getExpressionStatementValue(subTree);
         case es.TYPES.FUNCTION_EXPRESSION: return es.getFunctionValue(subTree);
         case es.TYPES.IDENTIFIER: return es.getIdentifierValue(subTree);
         case es.TYPES.LITERAL: return es.getLiteralValue(subTree);
