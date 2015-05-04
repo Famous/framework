@@ -23,7 +23,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
         },
         '#play-container': {
             'size': [100, 25],
-            'position': [-50, 250],
+            'position': [-100, 250],
             'mount-point': [0.5, 0.5],
             'align': [0.5, 0.5]
         },
@@ -34,11 +34,22 @@ BEST.module('imtiaz.majeed:timeline:example', {
         },
         '#pause-container': {
             'size': [100, 25],
-            'position': [50, 250],
+            'position': [0, 250],
             'mount-point': [0.5, 0.5],
             'align': [0.5, 0.5]
         },
         '#pause-button': {
+            'style': function(buttonStyle) {
+                return buttonStyle;
+            }
+        },
+        '#rewind-container': {
+            'size': [100, 25],
+            'position': [100, 250],
+            'mount-point': [0.5, 0.5],
+            'align': [0.5, 0.5]
+        },
+        '#rewind-button': {
             'style': function(buttonStyle) {
                 return buttonStyle;
             }
@@ -63,10 +74,15 @@ BEST.module('imtiaz.majeed:timeline:example', {
                     $timelines.get('bouncyBorder').halt();
                     $timelines.get('bouncyThickness').halt();
                 }
-
-                
             }
         },
+        '#rewind-button': {
+            'famous:events:click': function($timelines) {
+                $timelines.get('bouncySize').rewind();
+                $timelines.get('bouncyBorder').rewind();
+                $timelines.get('bouncyThickness').rewind();
+            }
+        }
     },
     states: {
         size: [200, 200],
