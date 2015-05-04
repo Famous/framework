@@ -59,7 +59,6 @@ BEST.module('imtiaz.majeed:timeline:example', {
         '#play-button': {
             'famous:events:click': function($timelines, $state) {
                 $timelines.get('bouncySize').start();
-                $timelines.get('bouncyBorder').start();
                 $timelines.get('bouncyThickness').start();
             }
         },
@@ -67,11 +66,9 @@ BEST.module('imtiaz.majeed:timeline:example', {
             'famous:events:click': function($timelines) {
                 if ($timelines.get('bouncySize').isPaused()) {
                     $timelines.get('bouncySize').resume();
-                    $timelines.get('bouncyBorder').resume();
                     $timelines.get('bouncyThickness').resume();
                 } else {
                     $timelines.get('bouncySize').halt();
-                    $timelines.get('bouncyBorder').halt();
                     $timelines.get('bouncyThickness').halt();
                 }
             }
@@ -79,7 +76,6 @@ BEST.module('imtiaz.majeed:timeline:example', {
         '#rewind-button': {
             'famous:events:click': function($timelines) {
                 $timelines.get('bouncySize').rewind();
-                $timelines.get('bouncyBorder').rewind();
                 $timelines.get('bouncyThickness').rewind();
             }
         }
@@ -118,6 +114,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
         'bouncySize': {
             auto: true,
             duration: 1000,
+            speed: 0.5,
             flexframes: {
                 0: {
                     'size': [[200, 200], {curve: 'easeInOut'}],
@@ -138,7 +135,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
                     'borderSize': [1, {curve: 'easeInOut'}],
                 },
                 '50%': {
-                    'borderSize': [100, {curve: 'easeInOut'}]
+                    'borderSize': [50, {curve: 'easeInOut'}]
                 },
                 1000: {
                     'borderSize': [1]
