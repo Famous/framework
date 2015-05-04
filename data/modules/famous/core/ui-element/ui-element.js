@@ -86,11 +86,44 @@ BEST.module('famous:core:ui-element', {
             'size-absolute': function(sizeAbsolute) {
                 return sizeAbsolute;
             },
+            'size-absolute-x': function(sizeAbsoluteX) {
+                return sizeAbsoluteX;
+            },
+            'size-absolute-y': function(sizeAbsoluteY) {
+                return sizeAbsoluteY;
+            },
+            'size-absolute-z': function(sizeAbsoluteZ) {
+                return sizeAbsoluteZ;
+            },
             'size-proportional': function(sizeProportional) {
                 return sizeProportional;
             },
-            'size-differential': function(sizeDifferential) {
-                return sizeDifferential;
+            'size-proportional-x': function(sizeProportionalX) {
+                return sizeProportionalX;
+            },
+            'size-proportional-y': function(sizeProportionalY) {
+                return sizeProportionalY;
+            },
+            'size-proportional-z': function(sizeProportionalZ) {
+                return sizeProportionalZ;
+            },
+            'size-differential': function(sizeDiffential) {
+                return sizeDiffential;
+            },
+            'size-differential-x': function(sizeDiffentialX) {
+                return sizeDiffentialX;
+            },
+            'size-differential-y': function(sizeDiffentialY) {
+                return sizeDiffentialY;
+            },
+            'size-differential-z': function(sizeDiffentialZ) {
+                return sizeDiffentialZ;
+            },
+            'overflow' : function(overflow) {
+                return overflow;
+            },
+            'border' : function(border) {
+                return border;
             }
         },
         '#element' : {
@@ -152,8 +185,19 @@ BEST.module('famous:core:ui-element', {
             'scale-z': 'setter|camel',
             'size': 'setter',
             'size-absolute': 'setter|camel',
+            'size-absolute-x': 'setter|camel',
+            'size-absolute-y': 'setter|camel',
+            'size-absolute-z': 'setter|camel',
             'size-proportional': 'setter|camel',
+            'size-proportional-x': 'setter|camel',
+            'size-proportional-y': 'setter|camel',
+            'size-proportional-z': 'setter|camel',
             'size-differential': 'setter|camel',
+            'size-differential-x': 'setter|camel',
+            'size-differential-y': 'setter|camel',
+            'size-differential-z': 'setter|camel',
+            'overflow' : 'setter',
+            'border' : 'setter',
 
             // famous:core:dom-element events
             'id': 'setter',
