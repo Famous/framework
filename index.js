@@ -190,6 +190,10 @@ es.eachObjectProperty = function(objectExpression, iterator) {
     }
 };
 
+es.eachStringProperty = function(objectExpression, iterator) {
+    es.eachObjectPropertyOfType(objectExpression, es.TYPES.STRING_TYPE, iterator);
+}
+
 es.eachObjectPropertyOfType = function(objectExpression, type, iterator) {
     es.eachObjectProperty(objectExpression, function(kn, ko, vv, vo, po, props) {
         if (vo.type === type) {
