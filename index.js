@@ -6,6 +6,7 @@ var parse = require('esprima').parse;
 var traverse = require('estraverse').traverse;
 
 var STRING_TYPE = 'string';
+var QUOTE = '\'';
 
 function es(ast) {
     var wrappedAST = clone(ast);
