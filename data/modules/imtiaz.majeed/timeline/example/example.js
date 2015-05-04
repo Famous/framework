@@ -30,7 +30,8 @@ BEST.module('imtiaz.majeed:timeline:example', {
         '#play-button': {
             'style': function(buttonStyle) {
                 return buttonStyle;
-            }
+            },
+            'unselectable': true
         },
         '#pause-container': {
             'size': [100, 25],
@@ -41,7 +42,8 @@ BEST.module('imtiaz.majeed:timeline:example', {
         '#pause-button': {
             'style': function(buttonStyle) {
                 return buttonStyle;
-            }
+            },
+            'unselectable': true
         },
         '#rewind-container': {
             'size': [100, 25],
@@ -52,7 +54,8 @@ BEST.module('imtiaz.majeed:timeline:example', {
         '#rewind-button': {
             'style': function(buttonStyle) {
                 return buttonStyle;
-            }
+            },
+            'unselectable': true
         },
     },
     events: {
@@ -87,7 +90,6 @@ BEST.module('imtiaz.majeed:timeline:example', {
         buttonStyle: {
             'background-color': '#666',
             'color': 'white',
-            'border-radius': '10px',
             'font-size': '20px',
             'font-weight': 'bold',
             'line-height': '1.2',
