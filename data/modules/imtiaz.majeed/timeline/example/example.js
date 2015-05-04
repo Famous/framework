@@ -22,7 +22,8 @@ BEST.module('imtiaz.majeed:timeline:example', {
         },
         '#play-container': {
             'size': [100, 25],
-            'position': [0, 250],
+            'position': [-50, 250],
+            'mount-point': [0.5, 0.5],
             'align': [0.5, 0.5]
         },
         '#play-button': {
@@ -32,14 +33,15 @@ BEST.module('imtiaz.majeed:timeline:example', {
         },
         '#pause-container': {
             'size': [100, 25],
-            'position': [100, 250],
+            'position': [50, 250],
+            'mount-point': [0.5, 0.5],
             'align': [0.5, 0.5]
         },
         '#pause-button': {
             'style': function(buttonStyle) {
                 return buttonStyle;
             }
-        }
+        },
     },
     events: {
         '#play-button': {
@@ -51,11 +53,19 @@ BEST.module('imtiaz.majeed:timeline:example', {
         },
         '#pause-button': {
             'famous:events:click': function($timelines) {
-                $timelines.get('bouncySize').halt();
-                $timelines.get('bouncyBorder').halt();
-                $timelines.get('bouncyThickness').halt();
+                if ($timelines.get('bouncySize').isPaused()) {
+                    $timelines.get('bouncySize').resume();
+                    $timelines.get('bouncyBorder').resume();
+                    $timelines.get('bouncyThickness').resume();
+                } else {
+                    $timelines.get('bouncySize').halt();
+                    $timelines.get('bouncyBorder').halt();
+                    $timelines.get('bouncyThickness').halt();
+                }
+
+                
             }
-        }
+        },
     },
     states: {
         size: [200, 200],
