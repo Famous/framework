@@ -136,6 +136,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
         'bouncyThickness': {
             auto: true,
             duration: 1000,
+            repeat: 2,
             flexframes: {
                 0: {
                     'borderSize': [1, {curve: 'easeInOut'}],
