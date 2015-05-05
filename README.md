@@ -18,7 +18,7 @@ Implementation of the BEST architectural pattern, a.k.a.:
 Clone the `ecosystem` repo first:
 
     $ git clone git@github.famo.us:framework/ecosystem.git
-    $ cd ecosystem && npm i && npm link
+    $ cd ecosystem && npm i && npm run sync-all && npm link
 
 Now clone the main (`best`) repo into a separate folder:
 
