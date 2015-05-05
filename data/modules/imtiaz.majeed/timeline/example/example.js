@@ -119,7 +119,6 @@ BEST.module('imtiaz.majeed:timeline:example', {
         },
         'bouncySize': {
             auto: true,
-            duration: 1000,
             speed: 0.5,
             flexframes: {
                 0: {
