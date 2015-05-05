@@ -30,10 +30,7 @@ function push(files, base, location, prefix) {
         var finalPath = Path.join(prefix, entryPath);
         if (!entryStat.isDirectory()) {
             var entryContent = Fs.readFileSync(entryFullPath, FILE_OPTIONS);
-            files.push({
-                path: finalPath,
-                content: entryContent
-            });
+            files.push({ path: finalPath, content: entryContent });
         }
         else {
             push(files, base, entryPartialPath, finalPath); // Recursive
