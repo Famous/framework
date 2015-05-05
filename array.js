@@ -50,8 +50,24 @@ function checkElementEquality(a, b) {
     return result;
 }
 
+/**
+ * Checks to see if two arrays share a given value.
+ * @param  {Array} a
+ * @param  {Array} b
+ * @return {Boolean}
+ */
+function shareValue(a, b) {
+    for (var i = 0; i < a.length; i++) {
+        if (b.indexOf(a[i]) !== -1) {
+            return true;
+        }
+    }
+    return false;
+}
+
 module.exports = {
     each: each,
     union: union,
-    checkElementEquality: checkElementEquality
+    checkElementEquality: checkElementEquality,
+    shareValue: shareValue
 }
