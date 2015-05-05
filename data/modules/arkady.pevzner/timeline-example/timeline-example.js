@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:timeline-example', {
+BEST.module('arkady.pevzner:timeline-example', 'HEAD', {
     behaviors: {
         '#ui-el' : {
             size: [100, 100],

@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:template-scroll-layout', {
+BEST.module('arkady.pevzner:layouts:template-scroll-layout', 'HEAD', {
     behaviors: {
         '$self' : {
             'set-template' : function(mockTemplatedContent) {

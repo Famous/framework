@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:header-footer', {
+BEST.module('arkady.pevzner:layouts:header-footer', 'HEAD', {
     tree: 'header-footer.html',
     behaviors: {
         '#container' : {

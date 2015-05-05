@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:basic-scroll-view', {
+BEST.module('arkady.pevzner:layouts:basic-scroll-view', 'HEAD', {
     behaviors: {
         '#container' : {
             'overflow' : 'scroll'

@@ -1,4 +1,4 @@
-BEST.module('famous:core:ui-element', {
+BEST.module('famous:core:ui-element', 'HEAD', {
     tree: 'ui-element.html',
     behaviors: {
         '#view' : {

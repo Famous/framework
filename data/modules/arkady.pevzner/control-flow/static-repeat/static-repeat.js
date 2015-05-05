@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:control-flow:static-repeat', {
+BEST.module('arkady.pevzner:control-flow:static-repeat', 'HEAD', {
     behaviors: {
         '#repeat' : {
             size: [100, 100],

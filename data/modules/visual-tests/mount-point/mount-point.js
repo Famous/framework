@@ -1,4 +1,4 @@
-BEST.module('visual-tests:mount-point', {
+BEST.module('visual-tests:mount-point', 'HEAD', {
     behaviors: {
         '$self' : {
             start: true

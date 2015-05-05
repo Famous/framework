@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:scroll-view-item', {
+BEST.module('arkady.pevzner:layouts:scroll-view-item', 'HEAD', {
     behaviors: {
         '#item' : {
             content: function(content) {

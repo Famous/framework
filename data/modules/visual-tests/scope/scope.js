@@ -1,4 +1,4 @@
-BEST.module('visual-tests:scope', {
+BEST.module('visual-tests:scope', 'HEAD', {
     behaviors: {
         '#surface' : {
             'content' : 'This square should be blue. \n\n Above square should be gray.',

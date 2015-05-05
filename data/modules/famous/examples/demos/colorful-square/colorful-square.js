@@ -1,4 +1,4 @@
-BEST.module('famous:examples:demos:colorful-square', {
+BEST.module('famous:examples:demos:colorful-square', 'HEAD', {
     tree: 'colorful-square.html',
     behaviors: {
         '.square-container': {

@@ -1,4 +1,4 @@
-BEST.module('famous:examples:demos:circle', {
+BEST.module('famous:examples:demos:circle', 'HEAD', {
     tree: 'circle.html',
     behaviors: {
         '#wrapper': {

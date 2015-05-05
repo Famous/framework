@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:header-footer-example', {
+BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
     behaviors: {
         '#container' : {
             'size-proportional': function(containerProportion) {

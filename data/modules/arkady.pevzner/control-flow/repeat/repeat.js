@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:control-flow:repeat', {
+BEST.module('arkady.pevzner:control-flow:repeat', 'HEAD', {
     tree: 'repeat.html',
     behaviors: {
         '.row' : {

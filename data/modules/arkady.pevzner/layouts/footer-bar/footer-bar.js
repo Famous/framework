@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:footer-bar', {
+BEST.module('arkady.pevzner:layouts:footer-bar', 'HEAD', {
     behaviors: {
         '#background' : {
             style: function(backgroundStyle) {

@@ -2,7 +2,7 @@ function foo(){
     console.log(1);
 }
 
-BEST.scene('fixtures:entrypoint', {
+BEST.scene('fixtures:entrypoint', 'HEAD', {
     tree: '<view></view><ui-element></ui-element>',
     something: 'foo.js',
     another: {},
