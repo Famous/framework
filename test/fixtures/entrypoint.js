@@ -13,7 +13,12 @@ BEST.scene('fixtures:entrypoint', {
         'mousemove': function() {
             return 1;
         },
-        'foo-bar': 'setter|camel'
+        'foo-bar': 'setter|camel',
+        '#foo': {
+            'mouseover': function() {
+                return 2;
+            }
+        }
     }
 })
 .config({
@@ -21,6 +26,10 @@ BEST.scene('fixtures:entrypoint', {
         'jim:project': ['thing']
     },
     dependencies: {
-        'famous:core:view': 'HEAD' // Intentionally set to a non-existant version
+        'famous:core:view': '0.1.1' // Intentionally set to bad version
     }
+});
+
+BEST.scene('foo:bar', {
+    tree: 'lalala.html'
 });

@@ -1,54 +1,67 @@
-var bodyParser = require('body-parser');
-var express = require('express');
-var morgan = require('morgan');
+var BodyParser = require('body-parser');
+var Express = require('express');
+var ErrorHandler = require('errorhandler')
+var Morgan = require('morgan');
+var Version = require('./lib/version/version');
+var Env = require('./config/environment');
+var PORT = Env.PORT;
 
-var app = express();
-app.use(bodyParser.json())
+var app = Express();
+app.use(BodyParser.json())
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
-app.use(express.static('public'));
-app.use(morgan('combined'));
+app.use(Express.static('public'));
+app.use(Morgan('combined'));
 
-var bundle = require('./lib/bundle');
-var env = require('./lib/environment');
-
-var PORT = env.PORT;
-
-app.get('/bundles/:name/:version.json', function(req, res) {
+// curl http://localhost:3000/versions/fixtures:entrypoint/HEAD.json
+app.get('/versions/:name/:tag.json', function(req, res) {
+    var version = new Version();
     var name = req.params['name'];
-    var version = req.params['version'];
-    var url = bundle.getURL(name, version);
+    var tag = req.params['tag'];
+    var url = version.getBundleURL(name, tag);
     if (url) {
-        res.json({
-            url: url
-        });        
+        res.status(200).json({ status: 200, url: url });
     }
     else {
-        res.status(404).json({
-            error: 'No such bundle'
-        });
+        res.status(404).json({ status: 404, error: 'No such version' });
     }
 });
 
-app.post('/bundles', function(req, res) {
+function validSaveRequest(config, body, req) {
+    if (config.public === true) return true;
+    if (config.apiKeys && config.apiKeys.length) {
+        if (config.apiKeys.indexOf(req.params.apiKey) !== -1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// curl -X POST -H "Content-Type: application/json" --data @test/fixtures/entrypoint.json http://localhost:3000/versions.json
+app.post('/versions.json', function(req, res) {
     var body = req.body;
-    if (!body.name || !body.version || !body.files) {
-        res.status(422).json({
-            error: 'Invalid params'
-        });
+    if (!body.name || !body.tag || !body.files) {
+        res.status(422).json({ status: 422, error: 'Invalid params', request: body });
     }
     else {
-        bundle.create(body.name, body.version, body.files, function(err, result) {
-            res.status(201).json({
-                url: bundle.getURL(body.name, body.version)
-            });
+        var version = new Version();
+        version.getConfiguration(body.name, body.tag, function(configErr, config) {
+            if (configErr || !validSaveRequest(config, body, req)) {
+                res.status(401).json({ status: 401, error: 'Not permitted', request: body });
+            }
+            else {
+                version.save(body.name, body.tag, body.files, function(saveErr, result) {
+                    if (saveErr) return res.status(500).json({ status: 500, error: 'Server error', request: body });
+                    res.status(201).json({ status: 201, url: version.getBundleURL(body.name, body.tag) });
+                });
+            }
         });
     }
 });
 
 app.listen(PORT);
-console.log('Starting up ecosystem-' + env.env);
+console.log('Starting up best-ecosystem-' + Env.kind);
 console.log('Listening on port ' + PORT + '...');

@@ -8,12 +8,12 @@
  * in the 'data/modules' folder up to storage.
  */
 
-var bundle = require('./../lib/bundle');
-var fs = require('fs');
-var lodash = require('lodash');
-var path = require('path');
-var validate = require('./validate');
-var version = require('./../lib/version');
+var Fs = require('fs');
+var Lodash = require('lodash');
+var Path = require('path');
+
+var Validate = require('./validate');
+var Version = require('./../lib/version/version');
 
 var BLANK = '';
 var COMPONENT_DELIMITER = ':';
@@ -21,15 +21,15 @@ var FILE_OPTIONS = { encoding: 'utf8' };
 var SLASH = '/';
 
 function push(files, base, location, prefix) {
-    var fullpath = path.join(base, location);
-    var entries = fs.readdirSync(fullpath);
+    var fullpath = Path.join(base, location);
+    var entries = Fs.readdirSync(fullpath);
     entries.forEach(function(entryPath) {
-        var entryPartialPath = path.join(location, entryPath);
-        var entryFullPath = path.join(fullpath, entryPath);
-        var entryStat = fs.lstatSync(entryFullPath);
-        var finalPath = path.join(prefix, entryPath);
+        var entryPartialPath = Path.join(location, entryPath);
+        var entryFullPath = Path.join(fullpath, entryPath);
+        var entryStat = Fs.lstatSync(entryFullPath);
+        var finalPath = Path.join(prefix, entryPath);
         if (!entryStat.isDirectory()) {
-            var entryContent = fs.readFileSync(entryFullPath, FILE_OPTIONS);
+            var entryContent = Fs.readFileSync(entryFullPath, FILE_OPTIONS);
             files.push({
                 path: finalPath,
                 content: entryContent
@@ -42,31 +42,26 @@ function push(files, base, location, prefix) {
 }
 
 function single(base, location, tag, cb) {
-    if (!tag) {
-        throw new Error('You must supply a release tag!');
-    }
+    if (!tag) throw new Error('You must supply a release tag');
     var moduleName = location.split(SLASH).join(COMPONENT_DELIMITER);
     var files = [];
-    push(files, base, location, '');
-    version.release(moduleName, tag, files, function(err, result) {
-        if (err) {
-            throw new Error('Error releasing version');
-        }
-        bundle.create(moduleName, tag, files, function(err, bundled) {
-            cb(err, bundled);
-        });
+    push(files, base, location, BLANK);
+    var version = new Version();
+    version.save(moduleName, tag, files, function(err, result) {
+        if (err) throw new Error('Error saving version');
+        console.log('Success!', result);
     });
 }
 
 function recursive(base, subdir, tag, cb) {
-    var mainpath = path.join(base, subdir);
-    var entries = fs.readdirSync(mainpath);
+    var mainpath = Path.join(base, subdir);
+    var entries = Fs.readdirSync(mainpath);
     entries.forEach(function(entryPath) {
-        var fullEntryPath = path.join(mainpath, entryPath);
-        var entryStat = fs.lstatSync(fullEntryPath);
+        var fullEntryPath = Path.join(mainpath, entryPath);
+        var entryStat = Fs.lstatSync(fullEntryPath);
         if (entryStat.isDirectory()) {
-            var partialPath = path.join(subdir, entryPath);
-            if (validate.isModule(fullEntryPath)) {
+            var partialPath = Path.join(subdir, entryPath);
+            if (Validate.isModule(fullEntryPath)) {
                 single(base, partialPath, tag, cb);
             }
             recursive(base, partialPath, tag, cb); // Recursive
