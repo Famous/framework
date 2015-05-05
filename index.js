@@ -162,7 +162,8 @@ es.getNativeValue = function(subTree) {
         case es.TYPES.NEW_EXPRESSION: return es.getNewExpressionValue(subTree);
         case es.TYPES.OBJECT_EXPRESSION: return es.getObjectValue(subTree);
         default:
-            throw new Error('Unhandled subtree type `' + subTree.type + '`');
+            console.error('Unhandled subtree type `' + subTree.type + '`');
+            return es.buildScopeDependant(subTree);
     }
 };
 
