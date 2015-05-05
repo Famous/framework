@@ -1,7 +1,7 @@
 'use strict';
-window.Famous = require('../node_modules/famous');
-var test = require('tape');
 
+window.Famous = require('famous');
+var test = require('tape');
 var BEST = require('../lib/index');
 var DataStore = require('../lib/data-store/data-store');
 
