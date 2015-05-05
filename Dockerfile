@@ -1,4 +1,4 @@
-FROM dockerfile/nodejs
+FROM node
 
 # Create app user
 RUN useradd -ms /bin/bash app
