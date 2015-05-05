@@ -62,7 +62,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
         '#play-button': {
             'famous:events:click': function($timelines, $state) {
                 $timelines
-                    .get('bouncySize').start();
+                    .get('bouncySize').start()
                     .get('bouncyThickness').start();
             }
         },
@@ -70,11 +70,11 @@ BEST.module('imtiaz.majeed:timeline:example', {
             'famous:events:click': function($timelines) {
                 if ($timelines.get('bouncySize').isPaused()) {
                     $timelines
-                        .get('bouncySize').resume();
+                        .get('bouncySize').resume()
                         .get('bouncyThickness').resume();
                 } else {
                     $timelines
-                        .get('bouncySize').halt();
+                        .get('bouncySize').halt()
                         .get('bouncyThickness').halt();
                 }
             }
@@ -82,7 +82,7 @@ BEST.module('imtiaz.majeed:timeline:example', {
         '#rewind-button': {
             'famous:events:click': function($timelines) {
                 $timelines
-                    .get('bouncySize').rewind();
+                    .get('bouncySize').rewind()
                     .get('bouncyThickness').rewind();
             }
         }
