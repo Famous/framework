@@ -38,11 +38,6 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
                 return panelTransition;
             }
         },
-        '.right-panel' : {
-            style: {
-                'background-color': 'red'
-            }
-        },
         '#scroll-view' : {
             count: function(count) {
                 return count;
@@ -56,6 +51,19 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
                 var temp = itemStyle;
                 temp['line-height'] = itemHeight + 'px';
                 return temp;
+            }
+        },
+        '.right-panel' : {
+            'set-template' : function(templateItemCount, loremIpsum) {
+                var result = [];
+                for (var i = 1; i <= templateItemCount; i++) {
+                    result.push({
+                        title: 'Title ' + i,
+                        content: loremIpsum,
+                        image: 'http://placehold.it/150x150'
+                    });
+                }
+                return result;
             }
         },
         '#footer-bar' : {
@@ -133,6 +141,10 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
                 'cursor' : 'pointer'
             },
 
+            // Template layout properties
+            templateItemCount: 20,
+            loremIpsum: 'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus',
+
         // Footer properties
         footerBackgroundStyle: {
             'background-color' :'rgb(29, 25, 115)'
@@ -146,7 +158,7 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
             'font-size' : '20px'
         },
         buttonOneContent: 'Famo.us Layout',
-        buttonTwoContent: 'Template Layout'
+        buttonTwoContent: 'Template Layout',
     },
     tree: 'header-footer-example.html'
 })
@@ -154,7 +166,7 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
     imports: {
         'famous:core': ['view', 'dom-element', 'ui-element'],
         'arkady.pevzner:layouts' : [
-            'header-footer', 'basic-scroll-view', 'footer-bar', 'two-panel-layout'
+            'header-footer', 'basic-scroll-view', 'footer-bar', 'two-panel-layout', 'template-scroll-layout'
         ]
     }
 });
