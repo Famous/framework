@@ -25,6 +25,4 @@ test('---- BEST', function(t) {
         BEST.register(name, data);
         st.equal(DataStore.getModule(name).value, data.value, 'registers module with DataStore');
     });
-
-    console.log()
 });
