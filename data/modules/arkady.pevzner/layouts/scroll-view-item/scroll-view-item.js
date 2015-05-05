@@ -24,7 +24,10 @@ BEST.module('arkady.pevzner:layouts:scroll-view-item', {
         $public: {
             'content' : 'setter',
             'height' : 'setter',
-            'position' : 'setter',
+            'position' : function($payload, $state){
+                // console.log($state.get('content'), $payload);
+                $state.set('position', $payload);
+            },
             'style' : 'setter'
         },
         '#item' : {

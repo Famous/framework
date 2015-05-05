@@ -39,8 +39,8 @@ BEST.module('arkady.pevzner:layouts:footer-bar', {
             'background-style' : 'setter|camel',
             'button-style' : 'setter|camel',
             'button-size' : 'setter|camel',
-            'buttonOneContent' : 'setter|camel',
-            'buttonTwoContent' : 'setter|camel'
+            'button-one-content' : 'setter|camel',
+            'button-two-content' : 'setter|camel'
         },
         '#button1' : {
             'ui-click' : function($dispatcher, $payload) {

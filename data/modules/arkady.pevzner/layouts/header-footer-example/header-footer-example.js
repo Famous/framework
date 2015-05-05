@@ -3,8 +3,7 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
         '#container' : {
             'size-proportional': function(containerProportion) {
                 return containerProportion;
-            },
-            'overflow' : 'hidden'
+            }
         },
         '#hf' : {
             'header-height' : 100,
@@ -25,12 +24,18 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
                 }
             }
         },
+        '#body' : {
+            'overflow' : 'hidden'
+        },
         '#two-panel-layout' : {
             'display-left-panel' : function(leftPanelWidth) {
                 return leftPanelWidth;
             },
             'display-right-panel' : function(rightPanelWidth) {
                 return rightPanelWidth;
+            },
+            'curve' : function(panelTransition) {
+                return panelTransition;
             }
         },
         '.right-panel' : {
@@ -67,6 +72,12 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
             'button-size' : function(footerButtonSize) {
                 return footerButtonSize;
             },
+            'button-one-content' : function(buttonOneContent){
+                return buttonOneContent;
+            },
+            'button-two-content' : function(buttonTwoContent){
+                return buttonTwoContent;
+            }
         }
     },
     events: {
@@ -75,19 +86,24 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
             'title' : 'setter',
             'header-height' : 'setter|camel',
             'header-background-color' : 'setter|camel',
+            'panel-transition' : 'setter|camel',
             'count' : 'setter',
+            'item-height' : 'setter|camel',
+            'item-style' : 'setter|camel',
             'footer-background-style' : 'setter|camel',
             'footer-button-style' : 'setter|camel',
-            'footer-button-size' : 'setter|camel'
+            'footer-button-size' : 'setter|camel',
+            'button-one-content' : 'setter|camel',
+            'button-two-content' : 'setter|camel',
         },
         '#footer-bar' : {
             'button-one-click' : function($state) {
-                // HACK
+                // HACK --> Need a way to query nodes for their size
                 var containerWidth = document.getElementById('container').clientWidth;
                 $state.set('leftPanelWidth', containerWidth);
             },
             'button-two-click' : function($state) {
-                // HACK
+                // HACK --> Need a way to query nodes for their size
                 var containerWidth = document.getElementById('container').clientWidth;
                 $state.set('rightPanelWidth', containerWidth);
             }
@@ -103,6 +119,9 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
         headerBackgroundColor: 'rgb(29, 25, 115)',
 
         // Body properties
+            // two panel properties
+            panelTransition: {duration: 450, 'curve' : 'outExpo'},
+
             // Scrollview properties
             count: 25,
             itemHeight: 100,
@@ -118,14 +137,16 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', {
         footerBackgroundStyle: {
             'background-color' :'rgb(29, 25, 115)'
         },
-        footerButtonSize: [100, 50],
+        footerButtonSize: [200, 50],
         footerButtonStyle: {
             'border' : '1px solid white',
             'color' : 'white',
             'border-radius' : '5px',
             'text-align' : 'center',
             'font-size' : '20px'
-        }
+        },
+        buttonOneContent: 'Famo.us Layout',
+        buttonTwoContent: 'Template Layout'
     },
     tree: 'header-footer-example.html'
 })

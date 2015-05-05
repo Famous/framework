@@ -11,8 +11,8 @@ BEST.module('arkady.pevzner:layouts:basic-scroll-view', {
                 var result = [];
                 for (var i = 0; i < count; i++) {
                     result.push({
-                        position: [0, i * itemHeight],
-                        content: 'Item ' + i
+                        content: 'Item ' + i,
+                        position: [0, i * itemHeight]
                     });
                 }
                 return result;
@@ -34,7 +34,7 @@ BEST.module('arkady.pevzner:layouts:basic-scroll-view', {
         }
     },
     states: {
-        count: 50,
+        count: 0,
         itemHeight: 100,
         content: [],
         itemStyle : {

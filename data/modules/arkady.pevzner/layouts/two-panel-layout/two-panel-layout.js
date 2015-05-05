@@ -16,16 +16,18 @@ BEST.module('arkady.pevzner:layouts:two-panel-layout', {
     events: {
         $public: {
             'display-left-panel' : function($state, $payload) {
-                $state.set('offsetX', 0, {duration: 400, curve: 'outExpo'});
+                $state.set('offsetX', 0, $state.get('curve'));
 
             },
             'display-right-panel' : function($state, $payload) {
-                $state.set('offsetX', -$payload, {duration: 400, curve: 'outExpo'});
-            }
+                $state.set('offsetX', -$payload, $state.get('curve'));
+            },
+            'curve' : 'setter'
         },
     },
     states: {
-        offsetX: 0
+        offsetX: 0,
+        curve: {duration: 400, curve: 'outExpo'}
     },
     tree: 'two-panel-layout.html',
 })
