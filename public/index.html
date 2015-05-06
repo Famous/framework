@@ -11,14 +11,37 @@
   <body>
     <div class="container">
       <div class="row">
-        <div class="col-xs-12">
+        <div class="col-xs-4">
+          <div id="alpha"></div>
+        </div>
+        <div class="col-xs-4">
+          <div id="bravo"></div>
+        </div>
+        <div class="col-xs-4">
+          <div id="charlie"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-4">
+          <div id="delta"></div>
+        </div>
+        <div class="col-xs-4">
+          <div id="echo"></div>
+        </div>
+        <div class="col-xs-4">
+          <div id="foxtrot" style="height: 800px; width: 400px;"></div>
         </div>
       </div>
     </div>
     <script type="text/javascript" src="famous.bundle.js"></script>
     <script type="text/javascript" src="best.bundle.js"></script>
     <script type="text/javascript">
-      BEST.deploy('imtiaz.majeed:timeline:example', 'body');
+      BEST.deploy('visual-tests:mount-point', 'HEAD', '#alpha');
+      BEST.deploy('visual-tests:opacity', 'HEAD', '#bravo');
+      BEST.deploy('visual-tests:scope', 'HEAD', '#charlie');
+      BEST.deploy('famous:examples:demos:clickable-square', 'HEAD', '#delta');
+      BEST.deploy('imtiaz.majeed:timeline:example', 'HEAD', '#echo');
+      BEST.deploy('arkady.pevzner:layouts:header-footer-example', 'HEAD', '#foxtrot');
     </script>
   </body>
 </html>
