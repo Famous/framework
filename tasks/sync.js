@@ -47,6 +47,7 @@ function single(base, location, tag, cb) {
     version.save(moduleName, tag, files, function(err, result) {
         if (err) throw new Error('Error saving version');
         console.log('Success!', result);
+        if (cb) cb(null, result);
     });
 }
 

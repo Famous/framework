@@ -1,6 +1,6 @@
 BEST.module('arkady.pevzner:control-flow:static-repeat', 'HEAD', {
     behaviors: {
-        '#repeat' : {
+        '#repeat': {
             size: [100, 100],
             $repeat: [
                 {position: [100, 100], content: 'Element 1'},
