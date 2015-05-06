@@ -9,7 +9,7 @@ var MODULES_DIR = Path.join(DATA_DIR, 'modules');
 
 Watch(MODULES_DIR, function(filename) {
     console.log(Path.basename(filename) + ' change triggers best-ecosystem resync');
-    exec('cd ' + ROOT_DIR + ' && npm run sync-all', function(err, stdout, stderr) {
+    Exec('cd ' + ROOT_DIR + ' && npm run sync-all', function(err, stdout, stderr) {
         if (err) console.error(err);
         else {
             Sys.puts(stdout);
