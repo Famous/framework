@@ -34,7 +34,7 @@ BEST.module('famous:examples:demos:clickable-square', 'HEAD', {
     },
     states: {
         count: 0,
-        offset: 0,
+        offset: 100,
         backgroundColor: 'gray'
     }
 });
