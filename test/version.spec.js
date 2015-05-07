@@ -9,9 +9,9 @@ Tape('version', function(t) {
     t.ok(Version, 'exports');
     t.ok(new Version(), 'instance');
     var version = new Version();
-    version.save(content.name, content.tag, content.files, function(err, result) {
+    version.save(content.name, content.files, function(err, result) {
         console.log(result);
-        version.getConfiguration(content.name, content.tag, function(err, config) {
+        version.getConfiguration(content.name, result.tag, function(err, config) {
             console.log(config);
         });
     });

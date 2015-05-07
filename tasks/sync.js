@@ -44,20 +44,19 @@ function push(files, base, location, prefix) {
     });
 }
 
-function single(base, location, tag, cb) {
-    if (!tag) throw new Error('You must supply a release tag');
+function single(base, location, cb) {
     var moduleName = location.split(SLASH).join(COMPONENT_DELIMITER);
     var files = [];
     push(files, base, location, BLANK);
     var version = new Version();
-    version.save(moduleName, tag, files, function(err, result) {
+    version.save(moduleName, files, function(err, result) {
         if (err) throw new Error('Error saving version');
         console.log('Success!', result);
         if (cb) cb(null, result);
     });
 }
 
-function recursive(base, subdir, tag, cb) {
+function recursive(base, subdir, cb) {
     var mainpath = Path.join(base, subdir);
     var entries = Fs.readdirSync(mainpath);
     entries.forEach(function(entryPath) {
@@ -67,9 +66,9 @@ function recursive(base, subdir, tag, cb) {
             if (entryStat.isDirectory()) {
                 var partialPath = Path.join(subdir, entryPath);
                 if (Validate.isModule(fullEntryPath)) {
-                    single(base, partialPath, tag, cb);
+                    single(base, partialPath, cb);
                 }
-                recursive(base, partialPath, tag, cb); // Recursive
+                recursive(base, partialPath, cb); // Recursive
             }
         }
     });
