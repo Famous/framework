@@ -30,39 +30,22 @@ app.get('/versions/:name/:tag.json', function(req, res) {
     }
 });
 
-function validSaveRequest(config, body, req) {
-    if (config.public === true) return true;
-    if (config.apiKeys && config.apiKeys.length) {
-        if (config.apiKeys.indexOf(req.params.apiKey) !== -1) {
-            return true;
-        }
-    }
-    return false;
-}
-
 // curl -X POST -H "Content-Type: application/json" --data @test/fixtures/entrypoint.json http://localhost:3000/versions.json
 app.post('/versions.json', function(req, res) {
     var body = req.body;
-    if (!body.name || !body.tag || !body.files) {
+    if (!body.name || !body.files) {
         res.status(422).json({ status: 422, error: 'Invalid params', request: body });
     }
     else {
         var version = new Version();
-        version.getConfiguration(body.name, body.tag, function(configErr, config) {
-            if (configErr || !validSaveRequest(config, body, req)) {
-                res.status(401).json({ status: 401, error: 'Not permitted', request: body });
-            }
-            else {
-                version.save(body.name, body.files, function(saveErr, result) {
-                    if (saveErr) return res.status(500).json({ status: 500, error: 'Server error', request: body });
-                    res.status(201).json({
-                        status: 201,
-                        name: result.name,
-                        url: result.url,
-                        tag: result.tag
-                    });
-                });
-            }
+        version.save(body.name, body.files, function(saveErr, result) {
+            if (saveErr) return res.status(500).json({ status: 500, error: 'Server error', request: body });
+            res.status(201).json({
+                status: 201,
+                name: result.name,
+                url: result.url,
+                tag: result.tag
+            });
         });
     }
 });

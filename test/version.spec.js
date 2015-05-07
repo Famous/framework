@@ -11,8 +11,5 @@ Tape('version', function(t) {
     var version = new Version();
     version.save(content.name, content.files, function(err, result) {
         console.log(result);
-        version.getConfiguration(content.name, result.tag, function(err, config) {
-            console.log(config);
-        });
     });
 });
