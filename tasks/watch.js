@@ -25,7 +25,7 @@ function getModuleDir(dir) {
             return false;
         }
         else {
-            return getModuleDir(path.join(dir, '..'));
+            return getModuleDir(Path.join(dir, '..'));
         }
     }
 }

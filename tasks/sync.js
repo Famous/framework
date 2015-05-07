@@ -20,20 +20,26 @@ var COMPONENT_DELIMITER = ':';
 var FILE_OPTIONS = { encoding: 'utf8' };
 var SLASH = '/';
 
+var FOLDER_BLACKLIST = {
+    'node_modules': true
+};
+
 function push(files, base, location, prefix) {
     var fullpath = Path.join(base, location);
     var entries = Fs.readdirSync(fullpath);
     entries.forEach(function(entryPath) {
-        var entryPartialPath = Path.join(location, entryPath);
-        var entryFullPath = Path.join(fullpath, entryPath);
-        var entryStat = Fs.lstatSync(entryFullPath);
-        var finalPath = Path.join(prefix, entryPath);
-        if (!entryStat.isDirectory()) {
-            var entryContent = Fs.readFileSync(entryFullPath, FILE_OPTIONS);
-            files.push({ path: finalPath, content: entryContent });
-        }
-        else {
-            push(files, base, entryPartialPath, finalPath); // Recursive
+        if (!(entryPath in FOLDER_BLACKLIST)) {
+            var entryPartialPath = Path.join(location, entryPath);
+            var entryFullPath = Path.join(fullpath, entryPath);
+            var entryStat = Fs.lstatSync(entryFullPath);
+            var finalPath = Path.join(prefix, entryPath);
+            if (!entryStat.isDirectory()) {
+                var entryContent = Fs.readFileSync(entryFullPath, FILE_OPTIONS);
+                files.push({ path: finalPath, content: entryContent });
+            }
+            else {
+                push(files, base, entryPartialPath, finalPath); // Recursive
+            }
         }
     });
 }
@@ -55,14 +61,16 @@ function recursive(base, subdir, tag, cb) {
     var mainpath = Path.join(base, subdir);
     var entries = Fs.readdirSync(mainpath);
     entries.forEach(function(entryPath) {
-        var fullEntryPath = Path.join(mainpath, entryPath);
-        var entryStat = Fs.lstatSync(fullEntryPath);
-        if (entryStat.isDirectory()) {
-            var partialPath = Path.join(subdir, entryPath);
-            if (Validate.isModule(fullEntryPath)) {
-                single(base, partialPath, tag, cb);
+        if (!(entryPath in FOLDER_BLACKLIST)) {
+            var fullEntryPath = Path.join(mainpath, entryPath);
+            var entryStat = Fs.lstatSync(fullEntryPath);
+            if (entryStat.isDirectory()) {
+                var partialPath = Path.join(subdir, entryPath);
+                if (Validate.isModule(fullEntryPath)) {
+                    single(base, partialPath, tag, cb);
+                }
+                recursive(base, partialPath, tag, cb); // Recursive
             }
-            recursive(base, partialPath, tag, cb); // Recursive
         }
     });
 }
