@@ -53,9 +53,14 @@ app.post('/versions.json', function(req, res) {
                 res.status(401).json({ status: 401, error: 'Not permitted', request: body });
             }
             else {
-                version.save(body.name, body.tag, body.files, function(saveErr, result) {
+                version.save(body.name, body.files, function(saveErr, result) {
                     if (saveErr) return res.status(500).json({ status: 500, error: 'Server error', request: body });
-                    res.status(201).json({ status: 201, url: version.getBundleURL(body.name, body.tag) });
+                    res.status(201).json({
+                        status: 201,
+                        name: result.name,
+                        url: result.url,
+                        tag: result.tag
+                    });
                 });
             }
         });
@@ -63,5 +68,5 @@ app.post('/versions.json', function(req, res) {
 });
 
 app.listen(PORT);
-console.log('Starting up best-ecosystem-' + Env.kind);
+console.log('Starting up best-ecosystem');
 console.log('Listening on port ' + PORT + '...');
