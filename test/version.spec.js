@@ -10,6 +10,6 @@ Tape('version', function(t) {
     t.ok(new Version(), 'instance');
     var version = new Version();
     version.save(content.name, content.files, function(err, result) {
-        console.log(result);
+        //console.log(result);
     });
 });
