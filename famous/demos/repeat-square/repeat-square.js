@@ -1,4 +1,4 @@
-BEST.module('famous:examples:demos:repeat-square', 'HEAD', {
+BEST.module('famous:demos:repeat-square', 'HEAD', {
     tree: 'repeat-square.html',
     behaviors: {
         '.square': {

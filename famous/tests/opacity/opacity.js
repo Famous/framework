@@ -1,4 +1,4 @@
-BEST.module('visual-tests:opacity', 'HEAD', {
+BEST.module('famous:tests:opacity', 'HEAD', {
     behaviors: {
         '#ui2' : {
             position: [0, 250],
