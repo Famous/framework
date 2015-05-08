@@ -1,29 +1,30 @@
 #!/usr/bin/env node
 
-var program = require('commander');
+var Program = require('commander');
 var Assistant = require('./../lib/assistant');
+
 var assistant = new Assistant();
 
-program
+Program
     .command('watch')
     .description('Watch for changes and then synchronize')
     .option('-b, --baseDir [baseDir]', 'Base directory to watch', process.cwd())
     .option('-s, --subDir [subDir]', 'Subdirectory to watch', '')
     .action(function(info) {
         var baseDir = info.baseDir;
-        var subDir = info.subDir;
+        var subDir = info.subDir || '';
         assistant.watchDirectory(baseDir, subDir);
     });
 
-program
+Program
     .command('sync')
     .description('Synchronize the given module with Ecosystem')
     .option('-b, --baseDir [baseDir]', 'Base directory to watch', process.cwd())
     .option('-s, --subDir [subDir]', 'Subdirectory to watch', '')
     .action(function(info) {
         var baseDir = info.baseDir;
-        var subDir = info.subDir;
+        var subDir = info.subDir || '';
         assistant.syncAll(baseDir, subDir);
     });
 
-program.parse(process.argv);
+Program.parse(process.argv);
