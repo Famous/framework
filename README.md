@@ -6,10 +6,10 @@ Local development workspace for core BEST framework engineers
 
 This repo ties together the services to run framework locally:
 
-    * **assistant:** Local development helpers
-    * **components:** Framework scenes/modules developed by us
-    * **ecosystem:** Server-side; compilation, Hub integration
-    * **runtime:** The in-browser scene renderer
+* **assistant:** Local development helpers
+* **components:** Framework scenes/modules developed by us
+* **ecosystem:** Server-side; compilation, Hub integration
+* **runtime:** The in-browser scene renderer
 
 ## Development
 
