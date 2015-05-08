@@ -3,7 +3,7 @@ BEST.module('imtiaz.majeed:timeline:example', 'HEAD', {
         '#circle-container': {
             'size': function(size) {
                 return size;
-            },
+            }, 
             'origin': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
             'align': [0.5, 0.5]
@@ -114,7 +114,7 @@ BEST.module('imtiaz.majeed:timeline:example', 'HEAD', {
         'bouncySize': {
             auto: true,
             duration: 1000,
-            speed: 0.5
+            speed: 0.5,
             flexframes: {
                 0:      { 'size': [[200, 200],  {curve: 'outBounce'}] },
                 '50%':  { 'size': [[100, 100],  {curve: 'outBounce'}] },
