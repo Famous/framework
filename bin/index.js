@@ -24,7 +24,10 @@ Program
     .action(function(info) {
         var baseDir = info.baseDir;
         var subDir = info.subDir || '';
-        assistant.syncAll(baseDir, subDir);
+        assistant.syncAll(baseDir, subDir, function(err, result) {
+            if (err) console.error(err);
+            else console.log(result.body);
+        });
     });
 
 Program.parse(process.argv);
