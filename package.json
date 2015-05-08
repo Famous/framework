@@ -13,8 +13,8 @@
     "serve-build": "serve build -p 1337"
   },
   "devDependencies": {
-    "best-assistant": "git+ssh://git@github.famo.us/framework/assistant#master",
-    "best-components": "git+ssh://git@github.famo.us/framework/components#master",
+    "best-assistant": "git+ssh://git@github.famo.us/framework/assistant#develop",
+    "best-components": "git+ssh://git@github.famo.us/framework/components#develop",
     "best-ecosystem": "git+ssh://git@github.famo.us/framework/ecosystem#develop",
     "best-runtime": "git+ssh://git@github.famo.us/framework/runtime#develop",
     "browserify": "^10.1.3",
