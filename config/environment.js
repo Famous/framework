@@ -8,7 +8,7 @@ var ENVS = {
 var DEFAULT_ENV = ENVS['development'];
 var userSpecifiedEnv = process.env.ECOSYSTEM_ENV;
 var kind = ENVS[userSpecifiedEnv] || DEFAULT_ENV;
-var PORT = 3000;
+var PORT = 8357;
 
 module.exports = {
     kind: kind,

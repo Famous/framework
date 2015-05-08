@@ -51,5 +51,5 @@ app.post('/versions.json', function(req, res) {
 });
 
 app.listen(PORT);
-console.log('Starting up best-ecosystem');
+console.log('Starting up best-ecosystem ...');
 console.log('Listening on port ' + PORT + '...');
