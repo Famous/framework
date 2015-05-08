@@ -37,7 +37,7 @@ Watch(MODULES_DIR, function(filename) {
         var partialDir = moduleDir.replace(MODULES_DIR + '/', '');
         var baseDir = MODULES_DIR;
         console.log('syncing ' + Path.basename(filename) + ' @ ' + DEFAULT_TAG);
-        Sync.single(baseDir, partialDir, DEFAULT_TAG, function(err, result) {
+        Sync.single(baseDir, partialDir, function(err, result) {
             if (err) console.error(err);
             else console.log('synced ' + partialDir);
         });
