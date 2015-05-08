@@ -6,9 +6,9 @@
   "author": "Matthew Trost <matthew@famo.us>",
   "license": "Proprietary",
   "scripts": {
-    "rerun-tests": "watch 'npm run test' lib",
-    "watch": "node tasks/watch.js",
-    "sync-all": "node tasks/sync-all.js",
+    "develop": "npm run serve & npm run watch",
+    "watch": "best-assistant watch --baseDir=$PWD/data/modules",
+    "sync": "best-assistant sync --baseDir=$PWD/data/modules",
     "serve": "node server.js",
     "test": "tape test/*.spec.js"
   },
@@ -17,7 +17,8 @@
     "node-watch": "^0.3.4",
     "tap-spec": "^3.0.0",
     "tape": "^4.0.0",
-    "testling": "^1.7.1"
+    "testling": "^1.7.1",
+    "best-assistant": "git+ssh://@github.famo.us:framework/assistant.git#master"
   },
   "dependencies": {
     "async": "^0.9.0",

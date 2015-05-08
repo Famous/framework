@@ -34,8 +34,8 @@ To get started:
     $ git clone git@github.famo.us:framework/ecosystem.git
     $ cd ecosystem
     $ npm i
-    $ npm run sync-all
-    $ npm run serve & npm run watch
+    $ npm run develop
+    $ npm run sync # In another Terminal tab, from the same folder
 
 The BEST module "originals" are stored within the `data/modules` folder. This is where you can add/edit/remove BEST modules.
 
