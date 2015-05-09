@@ -4,8 +4,7 @@
   "author": "Matthew Trost <matthew@famo.us>",
   "license": "MIT",
   "scripts": {
-    "preinstall": "npm i -g envify",
-    "develop": "npm run start-ecosystem & npm run watch-components & npm run watch-runtime & npm run serve-build",
+    "develop": "livereload . -p 35729 -i 5000 & npm run start-ecosystem & npm run watch-components & npm run watch-runtime & npm run serve-build",
     "start-ecosystem": "cd node_modules/best-ecosystem && npm run serve",
     "sync-components": "ECOSYSTEM_BASE_URI=http://localhost:8357/ best-assistant sync --baseDir=$PWD/node_modules/best-components/",
     "watch-components": "ECOSYSTEM_BASE_URI=http://localhost:8357/ best-assistant watch --baseDir=$PWD/node_modules/best-components/",
@@ -19,6 +18,7 @@
     "best-runtime": "git+ssh://git@github.famo.us/framework/runtime#develop",
     "browserify": "^10.1.3",
     "envify": "^3.4.0",
+    "livereload": "^0.3.7",
     "serve": "^1.4.0",
     "watchify": "^3.2.1"
   }
