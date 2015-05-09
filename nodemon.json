@@ -1,0 +1,10 @@
+{
+  "ignore": [
+    ".git",
+    "node_modules/**/node_modules",
+    "public/best-ecosystem"
+  ],
+  "verbose": true,
+  "events": {
+  }
+}
