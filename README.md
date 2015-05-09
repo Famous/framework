@@ -27,19 +27,12 @@ When the client-side framework makes a request for a Version, Ecosystem returns 
 
 ## Development
 
-Note: This repo is already included with the `framework/best` repo for local development convenience.
-
 To get started:
 
     $ git clone git@github.famo.us:framework/ecosystem.git
     $ cd ecosystem
     $ npm i
-    $ npm run develop
-    $ npm run sync # In another Terminal tab, from the same folder
-
-The BEST module "originals" are stored within the `data/modules` folder. This is where you can add/edit/remove BEST modules.
-
-As changes are made to this directory, bundles will be rebuilt into `public/best-ecosystem` folder. Ecosystem will serve these from [localhost:3000](http://localhost:3000).
+    $ npm run serve
 
 ## License
 
