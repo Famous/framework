@@ -2,8 +2,10 @@ function foo(){
     console.log(1);
 }
 
+var na = "woo";
+
 BEST.scene('fixtures:entrypoint', 'HEAD', {
-    tree: '<view></view><ui-element></ui-element>',
+    tree: `<view></view><ui-element></ui-element>`,
     something: 'foo.js',
     another: {},
     lalalala: {

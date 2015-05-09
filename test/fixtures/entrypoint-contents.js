@@ -12,7 +12,9 @@ var files = [
     { path: 'lalala.html', content: '<ui-element></ui-element>' },
     { path: 'blah.less', content: '.class { width: (1 + 1) }' },
     { path: 'subdir/blah.styl', content: '.class\n\t  width: 100%' },
-    { path: '~ecosystem.json', content: '{"foo":"bar"}' }
+    { path: '~ecosystem.json', content: '{"foo":"bar"}' },
+    //{ path: 'foob.sass', content: ' ' }, // <~ should generate a warning
+    //{ path: '.something', content: ''}
 ];
 
 module.exports = {
