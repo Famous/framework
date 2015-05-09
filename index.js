@@ -29,7 +29,8 @@ es.TYPES = {
     LITERAL: 'Literal',
     MEMBER_EXPRESSION: 'MemberExpression',
     NEW_EXPRESSION: 'NewExpression',
-    OBJECT_EXPRESSION: 'ObjectExpression'
+    OBJECT_EXPRESSION: 'ObjectExpression',
+    TEMPLATE_LITERAL: 'TemplateLiteral'
 };
 
 es.isArrayExpression = function(subTree) { return subTree.type === es.TYPES.ARRAY_EXPRESSION; };
@@ -42,6 +43,7 @@ es.isLiteral = function(subTree) { return subTree.type === es.TYPES.LITERAL; };
 es.isMemberExpression = function(subTree) { return subTree.type === es.TYPES.MEMBER_EXPRESSION; };
 es.isNewExpression = function(subTree) { return subTree.type === es.TYPES.NEW_EXPRESSION; };
 es.isObjectExpression = function(subTree) { return subTree.type === es.TYPES.OBJECT_EXPRESSION; };
+es.isTemplateLiteral = function(subTree) { return subTree.type === es.TYPES.TEMPLATE_LITERAL; };
 
 es.EMPTY_OBJECT_EXPRESSION = {
     type: es.TYPES.OBJECT_EXPRESSION,
@@ -67,8 +69,8 @@ es.traverse = function(ast, iterator) {
     });
 };
 
-es.generate = function(ast) {
-    return generate(ast);
+es.generate = function(ast, options) {
+    return generate(ast, options);
 };
 
 es.establishAncestry = function(ast) {
@@ -148,6 +150,10 @@ es.getObjectValue = function(subTree) {
     return objectToReturn;
 };
 
+es.getTemplateLiteralValue = function(subTree) {
+    return es.buildScopeDependant(subTree);
+};
+
 es.getNativeValue = function(subTree) {
     switch (subTree.type) {
         case es.TYPES.ARRAY_EXPRESSION: return es.getArrayValue(subTree);
@@ -161,6 +167,7 @@ es.getNativeValue = function(subTree) {
         case es.TYPES.MEMBER_EXPRESSION: return es.getMemberValue(subTree);
         case es.TYPES.NEW_EXPRESSION: return es.getNewExpressionValue(subTree);
         case es.TYPES.OBJECT_EXPRESSION: return es.getObjectValue(subTree);
+        case es.TYPES.TEMPLATE_LITERAL: return es.getTemplateLiteralValue(subTree);
         default:
             console.error('Unhandled subtree type `' + subTree.type + '`');
             return es.buildScopeDependant(subTree);
