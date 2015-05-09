@@ -12,10 +12,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "best-function-parser": "git+ssh://git@github.famo.us:framework/function-parser#master",
-    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#master",
     "famous": "git+ssh://git@github.famo.us:platform/famous#20150506",
-    "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#master",
+    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#develop",
+    "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#develop",
     "mustache": "^1.1.0",
     "xhr": "^2.0.1"
   }
