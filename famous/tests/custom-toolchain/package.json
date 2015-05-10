@@ -1,0 +1,17 @@
+{
+  "name": "custom-toolchain",
+  "version": "1.0.0",
+  "description": "",
+  "main": "custom-toolchain.js",
+  "author": "",
+  "license": "ISC",
+  "scripts": {
+    "build": "browserify browserify-me.js -o custom-toolchain.js"
+  },
+  "devDependencies": {
+    "browserify": "^10.1.3"
+  },
+  "dependencies": {
+    "qs": "^2.4.2"
+  }
+}
