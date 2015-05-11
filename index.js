@@ -40,6 +40,7 @@ es.isConditionalExpression = function(subTree) { return subTree.type === es.TYPE
 es.isFunctionExpression = function(subTree) { return subTree.type === es.TYPES.FUNCTION_EXPRESSION; };
 es.isIdentifier = function(subTree) { return subTree.type === es.TYPES.IDENTIFIER; };
 es.isLiteral = function(subTree) { return subTree.type === es.TYPES.LITERAL; };
+es.isStringLiteral = function(subTree) { return es.isLiteral(subTree) && typeof subTree.value === 'string'};
 es.isMemberExpression = function(subTree) { return subTree.type === es.TYPES.MEMBER_EXPRESSION; };
 es.isNewExpression = function(subTree) { return subTree.type === es.TYPES.NEW_EXPRESSION; };
 es.isObjectExpression = function(subTree) { return subTree.type === es.TYPES.OBJECT_EXPRESSION; };
