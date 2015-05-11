@@ -15,6 +15,6 @@ BEST.module('famous:tests:scope', 'HEAD', {
 .config({
     imports: {
         'famous:core': ['ui-element'],
-        'famous:examples:demos': ['clickable-square']
+        'famous:demos': ['clickable-square']
     }
 });
