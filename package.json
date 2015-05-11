@@ -1,5 +1,5 @@
 {
-  "name": "es",
+  "name": "best-es",
   "version": "0.0.0",
   "description": "Parsing and AST-exploration helpers for Esprima",
   "main": "index.js",
