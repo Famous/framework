@@ -48,6 +48,7 @@ app.post('/versions.json', function(req, res) {
         });
     }
     else {
+        console.log('best-ecosystem: Attempting to save `' + body.name + '`');
         var version = new Version();
         version.save(body.name, body.files, function(saveErr, result) {
             if (saveErr) {
