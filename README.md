@@ -56,7 +56,7 @@ States are the _arbitrary (and serializable) values_ encapsulated by a module. T
 
 #### Trees
 
-Trees are _declarative representations of the [scene graph](http://en.wikipedia.org/wiki/Scene_graph), which describes the structure of an application's visual elements. Each module has only one tree. The tree can be represented by any language that can adequately describe a [tree structure](http://en.wikipedia.org/wiki/Tree_%28graph_theory%29), for example, XML:
+Trees are _declarative representations of the [scene graph](http://en.wikipedia.org/wiki/Scene_graph)_, which describes the structure of an application's visual elements. Each module has only one tree. The tree can be represented by any language that can adequately describe a [tree structure](http://en.wikipedia.org/wiki/Tree_%28graph_theory%29), for example, XML:
 
     <view>
         <surface></surface>
