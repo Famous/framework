@@ -86,3 +86,19 @@ A robust [dependency injection](http://en.wikipedia.org/wiki/Dependency_injectio
             return tally / 123;
         }
     }
+
+- - - -
+
+## In practice
+
+Coming soon!
+
+- - - -
+
+## Authors
+
+Matthew Trost <matthew@famo.us>
+
+## License
+
+Copyright (c) 2015 Famous Industries, Inc. MIT license. See LICENSE.txt.
