@@ -1,7 +1,9 @@
 # guide
 
 > BEST
+>
 > Behavior - Event - State - Tree
+>
 > An architecture and a framework
 > for building consistent, modular,
 > and extensible applications.
