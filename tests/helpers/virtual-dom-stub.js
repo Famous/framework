@@ -7,6 +7,7 @@ wrapper
     parent:element#PARENT
         child:element.FIRST_CHILD(uid=0)
             grandchild:element
+                greatgrandchild:element
         child:element(uid=1)
             grandchild:element
         child:element(uid=2)
@@ -20,6 +21,7 @@ var STUB_ONE_INFO = {
     PARENT_ID: 'PARENT',
     FIRST_CHILD_CLASS_NAME: 'FIRST_CHILD',
     GRANDCHILD_NAME: 'grandchild:element',
+    GREAT_GRANDCHILD_NAME: 'greatgrandchild:element',
     GRANDCHILDREN_COUNT: 3,
     CHILD_COUNT: 6,
     UID_KEY: 'uid'
@@ -33,6 +35,7 @@ function createStubOne () {
 
     var child
     var grandchild;
+    var greatgrandchild;
     for(var i = 0; i < STUB_ONE_INFO.CHILD_COUNT; i++) {
         child = document.createElement('child:element');
         child.setAttribute(STUB_ONE_INFO.UID_KEY, i);
@@ -42,6 +45,10 @@ function createStubOne () {
         }
         if (i < STUB_ONE_INFO.GRANDCHILDREN_COUNT) {
             grandchild = document.createElement(STUB_ONE_INFO.GRANDCHILD_NAME);
+            if (i === 0) {
+                greatgrandchild = document.createElement(STUB_ONE_INFO.GREAT_GRANDCHILD_NAME);
+                grandchild.appendChild(greatgrandchild);
+            }
             child.appendChild(grandchild);
         }
     }

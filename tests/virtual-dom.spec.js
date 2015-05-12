@@ -11,6 +11,7 @@ wrapper
     parent:element#PARENT
         child:element.FIRST_CHILD(uid=0)
             grandchild:element
+                greatgrandchild:element
         child:element(uid=1)
             grandchild:element
         child:element(uid=2)
