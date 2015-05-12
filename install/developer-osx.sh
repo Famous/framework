@@ -15,7 +15,9 @@ git clone git@github.famo.us:framework/state-manager.git
 cd ecosystem && npm link && cd ..
 cd es && npm link && cd ..
 cd components && npm link && cd ..
-cd assistant && npm link && cd ..
+if [ ! -f /usr/local/bin/best-assistant ]; then
+    cd assistant && npm link && cd ..
+fi
 cd workspace && npm link && cd ..
 cd runtime && npm link && cd ..
 cd utilities && npm link && cd ..
