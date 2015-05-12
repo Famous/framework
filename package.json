@@ -4,6 +4,7 @@
   "author": "Matthew Trost <matthew@famo.us>",
   "license": "MIT",
   "scripts": {
+    "seed": "./seed.sh",
     "develop": "node ./livereload.js & npm run start-ecosystem & npm run watch-components & npm run watch-runtime & npm run serve-build",
     "start-ecosystem": "cd node_modules/best-ecosystem && npm run serve",
     "sync-components": "ECOSYSTEM_BASE_URI=http://localhost:8357/ best-assistant sync --baseDir=$PWD/node_modules/best-components/",
