@@ -103,7 +103,7 @@ Since state in BEST cannot be shared between modules, event functions become the
 
 #### Declarative composition
 
-Because BEST is an architecture for scene-graph applications (for example, [Famous](http://famous.org)), and since every BEST module's scene graph is described by a declarative tree, composing and extending scenes is as easy as copying and pasting a line of code. Consider this snippet, in which a developer has placed a carousel, a video, and a accordion list into three-column layout. Any of these components could be trivially replaced by another one.
+Because BEST is an architecture for scene-graph applications (for example, [Famous](http://famous.org)), and since every BEST module's scene graph is described by a declarative tree, composing and extending scenes is as easy as copying and pasting a line of code. Consider this snippet, in which a developer has placed a carousel, a video, and an accordion list into three-column layout. Any of these components could be trivially replaced by another one.
 
     <layout-3-col>
         <col> <carousel> ... </carousel> </col>
@@ -113,7 +113,7 @@ Because BEST is an architecture for scene-graph applications (for example, [Famo
 
 #### Pure effects
 
-Behaviors functions are pure functions: They may have no observable side-effects, and they must always return the same result for the same argument values. The upshot is that, for any given snapshot of the state values, the rendered scene will always look precisely the same. In applications that manage time, such as [Famous](http://famous.org), and those that incorporate reproducible [randomness](http://en.wikipedia.org/wiki/Pseudorandom_number_generator), frame-by-frame replayability becomes possible.
+Behaviors functions are pure functions: They have no observable side-effects, and they must always return the same result for the same argument values. The upshot is that, for any given snapshot of the state values, the rendered scene will always look precisely the same. In applications that manage time, such as [Famous](http://famous.org), frame-by-frame replayability becomes possible.
 
 - - - -
 
