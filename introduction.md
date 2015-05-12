@@ -143,13 +143,3 @@ For now, please use the [installation instructions for core developers](#for-con
 - - - -
 
 To be continued ...
-
-- - - -
-
-## Authors
-
-Matthew Trost <matthew@famo.us>
-
-## License
-
-Copyright (c) 2015 Famous Industries, Inc. MIT license. See LICENSE.txt.
