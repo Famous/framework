@@ -62,7 +62,9 @@ Trees are _declarative representations of the [scene graph](http://en.wikipedia.
         <surface></surface>
     </view>
 
-### Relational joins
+### Ancillary patterns
+
+#### Relational joins
 
 To keep module code as concise and declarative as possible, in implementation of the BEST architecture should make use of a [relational join](http://en.wikipedia.org/wiki/Relational_algebra#Joins_and_join-like_operators) system that can apply behaviors to any subset of a module's visual elements. Consider this snippet, which expresses that "the `position` return value should apply to all `view` elements":
 
@@ -78,7 +80,7 @@ To keep module code as concise and declarative as possible, in implementation of
     </view>
     <other></other>
 
-### Dependency injection
+#### Dependency injection
 
 A robust [dependency injection](http://en.wikipedia.org/wiki/Dependency_injection) system allows the intent of a module's behaviors to be communicated clearly. The ideal implementation of the BEST architecture will perform dependency injection transparently, for both behavior and event functions. Consider the following example, which expresses that "the view's position is a function of the tally":
 
@@ -88,6 +90,30 @@ A robust [dependency injection](http://en.wikipedia.org/wiki/Dependency_injectio
             return tally / 123;
         }
     }
+
+### Benefits of the architecture
+
+#### Isolated statefulness
+
+Even simple interfaces can depend on a lot of state manipulation. Add user interactions, input fields, and remote data-loading to the mix, and statefulness can balloon; scattered state can be particularly difficult to debug. With BEST, every module's state is entirely encapsulated, and can only be mutated in one place: event functions. This enclosure makes it much more obvious where and when state has changed, and what the precise effects of each change are.
+
+#### Strict messaging interface
+
+Since state in BEST cannot be shared between modules, event functions become the only conduit for one module to affect the internal state of another. BEST strictly enforces the important idea of [message passing](http://en.wikipedia.org/wiki/Object-oriented_programming#Dynamic_dispatch.2Fmessage_passing) from object-oriented programming: Developers must think carefully about the interface they want their module to expose, and it should be the responsibility of the module, not external code, to decide how to change.
+
+#### Declarative composition
+
+Because BEST is an architecture for scene-graph applications (for example, [Famous](http://famous.org)), and since every BEST module's scene graph is described by a declarative tree, composing and extending scenes is as easy as copying and pasting a line of code. Consider this snippet, in which a developer has placed a carousel, a video, and a accordion list into three-column layout. Any of these components could be trivially replaced by another one.
+
+    <layout-3-col>
+        <col> <carousel> ... </carousel> </col>
+        <col> <video> ... </video> </col>
+        <col> <accordion> ... </accordion> </col>
+    </layout-3-col>
+
+#### Pure effects
+
+Behaviors functions are pure functions: They may have no observable side-effects, and they must always return the same result for the same argument values. The upshot is that, for any given snapshot of the state values, the rendered scene will always look precisely the same. In applications that manage time, such as [Famous](http://famous.org), and those that incorporate reproducible [randomness](http://en.wikipedia.org/wiki/Pseudorandom_number_generator), frame-by-frame replayability becomes possible.
 
 - - - -
 
