@@ -1,34 +1,14 @@
-# Introduction
+# Architecture
 
-> BEST
->
-> Behavior - Event - State - Tree
->
-> An architecture and a framework
-> for building consistent, modular,
-> and extensible applications.
+## The theory
 
-This guide is an introduction to the BEST architecture and framework, **intended for intermediate-to-advanced developers**. If you're interested in the high-level concepts and principles, see [In Theory](#in-theory). If you want to dive into actual code, skip down to [In Practice](#in-practice).
+User interfaces are [state machines](http://en.wikipedia.org/wiki/Finite-state_machine#Example:_a_turnstile). Visual elements depict the current state; user interactions occur, prompting the elements to transition to new states; and so on. In one sense, BEST simply provides a nomenclature for this flow.
 
-- - - -
+## Structure and data flow
 
-## Overview
+Data in BEST modules flows in one direction. User actions and programmatic events trigger _event_ functions, which mutate the module's internal _state_. Changed state values are piped to _behavior_ functions, which return values of their own. The behaviors values (which can represent style, content, or animation characteristics) are applied to nodes in the _tree_, i.e., the scene graph.
 
-BEST is an architectural pattern developed at [Famous](http://famous.org) for building composable applications. The acronym stands for _behavior_ _event_ _state_ _tree_, for the main ingredients of modules that have both stateful and functional characteristics.
-
-BEST is more than a handful of recommendations and priciples, however. It's also an [open-source development platform](https://github.famo.us/framework) that invited developers can begin using today. Developed to work hand-in-hand with the Famous rendering engine, Famous studio editing tools, and Famous cloud services, it's ideal for modern UI development.
-
-- - - -
-
-## In theory
-
-User interfaces are [state machines](http://en.wikipedia.org/wiki/Finite-state_machine#Example:_a_turnstile). Visual elements depict the current state; user interactions occur, prompting the elements to transition to new states; and so on. In one sense, BEST is simply a nomenclature for this flow.
-
-### Structure and data flow
-
-Data in BEST modules flows in one direction. User actions and programmatic events trigger event functions, which mutate the module's internal state. Changed state values are piped to behavior functions, which return values of their own. The behaviors values (which can represent style, content, or animation characteristics) are applied to nodes in the scene graph.
-
-#### Behaviors
+### Behaviors
 
 Behaviors are _pure functions triggered by changes in state_. They return values that describe how visual elements should reflect the newly established state. For example, the following behavior function responds to changes in `clickCount`, reflecting a new `position` back to a `view` element in its scene:
 
@@ -38,7 +18,7 @@ Behaviors are _pure functions triggered by changes in state_. They return values
         }
     }
 
-#### Events
+### Events
 
 Events are functions that respond to user interactions and other phenomena. Their job is to _mutate state values_ that are managed by the module to which they belong. (How exactly the state mutation occurs should be considered an implementation detail of the function.) In this example, a `click` input event on a `surface` element has the effect of incrementing the state value `clickCount`:
 
@@ -48,23 +28,24 @@ Events are functions that respond to user interactions and other phenomena. Thei
         }
     }
 
-#### States
+### States
 
 States are the _arbitrary (and serializable) values_ encapsulated by a module. These values can describe the module's current state at any time. States must be isolated and cannot be shared between modules; only a module's event functions are permitted write-access to states. The default value for all of a module's states can be given as a simple object:
 
     { clickCount: 0 }
 
-#### Trees
+### Trees
 
 Trees are _declarative representations of the [scene graph](http://en.wikipedia.org/wiki/Scene_graph)_, which describes the structure of an application's visual elements. Each module has only one tree. The tree can be represented by any language that can adequately describe a [tree structure](http://en.wikipedia.org/wiki/Tree_%28graph_theory%29), for example, XML:
 
+    <!-- or subsitute with your structure language of choice -->
     <view>
         <surface></surface>
     </view>
 
-### Ancillary patterns
+## Ancillary patterns
 
-#### Relational joins
+### Relational joins
 
 To keep module code as concise and declarative as possible, in implementation of the BEST architecture should make use of a [relational join](http://en.wikipedia.org/wiki/Relational_algebra#Joins_and_join-like_operators) system that can apply behaviors to any subset of a module's visual elements. Consider this snippet, which expresses that "the `position` return value should apply to all `view` elements":
 
@@ -80,7 +61,7 @@ To keep module code as concise and declarative as possible, in implementation of
     </view>
     <other></other>
 
-#### Dependency injection
+### Dependency injection
 
 A robust [dependency injection](http://en.wikipedia.org/wiki/Dependency_injection) system allows the intent of a module's behaviors to be communicated clearly. The ideal implementation of the BEST architecture will perform dependency injection transparently, for both behavior and event functions. Consider the following example, which expresses that "the view's position is a function of the tally":
 
@@ -91,17 +72,17 @@ A robust [dependency injection](http://en.wikipedia.org/wiki/Dependency_injectio
         }
     }
 
-### Benefits of the architecture
+## Benefits of the architecture
 
-#### Isolated statefulness
+### Isolated statefulness
 
 Even simple interfaces can depend on a lot of state manipulation. Add user interactions, input fields, and remote data-loading to the mix, and statefulness can balloon; scattered state can be particularly difficult to debug. With BEST, every module's state is entirely encapsulated, and can only be mutated in one place: event functions. This enclosure makes it much more obvious where and when state has changed, and what the precise effects of each change are.
 
-#### Strict messaging interface
+### Strict messaging interface
 
 Since state in BEST cannot be shared between modules, event functions become the only conduit for one module to affect the internal state of another. BEST strictly enforces the important idea of [message passing](http://en.wikipedia.org/wiki/Object-oriented_programming#Dynamic_dispatch.2Fmessage_passing) from object-oriented programming: Developers must think carefully about the interface they want their module to expose, and it should be the responsibility of the module, not external code, to decide how to change.
 
-#### Declarative composition
+### Declarative composition
 
 Because BEST is an architecture for scene-graph applications (for example, [Famous](http://famous.org)), and since every BEST module's scene graph is described by a declarative tree, composing and extending scenes is as easy as copying and pasting a line of code. Consider this snippet, in which a developer has placed a carousel, a video, and an accordion list into three-column layout. Any of these components could be trivially replaced by another one.
 
@@ -111,35 +92,6 @@ Because BEST is an architecture for scene-graph applications (for example, [Famo
         <col> <accordion> ... </accordion> </col>
     </layout-3-col>
 
-#### Pure effects
+### Pure effects
 
 Behaviors functions are pure functions: They have no observable side-effects, and they must always return the same result for the same argument values. The upshot is that, for any given snapshot of the state values, the rendered scene will always look precisely the same. In applications that manage time, such as [Famous](http://famous.org), frame-by-frame replayability becomes possible.
-
-- - - -
-
-## In practice
-
-The [BEST development platform](https://github.famo.us/framework), built by engineers at Famous, is the first implementation of the pattern described above. Not only does the BEST platform provide an easy-to-use API for harnessing the Famous rendering engine, it is also designed to connect your application to Famous cloud services and Famous visual studio tools with no additional code.
-
-### Installation and setup
-
-#### For contributors to BEST core
-
-This setup is for developers who want to both contribute to the core framework implementation _and_ develop modules/scenes. Soon we'll be providing simpler installation and setup options for those who only want to build modules/scenes.
-
-    $ cd my/amazing/projects/directory
-    $ git clone git@github.famo.us:framework/scripts.git
-    $ ./scripts/install/developer-osx.sh
-    $ cd best-ecosystem/workspace
-    $ npm run seed
-    $ npm run develop
-
-The final step in these commands will start up the local development environment. Once everything has started up, you should be able to visit [localhost:1337](http://localhost:1337) in your browser and see a demonstration widget running.
-
-#### For app/widget/module developers
-
-For now, please use the [installation instructions for core developers](#for-contributors-to-best-core).
-
-- - - -
-
-To be continued ...
