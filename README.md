@@ -13,7 +13,7 @@ This repo ties together the services to run framework locally:
 
 ## Development
 
-See the [installer scripts](https://github.famo.us/framework/install) for info.
+See the [install scripts](https://github.famo.us/framework/scripts/tree/master/install) for info.
 
 Once installed, start up the local development server:
 
