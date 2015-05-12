@@ -8,7 +8,7 @@
 > for building consistent, modular,
 > and extensible applications.
 
-This guide is an introduction to the BEST architecture and framework, intended for intermediate-to-advanced developers. If you're interested in the high-level concepts and principles, see [In Theory](#in-theory). If you want to dive into actual code, skip down to [In Practice](#in-practice).
+This guide is an introduction to the BEST architecture and framework, **intended for intermediate-to-advanced developers**. If you're interested in the high-level concepts and principles, see [In Theory](#in-theory). If you want to dive into actual code, skip down to [In Practice](#in-practice).
 
 - - - -
 
@@ -16,7 +16,7 @@ This guide is an introduction to the BEST architecture and framework, intended f
 
 BEST is an architectural pattern developed at [Famous](http://famous.org) for building composable applications. The acronym stands for _behavior_ _event_ _state_ _tree_, for the main ingredients of modules that have both stateful and functional characteristics.
 
-BEST is more than a handful of recommendations and priciples, however. It's also an open-source development platform that you can begin using today. Developed to work hand-in-hand with the Famous rendering engine, Famous studio editing tools, and Famous cloud services, it's ideal for modern UI development.
+BEST is more than a handful of recommendations and priciples, however. It's also an [open-source development platform](https://github.famo.us/framework) that invited developers can begin using today. Developed to work hand-in-hand with the Famous rendering engine, Famous studio editing tools, and Famous cloud services, it's ideal for modern UI development.
 
 - - - -
 
@@ -119,7 +119,30 @@ Behaviors functions are pure functions: They may have no observable side-effects
 
 ## In practice
 
-Coming soon!
+The [BEST development platform](https://github.famo.us/framework), built by engineers at Famous, is the first implementation of the pattern described above. Not only does the BEST platform provide an easy-to-use API for harnessing the Famous rendering engine, it is also designed to connect your application to Famous cloud services and Famous visual studio tools with no additional code.
+
+### Installation and setup
+
+#### For contributors to BEST core
+
+This setup is for developers who want to both contribute to the core framework implementation _and_ develop modules/scenes. Soon we'll be providing simpler installation and setup options for those who only want to build modules/scenes.
+
+    $ cd my/amazing/projects/directory
+    $ git clone git@github.famo.us:framework/scripts.git
+    $ ./scripts/install/developer-osx.sh
+    $ cd best-ecosystem/workspace
+    $ npm run seed
+    $ npm run develop
+
+The final step in these commands will start up the local development environment. Once everything has started up, you should be able to visit [localhost:1337](http://localhost:1337) in your browser and see a demonstration widget running.
+
+#### For app/widget/module developers
+
+For now, please use the [installation instructions for core developers](#for-contributors-to-best-core).
+
+- - - -
+
+To be continued ...
 
 - - - -
 
