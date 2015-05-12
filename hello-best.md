@@ -4,4 +4,4 @@ The [BEST development platform](https://github.famo.us/framework), built by engi
 
 ## Installation &amp; setup
 
-See [Installation &amp; setup].
+See [Installation &amp; setup](setup.md).
