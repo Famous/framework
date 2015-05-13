@@ -41,4 +41,10 @@ BEST.module('famous:demos:repeat-square', 'HEAD', {
         count: 5,
         _backgroundColor: 'red'
     }
-});
+})
+.config({
+    imports: {
+        'famous:core': ['dom-element', 'view', 'ui-element'],
+        'famous:demos': ['clickable-square-with-label']
+    }
+});;
