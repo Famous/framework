@@ -22,7 +22,7 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
     events: {
         '$lifecycle': {
             'post-load': function($timelines) {
-                $timelines.get('growAndShrink').start();
+                $timelines.get('growAndShrink').start({ duration: 1000 });
             }
         },
         '#square': {
@@ -39,17 +39,21 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
 })
 .timelines({
     'growAndShrink': {
-        flexframes: {
-            0:      { 'size': [[200, 200],  {curve: 'easeInOut'}] },
-            '50%':  { 'size': [[400, 400],  {curve: 'easeInOut'}] },
-            1000:   { 'size': [[200, 200]]  }
+        '#square': {
+            'size': {
+                0:      { value: [200, 200], curve: 'easeInOut' },
+                500:    { value: [400, 400], curve: 'easeInOut' },
+                1000:   { value: [200, 200] }
+            }
         }
     },
     'spinAround': {
-        flexframes: {
-            0:      { 'rotationZ': [0,          {curve: 'easeInOut'}] },
-            '50%':  { 'rotationZ': [Math.PI/2,  {curve: 'easeInOut'}] },
-            1000:   { 'rotationZ': [Math.PI*4]  }
+        '#square': {
+            'rotation-z': {
+                0:      { value: 0,         curve: 'easeInOut' },
+                500:    { value: Math.PI/2, curve: 'easeInOut' },
+                1000:   { value: Math.PI*4 }
+            }
         }
     }
 });
