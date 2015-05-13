@@ -12,16 +12,16 @@ git clone git@github.famo.us:framework/runtime.git
 git clone git@github.famo.us:framework/utilities.git
 git clone git@github.famo.us:framework/state-manager.git
 
-cd ecosystem && npm link && cd ..
 cd es && npm link && cd ..
+cd utilities && npm link && cd ..
+cd state-manager && npm link && cd ..
 cd components && npm link && cd ..
 if [ ! -f /usr/local/bin/best-assistant ]; then
     cd assistant && npm link && cd ..
 fi
-cd workspace && npm link && cd ..
+cd ecosystem && npm link && cd ..
 cd runtime && npm link && cd ..
-cd utilities && npm link && cd ..
-cd state-manager && npm link && cd ..
+cd workspace && npm link && cd ..
 
 cd ecosystem
 npm link best-es
