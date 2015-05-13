@@ -53,6 +53,7 @@ If objects are given as the array elements returned by the `$repeat` behavior, t
 
 The `$yield` control-flow behavior allows a component define the conditions under which a parent can insert content into it. In other words, when a `$yield` action occurs, control of some region within a component's tree is "yielded" to the parent.
 
+    // zelda.zulu/yield/yield.js
     // This scene allows content to "punch through"
     BEST.scene('zelda.zulu:yield', 'HEAD', {
         tree: `
@@ -69,6 +70,7 @@ The `$yield` control-flow behavior allows a component define the conditions unde
         }
     });
 
+    // someone/else/else.js
     // This scene uses of zelda.zulu:yield's $yield behavior
     BEST.scene('someone:else', 'HEAD', {
         tree: `
