@@ -6,13 +6,13 @@ var ObjectUtils = require('./object');
  * Converter
  *
  * Converts between 'sweet' (BEST timeline)
- * and 'salty' (visual timeline) representations
+ * and 'salty' (piecewise timeline) representations
  * for easier interfacing of the two timelines.
  */
 
 /**
  * Converts BEST timeline
- * to visual timeline representation.
+ * to piecewise timeline representation.
  */
 function sweetToSalty(sweetTimeline) {
     var saltyTimeline = {};
@@ -42,7 +42,7 @@ function sweetToSalty(sweetTimeline) {
 }
 
 /**
- * Converts visual timeline
+ * Converts piecewise timeline
  * to BEST timeline representation.
  */
 function saltyToSweet(saltyTimeline) {
