@@ -2,7 +2,7 @@ BEST.module('famous:tests:scope', 'HEAD', {
     behaviors: {
         '#surface' : {
             'content' : 'This square should be blue. \n\n Above square should be gray.',
-            'position' : [0, 225],
+            'position' : [100, 325],
             style: {
                 'background-color' : 'blue',
                 'color' : 'white'
