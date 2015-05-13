@@ -54,7 +54,7 @@ function saltyToSweet(saltyTimeline) {
         var selector = selectorBehavior.split('|')[0];
         var behavior = selectorBehavior.split('|')[1];
 
-        sweetTimeline[selector] = {};
+        if (!sweetTimeline[selector]) sweetTimeline[selector] = {};
         sweetTimeline[selector][behavior] = {};
 
         for (var i = 0; i < flexframes.length; i++) {

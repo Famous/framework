@@ -12,6 +12,10 @@ var sweetTimeline = {
         'position': {
             0     : { value: [0, 0, 0], curve: 'outExpo' },
             1000  : { value: [1, 1, 1] }
+        },
+        'size': {
+            0     : { value: [0, 0], curve: 'outExpo' },
+            500   : { value: [9, 9] }
         }
     }
 }
@@ -20,6 +24,10 @@ var saltyTimeline = {
     '#pen|position': [
         [0,     [0, 0, 0],  'outExpo'],
         [1000,  [1, 1, 1],  'linear']
+    ],
+    '#pen|size': [
+        [0,     [0, 0],  'outExpo'],
+        [500,   [9, 9],  'linear']
     ]
 }
 
