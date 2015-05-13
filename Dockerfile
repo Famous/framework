@@ -23,7 +23,7 @@ RUN eval `ssh-agent -s` && \
 
 ENV LD_LIBRARY_PATH /lib-override
 
-EXPOSE 3000
+EXPOSE 8357
 
 # Define user Docker will use on entry
 USER app
