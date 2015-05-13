@@ -1,32 +1,32 @@
 # Control flow
 
-The BEST framework currently supports three basic control-flow operations: `$if`, '$repeat', and `$yield`. Unlike other template-based frameworks, BEST doesn't support progrmaming these kinds of operations inside the structural declaration of your component (the tree). Instead, control flow must be implemented as behaviors.
+The BEST framework currently supports three basic control-flow operations: `$if`, `$repeat`, and `$yield`. Unlike other template-based frameworks, BEST doesn't support programming these kinds of operations inside the structural declaration of your component (the tree). Instead, control flow must be implemented as behaviors.
 
 ## $if
 
 The `$if` control-flow behavior is a special behavior that will add/remove selected components from the scene graph based on a boolean return value. Here's a simple example, in which an element is removed from the scene when it is clicked:
 
-BEST.scene('zelda.zulu:control-flow-if', 'HEAD', {
-    behaviors: {
-        '#el': {
-            // Elements in the tree that match the `#el` selector will
-            // be added/removed from the scene depending on whether the
-            // result of this function is true/false respectively
-            '$if': function(toggle) {
-                return toggle;
+    BEST.scene('zelda.zulu:control-flow-if', 'HEAD', {
+        behaviors: {
+            '#el': {
+                // Elements in the tree that match the `#el` selector will
+                // be added/removed from the scene depending on whether the
+                // result of this function is true/false respectively
+                '$if': function(toggle) {
+                    return toggle;
+                }
             }
-        }
-    },
-    events: {
-        '#el': {
-            'click': function($state) {
-                $state.set('toggle', false);
+        },
+        events: {
+            '#el': {
+                'click': function($state) {
+                    $state.set('toggle', false);
+                }
             }
-        }
-    },
-    states: { toggle: true },
-    tree: `<ui-element id="el"><p>Now you see me...</p></ui-element>`,
-});
+        },
+        states: { toggle: true },
+        tree: `<ui-element id="el"><p>Now you see me...</p></ui-element>`,
+    });
 
 ## $repeat
 
@@ -47,7 +47,7 @@ The `$repeat` control-flow behavior will repeat the selected components a certai
         }
     });
 
-If a objects are given as the array elements returned by the `$repeat` behavior, the properties of those object will be sent as event messages to each repeated component as it is initialized.
+If objects are given as the array elements returned by the `$repeat` behavior, the properties of those objects will be sent as event messages to each repeated component as it is initialized.
 
 ## $yield
 
@@ -83,7 +83,7 @@ In the example above, we introduce one component, `zelda.zulu:yield`, which make
 
 For `zelda.zulu:yield`, the injected content will only be allowed if the injected elements have `id="main-content"` or `id="sidebar-content"`. Moreover, it specifically designates the elements within its own tree that the surrogate content will be placed. (`#main-content` will be inserted into `#main`, and `#sidebar-content` will be inserted into `#sidebar`.)
 
-`$yield` is one of the most fundamental control-flow operations in BEST, because it makes component nesting, layouts, and default/overrideable content possible. And although most components will never need to use `$yield` behaviors directly, almost all will indirectly make use of it, any time they declare even a simple nested tree:
+`$yield` is one of the most fundamental control-flow operations in BEST, because it makes component nesting, layouts, and default/overrideable content possible. And although most components will never need to use `$yield` behaviors directly, almost all will indirectly make use of it -- any time they declare even a simple nested tree:
 
     <view>
         <other-thing></other-thing>
@@ -93,4 +93,6 @@ One of the most commonly used pre-built components in BEST, `<famous:core:view>`
 
 ## A word of warning about performance
 
-Control flow operations should be used sparingly, when possible, because they make direct modifications to the scene graph structure any time they run, a potentially expensive operation. If hiding an element is the goal, for example, it may make sense to toggle a node's `opacity` instead of removing it from the scene entirely through the much-heavier `$if` behavior.
+Control flow operations should be used sparingly, when possible, because they make direct modifications to the scene graph structure any time they run. (Modifying the scene graph is a potentially expensive operation.)
+
+If hiding an element is the goal, for example, it may make sense to toggle a node's `opacity` instead of removing it from the scene entirely through the much-heavier `$if` behavior.
