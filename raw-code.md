@@ -1,4 +1,4 @@
-# Using "raw code"
+# Using "raw" JavaScript
 
 Although we recommend sticking to the BEST conventions as closely as possible, sometimes you just need a way to write some raw JavaScript code without the framework getting in the way. Fortunately, you can do this without needing any additional setup. Just include the code anywhere outside of the `BEST.scene` invocation.
 

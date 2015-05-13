@@ -15,6 +15,7 @@ BEST stands for _behavior_ _event_ _state_ _tree_. It's an architectural pattern
 * [Static assets](static-assets.md)
 * [External CSS and JS](includes.md)
 * [Writing "raw" JS](raw-code.md)
+* [Writing "raw" Famous](raw-famous.md)
 * [Syntactic sugar](sugar.md)
 * [FAQ](faq.md)
 
