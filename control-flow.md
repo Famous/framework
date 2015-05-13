@@ -86,6 +86,7 @@ For `zelda.zulu:yield`, the injected content will only be allowed if the injecte
 `$yield` is one of the most fundamental control-flow operations in BEST, because it makes component nesting, layouts, and default/overrideable content possible. And although most components will never need to use `$yield` behaviors directly, almost all will indirectly make use of it -- any time they declare even a simple nested tree:
 
     <view>
+        <!-- view uses 'yield' to allow other-thing to be injected here -->
         <other-thing></other-thing>
     </view>
 
