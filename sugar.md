@@ -4,7 +4,7 @@ BEST code is written in plain JavaScript, with built-in support for ES5 and ES6 
 
 #### Setter events
 
-It's a common pattern for a BEST component to expose an event whose sole job is to modify a bit of state whose name is the same of the event function. Consider this:
+It's a common pattern for a BEST component to expose an event whose sole job is to modify a bit of state whose name is the same as the event function. Consider this:
 
     events: {
         '$public': {
@@ -30,8 +30,8 @@ Often, we write behavior functions that only react to a single state item, and s
 
     behaviors: {
         '#foo': {
-            'hello': function(someState) {
-                return someState;
+            'hello': function(hello) {
+                return hello;
             }
         }
     }
