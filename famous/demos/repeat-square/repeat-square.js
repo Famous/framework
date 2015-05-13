@@ -29,11 +29,11 @@ BEST.module('famous:demos:repeat-square', 'HEAD', {
     },
     events: {
         '$public': {
-            'update-count' : function(state, message) {
-                state.set('count', message);
+            'update-count' : function($state, $payload) {
+                $state.set('count', $payload);
             },
-            'change-color': function(state, message) {
-                state.set('_backgroundColor', message);
+            'change-color': function($state, $payload) {
+                $state.set('_backgroundColor', $payload);
             }
         }
     },
