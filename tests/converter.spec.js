@@ -17,16 +17,19 @@ var sweetTimeline = {
 }
 
 var saltyTimeline = {
-    'position': [
+    '#pen|position': [
         [0,     [0, 0, 0],  'outExpo'],
         [1000,  [1, 1, 1],  'linear']
     ]
 }
 
 test('convert between timeline representations', function(t) {
-    t.plan(1);
+    t.plan(2);
 
     var actualSaltyTimeline = toSalty(sweetTimeline);
-    t.deepEqual(actualSaltyTimeline, saltyTimeline, 'should convert sweet to salty')
+    t.deepEqual(actualSaltyTimeline, saltyTimeline, 'should convert sweet to salty');
+
+    var actualySweetTimeline = toSweet(saltyTimeline);
+    t.deepEqual(actualySweetTimeline, sweetTimeline, 'should convert salty to sweet');
 });
 
