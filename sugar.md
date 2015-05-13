@@ -45,3 +45,15 @@ The following example is equivalent to the above:
     }
 
 Note that the name of the behavior must exactly match the state name.
+
+#### Jade tree
+
+If preferred, you can use [Jade](http://jade-lang.com/) syntax in your `tree`, for an even more concise way to declare your scene graph:
+
+    tree: `
+        ui-element#element
+            p Hello world
+        view#my-view
+            view#my-other-view
+                // etc
+    `
