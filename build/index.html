@@ -6,11 +6,34 @@
     <title>best-workspace</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>document.write('<script src="http://'+(location.host||'localhost').split(':')[0]+':35729/livereload.js?snipver=1"></'+'script>')</script>
+    <style type="text/css">
+      body {
+        overflow: scroll !important; /* overwrite default Famo.us CSS */
+      }
+    </style>
   </head>
   <body>
     <script type="text/javascript" src="best.bundle.js"></script>
     <script type="text/javascript">
-      BEST.deploy('famous:tests:mount-point', 'HEAD', 'body');
+      // BEST.deploy('famous:tests:assets-a', 'HEAD', 'body');
+      // BEST.deploy('famous:tests:custom-toolchain', 'HEAD', 'body');
+      // BEST.deploy('famous:tests:mount-point', 'HEAD', 'body');
+      // BEST.deploy('famous:tests:opacity', 'HEAD', 'body');
+      // BEST.deploy('famous:tests:pass-through:parent', 'HEAD', 'body');
+      // BEST.deploy('famous:tests:platform-a', 'HEAD', 'body');
+      // BEST.deploy('famous:tests:scope', 'HEAD', 'body');
+
+      // BEST.deploy('famous:demos:circle', 'HEAD', 'body');
+      BEST.deploy('famous:demos:clickable-square', 'HEAD', 'body');
+      // BEST.deploy('famous:demos:clickable-square-with-label', 'HEAD', 'body');
+      // BEST.deploy('famous:demos:colorful-square', 'HEAD', 'body');
+      // BEST.deploy('famous:demos:flipper-button', 'HEAD', 'body');
+      // BEST.deploy('famous:demos:repeat-square', 'HEAD', 'body');
+
+      // BEST.deploy('arkady.pevzner:control-flow:repeat', 'HEAD', 'body');
+      // BEST.deploy('arkady.pevzner:control-flow:static-repeat', 'HEAD', 'body');
+      // BEST.deploy('arkady.pevzner:layouts:header-footer-example', 'HEAD', 'body');
+      // BEST.deploy('imtiaz.majeed:timeline:example', 'HEAD', 'body');
     </script>
   </body>
 </html>
