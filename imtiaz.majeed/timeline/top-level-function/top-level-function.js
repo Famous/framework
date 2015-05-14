@@ -7,7 +7,7 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
             'origin': [0.5, 0.5],
             'style': function() {
                 return {
-                    'background-color': 'red'
+                    'background-color': 'red',
                 }
             }
         }
@@ -15,7 +15,7 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
     events: {
         '$lifecycle': {
             'post-load': function($timelines) {
-                $timelines.get('growAndShrink').start({ duration: 1000 });
+                $timelines.get('intro').start({ duration: 1000 });
             }
         },
         '#square': {
@@ -28,7 +28,7 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
     tree: 'top-level-function.html'
 })
 .timelines({
-    'growAndShrink': {
+    'intro': {
         '#square': {
             'size': {
                 0:      { value: [200, 200], curve: 'easeInOut' },
@@ -38,6 +38,11 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
             'mount-point': {
                 0:      { value: [-0.5, -0.5], curve: 'inExpo'  },
                 1000:   { value: [0.5, 0.5] }
+            },
+            'rotation-z': {
+                0:      { value: 0,         curve: 'easeInOut' },
+                500:    { value: Math.PI/2, curve: 'easeInOut' },
+                1000:   { value: Math.PI*4 }
             }
         }
     },
