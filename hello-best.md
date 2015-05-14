@@ -6,13 +6,13 @@ The [BEST development platform](https://github.famo.us/framework), built by engi
 
 See [Installation &amp; setup](setup.md).
 
-In these guides, we will assume your project's root directory is `best-framework/`, which should have been created with the install process. Unless specified otherwise, all command-line commands should be run from that folder.
+In these guides, **we will assume your project's root directory is `best-framework/`**, which should have been created with the install process. Unless specified otherwise, all command-line commands should be run from that folder.
 
-We'll also assume that your development environment is up-and-running, i.e., that you ran `$ npm run develop` in the previous step. A demonstration page should already be visible at [localhost:1337](http://localhost:1337), and a tab in your terminal should be showing live output logs.
+**We'll also assume that your development environment is up-and-running**, i.e., that you ran `$ npm run develop` in the previous step. A demonstration page should already be visible at [localhost:1337](http://localhost:1337), and a tab in your terminal should be showing live output logs.
 
 ## Starting a new project
 
-Take a look at the `components/` folder. In it, you should see a folder structure similar to this:
+Take a look at the `components/` folder (which should be within the project's root directory). In it, you should see a folder structure similar to this (**the actual folders you see may differ from this list**):
 
     ├── alice.alpha/
     ├── famous/

@@ -8,7 +8,7 @@ BEST stands for _behavior_ _event_ _state_ _tree_. It's an architectural pattern
 
 ## Table of contents
 
-* [Architecture](architecture.md)
+* [Concepts &amp; architecture](architecture.md) (optional)
 * [Installation &amp; setup](setup.md)
 * [Hello BEST](hello-best.md)
 * [Events &amp; behaviors](events-behaviors.md)

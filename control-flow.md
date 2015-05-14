@@ -1,6 +1,6 @@
 # Control flow
 
-The BEST framework currently supports three basic control-flow operations: `$if`, `$repeat`, and `$yield`. Unlike other template-based frameworks, BEST doesn't support programming these kinds of operations inside the structural declaration of your component (the tree). Instead, control flow must be implemented as behaviors.
+The BEST framework currently supports three basic control-flow operations: `$if`, `$repeat`, and `$yield`. Unlike other template-based frameworks, BEST doesn't support programming these kinds of operations inside the structural declaration of your component (i.e. in the tree). Instead, control flow must be implemented as behaviors.
 
 ## $if
 
@@ -88,7 +88,7 @@ For `zelda.zulu:yield`, the injected content will only be allowed if the injecte
 `$yield` is one of the most fundamental control-flow operations in BEST, because it makes component nesting, layouts, and default/overrideable content possible. And although most components will never need to use `$yield` behaviors directly, almost all will indirectly make use of it -- any time they declare even a simple nested tree:
 
     <view>
-        <!-- view uses 'yield' to allow other-thing to be injected here -->
+        <!-- `view` uses 'yield' to allow `other-thing` to be injected here -->
         <other-thing></other-thing>
     </view>
 
@@ -98,4 +98,4 @@ One of the most commonly used pre-built components in BEST, `<famous:core:view>`
 
 Control flow operations should be used sparingly, when possible, because they make direct modifications to the scene graph structure any time they run. (Modifying the scene graph is a potentially expensive operation.)
 
-If hiding an element is the goal, for example, it may make sense to toggle a node's `opacity` instead of removing it from the scene entirely through the much-heavier `$if` behavior.
+If hiding an element is the goal, for example, it may make sense to toggle a node's `opacity` instead of removing it from the scene entirely via the much-heavier `$if` behavior.

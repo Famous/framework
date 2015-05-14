@@ -7,7 +7,7 @@ This setup is for developers who want to both contribute to the core framework i
     $ cd my/amazing/projects/directory
     $ git clone git@github.famo.us:framework/scripts.git
     $ ./scripts/install/developer-osx.sh
-    $ cd best-ecosystem/workspace
+    $ cd best-framework/workspace
     $ npm run seed
     $ npm run develop
 
