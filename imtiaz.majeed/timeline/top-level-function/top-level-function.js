@@ -4,7 +4,6 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
             'align': [0.5, 0.5]
         },
         '#square': {
-            'mount-point': [0.5, 0.5],
             'origin': [0.5, 0.5],
             'style': function() {
                 return {
@@ -38,6 +37,10 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
                 0:      { value: [200, 200], curve: 'easeInOut' },
                 500:    { value: [400, 400], curve: 'easeInOut' },
                 1000:   { value: [200, 200] }
+            },
+            'mount-point': {
+                0:      { value: [-0.5, -0.5], curve: 'inExpo'  },
+                1000:   { value: [0.5, 0.5] }
             }
         }
     },
