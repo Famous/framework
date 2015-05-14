@@ -62,9 +62,9 @@ The most basic type of state access an event function can get is to the `$state`
 
 The `$state` object gives event functions access to the collection of values that are important to the business logic of the scene. But there are other stateful values that an event function can request, as well:
 
-    * `$famousNode` - A render node provided by the Famous Engine
-    * `$DOMElement` - The `DOMElement` component of a render node
-    * `$dispatcher` - An event dispatcher for emitting events
+* `$famousNode` - A render node provided by the Famous Engine
+* `$DOMElement` - The `DOMElement` component of a render node
+* `$dispatcher` - An event dispatcher for emitting events
 
 ## Emitting and listening to messages
 
