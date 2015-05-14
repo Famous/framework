@@ -16,8 +16,11 @@ cd es && npm link && cd ..
 cd utilities && npm link && cd ..
 cd state-manager && npm link && cd ..
 cd components && npm link && cd ..
-if [ ! -f /usr/local/bin/best-assistant ]; then
+if [ ! -e /usr/local/bin/best-assistant ];
+then
     cd assistant && npm link && cd ..
+else
+    echo "best-assistant already installed"
 fi
 cd ecosystem && npm link && cd ..
 cd runtime && npm link && cd ..
