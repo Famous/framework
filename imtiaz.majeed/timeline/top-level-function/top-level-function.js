@@ -24,10 +24,7 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
             }
         }
     },
-    states: {
-        size: [200, 200],
-        rotationZ: 0
-    },
+    states: {},
     tree: 'top-level-function.html'
 })
 .timelines({
