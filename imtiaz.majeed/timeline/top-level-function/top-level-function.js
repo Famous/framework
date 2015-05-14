@@ -4,12 +4,6 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
             'align': [0.5, 0.5]
         },
         '#square': {
-            'size': function(size) {
-                return size;
-            },
-            'rotation-z': function(rotationZ) {
-                return rotationZ;
-            },
             'mount-point': [0.5, 0.5],
             'origin': [0.5, 0.5],
             'style': function() {
@@ -27,7 +21,7 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
         },
         '#square': {
             'ui-click': function($timelines) {
-                $timelines.get('spinAround').start();
+                $timelines.get('spinAround').start({ duration: 1000 });
             }
         }
     },
