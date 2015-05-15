@@ -1,40 +1,40 @@
 BEST.module('famous:demos:clickable-square', 'HEAD', {
-    tree: 'clickable-square.html',
     behaviors: {
         '#context': {
-            'size': [200, 200],
-            'position': function(offset) {
-                return [offset, offset]
-            }
+            'size': function(size) { return [size, size]; },
+            'rotation-z': function(time) { return time / 1000; },
+            'mount-point': [0.5, 0.5],
+            'align': [0.5, 0.5],
+            'origin': [0.5, 0.5]
         },
         '#surface': {
-            'template': function(count) { return { count: count }; },
-            'style' : function(backgroundColor) {
-                return {
-                    'background-color' : backgroundColor,
-                    'cursor' : 'pointer'
-                }
-            },
-            'unselectable': true
+            'content': function(count) { return '<h1>' + count + '</h1>'; },
+            'unselectable': true,
+            'style': {
+                'background-color': 'gray',
+                'border-radius': '10px',
+                'cursor': 'pointer',
+                'font-family': 'Helvetica'
+            }
         }
     },
     events: {
-        '#context': {
-            'famous:events:click': function($state, $payload) {
-                $state.set('count', $state.get('count') + 1);
-                console.log('Click event on context: ', $payload);
+        '$lifecycle': {
+            'post-load': function($state) {
+                var time = 1000000;
+                $state.set('time', time, { duration: time });
             }
         },
-        '$public': {
-            'hello' : function() {
-                console.log('hello!');
-            },
-            'background-color' : 'setter|camel'
+        '#context': {
+            'click': function($state, $payload) {
+                $state.set('count', $state.get('count') + 1);
+                $state.set('size', $state.get('size') + 50, {
+                    duration: 1000,
+                    curve: 'outBounce'
+                });
+            }
         }
     },
-    states: {
-        count: 0,
-        offset: 100,
-        backgroundColor: 'gray'
-    }
+    states: { time: 0, count: 0, size: 100, offset: 50 },
+    tree: 'clickable-square.html'
 });

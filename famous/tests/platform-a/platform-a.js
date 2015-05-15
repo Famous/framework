@@ -1,5 +1,10 @@
 BEST.scene('famous:tests:platform-a', 'HEAD', {
-    tree: `<famous:core:context id="ctx"></famous:core:context>`
+    tree: `<view id="view"><context id="ctx"></context></view>`,
+    behaviors: {
+        '#view': {
+            'position': [100, 100]
+        }
+    }
 })
 .config({
     includes: [
