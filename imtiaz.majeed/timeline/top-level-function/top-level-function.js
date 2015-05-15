@@ -5,6 +5,7 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
         },
         '#square': {
             'origin': [0.5, 0.5],
+            'mount-point': [0.5, 0.5],
             'style': function() {
                 return {
                     'background-color': 'red',
@@ -35,9 +36,11 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
                 500:    { value: [400, 400], curve: 'easeInOut' },
                 1000:   { value: [200, 200] }
             },
-            'mount-point': {
-                0:      { value: [-0.5, -0.5], curve: 'inExpo'  },
-                1000:   { value: [0.5, 0.5] }
+            'position': {
+                0:      { value: [0, 0],       curve: 'outBounce' },
+                400:    { value: [-200, -200], curve: 'outBounce' },
+                800:    { value: [200, 200],   curve: 'outBounce' },
+                1000:   { value: [0, 0]      }
             },
             'rotation-z': {
                 0:      { value: 0,         curve: 'easeInOut' },
