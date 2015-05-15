@@ -14,8 +14,11 @@ var ObjectUtils = require('./object');
  * Converts BEST timeline
  * to piecewise timeline representation.
  */
-function sweetToSalty(sweetTimeline) {
+function sweetToSalty(sweetTimeline, options) {
     var saltyTimeline = {};
+
+    options = options || {};
+    var duration = options.duration || 0;
 
     for (var selector in sweetTimeline) {
         var selectorBehaviors = sweetTimeline[selector];
@@ -29,7 +32,7 @@ function sweetToSalty(sweetTimeline) {
             for (var frame in flexframes) {
                 var change = flexframes[frame];
 
-                var time = Number(frame) || 0;
+                var time = percentToNumber(frame, duration) || 0;
                 var value = change.value || 0;
                 var curve = change.curve || 'linear';
 
@@ -45,8 +48,11 @@ function sweetToSalty(sweetTimeline) {
  * Converts piecewise timeline
  * to BEST timeline representation.
  */
-function saltyToSweet(saltyTimeline) {
+function saltyToSweet(saltyTimeline, options) {
     var sweetTimeline = {};
+
+    options = options || {};
+    var duration = options.duration || 5000;
 
     for (var selectorBehavior in saltyTimeline) {
         var flexframes = saltyTimeline[selectorBehavior];
@@ -60,7 +66,7 @@ function saltyToSweet(saltyTimeline) {
         for (var i = 0; i < flexframes.length; i++) {
             var change = flexframes[i];
 
-            var time = change[0];
+            var time = numberToPercent(change[0], duration);
             var value = change[1];
             var curve = change[2];
 
@@ -73,6 +79,14 @@ function saltyToSweet(saltyTimeline) {
     }
 
     return sweetTimeline;
+}
+
+function percentToNumber(percentStr, total) {
+    return (percentStr.split('%')[0] / 100) * total;
+}
+
+function numberToPercent(number, total) {
+    return (number / total * 100) + '%';
 }
 
 module.exports = {
