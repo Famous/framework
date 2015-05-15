@@ -16,7 +16,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "famous": "git+ssh://git@github.famo.us:platform/famous#20150506",
+    "famous": "git+ssh://git@github.com:Famous/mixed-mode.git#develop",
     "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#develop",
     "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#develop",
     "mustache": "^1.1.0",
