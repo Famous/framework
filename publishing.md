@@ -1,6 +1,6 @@
 # Publishing your component
 
-You've developed your component locally, and it's looking just about ready for primetime. But how do you make it to other developers so they can use your component in their own app?
+You've developed your component locally, and it's looking just about ready for primetime. But how do you make it available to other developers so they can use your component in their own app?
 
 While BEST framework is in alpha phase, the simplest thing to do is to commit your component to the `develop` branch of the `components` repo, and push the change up to GitHub. Other developers will then be free to clone down your components and use them while developing locally.
 
