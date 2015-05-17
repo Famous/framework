@@ -12,7 +12,7 @@ BEST.scene('super.demo.day:click-event', 'HEAD', {
                     'text-align': 'center',
                     'line-height': window.innerHeight + 'px',
                     'cursor': 'pointer',
-                    'transition': 'background 0.4s',
+                    'transition': 'background 0.8s',
                 }
             },
             'unselectable': true
