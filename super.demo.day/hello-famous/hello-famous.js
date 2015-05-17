@@ -1,7 +1,6 @@
 BEST.scene('super.demo.day:hello-famous', 'HEAD', {
     behaviors: {
         '#hello-famous': {
-            'size': [window.innerWidth, window.innerHeight],
             'align': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
             'style': {
