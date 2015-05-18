@@ -30,7 +30,7 @@ BEST.scene('super.demo.day:click-event', 'HEAD', {
     },
     states: {
         background: '#314043',
-        colorPalette: ['#F7208B', '#ABAA98', '#82CDB9', '#F37259', '#00B9D7', '#98805B', '#728453', '#657E84']
+        colorPalette: ['#9783F2', '#ABAA98', '#82CDB9', '#F37259', '#00B9D7', '#444444', '#728453', '#657E84']
     },
     tree: 'click-event.html'
 });
