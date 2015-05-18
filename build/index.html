@@ -22,6 +22,7 @@
         color: #00B9D7;
         border: none;
         padding: 10px;
+        z-index: 10;
       }
       input:focus {
         outline: 0;
@@ -54,6 +55,7 @@
           document.getElementById('input').value = QUERY.best;
           if (QUERY.best.split(':').length < 2) QUERY.best = 'super.demo.day:' + QUERY.best;
           BEST.deploy(QUERY.best, 'HEAD', '#stage');
+          document.getElementById('stage').scrollIntoView();
         }
         else {
           console.error('Please supply a BEST name (`?best=...`)');
