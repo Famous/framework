@@ -5,7 +5,7 @@ BEST.scene('super.demo.day:hello-famous', 'HEAD', {
             'mount-point': [0.5, 0.5],
             'style': {
                 'color': 'white',
-                'background': 'linear-gradient(to right, #00B9D7, #82CDB9)',
+                'background': 'linear-gradient(to right, #00B9D7, #9783F2)',
                 'font-family': 'Lato',
                 'font-size': '60px',
                 'text-align': 'center',
