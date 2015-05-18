@@ -9,7 +9,7 @@ BEST.scene('super.demo.day:lifecycle', 'HEAD', {
             'rotation-z': function(rotationZ) { return rotationZ; },
             'style': {
                 'border-radius': '100%',
-                'border': '10px dotted #703030',
+                'border': '10px dotted #9783F2',
             }
         },
         '#ground': {
@@ -17,7 +17,7 @@ BEST.scene('super.demo.day:lifecycle', 'HEAD', {
             'position-y': 200,
             'align': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
-            'style': { 'border': '4px solid #2F343B' }
+            'style': { 'border': '4px solid #333333' }
         }
     },
     events: {
