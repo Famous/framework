@@ -2,15 +2,15 @@ BEST.scene('super.demo.day:animation-timeline', 'HEAD', {
     behaviors: {
         '.little-circle': {
             'size': [200, 200],
-            'style': { 'border': '10px solid #f65314' }
+            'style': { 'border': '10px solid #49AFEB' }
         },
         '.medium-circle': {
             'size': [400, 400],
-            'style': { 'border': '10px solid #00a1f1' }
+            'style': { 'border': '10px solid #7099EE' }
         },
         '.large-circle': {
             'size': [600, 600],
-            'style': { 'border': '10px solid #7cbb00' }
+            'style': { 'border': '10px solid #9783F2' }
         },
         '.circle': {
             'origin': [0.5, 0.5],
