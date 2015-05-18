@@ -18,17 +18,13 @@ BEST.module('arkady.pevzner:layouts:footer-bar', 'HEAD', {
             'unselectable' : true
         },
         '#button1' : {
-            content: function(buttonOneContent) {
-                return buttonOneContent;
-            },
+            'content' : '[[identity|buttonOneContent]]',
             'position' : function(buttonSize) {
                 return [-buttonSize[0], 0];
-            }
+            },
         },
         '#button2' : {
-            content: function(buttonTwoContent){
-                return buttonTwoContent;
-            },
+            content: '[[identity|buttonTwoContent]]'
             'position' : function(buttonSize) {
                 return [buttonSize[0], 0];
             }
