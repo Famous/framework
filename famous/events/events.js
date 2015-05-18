@@ -9,7 +9,26 @@ BEST.module('famous:events', 'HEAD', {
                 $DOMElement.on(eventName, function(event) {
                     listener(event);
                 });
+            },
+            'size-change' : function($famousNode, $payload) {
+                $famousNode.addComponent({
+                    onSizeChange: function(size) {
+                        $payload.listener(size);
+                    }
+                })
+            },
+            'parent-size-change' : function($famousNode, $payload) {
+                $famousNode.addComponent({
+                    onParentSizeChange: function(size) {
+                        $payload.listener(size);
+                    }
+                })
             }
         }
+    }
+})
+.config({
+    imports: {
+        'famous:events': [] // prevent expansion of 'size-change' to 'famous:events:size-change'
     }
 });
