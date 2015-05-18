@@ -1,18 +1,14 @@
 BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
     behaviors: {
         '#container' : {
-            'size-proportional': function(containerProportion) {
-                return containerProportion;
-            }
+            'size-proportional': '[[identity|containerProportion]]'
         },
         '#hf' : {
             'header-height' : 100,
             'footer-height' : 100
         },
         '#header-el' : {
-            content: function(title) {
-                return title;
-            },
+            content: '[[identity|title]]',
             style: function(headerHeight, headerBackgroundColor) {
                 return {
                     'background-color' : headerBackgroundColor,
@@ -28,23 +24,13 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
             'overflow' : 'hidden'
         },
         '#two-panel-layout' : {
-            'display-left-panel' : function(leftPanelWidth) {
-                return leftPanelWidth;
-            },
-            'display-right-panel' : function(rightPanelWidth) {
-                return rightPanelWidth;
-            },
-            'curve' : function(panelTransition) {
-                return panelTransition;
-            }
+            'display-left-panel' : '[[identity|leftPanelAnimationWidth]]',
+            'display-right-panel' : '[[identity|rightPanelAnimationWidth]]',
+            'curve' : '[[identity|panelTransition]]'
         },
         '#scroll-view' : {
-            count: function(count) {
-                return count;
-            },
-            'item-height': function(itemHeight) {
-                return itemHeight;
-            },
+            count: '[[setter]]',
+            'item-height': '[[setter|camel]]',
             'item-style' : function(itemStyle, itemHeight) {
                 // Temp variable created because state should not be altered
                 // inside of a behavior.
@@ -77,15 +63,9 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
                 temp['line-height'] = footerButtonSize[1] + 'px';
                 return temp;
             },
-            'button-size' : function(footerButtonSize) {
-                return footerButtonSize;
-            },
-            'button-one-content' : function(buttonOneContent){
-                return buttonOneContent;
-            },
-            'button-two-content' : function(buttonTwoContent){
-                return buttonTwoContent;
-            }
+            'button-size' : '[[identity|footerButtonSize]]',
+            'button-one-content' : '[[identity|buttonOneContent]]',
+            'button-two-content' : '[[identity|buttonTwoContent]]'
         }
     },
     events: {
@@ -104,16 +84,17 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
             'button-one-content' : 'setter|camel',
             'button-two-content' : 'setter|camel',
         },
+        '#container' : {
+            'size-change' : function($state, $payload) {
+                $state.set('panelWidth', $payload[0]);
+            }
+        },
         '#footer-bar' : {
             'button-one-click' : function($state) {
-                // HACK --> Need a way to query nodes for their size
-                var containerWidth = document.getElementById('container').clientWidth;
-                $state.set('leftPanelWidth', containerWidth);
+                $state.set('leftPanelAnimationWidth', $state.get('panelWidth'));
             },
             'button-two-click' : function($state) {
-                // HACK --> Need a way to query nodes for their size
-                var containerWidth = document.getElementById('container').clientWidth;
-                $state.set('rightPanelWidth', containerWidth);
+                $state.set('rightPanelAnimationWidth', $state.get('panelWidth'));
             }
         }
     },
