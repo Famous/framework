@@ -4,8 +4,8 @@
   "description": "Browser runtime for the BEST framework",
   "main": "lib/index.js",
   "scripts": {
-    "test": "browserify tests/*.spec.js -t [ envify --ECOSYSTEM_BASE_URI placeholder ] -d | tap-closer | smokestack | tap-spec",
-    "test-ugly": "browserify tests/*.spec.js -t [ envify --ECOSYSTEM_BASE_URI placeholder ] -d | tap-closer | smokestack"
+    "test": "browserify tests/**/*.spec.js -t [ envify --ECOSYSTEM_BASE_URI placeholder ] -d | tap-closer | smokestack | tap-spec",
+    "test-ugly": "browserify tests/**/*.spec.js -t [ envify --ECOSYSTEM_BASE_URI placeholder ] -d | tap-closer | smokestack"
   },
   "authors": [
     "Zack Brown <zack@famo.us>",

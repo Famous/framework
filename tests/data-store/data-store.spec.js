@@ -1,7 +1,7 @@
 'use strict';
 
 var test = require('tape');
-var DataStore = require('../lib/data-store/data-store');
+var DataStore = require('../../lib/data-store/data-store');
 
 test('----- DataStore', function(t) {
     t.plan(3);

@@ -2,8 +2,8 @@
 
 window.Famous = require('famous');
 var test = require('tape');
-var BEST = require('../lib/index');
-var DataStore = require('../lib/data-store/data-store');
+var BEST = require('../../lib/index');
+var DataStore = require('../../lib/data-store/data-store');
 
 test('----- BEST', function(t) {
     t.plan(1);
