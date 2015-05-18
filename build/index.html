@@ -11,30 +11,61 @@
         height: 100%;
         overflow: scroll !important; /* overwrite default Famo.us CSS */
       }
+      #stage {
+        height: 100%;
+        width: 100%;
+      }
+      input {
+        width: 100%;
+        height: 50px;
+        font-size: 40px;
+        color: #00B9D7;
+        border: none;
+        padding: 10px;
+      }
+      input:focus {
+        outline: 0;
+      }
     </style>
   </head>
+
   <body>
+
+    <div>
+      <form method="gret">
+        <input type="text" list="scenes" name="best" id="input" placeholder="hello-famous">
+        <datalist id="scenes">
+          <option value="hello-famous">
+          <option value="click-event">
+          <option value="repeat">
+          <option value="animation-timeline">
+        </datalist>
+      </form>
+    </div>
+
+    <div id="stage"></div>
+
     <script type="text/javascript" src="best.bundle.js"></script>
+    <script type="text/javascript" src="assets/query-string.js"></script>
+
     <script type="text/javascript">
-      // BEST.deploy('famous:tests:assets-a', 'HEAD', 'body');
-      // BEST.deploy('famous:tests:custom-toolchain', 'HEAD', 'body');
-      // BEST.deploy('famous:tests:mount-point', 'HEAD', 'body');
-      // BEST.deploy('famous:tests:opacity', 'HEAD', 'body');
-      // BEST.deploy('famous:tests:pass-through', 'HEAD', 'body');
-      // BEST.deploy('famous:tests:platform-a', 'HEAD', 'body');
-      // BEST.deploy('famous:tests:scope', 'HEAD', 'body');
-
-      // BEST.deploy('famous:demos:circle', 'HEAD', 'body');
-      // BEST.deploy('famous:demos:clickable-square', 'HEAD', 'body');
-      // BEST.deploy('famous:demos:clickable-square-with-label', 'HEAD', 'body');
-      // BEST.deploy('famous:demos:flipper-button', 'HEAD', 'body');
-      // BEST.deploy('famous:demos:repeat-square', 'HEAD', 'body');
-
-      // BEST.deploy('arkady.pevzner:control-flow:repeat', 'HEAD', 'body');
-      // BEST.deploy('arkady.pevzner:control-flow:static-repeat', 'HEAD', 'body');
-      // BEST.deploy('arkady.pevzner:layouts:header-footer-example', 'HEAD', 'body');
-      // BEST.deploy('imtiaz.majeed:timeline:example', 'HEAD', 'body');
-      BEST.deploy('imtiaz.majeed:timeline:top-level-function', 'HEAD', 'body');
+      (function() {
+        if (QUERY.best) {
+          document.getElementById('input').value = QUERY.best;
+          if (QUERY.best.split(':').length < 2) QUERY.best = 'super.demo.day:' + QUERY.best;
+          BEST.deploy(QUERY.best, 'HEAD', '#stage');
+        }
+        else {
+          console.error('Please supply a BEST name (`?best=...`)');
+        }
+      }());
     </script>
+
   </body>
+
+ 
+
+ 
+
+ 
 </html>
