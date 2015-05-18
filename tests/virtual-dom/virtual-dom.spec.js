@@ -22,7 +22,7 @@ wrapper
  */
 
 test('----- Virtual DOM', function(t) {
-    t.plan(4);
+    t.plan(5);
 
     t.test('exports', function(st){
         st.plan(1);
@@ -72,5 +72,21 @@ test('----- Virtual DOM', function(t) {
         var newParent = document.createElement('new-parent');
         VirtualDOM.transferChildNodes(domTree.children[0], newParent);
         st.ok(domTree.children[0].children.length === 0 && newParent.children.length === info.CHILD_COUNT, 'transfers child nodes between elements');
+    });
+
+    t.test('gets / removes node by uid', function(st) {
+        st.plan(3);
+
+        var stub = VirtualDomStub.getStubOne();
+        st.ok(VirtualDOM.getNodeByUID(stub, 5), 'gets node by uid');
+        VirtualDOM.removeNodeByUID(stub, 5);
+        st.notOk(VirtualDOM.getNodeByUID(stub, 5), 'removes node by uid');
+
+        try {
+            VirtualDOM.removeNodeByUID(stub, 10)
+        }
+        catch (e) {
+            st.ok(e, 'throws error if removal by uid attempted & node with corresponding uid does not exist');
+        }
     });
 });
