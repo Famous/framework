@@ -3,7 +3,7 @@
 var test = require('tape');
 var VirtualDom = require('../../lib/virtual-dom/virtual-dom');
 var VirtualDomStub = require('./../helpers/virtual-dom-stub');
-var Repeat = require('../../lib/control-flow/repeat');
+var ControlFlow = require('../../lib/control-flow/control-flow');
 
 var CONTROL_FLOW_CONSTANTS = require('../../lib/control-flow/control-flow-utils').CONSTANTS;
 var REPEAT_INFO_KEY = CONTROL_FLOW_CONSTANTS.REPEAT_INFO_KEY;
@@ -47,12 +47,7 @@ wrapper
 
 
 test('----- Control Flow: Repeat', function(t) {
-    t.plan(5);
-
-    t.test('Exports', function(st){
-        st.plan(1);
-        st.ok(Repeat, 'exports');
-    });
+    t.plan(4);
 
     t.test('Creates elements, zero to many, single parent', function(st) {
         st.plan(7);
@@ -74,7 +69,7 @@ test('----- Control Flow: Repeat', function(t) {
             payload: PAYLOAD,
             payloadEquality: PAYLOAD_EQUALITY
         };
-        Repeat.process(virtualDom, dataStub);
+        ControlFlow.applyRepeatBehaviorToVirtualDOM(virtualDom, dataStub);
         st.ok(parentNode.children.length === REPEAT_COUNT, 'number of repeated elements matches length of payload array');
         st.ok(virtualDom.querySelectorAll('['+REPEAT_INFO_KEY+']').length === REPEAT_COUNT, 'repeat info attached to repeated elements');
         st.ok(virtualDom.querySelectorAll('['+CONTROL_FLOW_ACTION_KEY+']').length === REPEAT_COUNT, 'control flow info attached to repeated elements');
@@ -122,7 +117,7 @@ test('----- Control Flow: Repeat', function(t) {
             payload: PAYLOAD,
             payloadEquality: PAYLOAD_EQUALITY
         };
-        Repeat.process(virtualDom, dataStub);
+        ControlFlow.applyRepeatBehaviorToVirtualDOM(virtualDom, dataStub);
         st.ok(
             parentNodeOne.children.length === REPEAT_COUNT && parentNodeTwo.children.length === REPEAT_COUNT,
             'number of repeated elements matches length of payload array'
@@ -160,7 +155,7 @@ test('----- Control Flow: Repeat', function(t) {
             payload: PAYLOAD,
             payloadEquality: PAYLOAD_EQUALITY
         };
-        Repeat.process(virtualDom, dataStub);
+        ControlFlow.applyRepeatBehaviorToVirtualDOM(virtualDom, dataStub);
         var removedNodes = virtualDom.querySelectorAll('['+CONTROL_FLOW_ACTION_KEY+']');
         var removeMessage = JSON.parse(removedNodes[0].getAttribute(CONTROL_FLOW_ACTION_KEY));
         st.ok(removeMessage.message === DELETE_KEY, 'remove message attached');
@@ -196,7 +191,7 @@ test('----- Control Flow: Repeat', function(t) {
             payload: PAYLOAD,
             payloadEquality: PAYLOAD_EQUALITY
         };
-        Repeat.process(virtualDom, dataStub);
+        ControlFlow.applyRepeatBehaviorToVirtualDOM(virtualDom, dataStub);
         var removedNodes = virtualDom.querySelectorAll('['+CONTROL_FLOW_ACTION_KEY+']');
         var removeMessage = JSON.parse(removedNodes[0].getAttribute(CONTROL_FLOW_ACTION_KEY));
         st.ok(removeMessage.message === DELETE_KEY, 'remove message attached');
