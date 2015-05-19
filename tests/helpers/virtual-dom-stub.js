@@ -20,6 +20,7 @@ wrapper
 var STUB_ONE_INFO = {
     PARENT_ID: 'PARENT',
     FIRST_CHILD_CLASS_NAME: 'FIRST_CHILD',
+    CHILD_NAME: 'child:element',
     GRANDCHILD_NAME: 'grandchild:element',
     GREAT_GRANDCHILD_NAME: 'greatgrandchild:element',
     GRANDCHILDREN_COUNT: 3,

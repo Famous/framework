@@ -22,11 +22,11 @@ wrapper
  */
 
 test('----- Virtual DOM', function(t) {
-    t.plan(5);
+    t.plan(6);
 
     t.test('exports', function(st){
         st.plan(1);
-        st.ok(VirtualDOM, 'VirtaulDOM exports');
+        st.ok(VirtualDOM, 'VirtualDOM exports');
     });
 
     t.test('query', function(st) {
@@ -88,5 +88,19 @@ test('----- Virtual DOM', function(t) {
         catch (e) {
             st.ok(e, 'throws error if removal by uid attempted & node with corresponding uid does not exist');
         }
+    });
+
+    t.test('checks for if node is decendant of another node', function(st) {
+        st.plan(4);
+        var domTree = VirtualDomStub.getStubOne();
+        var info = VirtualDomStub.stubOneInfo;
+
+        var firstGrandChild = VirtualDOM.query(domTree, info.GRANDCHILD_NAME)[0];
+        st.ok(firstGrandChild, 'first grandchild exists');
+        st.ok(VirtualDOM.isDescendant(firstGrandChild, domTree), 'confirms when node is descendant');
+
+        var firstChild = VirtualDOM.query(domTree, info.CHILD_NAME)[0];
+        st.ok(firstChild, 'first child exists');
+        st.notOk(VirtualDOM.isDescendant(firstChild, firstGrandChild), 'confirms when node is not descendant');
     });
 });
