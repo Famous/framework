@@ -24,7 +24,7 @@ BEST.module('arkady.pevzner:layouts:footer-bar', 'HEAD', {
             },
         },
         '#button2' : {
-            content: '[[identity|buttonTwoContent]]'
+            content: '[[identity|buttonTwoContent]]',
             'position' : function(buttonSize) {
                 return [buttonSize[0], 0];
             }
