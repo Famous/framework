@@ -1,4 +1,27 @@
 BEST.scene('super.demo.day:clickable-square', 'HEAD', {
+    /**
+     * Behaviors:
+     *      Target the square in our tree
+     *      using selectors and set size, style
+     *      and other Famous properties.
+     *
+     *      Content is a function of our numberOfClicks state
+     *      and will rerun on each numberOfClicks state change.
+     *
+     *      Sugar:
+     *          'unselectable': true
+     *
+     *          ... is equivalent to ...
+     *
+     *          'style': {
+     *              '-webkit-touch-callout': 'none'
+     *              '-webkit-user-select': 'none'
+     *              '-khtml-user-select': 'none'
+     *              '-moz-user-select': 'none'
+     *              '-ms-user-select': 'none'
+     *              'user-select': 'none'
+     *          }
+     */
     behaviors: {
         '#square': {
             'size': [400, 400],
@@ -19,6 +42,18 @@ BEST.scene('super.demo.day:clickable-square', 'HEAD', {
             'unselectable': true
         }
     },
+    /**
+     * Events:
+     *      Target the square in our tree
+     *      using selectors and attach a click
+     *      event listener with a callback.
+     *
+     *      Inject state (denoted with a $)
+     *      into our callback function.
+     *
+     *      Set the numberOfClicks state to one
+     *      plus the current numberOfClicks state.
+     */
     events: {
         '#square': {
             'ui-click': function($state) {
@@ -26,8 +61,16 @@ BEST.scene('super.demo.day:clickable-square', 'HEAD', {
             }
         }
     },
+    /**
+     * States:
+     *      The numberOfClicks state is 0.
+     */
     states: {
         numberOfClicks: 0
     },
+    /**
+     * Tree:
+     *      Create a square.
+     */
     tree: `<ui-element id="square"></ui-element>`
 });
