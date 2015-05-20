@@ -26,12 +26,14 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         '#body' : {
             'overflow' : 'hidden'
         },
-        '#two-panel-layout' : {
-            'display-left-panel' : '[[identity|leftPanelAnimationWidth]]',
-            'display-right-panel' : '[[identity|rightPanelAnimationWidth]]',
-            'curve' : '[[identity|panelTransition]]'
+        '#three-panel-layout' : {
+            'curve' : '[[identity|panelTransition]]',
+            'panel-width' : '[[setter|camel]]',
+            'display-panel-one' : '[[setter|camel]]',
+            'display-panel-two' : '[[setter|camel]]',
+            'display-panel-three' : '[[setter|camel]]'
         },
-        '#scroll-view' : {
+        '.panel-1' : { // <basic-scroll-view>
             count: '[[setter]]',
             'item-height': '[[setter|camel]]',
             'item-style' : function(itemStyle, itemHeight) {
@@ -42,7 +44,7 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
                 return temp;
             }
         },
-        '.right-panel' : {
+        '.panel-2' : { // <template-scroll-layout>
             'set-template' : function(templateItemCount, loremIpsum) {
                 var result = [];
                 for (var i = 1; i <= templateItemCount; i++) {
@@ -59,6 +61,9 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
                 'overflow': 'scroll',
             }
         },
+        '.panel-3' : {
+            opacity: '[[identity|webGLOpacity]]'
+        },
         '#footer-bar' : {
             'background-style': function(footerBackgroundStyle) {
                 return footerBackgroundStyle;
@@ -71,8 +76,9 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
                 return temp;
             },
             'button-size' : '[[identity|footerButtonSize]]',
-            'button-one-content' : '[[identity|buttonOneContent]]',
-            'button-two-content' : '[[identity|buttonTwoContent]]'
+            'button-one-content' : '[[setter|camel]]',
+            'button-two-content' : '[[setter|camel]]',
+            'button-three-content' : '[[setter|camel]]'
         }
     },
     events: {
@@ -90,6 +96,7 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
             'footer-button-size' : 'setter|camel',
             'button-one-content' : 'setter|camel',
             'button-two-content' : 'setter|camel',
+            'button-three-content' : 'setter|camel',
         },
         '#container' : {
             'size-change' : function($state, $payload) {
@@ -98,11 +105,30 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         },
         '#footer-bar' : {
             'button-one-click' : function($state) {
-                $state.set('leftPanelAnimationWidth', $state.get('panelWidth'));
+                $state.set('displayPanelOne', true);
+
+                // hide webgl
+                if ($state.get('webGLOpacity') > 0) {
+                    $state.set('webGLOpacity', 0, {duration: 75, curve: 'outSine'});
+                }
             },
             'button-two-click' : function($state) {
-                $state.set('rightPanelAnimationWidth', $state.get('panelWidth'));
-            }
+                $state.set('displayPanelTwo', true);
+
+                // hide webgl
+                if ($state.get('webGLOpacity') > 0) {
+                    $state.set('webGLOpacity', 0, {duration: 75, curve: 'outSine'});
+                }
+            },
+            'button-three-click' : function($state) {
+                $state.set('displayPanelThree', true)
+                    .thenSet('webGLOpacity', 1, {duration: duration, curve: 'outSine'})
+
+                // show webgl (overrides overflow: hidden)
+                var duration = $state.get('panelTransition').duration;
+                $state.set('_wait', duration, $state.get('panelTransition'))
+                    .thenSet('webGLOpacity', 1, {duration: 200, curve: 'outSine'});
+            },
         }
     },
     states: {
@@ -134,6 +160,10 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         templateItemCount: 20,
         loremIpsum: 'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus',
 
+            // WebGL example properties
+            webGLOpacity: 0,
+            _wait: 0,
+
         // Footer properties
         footerBackgroundStyle: {
             'background-color' :'#333333',
@@ -152,13 +182,14 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         },
         buttonOneContent: 'Famo.us Layout',
         buttonTwoContent: 'Template Layout',
+        buttonThreeContent: 'Platform Content'
     },
     tree: 'header-footer-example.html'
 })
 .config({
     imports: {
         'arkady.pevzner:layouts' : [
-            'header-footer', 'basic-scroll-view', 'footer-bar', 'two-panel-layout', 'template-scroll-layout'
+            'header-footer', 'basic-scroll-view', 'footer-bar', 'three-panel-layout', 'template-scroll-layout'
         ]
     }
 });

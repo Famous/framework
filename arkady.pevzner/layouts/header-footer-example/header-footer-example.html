@@ -6,11 +6,11 @@
         </view>
 
         <view id='body'>
-            <two-panel-layout id='two-panel-layout'>
-                <basic-scroll-view id='scroll-view' class='left-panel'></basic-scroll-view>
-                <template-scroll-layout id='template-layout' class='right-panel'></template-scroll-layout>
-            </two-panel-layout>
-            
+            <three-panel-layout id='three-panel-layout'>
+                <basic-scroll-view id='scroll-view' class='panel-1'></basic-scroll-view>
+                <template-scroll-layout id='template-layout' class='panel-2'></template-scroll-layout>
+                <super.demo.day:attach-webgl class='panel-3'></super.demo.day:attach-webgl>>
+            </three-panel-layout>
         </view>
 
         <view id='footer'>
