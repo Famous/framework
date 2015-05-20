@@ -1,4 +1,10 @@
 BEST.scene('super.demo.day:animation-timeline', 'HEAD', {
+    /**
+     * Behaviors:
+     *      Target each circle in our tree
+     *      using selectors and set size, style
+     *      and other Famous properties.
+     */
     behaviors: {
         '.little-circle': {
             'size': [200, 200],
@@ -22,6 +28,17 @@ BEST.scene('super.demo.day:animation-timeline', 'HEAD', {
             }
         }
     },
+    /**
+     * Events:
+     *      Target each circle in our tree
+     *      using selectors and attach a click
+     *      event listener with a callback.
+     *
+     *      Inject timelines (denoted with a $)
+     *      into our callback function, get the
+     *      pulse-animation and start it with a
+     *      duration of 1500 seconds.
+     */
     events: {
         '.circle': {
             'click': function($timelines) {
@@ -32,6 +49,13 @@ BEST.scene('super.demo.day:animation-timeline', 'HEAD', {
     states: {},
     tree: 'animation-timeline.html'
 })
+/**
+ * Timelines:
+ *      Outline changes to each circle's behavior
+ *      using a keyframe-like API. Percentage
+ *      based frames mean that animations stay
+ *      in sync regardless of duration.
+ */
 .timelines({
     'pulse-animation': {
         '.little-circle': {
