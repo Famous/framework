@@ -111,7 +111,6 @@ BEST.attach('super.demo.day:attach-webgl', 'HEAD', '#webgl', function(node) {
      */
 
     function Sun(node) {
-        console.log('node: ', node);
         this.dispatch = node;
         this.dispatch.setSizeMode(1, 1, 1);
         this._id = node.addComponent(this);
