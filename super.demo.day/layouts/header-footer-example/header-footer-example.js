@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
+BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
     behaviors: {
         '#container' : {
             'size-proportional': '[[identity|containerProportion]]',
@@ -6,8 +6,8 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
             'mount-point': [0.5, 0.5]
         },
         '#hf' : {
-            'header-height' : 100,
-            'footer-height' : 100
+            'header-height' : '[[setter|camel]]',
+            'footer-height' : '[[setter|camel]]',
         },
         '#header-el' : {
             content: '[[identity|title]]',
@@ -17,7 +17,7 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
                     'line-height' : headerHeight + 'px',
                     'text-align' : 'center',
                     'color' : '#7099EE',
-                    'font-size' : '36px',
+                    'font-size' : '66px',
                     'font-family': 'Lato',
                     'font-weight': 'bold'
                 }
@@ -62,7 +62,8 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
             }
         },
         '.panel-3' : {
-            opacity: '[[identity|webGLOpacity]]'
+            scale: '[[identity|webGLScale]]',
+            opacity: '[[identity|webGLOpacity]]',
         },
         '#footer-bar' : {
             'background-style': function(footerBackgroundStyle) {
@@ -105,29 +106,36 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         },
         '#footer-bar' : {
             'button-one-click' : function($state) {
-                $state.set('displayPanelOne', true);
-
-                // hide webgl
                 if ($state.get('webGLOpacity') > 0) {
-                    $state.set('webGLOpacity', 0, {duration: 75, curve: 'outSine'});
+                    var curve = $state.get('webGLHideCurve');
+                    $state.set('webGLScale', [0.001, 0.001, 0.001], curve)
+                        .thenSet('webGLOpacity', 0, {duration: 1})
+                        .thenSet('displayPanelOne', true);
+                }
+                else {
+                    $state.set('displayPanelOne', true);
                 }
             },
             'button-two-click' : function($state) {
-                $state.set('displayPanelTwo', true);
-
-                // hide webgl
                 if ($state.get('webGLOpacity') > 0) {
-                    $state.set('webGLOpacity', 0, {duration: 75, curve: 'outSine'});
+                    var curve = $state.get('webGLHideCurve');
+                    $state.set('webGLScale', [0.001, 0.001, 0.001], curve)
+                        .thenSet('webGLOpacity', 0, {duration: 1})
+                        .thenSet('displayPanelTwo', true);
+                }
+                else {
+                    $state.set('displayPanelTwo', true);
                 }
             },
             'button-three-click' : function($state) {
-                $state.set('displayPanelThree', true)
-                    .thenSet('webGLOpacity', 1, {duration: duration, curve: 'outSine'})
+                $state.set('displayPanelThree', true);
 
-                // show webgl (overrides overflow: hidden)
+                // // show webgl (overrides overflow: hidden)
                 var duration = $state.get('panelTransition').duration;
+                var curve = $state.get('webGLShowCurve');
                 $state.set('_wait', duration, $state.get('panelTransition'))
-                    .thenSet('webGLOpacity', 1, {duration: 200, curve: 'outSine'});
+                    .thenSet('webGLOpacity', 1, {duration: 1})
+                    .thenSet('webGLScale', [1, 1, 1], curve);
             },
         }
     },
@@ -136,8 +144,8 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         containerProportion: [0.8, 0.8],
 
         // Header properties
-        title: 'Basic Feed Layout',
-        headerHeight: 100,
+        title: 'Three Panel Layout',
+        headerHeight: 225,
         headerBackgroundColor: '#333333',
 
         // Body properties
@@ -145,13 +153,12 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         panelTransition: {duration: 450, 'curve' : 'outExpo'},
 
         // Scrollview properties
-        count: 25,
-        itemHeight: 100,
+        count: 36,
+        itemHeight: 200,
         itemStyle: {
-            'color': '#333333',
-            'background-color' : 'whitesmoke',
+            'color': 'white',
             'text-align' : 'center',
-            'font-size' : '24px',
+            'font-size' : '50px',
             'cursor' : 'pointer',
             'font-family': 'Lato'
         },
@@ -161,23 +168,27 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         loremIpsum: 'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus',
 
             // WebGL example properties
-            webGLOpacity: 0,
             _wait: 0,
+            webGLScale: [0.001, 0.001, 0.001],
+            webGLOpacity: 0,
+            webGLShowCurve: {duration: 600, curve: 'outExpo'},
+            webGLHideCurve: {duration: 300, curve: 'outSine'},
 
         // Footer properties
+        footerHeight: 150,
         footerBackgroundStyle: {
             'background-color' :'#333333',
             'font-size': '24px',
             'font-family': 'Lato'
         },
-        footerButtonSize: [200, 50],
+        footerButtonSize: [250, 100],
         footerButtonStyle: {
             'border' : '1px solid #7099EE',
             'color' : '#7099EE',
             'border-radius' : '5px',
             'text-align' : 'center',
             'font-family': 'Lato',
-            'font-size' : '20px',
+            'font-size' : '30px',
             'font-weight': 'bold'
         },
         buttonOneContent: 'Famo.us Layout',
@@ -188,7 +199,7 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
 })
 .config({
     imports: {
-        'arkady.pevzner:layouts' : [
+        'super.demo.day:layouts' : [
             'header-footer', 'basic-scroll-view', 'footer-bar', 'three-panel-layout', 'template-scroll-layout'
         ]
     }

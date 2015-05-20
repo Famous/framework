@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:two-panel-layout', 'HEAD', {
+BEST.module('super.demo.day:layouts:two-panel-layout', 'HEAD', {
     behaviors: {
         '#left-panel' : {
             '$yield' : '.left-panel',

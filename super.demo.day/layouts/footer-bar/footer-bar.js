@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:footer-bar', 'HEAD', {
+BEST.module('super.demo.day:layouts:footer-bar', 'HEAD', {
     behaviors: {
         '#background' : {
             style: '[[identity|backgroundStyle]]'

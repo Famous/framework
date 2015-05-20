@@ -14,8 +14,19 @@ BEST.scene('super.demo.day:attach-webgl', 'HEAD', {
      *          }
      */
     behaviors: {
+        '#webgl' : {
+            opacity: '[[setter]]',
+        },
         '#view' : {
-            opacity: '[[setter]]'
+            scale: '[[setter]]',
+            origin: [0.5, 0.5],
+            align: [0.5, 0.5],
+            'mount-point': [0.5, 0.5]
+        },
+        '#background' : {
+            style: {
+                'background-color' : '#7099EE'
+            }
         }
     },
     /**
@@ -25,7 +36,8 @@ BEST.scene('super.demo.day:attach-webgl', 'HEAD', {
      */
     events: {
         '$public' : {
-            opacity: 'setter'
+            opacity: 'setter',
+            scale: 'setter'
         }
     },
     /**
@@ -33,7 +45,8 @@ BEST.scene('super.demo.day:attach-webgl', 'HEAD', {
      *      The opacity of this component will be 1.
      */
     states: {
-        opacity: 1
+        opacity: 1,
+        scale: [1, 1, 1]
     },
     tree: 'attach-webgl.html'
 })

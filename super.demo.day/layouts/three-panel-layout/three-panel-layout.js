@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:three-panel-layout', 'HEAD', {
+BEST.module('super.demo.day:layouts:three-panel-layout', 'HEAD', {
     behaviors: {
         '#panel-1' : {
             $yield: '.panel-1',

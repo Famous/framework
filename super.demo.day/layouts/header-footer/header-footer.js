@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:header-footer', 'HEAD', {
+BEST.module('super.demo.day:layouts:header-footer', 'HEAD', {
     tree: 'header-footer.html',
     behaviors: {
         '#container' : {
@@ -41,10 +41,5 @@ BEST.module('arkady.pevzner:layouts:header-footer', 'HEAD', {
     states: {
         'headerHeight' : 100,
         'footerHeight' : 100
-    }
-})
-.config({
-    imports: {
-        'famous:core': ['view', 'dom-element']
     }
 });

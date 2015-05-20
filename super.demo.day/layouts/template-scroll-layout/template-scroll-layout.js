@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:layouts:template-scroll-layout', 'HEAD', {
+BEST.module('super.demo.day:layouts:template-scroll-layout', 'HEAD', {
     behaviors: {
         '$self' : {
             'set-template' : function(mockTemplatedContent) {
@@ -23,9 +23,10 @@ BEST.module('arkady.pevzner:layouts:template-scroll-layout', 'HEAD', {
                 for(var i = 0; i < $payload.length; i++) {
                     data = $payload[i];
                     template = ''+
-                    '<div class="template-item" style="padding: 30px; border: 1px solid black; font-family: Lato">' +
+                    '<div class="template-item">' +
+                        '<img src= "' + data.image +'"/>' +
+
                         '<div class="template-item-header">'+
-                            '<img src= "' + data.image +'" style="float: left; margin: 40px;"/>' +
                             '<h3>' + data.title + '</h3>' +
                         '</div>' +
 
@@ -60,5 +61,8 @@ BEST.module('arkady.pevzner:layouts:template-scroll-layout', 'HEAD', {
 .config({
     imports: {
         'famous:core': ['ui-element']
-    }
+    },
+    includes: [
+        'style.css'
+    ]
 });

@@ -1,4 +1,15 @@
-BEST.module('arkady.pevzner:layouts:basic-scroll-view', 'HEAD', {
+var colorSteps = 36;
+var colors = [ [151, 131, 242], [47, 189, 232] ];
+
+function createColorStep(step) {
+  step -= (step >= colorSteps) ? colorSteps : 0;
+  var r = colors[0][0] - Math.round(((colors[0][0] - colors[1][0]) / colorSteps) * step);
+  var g = colors[0][1] - Math.round(((colors[0][1] - colors[1][1]) / colorSteps) * step);
+  var b = colors[0][2] - Math.round(((colors[0][2] - colors[1][2]) / colorSteps) * step);
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+
+BEST.module('super.demo.day:layouts:basic-scroll-view', 'HEAD', {
     behaviors: {
         '#container' : {
             'overflow' : 'scroll'
@@ -9,12 +20,18 @@ BEST.module('arkady.pevzner:layouts:basic-scroll-view', 'HEAD', {
             },
             '$repeat' : function(count, itemHeight) {
                 var result = [];
+                var backgroundColor
                 for (var i = 0; i < count; i++) {
                     result.push({
-                        content: 'Item ' + i,
-                        position: [0, i * itemHeight]
+                        content: '<div class="scroll-view-item"> Item ' + (i + 1) + '</div>',
+                        position: [0, i * itemHeight],
+                        style: {
+                            'background-color' : createColorStep(i)
+                        }
+
                     });
                 }
+                createColorStep();
                 return result;
             },
             'style' : function(itemStyle) {
@@ -45,7 +62,6 @@ BEST.module('arkady.pevzner:layouts:basic-scroll-view', 'HEAD', {
 })
 .config({
     imports: {
-        'famous:core': ['view'],
-        'arkady.pevzner:layouts' : ['scroll-view-item']
+        'super.demo.day:layouts' : ['scroll-view-item']
     }
 });
