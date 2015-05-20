@@ -1,4 +1,16 @@
 BEST.scene('super.demo.day:lifecycle', 'HEAD', {
+    /**
+     * Behaviors:
+     *      Target the ball and ground in our tree
+     *      using selectors and set style, size
+     *      and other Famous properties.
+     *
+     *      position-x is a function of our positionX state
+     *      and will rerun on each positionX state change.
+     *
+     *      rotation-z is a function of our rotationZ state
+     *      and will rerun on each rotationZ state change.
+     */
     behaviors: {
         '#ball': {
             'size': [400, 400],
@@ -20,6 +32,21 @@ BEST.scene('super.demo.day:lifecycle', 'HEAD', {
             'style': { 'border': '4px solid #333333' }
         }
     },
+    /**
+     * Events:
+     *      On our component's post-load
+     *      event, a callback will fire.
+     *
+     *      Lifecycle:
+     *          Throughout the life of a component,
+     *          special lifecycle events will be emitted.
+     *
+     *      Inject state (denoted with a $)
+     *      into our callback function.
+     *
+     *      Set the positionX to 200 less than the width of the window over a duration.
+     *      and curve. Also, set the rotationX to Math.PI*4 over a duration and curve.
+     */
     events: {
         '$lifecycle': {
             'post-load': function($state) {
@@ -28,6 +55,11 @@ BEST.scene('super.demo.day:lifecycle', 'HEAD', {
             }
         }
     },
+    /**
+     * States:
+     *      Set the positonX and rotationZ
+     *      states of our application.
+     */
     states: {
         'positionX': 0,
         'rotationZ': 0
