@@ -32,7 +32,7 @@ BEST.scene('super.demo.day:clickable-square', 'HEAD', {
             },
             'style': {
                 'color': '#7099EE',
-                'background': '#444444',
+                'background': '#222222',
                 'border': '6px solid #333333',
                 'text-align': 'center',
                 'font-size': '60px',

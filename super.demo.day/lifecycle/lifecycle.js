@@ -29,7 +29,7 @@ BEST.scene('super.demo.day:lifecycle', 'HEAD', {
             'position-y': 200,
             'align': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
-            'style': { 'border': '4px solid #333333' }
+            'style': { 'border': '4px solid #222222' }
         }
     },
     /**

@@ -22,7 +22,7 @@ BEST.scene('super.demo.day:templating', 'HEAD', {
             'align': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
             'style': {
-                'color': '#444444',
+                'color': '#F2F2F0',
                 'border-radius': '100%',
                 'padding-top': '50px',
                 'padding-left': '120px',
@@ -30,8 +30,8 @@ BEST.scene('super.demo.day:templating', 'HEAD', {
                 'font-family': 'Lato',
                 'border': '120px solid transparent',
                 'border-style': 'solid',
-                'border-top-color': '#333333',
-                'border-right-color': '#333333',
+                'border-top-color': '#222222',
+                'border-right-color': '#222222',
                 'border-bottom-color': '#7099EE',
                 'border-left-color': '#7099EE'
             },
