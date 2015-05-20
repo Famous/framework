@@ -1,4 +1,21 @@
 BEST.scene('super.demo.day:templating', 'HEAD', {
+    /**
+     * Behaviors:
+     *      Target the circle in our tree
+     *      using selectors and set size, style
+     *      and other Famous properties.
+     *
+     *      Template:
+     *          Lets us map specific state or values to
+     *          mustache templates ({{ looks like this }})
+     *          in our tree.
+     *
+     *          {{ line1 }} in our tree
+     *
+     *          ... will be compiled to ...
+     *
+     *          Supports
+     */
     behaviors: {
         '#circle': {
             'size': [800, 800],
@@ -29,6 +46,10 @@ BEST.scene('super.demo.day:templating', 'HEAD', {
         }
     },
     events: {},
+    /**
+     * States:
+     *      Set our lines of text.
+     */
     states: {
         'lines': ['Supports', 'Jade &', 'Mustache', 'Templating']
     },
