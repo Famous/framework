@@ -13,6 +13,16 @@ var DynamicGeometry = Famous.webglGeometries.DynamicGeometry;
 var Material = Famous.webglMaterials.Material;
 var Color = Famous.utilities.Color;
 
+/**
+ * Attach:
+ *      To attach raw engine code to a component,
+ *      simply pass in the component, version and
+ *      the context that it'll live in.
+ *
+ *      Inside of our executable function, we'll
+ *      have access to the node of that context
+ *      and can use it with
+ */
 BEST.attach('super.demo.day:attach-webgl', 'HEAD', '#webgl', function(node) {
     /**
      * Create a dynamic geometry from a sphere
