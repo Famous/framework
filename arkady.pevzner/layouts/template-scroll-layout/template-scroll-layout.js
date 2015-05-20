@@ -23,10 +23,10 @@ BEST.module('arkady.pevzner:layouts:template-scroll-layout', 'HEAD', {
                 for(var i = 0; i < $payload.length; i++) {
                     data = $payload[i];
                     template = ''+
-                    '<div class="template-item" style="padding: 30px;">' +
+                    '<div class="template-item" style="padding: 30px; border: 1px solid black; font-family: Lato">' +
                         '<div class="template-item-header">'+
                             '<img src= "' + data.image +'" style="float: left; margin: 40px;"/>' +
-                            '<h2>' + data.title + '</h2>' +
+                            '<h3>' + data.title + '</h3>' +
                         '</div>' +
 
                         '<p>' + data.content +'</p>'+
