@@ -22,7 +22,7 @@ BEST.scene('super.demo.day:repeat', 'HEAD', {
      */
     behaviors: {
         '#line': {
-            'size': [window.innerWidth/2, 2],
+            'size': [window.innerWidth/4, 2],
             'align': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
             'origin': [0.5, 0.5],
