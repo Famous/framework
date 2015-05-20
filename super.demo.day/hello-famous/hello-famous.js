@@ -1,4 +1,10 @@
 BEST.scene('super.demo.day:hello-famous', 'HEAD', {
+    /**
+     * Behaviors:
+     *      Target hello-famous in our tree
+     *      using selectors and set style
+     *      and other Famous properties.
+     */
     behaviors: {
         '#hello-famous': {
             'align': [0.5, 0.5],
