@@ -1,7 +1,7 @@
 BEST.scene('super.demo.day:attach-webgl', 'HEAD', {
     /**
      * Behaviors:
-     *      Target the context in our tree
+     *      Target the view in our tree
      *      using selectors and set its opacity.
      *
      *      Sugar:
@@ -14,7 +14,7 @@ BEST.scene('super.demo.day:attach-webgl', 'HEAD', {
      *          }
      */
     behaviors: {
-        '#webgl' : {
+        '#view' : {
             opacity: '[[setter]]'
         }
     },
