@@ -1,7 +1,9 @@
 BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
     behaviors: {
         '#container' : {
-            'size-proportional': '[[identity|containerProportion]]'
+            'size-proportional': '[[identity|containerProportion]]',
+            'align': [0.5, 0.5],
+            'mount-point': [0.5, 0.5]
         },
         '#hf' : {
             'header-height' : 100,
@@ -14,9 +16,10 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
                     'background-color' : headerBackgroundColor,
                     'line-height' : headerHeight + 'px',
                     'text-align' : 'center',
-                    'color' : 'white',
-                    'font-size' : '30px',
-                    'font-weight' : 'bold'
+                    'color' : '#7099EE',
+                    'font-size' : '36px',
+                    'font-family': 'Lato',
+                    'font-weight': 'bold'
                 }
             }
         },
@@ -32,8 +35,8 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
             count: '[[setter]]',
             'item-height': '[[setter|camel]]',
             'item-style' : function(itemStyle, itemHeight) {
-                // Temp variable created because state should not be altered
-                // inside of a behavior.
+                // Temp variable created because state
+                // should not be altered inside of a behavior.
                 var temp = itemStyle;
                 temp['line-height'] = itemHeight + 'px';
                 return temp;
@@ -50,6 +53,11 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
                     });
                 }
                 return result;
+            },
+            'style': {
+                'background-color': 'whitesmoke',
+                'overflow': 'scroll',
+                'border': 'none'
             }
         },
         '#footer-bar' : {
@@ -57,8 +65,8 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
                 return footerBackgroundStyle;
             },
             'button-style' : function(footerButtonStyle, footerButtonSize) {
-                // Temp variable created because state should not be altered
-                // inside of a behavior.
+                // Temp variable created because state
+                // should not be altered inside of a behavior.
                 var temp = footerButtonStyle;
                 temp['line-height'] = footerButtonSize[1] + 'px';
                 return temp;
@@ -105,38 +113,43 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         // Header properties
         title: 'Basic Feed Layout',
         headerHeight: 100,
-        headerBackgroundColor: 'rgb(29, 25, 115)',
+        headerBackgroundColor: '#444444',
 
         // Body properties
-            // two panel properties
-            panelTransition: {duration: 450, 'curve' : 'outExpo'},
+        // two panel properties
+        panelTransition: {duration: 450, 'curve' : 'outExpo'},
 
-            // Scrollview properties
-            count: 25,
-            itemHeight: 100,
-            itemStyle: {
-                border: '1px solid black',
-                'background-color' : 'whitesmoke',
-                'text-align' : 'center',
-                'font-size' : '24px',
-                'cursor' : 'pointer'
-            },
+        // Scrollview properties
+        count: 25,
+        itemHeight: 100,
+        itemStyle: {
+            'border': 'none',
+            'color': '#444444',
+            'background-color' : 'whitesmoke',
+            'text-align' : 'center',
+            'font-size' : '24px',
+            'cursor' : 'pointer'
+        },
 
-            // Template layout properties
-            templateItemCount: 20,
-            loremIpsum: 'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus',
+        // Template layout properties
+        templateItemCount: 20,
+        loremIpsum: 'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus',
 
         // Footer properties
         footerBackgroundStyle: {
-            'background-color' :'rgb(29, 25, 115)'
+            'background-color' :'#444444',
+            'font-size': '24px',
+            'font-family': 'Lato'
         },
         footerButtonSize: [200, 50],
         footerButtonStyle: {
-            'border' : '1px solid white',
-            'color' : 'white',
+            'border' : '1px solid #7099EE',
+            'color' : '#7099EE',
             'border-radius' : '5px',
             'text-align' : 'center',
-            'font-size' : '20px'
+            'font-family': 'Lato',
+            'font-size' : '20px',
+            'font-weight': 'bold'
         },
         buttonOneContent: 'Famo.us Layout',
         buttonTwoContent: 'Template Layout',
@@ -145,7 +158,6 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
 })
 .config({
     imports: {
-        'famous:core': ['view', 'dom-element', 'ui-element'],
         'arkady.pevzner:layouts' : [
             'header-footer', 'basic-scroll-view', 'footer-bar', 'two-panel-layout', 'template-scroll-layout'
         ]
