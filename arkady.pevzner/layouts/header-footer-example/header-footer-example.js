@@ -57,7 +57,6 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
             'style': {
                 'background-color': 'whitesmoke',
                 'overflow': 'scroll',
-                'border': 'none'
             }
         },
         '#footer-bar' : {
@@ -113,7 +112,7 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         // Header properties
         title: 'Basic Feed Layout',
         headerHeight: 100,
-        headerBackgroundColor: '#444444',
+        headerBackgroundColor: '#333333',
 
         // Body properties
         // two panel properties
@@ -123,12 +122,12 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
         count: 25,
         itemHeight: 100,
         itemStyle: {
-            'border': 'none',
-            'color': '#444444',
+            'color': '#333333',
             'background-color' : 'whitesmoke',
             'text-align' : 'center',
             'font-size' : '24px',
-            'cursor' : 'pointer'
+            'cursor' : 'pointer',
+            'font-family': 'Lato'
         },
 
         // Template layout properties
@@ -137,7 +136,7 @@ BEST.module('arkady.pevzner:layouts:header-footer-example', 'HEAD', {
 
         // Footer properties
         footerBackgroundStyle: {
-            'background-color' :'#444444',
+            'background-color' :'#333333',
             'font-size': '24px',
             'font-family': 'Lato'
         },
