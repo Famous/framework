@@ -41,7 +41,7 @@ BEST.scene('super.demo.day:animation-timeline', 'HEAD', {
      */
     events: {
         '.circle': {
-            'click': function($timelines) {
+            'ui-click': function($timelines) {
                 $timelines.get('pulse-animation').start({ duration: 1500 });
             }
         }
