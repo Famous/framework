@@ -1,4 +1,25 @@
 BEST.scene('super.demo.day:repeat', 'HEAD', {
+    /**
+     * Behaviors:
+     *      Target the line in our tree
+     *      using selectors and set size, style
+     *      and other Famous properties.
+     *
+     *      Repeat:
+     *          Repeat is used when we want to repeat
+     *          some element in our tree.
+     *
+     *          We are using $repeat to make 360 lines.
+     *
+     *          Index:
+     *              When using $repeat, we can inject $index
+     *              to other behavior functions to gain access
+     *              to that elements index.
+     *
+     *              We are using $index to rotate each line to
+     *              make a circle. We are also using it to style
+     *              each line a different color.
+     */
     behaviors: {
         '#line': {
             'size': [window.innerWidth/2, 2],
