@@ -22,7 +22,7 @@ wrapper
  */
 
 test('----- Virtual DOM', function(t) {
-    t.plan(6);
+    t.plan(7);
 
     t.test('exports', function(st){
         st.plan(1);
@@ -102,5 +102,16 @@ test('----- Virtual DOM', function(t) {
         var firstChild = VirtualDOM.query(domTree, info.CHILD_NAME)[0];
         st.ok(firstChild, 'first child exists');
         st.notOk(VirtualDOM.isDescendant(firstChild, firstGrandChild), 'confirms when node is not descendant');
+    });
+
+    t.test('should attach data from json to node', function(st) {
+        st.plan(2);
+        var dom = VirtualDOM.create('alpha:beta');
+        var data = {a: 1, b: 2};
+        var dataStr = 'test-data';
+        VirtualDOM.attachAttributeFromJSON(dom, data, dataStr);
+        var dataStrFromNode = VirtualDOM.getAttribute(dom, dataStr);
+        st.ok(dataStrFromNode, 'data attribute attached to node');
+        st.equal(JSON.parse(dataStrFromNode).a, data.a, 'data attribute attached to node has correct value');
     });
 });
