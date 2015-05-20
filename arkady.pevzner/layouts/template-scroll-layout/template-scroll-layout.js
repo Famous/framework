@@ -6,9 +6,8 @@ BEST.module('arkady.pevzner:layouts:template-scroll-layout', 'HEAD', {
             }
         },
         '#item' : {
-            style: {
-                'overflow' : 'scroll',
-                'background-color' : 'white'
+            'style': function(style) {
+                return style;
             },
             'content' : function(content) {
                 return content;
@@ -24,9 +23,9 @@ BEST.module('arkady.pevzner:layouts:template-scroll-layout', 'HEAD', {
                 for(var i = 0; i < $payload.length; i++) {
                     data = $payload[i];
                     template = ''+
-                    '<div class="template-item" style="border: 1px solid black; padding: 20px;">' +
+                    '<div class="template-item" style="padding: 30px;">' +
                         '<div class="template-item-header">'+
-                            '<img src= "' + data.image +'" style="float: left; margin: 20px;"/>' +
+                            '<img src= "' + data.image +'" style="float: left; margin: 40px;"/>' +
                             '<h2>' + data.title + '</h2>' +
                         '</div>' +
 
@@ -43,9 +42,11 @@ BEST.module('arkady.pevzner:layouts:template-scroll-layout', 'HEAD', {
 
                 $state.set('content', content);
             },
+            'style' : 'setter'
         },
     },
     states: {
+        style: {},
         mockTemplatedContent: [
             {
                 title: 'Example Title',
