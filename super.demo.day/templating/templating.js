@@ -19,7 +19,7 @@ BEST.scene('super.demo.day:templating', 'HEAD', {
                 'border-left-color': '#7099EE'
             },
             'template': function(lines) {
-                return { 
+                return {
                     line1: lines[0],
                     line2: lines[1],
                     line3: lines[2],
@@ -29,8 +29,8 @@ BEST.scene('super.demo.day:templating', 'HEAD', {
         }
     },
     events: {},
-    states: { 
-        'lines': ['Supports', 'Jade &', 'Mustache', 'Templating'] 
+    states: {
+        'lines': ['Supports', 'Jade &', 'Mustache', 'Templating']
     },
     tree: 'templating.jade'
 });

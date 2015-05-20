@@ -97,7 +97,7 @@ BEST.attach('super.demo.day:attach-webgl', 'HEAD', '#webgl', function(node) {
     var amplitude = 0;
 
     /**
-     * Construct the Sun 
+     * Construct the Sun
      */
 
     function Sun(node) {
