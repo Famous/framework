@@ -60,23 +60,23 @@ BEST.scene('super.demo.day:animation-timeline', 'HEAD', {
     'pulse-animation': {
         '.little-circle': {
             'scale': {
-                '0%':   { value: [1, 1], curve: 'outBack' },
-                '25%':  { value: [2, 2], curve: 'outBack' },
-                '50%':  { value: [1, 1] }
+                '0%':   { value: [1.0, 1.0], curve: 'outBack' },
+                '25%':  { value: [1.5, 1.5], curve: 'outBack' },
+                '50%':  { value: [1.0, 1.0] }
             }
         },
         '.medium-circle': {
             'scale': {
-                '0%':   { value: [1, 1], curve: 'outBack' },
-                '50%':  { value: [2, 2], curve: 'outBack' },
-                '75%':  { value: [1, 1] }
+                '0%':   { value: [1.0, 1.0], curve: 'outBack' },
+                '50%':  { value: [1.5, 1.5], curve: 'outBack' },
+                '75%':  { value: [1.0, 1.0] }
             }
         },
         '.large-circle': {
             'scale': {
-                '0%':   { value: [1, 1], curve: 'outBack' },
-                '75%':  { value: [2, 2], curve: 'outBack' },
-                '100%': { value: [1, 1] }
+                '0%':   { value: [1.0, 1.0], curve: 'outBack' },
+                '75%':  { value: [1.5, 1.5], curve: 'outBack' },
+                '100%': { value: [1.0, 1.0] }
             }
         },
     }
