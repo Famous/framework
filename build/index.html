@@ -60,21 +60,21 @@
 
     <script type="text/javascript">
       (function() {
-        if (QUERY.best) {
-          document.getElementById('input').value = QUERY.best;
+        document.getElementById('input').value = QUERY.best || 'hello-famous';
 
+        if (QUERY.best) {
           if (QUERY.best.split(':').length < 2) QUERY.best = 'super.demo.day:' + QUERY.best;
           BEST.deploy(QUERY.best, 'HEAD', '#stage');
-
-          var stage = document.getElementById('stage');
-          stage.scrollIntoView();
-
-          // Hack to mask FOUC when using align
-          setTimeout(function() { stage.style.opacity = 1; }, 200);
         }
         else {
-          console.error('Please supply a BEST name (`?best=...`)');
+          BEST.deploy('super.demo.day:hello-famous', 'HEAD', '#stage');
         }
+
+        var stage = document.getElementById('stage');
+        stage.scrollIntoView();
+
+        // Hack to mask FOUC when using align
+        setTimeout(function() { stage.style.opacity = 1; }, 200);
 
         // Hack to force context resize
         window.onresize = function(size) {
