@@ -9,7 +9,7 @@ function getColorStep(step) {
     return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
-BEST.module('arkady.pevzner:control-flow:if-repeat', 'HEAD', {
+BEST.module('super.demo.day:if-repeat', 'HEAD', {
     behaviors: {
         '#container': {
             'align': [0.4, 0.1],
