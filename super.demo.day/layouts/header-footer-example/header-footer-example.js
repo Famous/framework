@@ -1,6 +1,18 @@
 BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
     behaviors: {
+        /*
+        `$self` behaviors are routed to a component's events. The framework first checks
+        if there is a matching `$private` event, then checks for a matching `$public` event.
+         */
         '$self': {
+            /*
+            '[[setter|camel]]' is a shorthand that gets expanded during server-side compilation to:
+            animate-panel-one: function(animatePanelOne) {
+                return animatePanelOne;
+            }
+            Alternatively, the user can use '[[identity|`variableName`]]', to directly define the 
+            variable to be passed back.
+             */
             'animate-panel-one' : '[[setter|camel]]',
             'animate-panel-two' : '[[setter|camel]]',
             'animate-panel-three' : '[[setter|camel]]'
@@ -16,19 +28,26 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
         },
         '#header-el' : {
             content: '[[identity|title]]',
-            style: function(headerHeight, headerBackgroundColor) {
-                return {
-                    'background-color' : headerBackgroundColor,
-                    'line-height' : headerHeight + 'px',
-                    'text-align' : 'center',
-                    'color' : '#7099EE',
-                    'font-size' : '66px',
-                    'font-family': 'Lato',
-                    'font-weight': 'bold'
-                }
+            style: function(headerStyle, headerHeight) {
+                /*
+                A temporary variable is created to mix-in dynamic styles with styles
+                that are definted in state. The reason for this is that `behaviors` are purely
+                functional and should not alter variables stored in `state`. There is a suite of helper 
+                functions provided by the framework that are available via `BEST.helpers`, including the
+                'clone' method.
+                 */
+                var temp = BEST.helpers.clone(headerStyle);
+                temp['line-height'] = headerHeight + 'px';
+                return temp;
             }
         },
         '#body' : {
+            /*
+            `overflow: "hidden"` can be set on a `<view>` component. Doing so will force DOM-nesting
+            by attaching a DOMElement on to the Famous Node associated with the view.
+            In this case, `overflow: "hidden"` is added in order to ensure that only one layout panel
+            is visible at a given time.
+             */
             'overflow' : 'hidden'
         },
         '#three-panel-layout' : {
@@ -89,6 +108,20 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
     },
     events: {
         $public: {
+            /*
+            'setter|camel' in events is a shorthand that gets expanded during server side
+            compilation to:
+            'container-proportion' : function($state) {
+                $state.set('containerProportion');
+            }
+
+            '$public' events define the outside messaging interface to a component. Messages
+            can be sent to a component from outside of the framework with:
+            BEST.message('selector', '$root', 'container-proportion', [0.5, 0.5]);
+                'selector' corresponds the the selector used for BEST.deploy
+                '$root' corresponds to the component that was deployed. Alternatively, a CSS selector can
+                        be used to send messages to subcomponents of the deployed component.
+             */
             'container-proportion' : 'setter|camel',
             'title' : 'setter',
             'header-height' : 'setter|camel',
@@ -104,6 +137,9 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
             'button-two-content' : 'setter|camel',
             'button-three-content' : 'setter|camel',
         },
+        /*
+        '$private' events can only be triggered via behaviors under the '$self' selector
+         */
         '$private' : {
             'animate-panel-one' : function($state) {
                 if ($state.get('webGLOpacity') > 0) {
@@ -139,6 +175,10 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
             }
         },
         '#container' : {
+            /*
+            Subscribing to a `size-change` event creates a listener on the FamousNode associated
+            with the selected component.
+             */
             'size-change' : function($state, $payload) {
                 $state.set('panelWidth', $payload[0]);
 
@@ -156,6 +196,11 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
                 }
             }
         },
+        /*
+        'descendant' events (i.e., events that are not under the '$public/$private/$lifecycle')
+        are triggered via descendant components emitting messages using $dispatcher.emit.
+        See <scroll-view-item> for an example.
+         */
         '#footer-bar' : {
             'button-one-click' : function($state) {
                 $state.set('animatePanelOne', true);
@@ -171,6 +216,10 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
             },
         }
     },
+    /*
+    All of this examples state is stored in a single place of truth. The state is modified via events,
+    and those events trigger changes that are picked up by the behaviors.
+     */
     states: {
         // Container properties
         containerProportion: [0.8, 0.8],
@@ -178,7 +227,14 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
         // Header properties
         title: 'Three Panel Layout',
         headerHeight: 225,
-        headerBackgroundColor: '#333333',
+        headerStyle: {
+            'background-color': '#333333',
+            'text-align' : 'center',
+            'color' : '#7099EE',
+            'font-size' : '66px',
+            'font-family': 'Lato',
+            'font-weight': 'bold'
+        },
 
         // Body properties
         // three panel properties
@@ -198,7 +254,13 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
 
         // Template layout properties
         templateItemCount: 20,
-        loremIpsum: 'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus',
+        loremIpsum: '' +
+            'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ' +
+            'ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat ' +
+            'eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet,' +
+            'wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis' +
+            'pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam ' +
+            'erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus',
 
             // WebGL example properties
             _wait: 0,
@@ -228,12 +290,14 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
         buttonTwoContent: 'Template Layout',
         buttonThreeContent: 'Platform Content'
     },
-    tree: 'header-footer-example.html'
+    tree: 'header-footer-example.jade'
 })
 .config({
     imports: {
         'super.demo.day:layouts' : [
-            'header-footer', 'basic-scroll-view', 'footer-bar', 'three-panel-layout', 'template-scroll-layout'
-        ]
+            'header-footer', 'basic-scroll-view', 'footer-bar', 
+            'three-panel-layout', 'template-scroll-layout'
+        ],
+        'super.demo.day' : ['attach-webgl']
     }
 });
