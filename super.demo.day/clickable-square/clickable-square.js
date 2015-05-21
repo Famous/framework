@@ -34,8 +34,8 @@ BEST.scene('super.demo.day:clickable-square', 'HEAD', {
             'content': function(numberOfClicks) {
                 return '<h1>' + numberOfClicks + '</h1>';
             },
-            'rotation-z': function(numberOfClicks) {
-                return numberOfClicks / 50;
+            'rotation-z': function(angle) {
+                return angle;
             },
             'style': {
                 'color': '#7099EE',
@@ -65,6 +65,10 @@ BEST.scene('super.demo.day:clickable-square', 'HEAD', {
         '#square': {
             'ui-click': function($state) {
                 $state.set('numberOfClicks', 1 + $state.get('numberOfClicks'));
+                $state.set('angle', $state.get('angle') + Math.PI/2, {
+                    duration: 500,
+                    curve: 'outBounce'
+                });
             }
         }
     },
@@ -73,7 +77,8 @@ BEST.scene('super.demo.day:clickable-square', 'HEAD', {
      *      The numberOfClicks state is 0.
      */
     states: {
-        numberOfClicks: 0
+        numberOfClicks: 0,
+        angle: 0
     },
     /**
      * Tree:
