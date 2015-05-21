@@ -1,5 +1,10 @@
 BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
     behaviors: {
+        '$self': {
+            'animate-panel-one' : '[[setter|camel]]',
+            'animate-panel-two' : '[[setter|camel]]',
+            'animate-panel-three' : '[[setter|camel]]'
+        },
         '#container' : {
             'size-proportional': '[[identity|containerProportion]]',
             'align': [0.5, 0.5],
@@ -99,13 +104,8 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
             'button-two-content' : 'setter|camel',
             'button-three-content' : 'setter|camel',
         },
-        '#container' : {
-            'size-change' : function($state, $payload) {
-                $state.set('panelWidth', $payload[0]);
-            }
-        },
-        '#footer-bar' : {
-            'button-one-click' : function($state) {
+        '$private' : {
+            'animate-panel-one' : function($state) {
                 if ($state.get('webGLOpacity') > 0) {
                     var curve = $state.get('webGLHideCurve');
                     $state.set('webGLScale', [0.001, 0.001, 0.001], curve)
@@ -116,7 +116,7 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
                     $state.set('displayPanelOne', true);
                 }
             },
-            'button-two-click' : function($state) {
+            'animate-panel-two' : function($state) {
                 if ($state.get('webGLOpacity') > 0) {
                     var curve = $state.get('webGLHideCurve');
                     $state.set('webGLScale', [0.001, 0.001, 0.001], curve)
@@ -127,7 +127,7 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
                     $state.set('displayPanelTwo', true);
                 }
             },
-            'button-three-click' : function($state) {
+            'animate-panel-three' : function($state) {
                 $state.set('displayPanelThree', true);
 
                 // // show webgl (overrides overflow: hidden)
@@ -136,6 +136,38 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
                 $state.set('_wait', duration, $state.get('panelTransition'))
                     .thenSet('webGLOpacity', 1, {duration: 1})
                     .thenSet('webGLScale', [1, 1, 1], curve);
+            }
+        },
+        '#container' : {
+            'size-change' : function($state, $payload) {
+                $state.set('panelWidth', $payload[0]);
+
+                // Re-trigger panel animation to account for updated
+                // width
+                var currentPanel = $state.get('currentPanel');
+                if (currentPanel === 1) {
+                    $state.set('animatePanelOne', true);
+                }
+                else if (currentPanel === 2) {
+                    $state.set('animatePanelTwo', true);
+                }
+                else if (currentPanel === 3) {
+                    $state.set('animatePanelThree', true);
+                }
+            }
+        },
+        '#footer-bar' : {
+            'button-one-click' : function($state) {
+                $state.set('animatePanelOne', true);
+                $state.set('currentPanel', 1);
+            },
+            'button-two-click' : function($state) {
+                $state.set('animatePanelTwo', true);
+                $state.set('currentPanel', 2);
+            },
+            'button-three-click' : function($state) {
+                $state.set('animatePanelThree', true);
+                $state.set('currentPanel', 3);
             },
         }
     },
@@ -149,7 +181,8 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
         headerBackgroundColor: '#333333',
 
         // Body properties
-        // two panel properties
+        // three panel properties
+        currentPanel: 1,
         panelTransition: {duration: 450, 'curve' : 'outExpo'},
 
         // Scrollview properties
