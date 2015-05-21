@@ -1,21 +1,25 @@
 BEST.scene('super.demo.day:hello-famous', 'HEAD', {
     /**
      * Behaviors:
-     *      Target hello-famous in our tree
-     *      using selectors and set style
-     *      and other Famous properties.
+     *      Target the background and text in
+     *      our tree using selectors and sets
+     *      style and other Famous properties.
      */
     behaviors: {
-        '#hello-famous': {
+        '#background': {
+            'style': {
+                'background': 'linear-gradient(to right, #00B9D7, #9783F2)'
+            }
+        },
+        '#text': {
+            'size': [400, 80],
             'align': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
             'style': {
                 'color': 'white',
-                'background': 'linear-gradient(to right, #00B9D7, #9783F2)',
                 'font-family': 'Lato',
                 'font-size': '60px',
-                'text-align': 'center',
-                'line-height': window.innerHeight + 'px'
+                'text-align': 'center'
             }
         }
     },
