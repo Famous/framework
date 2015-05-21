@@ -8,6 +8,9 @@ BEST.scene('super.demo.day:clickable-square', 'HEAD', {
      *      Content is a function of our numberOfClicks state
      *      and will rerun on each numberOfClicks state change.
      *
+     *      Rotation is also a function
+     *      of our numberOfClicks state.
+     *
      *      Sugar:
      *          'unselectable': true
      *
@@ -26,9 +29,13 @@ BEST.scene('super.demo.day:clickable-square', 'HEAD', {
         '#square': {
             'size': [400, 400],
             'align': [0.5, 0.5],
+            'origin': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
             'content': function(numberOfClicks) {
                 return '<h1>' + numberOfClicks + '</h1>';
+            },
+            'rotation-z': function(numberOfClicks) {
+                return numberOfClicks / 50;
             },
             'style': {
                 'color': '#7099EE',
