@@ -69,6 +69,12 @@
         else {
           BEST.deploy('super.demo.day:hello-famous', 'HEAD', '#stage');
         }
+
+        var stage = document.getElementById('stage');
+        stage.scrollIntoView();
+
+        // Hack to mask FOUC when using align
+        setTimeout(function() { stage.style.opacity = 1; }, 200);
       }());
     </script>
 
