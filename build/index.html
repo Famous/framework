@@ -16,6 +16,8 @@
       #stage {
         height: 100%;
         width: 100%;
+        opacity: 0;
+        transition: 4s all;
       }
       input {
         width: 100%;
@@ -60,9 +62,15 @@
       (function() {
         if (QUERY.best) {
           document.getElementById('input').value = QUERY.best;
+
           if (QUERY.best.split(':').length < 2) QUERY.best = 'super.demo.day:' + QUERY.best;
           BEST.deploy(QUERY.best, 'HEAD', '#stage');
-          document.getElementById('stage').scrollIntoView();
+
+          var stage = document.getElementById('stage');
+          stage.scrollIntoView();
+
+          // Hack to mask FOUC when using align
+          setTimeout(function() { stage.style.opacity = 1; }, 200);
         }
         else {
           console.error('Please supply a BEST name (`?best=...`)');
