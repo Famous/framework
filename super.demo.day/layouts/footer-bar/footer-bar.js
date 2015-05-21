@@ -39,6 +39,10 @@ BEST.module('super.demo.day:layouts:footer-bar', 'HEAD', {
             'button-two-content' : 'setter|camel',
             'button-three-content' : 'setter|camel'
         },
+        /*
+        `$dispatcher.emit` will send a message up the component hierarchy.
+        Progenitors can subscribe to the events and react accordingly.
+         */
         '#button1' : {
             'ui-click' : function($dispatcher, $payload) {
                 $dispatcher.emit('button-one-click', $payload);

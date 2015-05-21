@@ -1,21 +1,22 @@
 BEST.module('super.demo.day:layouts:template-scroll-layout', 'HEAD', {
     behaviors: {
         '$self' : {
-            'set-template' : function(mockTemplatedContent) {
-                return mockTemplatedContent;
-            }
+            'set-template' : '[[identity|mockTemplatedContent]]'
         },
         '#item' : {
-            'style': function(style) {
-                return style;
-            },
-            'content' : function(content) {
-                return content;
-            }
+            'style': '[[setter]]',
+            'content' : '[[setter]]'
         }
     },
     events: {
         $public: {
+            /*
+            Creates a basic template for content. This type of layout is limited
+            because all of the items are inside of a single FamousNode, meaning that 
+            intra-animation is not possible. If the content is meant to be static,
+            this can be a useful approach. Otherwise, the developer should use the approach
+            laid out in the <basic-scroll-view> example.
+             */
             'set-template' : function($state, $payload) {
                 var innerContent = '';
                 var data;
@@ -62,6 +63,10 @@ BEST.module('super.demo.day:layouts:template-scroll-layout', 'HEAD', {
     imports: {
         'famous:core': ['ui-element']
     },
+    /*
+    External CSS files can be included. This is useful for styling static content
+    that is not likely to change.
+     */
     includes: [
         'style.css'
     ]

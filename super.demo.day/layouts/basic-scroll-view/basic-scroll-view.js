@@ -1,3 +1,7 @@
+/*---------------------------------------------------------------------------------*/
+// Functions defined outside of the BEST.module can be accessed within the module
+// as helper functions since they share the same overall scope.
+/*---------------------------------------------------------------------------------*/
 var colorSteps = 36;
 var colors = [ [151, 131, 242], [47, 189, 232] ];
 
@@ -8,16 +12,26 @@ function createColorStep(step) {
   var b = colors[0][2] - Math.round(((colors[0][2] - colors[1][2]) / colorSteps) * step);
   return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
+/*---------------------------------------------------------------------------------*/
 
 BEST.module('super.demo.day:layouts:basic-scroll-view', 'HEAD', {
     behaviors: {
         '#container' : {
-            'overflow' : 'scroll'
+            'overflow' : 'scroll' // Scrollview needs to hide items outside its clipping window
         },
         '#item' : {
-            'height' : function(itemHeight) {
-                return itemHeight;
-            },
+            'height' : '[[identity|itemHeight]]',
+
+            /*
+            The '$repeat' behavior is a special "control-flow" behavior. It will create/delete
+            components based on the payload that it recieves. The payload is expects is an array.
+            - The length of the array corresponds to the number of items that should be present after the behavior
+            is processed.
+            - The value of each entry in the array is an object whose key is the name of a public event on the
+            repeated component and value is the $payload that will be sent to that public event.
+            - The component that is dynamically created is a clone of the component that matches the CSS selector
+            (e.g., '#item') of the behavior.
+             */
             '$repeat' : function(count, itemHeight) {
                 var result = [];
                 var backgroundColor
@@ -31,12 +45,9 @@ BEST.module('super.demo.day:layouts:basic-scroll-view', 'HEAD', {
 
                     });
                 }
-                createColorStep();
                 return result;
             },
-            'style' : function(itemStyle) {
-                return itemStyle;
-            }
+            'style' : '[[identity|itemStyle]]'
         }
     },
     events: {
@@ -45,9 +56,6 @@ BEST.module('super.demo.day:layouts:basic-scroll-view', 'HEAD', {
             'item-height': 'setter|camel',
             'content': 'setter',
             'item-style' : 'setter|camel'
-        },
-        '#item' : {
-            'item-click' : function($dispatcher, $state, $payload) {}
         }
     },
     states: {

@@ -12,7 +12,7 @@ BEST.module('super.demo.day:layouts:scroll-view-item', 'HEAD', {
         '#event-catcher' : {
             'size-absolute-y' : '[[identity|height]]',
             position : function(position, height) {
-                return [position[0], position[1], 10];
+                return [position[0], position[1], 10]; // Push the event-catcher in-front of the item
             },
             style: {
                 opacity: 0,
@@ -28,6 +28,10 @@ BEST.module('super.demo.day:layouts:scroll-view-item', 'HEAD', {
             'position' : 'setter',
             'style' : 'setter'
         },
+        /*
+        A see-through <ui-element> is overlayed on top of the actual scroll-view-item in order
+        to easily capture events without having to account for the item's rotation / animation.
+         */
         '#event-catcher' : {
             'ui-mouseenter' : function($state) {
                 if (!$state.get('animateHover')) {

@@ -1,6 +1,7 @@
 BEST.module('super.demo.day:layouts:three-panel-layout', 'HEAD', {
     behaviors: {
         '#panel-1' : {
+            // See <header-footer> for discussion of '$yield'
             $yield: '.panel-1',
             position: function(offset) {
                 return [offset, 0];
