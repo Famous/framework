@@ -69,18 +69,6 @@
         else {
           BEST.deploy('super.demo.day:hello-famous', 'HEAD', '#stage');
         }
-
-        var stage = document.getElementById('stage');
-        stage.scrollIntoView();
-
-        // Hack to mask FOUC when using align
-        setTimeout(function() { stage.style.opacity = 1; }, 200);
-
-        // Hack to force context resize
-        window.onresize = function(size) {
-          FamousEngine.compositor._contexts['#stage'].updateSize();
-          FamousEngine.compositor.sendResize('#stage', FamousEngine.compositor._contexts['#stage'].DOMRenderer.getSize())
-        }
       }());
     </script>
 
