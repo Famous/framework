@@ -12,7 +12,7 @@ function getColorStep(step) {
 BEST.module('arkady.pevzner:control-flow:if-repeat', 'HEAD', {
     behaviors: {
         '#container': {
-            'position': [100, 100]
+            'align': [0.4, 0.1],
         },
         '.button': {
             'size': [100, 50],
