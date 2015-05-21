@@ -67,6 +67,12 @@
         else {
           console.error('Please supply a BEST name (`?best=...`)');
         }
+
+        // Hack to force context resize
+        window.onresize = function(size) {
+          FamousEngine.compositor._contexts['#stage'].updateSize();
+          FamousEngine.compositor.sendResize('#stage', FamousEngine.compositor._contexts['#stage'].DOMRenderer.getSize())
+        }
       }());
     </script>
 
