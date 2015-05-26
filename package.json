@@ -15,7 +15,7 @@
     "Jordan Papaleo <jordan@famo.us>"
   ],
   "scripts": {
-    "start-ecosystem": "node server/ecosystem/server.js",
+    "start-ecosystem": "./wait-then-sync.sh & node server/ecosystem/server.js",
     "watch-components": "ECOSYSTEM_BASE_URI=http://localhost:8357/ local/assistant/bin/index.js watch --baseDir=$PWD/components/",
     "watch-runtime": "watchify browser/runtime/lib/index.js --standalone BEST -t [ envify --ECOSYSTEM_BASE_URI http://localhost:8357/ ] -o local/workspace/build/best.bundle.js --debug --verbose",
     "serve-build": "serve local/workspace/build -p 1337",
