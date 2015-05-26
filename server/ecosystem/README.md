@@ -24,16 +24,3 @@ When a Version is saved, Ecosystem first persists an unmodified version of the f
 - Builds a browser-executable `bundle.js` file
 
 When the client-side framework makes a request for a Version, Ecosystem returns a URL to the `bundle.js` file. The client loads that script to render the scene.
-
-## Development
-
-To get started:
-
-    $ git clone git@github.famo.us:framework/ecosystem.git
-    $ cd ecosystem
-    $ npm i
-    $ npm run serve
-
-## License
-
-Copyright (c) 2015 Famous Industries, Inc. MIT license. See LICENSE.txt.

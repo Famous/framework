@@ -1,6 +1,6 @@
 # es
 
-> Parsing and AST-exploration helpers for Esprima
+Parsing and AST-exploration helpers for Esprima
 
 ## API Reference
 
@@ -49,7 +49,3 @@
 ### Builders
 
 * `es.buildStringLiteralAST(str)` - Build a string literal AST from the given string
-
-## License
-
-Copyright (c) 2015 Famous Industries, Inc. MIT license. (See LICENSE.txt)

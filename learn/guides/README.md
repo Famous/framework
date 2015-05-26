@@ -1,4 +1,4 @@
-# guides
+# learn/guides
 
 A library of prose guides about the BEST architecture and framework.
 
@@ -24,7 +24,3 @@ BEST stands for _behavior_ _event_ _state_ _tree_. It's an architectural pattern
 * [Syntactic sugar](sugar.md)
 * [Publishing your component](publishing.md)
 * [FAQ](faq.md)
-
-## License
-
-Copyright (c) 2015 Famous Industries, Inc. MIT license. See LICENSE.txt.
