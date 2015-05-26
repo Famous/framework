@@ -2,6 +2,17 @@
 
 A modern take on building reusable components and maintainable applications
 
+## Setup
+
+After cloning the repo:
+
+    $ npm install
+    $ npm run develop
+
+And browse to [localhost:1337/](http://localhost:1337/).
+
+Changes you make will trigger automatic reload.
+
 ## Authors
 
 * Zack Brown <zack@famo.us>
