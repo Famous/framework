@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>best-workspace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <script>document.write('<script src="http://'+(location.host||'localhost').split(':')[0]+':35729/livereload.js?snipver=1"></'+'script>')</script>
+    <style type="text/css">
+      html, body {
+        height: 100%;
+        overflow: scroll !important; /* overwrite default Famo.us CSS */
+        background: #444444;
+      }
+      #stage {
+        height: 100%;
+        width: 100%;
+        opacity: 0;
+        transition: 4s all;
+      }
+      input {
+        width: 100%;
+        height: 50px;
+        font-size: 40px;
+        color: #7099EE;
+        background: transparent;
+        border-width: 0px 0px 2px 0px;
+        border-color: #7099EE;`
+        padding: 10px;
+      }
+      input:focus {
+        outline: none;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <div>
+      <form>
+        <input type="text" list="scenes" name="best" id="input" placeholder="hello-famous">
+        <datalist id="scenes">
+          <option value="animation-timeline">
+          <option value="attach-webgl">
+          <option value="click-event">
+          <option value="clickable-square">
+          <option value="hello-famous">
+          <option value="lifecycle">
+          <option value="repeat">
+          <option value="templating">
+        </datalist>
+      </form>
+    </div>
+
+    <div id="stage"></div>
+
+    <script type="text/javascript" src="best.bundle.js"></script>
+    <script type="text/javascript" src="assets/query-string.js"></script>
+
+    <script type="text/javascript">
+      (function() {
+        document.getElementById('input').value = QUERY.best || 'hello-famous';
+
+        if (QUERY.best) {
+          if (QUERY.best.split(':').length < 2) QUERY.best = 'super.demo.day:' + QUERY.best;
+          BEST.deploy(QUERY.best, 'HEAD', '#stage');
+        }
+        else {
+          BEST.deploy('super.demo.day:hello-famous', 'HEAD', '#stage');
+        }
+
+        var stage = document.getElementById('stage');
+        stage.scrollIntoView();
+
+        // Hack to mask FOUC when using align
+        setTimeout(function() { stage.style.opacity = 1; }, 200);
+      }());
+    </script>
+
+  </body>
+
+ 
+
+ 
+
+ 
+</html>
