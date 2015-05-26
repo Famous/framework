@@ -1,6 +1,6 @@
 'use strict';
 
-var UID = require('framework-utilities/uid');
+var UID = require('./../../../utilities/uid');
 var VirtualDOM = require('./../virtual-dom/virtual-dom');
 
 var NODE_UID_PREFIX = 'node';

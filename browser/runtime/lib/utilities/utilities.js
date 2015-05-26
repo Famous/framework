@@ -1,6 +1,6 @@
 'use strict';
 
-var FunctionParser = require('framework-utilities/function-parser');
+var FunctionParser = require('./../../../utilities/function-parser');
 var DataStore = require('../data-store/data-store');
 var VirtualDOM = require('../virtual-dom/virtual-dom');
 

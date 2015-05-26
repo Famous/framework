@@ -2,7 +2,7 @@
 
 var EventHandler = require('./../utilities/event-handler');
 var FamousConnector = require('./../famous-connector/famous-connector');
-var StateManager = require('best-state-manager');
+var StateManager = require('./../../../state-manager/lib');
 
 var STATE_AUTOTRIGGER_RE = /^[a-zA-Z0-9$].*/i;
 

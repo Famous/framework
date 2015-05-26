@@ -2,7 +2,7 @@
 
 var EventHandler = require('./../utilities/event-handler');
 
-var converter = require('framework-utilities/converter');
+var converter = require('./../../../utilities/converter');
 var toSalty = converter.sweetToSalty;
 var piecewise = require('./../helpers/helpers').piecewise;
 

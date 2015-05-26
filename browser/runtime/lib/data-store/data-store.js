@@ -1,6 +1,6 @@
 'use strict';
 
-var ObjUtils = require('framework-utilities/object');
+var ObjUtils = require('./../../../utilities/object');
 
 // A BEST Application with a Famo.us Context
 var EXECUTED_COMPONENTS = {};

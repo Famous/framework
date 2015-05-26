@@ -9,12 +9,12 @@ var FamousConnector = require('./../famous-connector/famous-connector');
 var States = require('./../states/states');
 var Timelines = require('./../timelines/timelines');
 var Tree = require('./../tree/tree');
-var UID = require('framework-utilities/uid');
+var UID = require('./../../../utilities/uid');
 var VirtualDOM = require('./../virtual-dom/virtual-dom');
 var BehaviorRouter = require('./../behaviors/behavior-router');
-var ArrayUtils = require('framework-utilities/array');
+var ArrayUtils = require('./../../../utilities/array');
 var Utilities = require('./../utilities/utilities');
-var ObjectUtils = require('framework-utilities/object');
+var ObjectUtils = require('./../../../utilities/object');
 
 var NODE_UID_PREFIX = 'node';
 var YIELD_KEY = '$yield';

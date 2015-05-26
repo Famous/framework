@@ -3,7 +3,7 @@
 var ControlFlowUtils = require('./control-flow-utils');
 var Behaviors = require('../behaviors/behaviors');
 var VirtualDOM = require('../virtual-dom/virtual-dom');
-var ArrayUtils = require('framework-utilities/array');
+var ArrayUtils = require('./../../../utilities/array');
 
 var IF_KEY = ControlFlowUtils.CONSTANTS.IF_KEY;
 var REPEAT_KEY = ControlFlowUtils.CONSTANTS.REPEAT_KEY;

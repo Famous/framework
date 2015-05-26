@@ -1,6 +1,6 @@
 'use strict';
 
-var ObjUtils = require('framework-utilities/object');
+var ObjUtils = require('./../../../utilities/object');
 var Component = require('./../component/component');
 var DataStore = require('./../data-store/data-store');
 

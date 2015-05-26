@@ -2,7 +2,7 @@
 
 var Async = require('async');
 var Colors = require('colors/safe');
-var Es = require('best-es');
+var Es = require('./../../../es');
 var Jsdom = require('jsdom');
 var Lodash = require('lodash');
 var Path = require('path');
