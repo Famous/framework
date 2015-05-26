@@ -1,12 +1,12 @@
-# Hello BEST
+# Hello Famous Framework
 
-The [BEST development platform](https://github.famo.us/framework), built by engineers at Famous, provides an easy-to-use API for harnessing the Famous rendering engine, and is designed to connect your application to Famous cloud services and Famous visual studio tools with no additional code.
+The [Famous Framework](https://github.com/Famous/framework), built by engineers at Famous, provides an easy-to-use API for harnessing the Famous Engine. It's also designed to integrate seamlessly with (forthcoming) Famous studio tools and Famous cloud services.
 
 ## Installation &amp; setup
 
 See [Installation &amp; setup](setup.md).
 
-In these guides, **we will assume your project's root directory is `best-framework/`**, which should have been created with the install process. Unless specified otherwise, all command-line commands should be run from that folder.
+In these guides, **we will assume your project's root directory is `framework/`**, which should have been created when you cloned the repo. Unless specified otherwise, all command-line commands should be run from that folder.
 
 **We'll also assume that your development environment is up-and-running**, i.e., that you ran `$ npm run develop` in the previous step. A demonstration page should already be visible at [localhost:1337](http://localhost:1337), and a tab in your terminal should be showing live output logs.
 
@@ -21,33 +21,33 @@ Take a look at the `components/` folder (which should be within the project's ro
 
 Create a folder for yourself at the same level as these folders. Name it after yourself, and stick to the convention of all-lowercase characters and a period for a separator. (For this guide, we'll pretend that you created the folder `zelda.zulu/`.) This folder will be the home for all your projects.
 
-Now create a project folder inside your folder: From inside your `zelda.zulu/` folder, create a folder called `hello-best/`. Then create the main file for your project: Inside the `hello-best/` folder, create the file `hello-best.js`. Your files and folders should now look like this:
+Now create a project folder inside your folder: From inside your `zelda.zulu/` folder, create a folder called `hello-framework/`. Then create the main file for your project: Inside the `hello-framework/` folder, create the file `hello-framework.js`. Your files and folders should now look like this:
 
     ├── ...
     ├── george.golf/
     └── zelda.zulu/
-        └── hello-best/
-            └── hello-best.js
+        └── hello-be/
+            └── hello-famous.js
 
 ## Creating a scene
 
-The file `hello-best.js` will be the main entrypoint into your scene. Let's add some code to that file to get something simple into the browser window. Copy and paste the following code snippet into the entrypoint file:
+The file `hello-framework.js` will be the main entrypoint into your scene. Let's add some code to that file to get something simple into the browser window. Copy and paste the following code snippet into the entrypoint file:
 
-    BEST.scene('zelda.zulu:hello-best', 'HEAD', {
-        tree: `<ui-element><h1>Hello BEST</h1></ui-element>`
+    BEST.scene('zelda.zulu:hello-framework', 'HEAD', {
+        tree: `<ui-element><h1>Hello Famous Framework</h1></ui-element>`
     });
 
 Save that file, and then open the file `workspace/build/index.html` in your text editor. You should see a script line with the code `BEST.deploy(...)`. That line controls the current scene being rendered at [localhost:1337](http://localhost:1337). Modify it so that it instead points to your new scene, like so:
 
-    BEST.deploy('zelda.zulu:hello-best', 'HEAD', 'body');
+    BEST.deploy('zelda.zulu:hello-framework', 'HEAD', 'body');
 
-Then visit [localhost:1337](http://localhost:1337) in your browser, and you should see the message "Hello BEST" displayed. Congratulations! You've just created your first scene. As you make updates to this file, the browser should refresh automatically.
+Then visit [localhost:1337](http://localhost:1337) in your browser, and you should see the message "Hello Famous Framework" displayed. Congratulations! You've just created your first scene. As you make updates to this file, the browser should refresh automatically.
 
 ## Style, animation, and interaction
 
-Let's extend the code snippet to create a more complex scene that includes styles, animation, and user interaction. Replace the contents of `hello-best.js` with the following snippet:
+Let's extend the code snippet to create a more complex scene that includes styles, animation, and user interaction. Replace the contents of `hello-framework.js` with the following snippet:
 
-    BEST.scene('zelda.zulu:hello-best', 'HEAD', {
+    BEST.scene('zelda.zulu:hello-framework', 'HEAD', {
         behaviors: {
             '#element': {
                 'style': {
@@ -176,4 +176,4 @@ Now that we've explored each of the pieces of this more-complex example in depth
 
 ## More to explore
 
-This guide has covered just a few of the simplest things you can do with the BEST development framework. Try changing around this example to see what you can make it do. Then, we encourage you to explore the rest of these guides to learn how to build more complex, advanced applications.
+This guide has covered just a few of the simplest things you can do with the Famous Framework. Try changing around this example to see what you can make it do. Then, we encourage you to explore the rest of these guides to learn how to build more complex, advanced applications.

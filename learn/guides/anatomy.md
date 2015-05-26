@@ -1,6 +1,6 @@
 # Anatomy of a scene
 
-This is an overview of our core team's taxonomy for the parts that make up a BEST scene. While it's not totally necessary to know while developing modules, it can be useful for when reporting bugs or other unexpected behavior.
+This is an overview of our core team's taxonomy for the parts that make up a framework scene. While it's not totally necessary to know while developing modules, it can be useful for when reporting bugs or other unexpected behavior.
 
 
     // ↓ framework namespace

@@ -1,6 +1,6 @@
 # Control flow
 
-The BEST framework currently supports three basic control-flow operations: `$if`, `$repeat`, and `$yield`. Unlike other template-based frameworks, BEST doesn't support programming these kinds of operations inside the structural declaration of your component (i.e. in the tree). Instead, control flow must be implemented as behaviors.
+The Famous Framework currently supports three basic control-flow operations: `$if`, `$repeat`, and `$yield`. Unlike other template-based frameworks, the Famous Framework doesn't support programming these kinds of operations inside the structural declaration of your component (i.e. in the tree). Instead, control flow must be implemented as behaviors.
 
 ## $if
 
@@ -85,14 +85,14 @@ In the example above, we introduce one component, `zelda.zulu:yield`, which make
 
 For `zelda.zulu:yield`, the injected content will only be allowed if the injected elements have `id="main-content"` or `id="sidebar-content"`. Moreover, it specifically designates the elements within its own tree that the surrogate content will be placed. (`#main-content` will be inserted into `#main`, and `#sidebar-content` will be inserted into `#sidebar`.)
 
-`$yield` is one of the most fundamental control-flow operations in BEST, because it makes component nesting, layouts, and default/overrideable content possible. And although most components will never need to use `$yield` behaviors directly, almost all will indirectly make use of it -- any time they declare even a simple nested tree:
+`$yield` is one of the most fundamental control-flow operations in the Famous Framework, because it makes component nesting, layouts, and default/overrideable content possible. And although most components will never need to use `$yield` behaviors directly, almost all will indirectly make use of it -- any time they declare even a simple nested tree:
 
     <view>
         <!-- `view` uses 'yield' to allow `other-thing` to be injected here -->
         <other-thing></other-thing>
     </view>
 
-One of the most commonly used pre-built components in BEST, `<famous:core:view>` (or just `<view>`) exists mainly as an empty container that content can be injected into.
+One of the most commonly used pre-built components in the Famous Framework, `<famous:core:view>` (or just `<view>`) exists mainly as an empty container that content can be injected into.
 
 ## A word of warning about performance
 

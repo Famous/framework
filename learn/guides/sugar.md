@@ -1,10 +1,10 @@
 # Syntactic sugar
 
-BEST code is written in plain JavaScript, with built-in support for ES5 and ES6 through the [Babel](https://babeljs.io/) JavaScript transpiler. But BEST itself also provides some syntactical sugar that makes writing components even more concise.
+Famous Framework code is written in plain JavaScript, with built-in support for ES5 and ES6 through the [Babel](https://babeljs.io/) JavaScript transpiler. But the framework itself also provides some syntactical sugar that makes writing components even more concise.
 
 #### Setter events
 
-It's a common pattern for a BEST component to expose an event whose sole job is to modify a bit of state whose name is the same as the event function. Consider this:
+It's a common pattern for a framework component to expose an event whose sole job is to modify a bit of state whose name is the same as the event function. Consider this:
 
     events: {
         '$public': {

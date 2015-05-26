@@ -1,6 +1,6 @@
 # Events &amp; behaviors
 
-Event and behavior functions are where most of the magic happens within your BEST scene. Understanding the relationship between these two facets is key to making the most out of the framework. In this guide, we'll cover the core concepts as well as practical usage examples.
+Event and behavior functions are where most of the magic happens within your Famous Framework scene. Understanding the relationship between these two facets is key to making the most out of the framework. In this guide, we'll cover the core concepts as well as practical usage examples.
 
 ## Overview
 
@@ -40,13 +40,13 @@ As it turns out, the `ui-element` component (a.k.a. `famous:core:ui-element`) de
         }
     });
 
-Whenever `my:scene`'s behavior `'size'` is fired, the BEST framework engine instantiates a new message with the behavior's return value as the message's contents. It then routes the message to all nodes in the tree that match the `'#el'` selector.
+Whenever `my:scene`'s behavior `'size'` is fired, the framework instantiates a new message with the behavior's return value as the message's contents. It then routes the message to all nodes in the tree that match the `'#el'` selector.
 
 If any of those matching target nodes expose a "public" event that matches the message's name (`'size'`), then that event will be fired, with the injected `$payload` argument given to represent the value of the message's contents.
 
 ## Implementing an event
 
-In BEST, we like to say that event functions are "where the rubber meets the road." Via dependency injection, event functions can obtain access to the underlying stateful bits and pieces of the active scene.
+We like to say that event functions are "where the rubber meets the road." Via dependency injection, event functions can obtain access to the underlying stateful bits and pieces of the active scene.
 
 The most basic type of state access an event function can get is to the `$state` object, usually with the complementary `$payload` that is the value of the received message:
 

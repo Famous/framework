@@ -4,14 +4,14 @@ To include external CSS or JavaScript with your module, first place the files in
 
     ├── ...
     └── zelda.zulu/
-        └── hello-best/
-            ├── hello-best.js
+        └── hello-famous/
+            ├── hello-famous.js
             ├── foo.css
             └── bar.js
 
 Then, indicate that you want to load these files by using the `config` method, which can be chained to your main scene definition:
 
-    BEST.scene('zelda.zulu:hello-best', 'HEAD', {
+    BEST.scene('zelda.zulu:hello-famous', 'HEAD', {
         // etc
     })
     .config({

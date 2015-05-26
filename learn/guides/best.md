@@ -1,8 +1,8 @@
-# Architecture
+# Concepts in the BEST pattern
 
 ## The theory
 
-User interfaces are [state machines](http://en.wikipedia.org/wiki/Finite-state_machine#Example:_a_turnstile). Visual elements depict the current state; user interactions occur, prompting the elements to transition to new states; and so on. In one sense, BEST simply provides a nomenclature for this flow.
+User interfaces are [state machines](http://en.wikipedia.org/wiki/Finite-state_machine#Example:_a_turnstile). Visual elements depict the current state; user interactions occur, prompting the elements to transition to new states; and so on. In one sense, the _BEST_ pattern simply provides a nomenclature for this flow.
 
 ## Structure and data flow
 
@@ -47,7 +47,7 @@ Trees are _declarative representations of the [scene graph](http://en.wikipedia.
 
 ### Relational joins
 
-To keep module code as concise and declarative as possible, in implementation of the BEST architecture should make use of a [relational join](http://en.wikipedia.org/wiki/Relational_algebra#Joins_and_join-like_operators) system that can apply behaviors to any subset of a module's visual elements. Consider this snippet, which expresses that "the `position` return value should apply to all `view` elements":
+To keep module code as concise and declarative as possible, in implementation of the BEST pattern should make use of a [relational join](http://en.wikipedia.org/wiki/Relational_algebra#Joins_and_join-like_operators) system that can apply behaviors to any subset of a module's visual elements. Consider this snippet, which expresses that "the `position` return value should apply to all `view` elements":
 
     // behavior
     view: {
@@ -63,7 +63,7 @@ To keep module code as concise and declarative as possible, in implementation of
 
 ### Dependency injection
 
-A robust [dependency injection](http://en.wikipedia.org/wiki/Dependency_injection) system allows the intent of a module's behaviors to be communicated clearly. The ideal implementation of the BEST architecture will perform dependency injection transparently, for both behavior and event functions. Consider the following example, which expresses that "the view's position is a function of the tally":
+A robust [dependency injection](http://en.wikipedia.org/wiki/Dependency_injection) system allows the intent of a module's behaviors to be communicated clearly. The ideal implementation of the BEST pattern will perform dependency injection transparently, for both behavior and event functions. Consider the following example, which expresses that "the view's position is a function of the tally":
 
     // behavior
     view: {
@@ -72,7 +72,7 @@ A robust [dependency injection](http://en.wikipedia.org/wiki/Dependency_injectio
         }
     }
 
-## Benefits of the architecture
+## Benefits of the pattern
 
 ### Isolated statefulness
 
@@ -84,7 +84,7 @@ Since state in BEST cannot be shared between modules, event functions become the
 
 ### Declarative composition
 
-Because BEST is an architecture for scene-graph applications (for example, [Famous](http://famous.org)), and since every BEST module's scene graph is described by a declarative tree, composing and extending scenes is as easy as copying and pasting a line of code. Consider this snippet, in which a developer has placed a carousel, a video, and an accordion list into three-column layout. Any of these components could be trivially replaced by another one.
+Because BEST is an architectural pattern for scene-graph applications (for example, [Famous](http://famous.org)), and since every BEST module's scene graph is described by a declarative tree, composing and extending scenes is as easy as copying and pasting a line of code. Consider this snippet, in which a developer has placed a carousel, a video, and an accordion list into three-column layout. Any of these components could be trivially replaced by another one.
 
     <layout-3-col>
         <col> <carousel> ... </carousel> </col>

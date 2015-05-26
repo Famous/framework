@@ -1,6 +1,6 @@
 # Using "raw" Famous
 
-Some developers need a way to drop down to the low-level Famous rendering engine in order to get the job done. Luckily, this is just as easy as using [raw JavaScript code](raw-code.md). We make the full Famous library available exposed as a global `Famous` object, which you can tap into to squeeze the most out of the engine.
+Some developers need a way to drop down to the low-level Famous Engine in order to get the job done. Luckily, this is just as easy as using [raw JavaScript code](raw-code.md). We make the full Famous library available exposed as a global `Famous` object, which you can tap into to squeeze the most out of the engine.
 
     var context = Famous.createContext();
     var root = context.addChild();
