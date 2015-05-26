@@ -1,0 +1,22 @@
+{
+  "name": "best-es",
+  "version": "0.0.0",
+  "description": "Parsing and AST-exploration helpers for Esprima",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test/*.spec.js"
+  },
+  "author": "Matthew Trost <matthew@famo.us>",
+  "license": "MIT",
+  "devDependencies": {
+    "esprima": "^2.2.0",
+    "tap-spec": "^3.0.0",
+    "tape": "^4.0.0"
+  },
+  "dependencies": {
+    "clone": "^1.0.2",
+    "escodegen": "^1.6.1",
+    "esprima": "^2.2.0",
+    "estraverse": "^4.1.0"
+  }
+}
