@@ -1,5 +1,7 @@
 # Famous Framework
 
+A modern take on building reusable components and maintainable applications
+
 ## Authors
 
 * Zack Brown <zack@famo.us>
