@@ -1,0 +1,7 @@
+config/secrets.json
+.DS_Store
+*.log
+node_modules
+build
+tmp/*
+public/*
