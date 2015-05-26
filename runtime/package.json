@@ -1,0 +1,33 @@
+{
+  "name": "best-runtime",
+  "version": "0.7.0",
+  "description": "Browser runtime for the BEST framework",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "browserify tests/**/*.spec.js -t [ envify --ECOSYSTEM_BASE_URI placeholder ] -d | tap-closer | smokestack | tap-spec",
+    "test-ugly": "browserify tests/**/*.spec.js -t [ envify --ECOSYSTEM_BASE_URI placeholder ] -d | tap-closer | smokestack"
+  },
+  "authors": [
+    "Zack Brown <zack@famo.us>",
+    "Matthew Trost <matthew@famo.us>",
+    "Arkady Pevzner <arkady@famo.us>",
+    "Imtiaz Majeed <imtiaz@famo.us>",
+    "Jordan Papaleo <jordan@famo.us>"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "famous": "git+ssh://git@github.com:Famous/mixed-mode.git#develop",
+    "best-state-manager": "git+ssh://git@github.famo.us:framework/state-manager#develop",
+    "framework-utilities": "git+ssh://git@github.famo.us:framework/utilities.git#develop",
+    "mustache": "^1.1.0",
+    "xhr": "^2.0.1"
+  },
+  "devDependencies": {
+    "browserify": "^10.1.3",
+    "envify": "^3.4.0",
+    "smokestack": "^3.2.2",
+    "tap-closer": "^1.0.0",
+    "tap-spec": "^3.0.0",
+    "tape": "^4.0.0"
+  }
+}
