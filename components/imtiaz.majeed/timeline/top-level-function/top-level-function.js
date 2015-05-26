@@ -20,7 +20,7 @@ BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
             }
         },
         '#square': {
-            'ui-click': function($timelines) {
+            'click': function($timelines) {
                 $timelines.get('spinAround').start({ duration: 1000 });
             }
         }

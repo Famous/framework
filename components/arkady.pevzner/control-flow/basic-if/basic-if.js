@@ -35,7 +35,7 @@ BEST.module('arkady.pevzner:control-flow:basic-if', 'HEAD', {
     },
     events: {
         '#button' : {
-            'ui-click' : function($state) {
+            'click' : function($state) {
                 $state.set('toggle', !$state.get('toggle'));
             }
         }

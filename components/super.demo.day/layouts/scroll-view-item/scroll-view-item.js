@@ -33,7 +33,7 @@ BEST.module('super.demo.day:layouts:scroll-view-item', 'HEAD', {
         to easily capture events without having to account for the item's rotation / animation.
          */
         '#event-catcher' : {
-            'ui-mouseenter' : function($state) {
+            'mouseenter' : function($state) {
                 if (!$state.get('animateHover')) {
                     return;
                 }
@@ -47,7 +47,7 @@ BEST.module('super.demo.day:layouts:scroll-view-item', 'HEAD', {
                         .thenSet('blockHover', false);
                 }
             },
-            'ui-click' : function($dispatcher, $state, $payload) {
+            'click' : function($dispatcher, $state, $payload) {
                 $dispatcher.emit('item-click', {
                     index: $state.get('$index'),
                     value: $payload

@@ -44,17 +44,20 @@ BEST.module('super.demo.day:layouts:footer-bar', 'HEAD', {
         Progenitors can subscribe to the events and react accordingly.
          */
         '#button1' : {
-            'ui-click' : function($dispatcher, $payload) {
+            'click' : function($dispatcher, $payload) {
+                console.log('button one click');
                 $dispatcher.emit('button-one-click', $payload);
             }
         },
         '#button2' : {
-            'ui-click' : function($dispatcher, $payload) {
+            'click' : function($dispatcher, $payload) {
+                console.log('button TWO click');
                 $dispatcher.emit('button-two-click', $payload);
             }
         },
         '#button3' : {
-            'ui-click' : function($dispatcher, $payload) {
+            'click' : function($dispatcher, $payload) {
+                console.log('button THREE click');
                 $dispatcher.emit('button-three-click', $payload);
             }
         }

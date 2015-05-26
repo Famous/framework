@@ -63,7 +63,7 @@ BEST.scene('super.demo.day:clickable-square', 'HEAD', {
      */
     events: {
         '#square': {
-            'ui-click': function($state) {
+            'click': function($state) {
                 $state.set('numberOfClicks', 1 + $state.get('numberOfClicks'));
                 $state.set('angle', $state.get('angle') + Math.PI/2, {
                     duration: 500,

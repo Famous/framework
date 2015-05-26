@@ -46,7 +46,11 @@ Compiler.DEFAULTS = {
     defaultDependencyVersion: 'HEAD',
     defaultImports: {
         'famous:core': ['components', 'context', 'dom-element', 'ui-element', 'view', 'wrapper'],
-        'famous:events': ['click', 'dblclick', 'keydown', 'keypress', 'keyup', 'mousedown', 'mousemove', 'mouseout', 'mouseover', 'mouseup', 'size-change', 'parent-size-change']
+        'famous:events': [
+            'click', 'dblclick', 'keydown', 'keypress', 'keyup', 'mousedown', 'mousemove', 'mouseenter',
+            'mouseleave', 'mouseout', 'mouseover', 'mouseup', 'size-change', 'parent-size-change', 'touchstart',
+            'touchmove', 'touchend'
+        ]
     },
     dependenciesKeyName: 'dependencies',
     entrypointExtnames: { '.js': true },
@@ -531,9 +535,9 @@ function behaviorFnStringTemplate(stateName) {
     return '(function(' + stateName + '){ return ' + stateName + '; })';
 }
 
-Compiler.prototype.expandBehaviorsObject = function(eventsAST) {
+Compiler.prototype.expandBehaviorsObject = function(behaviorsAST) {
     // Loop through behavior selectors
-    Es.eachObjectProperty(eventsAST, function(_0, _1, _2, valueObj) {
+    Es.eachObjectProperty(behaviorsAST, function(_0, _1, _2, valueObj) {
         // Loop through behaviors
         Es.eachObjectProperty(valueObj, function(keyName, _1, subValueVal, subValueObj, eventProp) {
             if (Es.isStringLiteral(subValueObj) && subValueVal.match(Compiler.DEFAULTS.behaviorSetterRegex)) {

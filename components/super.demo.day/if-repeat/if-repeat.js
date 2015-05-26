@@ -78,19 +78,19 @@ BEST.module('super.demo.day:if-repeat', 'HEAD', {
     },
     events: {
         '#toggle-button': {
-            'ui-click': function($state) {
+            'click': function($state) {
                 $state.set('showState', !$state.get('showState'));
             }
         },
         '#add-button': {
-            'ui-click': function($state) {
+            'click': function($state) {
                 if ($state.get('showState')) {
                     $state.chain('blockCount').add(1);
                 }
             }
         },
         '#remove-button': {
-            'ui-click': function($state) {
+            'click': function($state) {
                 if ($state.get('showState') && $state.get('blockCount') > 0) {
                     $state.chain('blockCount').subtract(1);
                 }
