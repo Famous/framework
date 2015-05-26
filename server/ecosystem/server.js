@@ -5,6 +5,7 @@ var ErrorHandler = require('errorhandler');
 var Morgan = require('morgan');
 var Version = require('./lib/version/version');
 var Env = require('./config/environment');
+var Path = require('path');
 var PORT = Env.PORT;
 
 var app = Express();
@@ -14,7 +15,7 @@ app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
-app.use(Express.static('public'));
+app.use(Express.static(Path.join(__dirname, 'public')));
 app.use(Morgan('combined'));
 
 // curl http://localhost:3000/versions/fixtures:entrypoint/HEAD.json

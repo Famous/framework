@@ -11,16 +11,18 @@
     "Jordan Papaleo <jordan@famo.us>"
   ],
   "scripts": {
-    "test": "browserify tests/**/*.spec.js -t [ envify --ECOSYSTEM_BASE_URI placeholder ] -d | tap-closer | smokestack | tap-spec",
-    "test-ugly": "browserify tests/**/*.spec.js -t [ envify --ECOSYSTEM_BASE_URI placeholder ] -d | tap-closer | smokestack",
-    "seed": "./seed.sh",
-    "develop": "node ./livereload.js & npm run start-ecosystem & npm run watch-components & npm run watch-runtime & npm run serve-build",
-    "start-ecosystem": "cd node_modules/best-ecosystem && npm run serve",
-    "sync-components": "ECOSYSTEM_BASE_URI=http://localhost:8357/ best-assistant sync --baseDir=$PWD/node_modules/best-components/",
-    "watch-components": "ECOSYSTEM_BASE_URI=http://localhost:8357/ best-assistant watch --baseDir=$PWD/node_modules/best-components/",
-    "watch-runtime": "watchify node_modules/best-runtime/lib/index.js -s BEST -t [ envify --ECOSYSTEM_BASE_URI http://localhost:8357/ ] -o build/best.bundle.js -d -v",
-    "serve-build": "serve build -p 1337"
-  },  
+    "start-ecosystem": "node server/ecosystem/server.js",
+    "watch-components": "ECOSYSTEM_BASE_URI=http://localhost:8357/ local/assistant/bin/index.js watch --baseDir=$PWD/components/",
+    "watch-runtime": "watchify browser/runtime/lib/index.js --standalone BEST -t [ envify --ECOSYSTEM_BASE_URI http://localhost:8357/ ] -o local/workspace/build/best.bundle.js --debug --verbose",
+    "serve-build": "serve local/workspace/build -p 1337",
+    "develop": "node local/workspace/livereload.js & npm run start-ecosystem & npm run watch-components & npm run watch-runtime & npm run serve-build",
+    "sync-components": "ECOSYSTEM_BASE_URI=http://localhost:8357/ local/assistant/bin/index.js sync --baseDir=$PWD/components/",
+    "test-runtime": "browserify browser/runtime/tests/**/*.spec.js -t [ envify --ECOSYSTEM_BASE_URI placeholder ] -d | tap-closer | smokestack | tap-spec",
+    "test-state-manager": "browserify browser/state-manager/tests/*.spec.js | tap-closer | smokestack | tap-spec",
+    "test-utilities": "browserify browser/utilities/tests/*.spec.js | tap-closer | smokestack | tap-spec",
+    "test-ecosystem": "tape server/ecosystem/test/*.spec.js | tap-spec",
+    "test-es": "tape server/es/test/*.spec.js | tap-spec"
+  },
   "dependencies": {
     "async": "^0.9.0",
     "aws-sdk": "^2.1.25",
