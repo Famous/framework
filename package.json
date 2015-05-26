@@ -25,7 +25,8 @@
     "test-state-manager": "browserify browser/state-manager/tests/*.spec.js | tap-closer | smokestack | tap-spec",
     "test-utilities": "browserify browser/utilities/tests/*.spec.js | tap-closer | smokestack | tap-spec",
     "test-ecosystem": "tape server/ecosystem/test/*.spec.js | tap-spec",
-    "test-es": "tape server/es/test/*.spec.js | tap-spec"
+    "test-es": "tape server/es/test/*.spec.js | tap-spec",
+    "lint": "eslint --ignore-path .gitignore ."
   },
   "dependencies": {
     "async": "^0.9.0",
@@ -62,8 +63,7 @@
     "browser-sync": "^2.2.0",
     "browserify": "^10.1.3",
     "envify": "^3.4.0",
-    "eslint": "^0.14.1",
-    "jscs": "^1.11.3",
+    "eslint": "^0.21.2",
     "jsdoc": "^3.3.0-beta1",
     "jshint": "^2.6.0",
     "livereload": "^0.3.7",
