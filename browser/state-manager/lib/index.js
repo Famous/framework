@@ -39,14 +39,14 @@ StateManager.prototype._initObservers = function _initObservers() {
     for (var key in this._state) {
         this._observers[key] = [];
     }
-}
+};
 
 /**
  * Adds an observer to all observables.
  */
 StateManager.prototype.subscribe = function subscribe(observer) {
     this._globalObservers.push(observer);
-}
+};
 
 /**
  * Adds an observer that will be fired a single time as soon
@@ -54,7 +54,7 @@ StateManager.prototype.subscribe = function subscribe(observer) {
  */
 StateManager.prototype.subscribeOnce = function subscribeOnce(observer) {
     this._once.push(observer);
-}
+};
 
 /**
  * Adds an observer that will be fired every time a global change
@@ -62,7 +62,7 @@ StateManager.prototype.subscribeOnce = function subscribeOnce(observer) {
  */
 StateManager.prototype.subscribeToGlobalChange = function subscribeToGlobalChange(observer) {
     this._globalChangeListeners.push(observer);
-}
+};
 
 /**
  * Removes an observer from all observables.
@@ -89,7 +89,7 @@ StateManager.prototype.unsubscribe = function unsubscribe(observer) {
     for (key in this._observers) {
         this.unsubscribeFrom(key, observer);
     }
-}
+};
 
 /**
  * Adds an observer to a key's list of observables.
@@ -99,7 +99,7 @@ StateManager.prototype.subscribeTo = function subscribeTo(key, observer) {
         this._observers[key] = [];
     }
     this._observers[key].push(observer);
-}
+};
 
 /**
  * Removes an observer from a key's list of observables.
@@ -111,7 +111,7 @@ StateManager.prototype.unsubscribeFrom = function unsubscribeFrom(key, observer)
             this._observers[key].splice(index);
         }
     }
-}
+};
 
 /**
  * Convenience callback wrapper.
@@ -125,7 +125,7 @@ StateManager.prototype.unsubscribeFrom = function unsubscribeFrom(key, observer)
 StateManager.prototype.thenSet = function thenSet(key, value, transition) {
     this._thenQueue.push([key, value, transition]);
     return this;
-}
+};
 
 /**
  * State setter function.
@@ -174,7 +174,7 @@ StateManager.prototype.setState = function setState(key, value, transition) {
 
     this._setLatestStateChange(key, value);
     return this;
-}
+};
 
 StateManager.prototype.set = StateManager.prototype.setState;
 
@@ -184,8 +184,8 @@ StateManager.prototype._setTransitionable = function _setTransitionable(key, pre
 
     this._transitionables[key]
         .from(previous)
-        .to(current, transition.curve, transition.duration, checkThenQueue.bind(this))
-}
+        .to(current, transition.curve, transition.duration, checkThenQueue.bind(this));
+};
 
 /**
  * State getter function.
@@ -193,7 +193,7 @@ StateManager.prototype._setTransitionable = function _setTransitionable(key, pre
 StateManager.prototype.getState = function getState(key) {
     var target = key[key.length - 1];
     return isArray(key) ? traverse(this._state, key)[target] : this._state[key];
-}
+};
 
 StateManager.prototype.get = StateManager.prototype.getState;
 
@@ -212,7 +212,7 @@ StateManager.prototype.log = function(key) {
     var state = this.get(key);
     console.log('The state of ' + key + ' is: ', state);
     return this;
-}
+};
 
 /**
  * Calls set state with current state's value on each state.
@@ -241,7 +241,7 @@ StateManager.prototype.triggerGlobalChange = function triggerGlobalChange(whiteL
     var i;
     for (i = 0; i < this._globalObservers.length; i++) {
         this._globalObservers[i]();
-    };
+    }
     for (i=0; i < this._globalChangeListeners.length; i++) {
         this._globalChangeListeners[i]();
     }
@@ -251,7 +251,7 @@ StateManager.prototype.triggerGlobalChange = function triggerGlobalChange(whiteL
         observer = this._once.pop();
         observer();
     }
-}
+};
 
 /**
  * Get the key and value associated with the latest change to state.
@@ -259,7 +259,7 @@ StateManager.prototype.triggerGlobalChange = function triggerGlobalChange(whiteL
  */
 StateManager.prototype.getLatestStateChange = function getLatestStateChange() {
     return this._latestStateChange;
-}
+};
 
 /**
  * Resets `_latestStateChange to updated key and value.
@@ -269,7 +269,7 @@ StateManager.prototype.getLatestStateChange = function getLatestStateChange() {
 StateManager.prototype._setLatestStateChange = function _setLatestStateChange(key, value) {
     this._latestStateChange = {};
     this._latestStateChange[key] = value;
-}
+};
 
 /**
  * State getter function for chaining.
@@ -277,7 +277,7 @@ StateManager.prototype._setLatestStateChange = function _setLatestStateChange(ke
 StateManager.prototype.chain = function chain(key) {
     this._currentState = key;
     return this;
-}
+};
 
 /**
  * Add function
@@ -285,7 +285,7 @@ StateManager.prototype.chain = function chain(key) {
 StateManager.prototype.add = function add(amount, transition) {
     this.operate(amount, '+', transition);
     return this;
-}
+};
 
 /**
  * Subtract function
@@ -293,7 +293,7 @@ StateManager.prototype.add = function add(amount, transition) {
 StateManager.prototype.subtract = function subtract(amount, transition) {
     this.operate(amount, '-', transition);
     return this;
-}
+};
 
 /**
  * Multiply function
@@ -301,7 +301,7 @@ StateManager.prototype.subtract = function subtract(amount, transition) {
 StateManager.prototype.multiply = function multiply(amount, transition) {
     this.operate(amount, '*', transition);
     return this;
-}
+};
 
 /**
  * Multiply by PI function
@@ -309,7 +309,7 @@ StateManager.prototype.multiply = function multiply(amount, transition) {
 StateManager.prototype.timesPI = function timesPI(transition) {
     this.multiply(Math.PI, transition);
     return this;
-}
+};
 
 /**
  * Divide function
@@ -317,7 +317,7 @@ StateManager.prototype.timesPI = function timesPI(transition) {
 StateManager.prototype.divide = function divide(amount, transition) {
     this.operate(amount, '/', transition);
     return this;
-}
+};
 
 /**
  * Power function
@@ -325,7 +325,7 @@ StateManager.prototype.divide = function divide(amount, transition) {
 StateManager.prototype.pow = function pow(amount, transition) {
     this.operate(amount, 'pow', transition);
     return this;
-}
+};
 
 /**
  * Square root function
@@ -333,7 +333,7 @@ StateManager.prototype.pow = function pow(amount, transition) {
 StateManager.prototype.sqrt = function sqrt(transition) {
     this.operate(null, 'sqrt', transition);
     return this;
-}
+};
 
 /**
  * Absolute value function
@@ -341,7 +341,7 @@ StateManager.prototype.sqrt = function sqrt(transition) {
 StateManager.prototype.abs = function abs(transition) {
     this.operate(null, 'abs', transition);
     return this;
-}
+};
 
 /**
  * Sine function
@@ -349,7 +349,7 @@ StateManager.prototype.abs = function abs(transition) {
 StateManager.prototype.sin = function sin(transition) {
     this.operate(null, 'sin', transition);
     return this;
-}
+};
 
 /**
  * Cosine function
@@ -357,7 +357,7 @@ StateManager.prototype.sin = function sin(transition) {
 StateManager.prototype.cos = function cos(transition) {
     this.operate(null, 'cos', transition);
     return this;
-}
+};
 
 /**
  * Tangent function
@@ -365,7 +365,7 @@ StateManager.prototype.cos = function cos(transition) {
 StateManager.prototype.tan = function tan(transition) {
     this.operate(null, 'tan', transition);
     return this;
-}
+};
 
 /**
  * Ceiling function
@@ -373,7 +373,7 @@ StateManager.prototype.tan = function tan(transition) {
 StateManager.prototype.ceil = function ceil(transition) {
     this.operate(null, 'ceil', transition);
     return this;
-}
+};
 
 /**
  * Flooring function
@@ -381,7 +381,7 @@ StateManager.prototype.ceil = function ceil(transition) {
 StateManager.prototype.floor = function floor(transition) {
     this.operate(null, 'floor', transition);
     return this;
-}
+};
 
 /**
  * Concat function
@@ -389,7 +389,7 @@ StateManager.prototype.floor = function floor(transition) {
 StateManager.prototype.concat = function concat(amount) {
     this.operate(amount, 'concat');
     return this;
-}
+};
 
 /**
  * Splice function
@@ -397,7 +397,7 @@ StateManager.prototype.concat = function concat(amount) {
 StateManager.prototype.substring = function splice(amount) {
     this.operate(amount, 'substring');
     return this;
-}
+};
 
 /**
  * Lowercase function
@@ -405,7 +405,7 @@ StateManager.prototype.substring = function splice(amount) {
 StateManager.prototype.toLower = function toLower() {
     this.operate(null, 'toLower');
     return this;
-}
+};
 
 /**
  * Uppercase function
@@ -413,7 +413,7 @@ StateManager.prototype.toLower = function toLower() {
 StateManager.prototype.toUpper = function toUpper() {
     this.operate(null, 'toUpper');
     return this;
-}
+};
 
 /**
  * Toggle boolean function
@@ -421,7 +421,7 @@ StateManager.prototype.toUpper = function toUpper() {
 StateManager.prototype.flip = function flip() {
     this.operate(null, 'flip');
     return this;
-}
+};
 
 /**
  * Boolean to Integer function
@@ -429,7 +429,7 @@ StateManager.prototype.flip = function flip() {
 StateManager.prototype.toInt = function toInt() {
     this.operate(null, 'toInt');
     return this;
-}
+};
 
 /**
  * Main operate function to keep code
@@ -439,7 +439,7 @@ StateManager.prototype.operate = function operate(amount, operation, transition)
     var key = this._currentState;
     var newValue = this._operator.operate(operation, this.getState(key), amount);
     this.setState(key, newValue, transition);
-}
+};
 
 /**
  * Allows for creation of custom
@@ -451,9 +451,9 @@ StateManager.prototype.addOperator = function setOperator(operationName, func) {
     StateManager.prototype[operationName] = function(amount, transition) {
         this.operate(amount, operationName, transition);
         return this;
-    }
+    };
     return this;
-}
+};
 
 /**
  * Invokes all observers
@@ -466,10 +466,10 @@ StateManager.prototype._notifyObservers = function _notifyObservers(key, value) 
         }
     }
 
-    for (var i = 0; i < this._globalObservers.length; i++) {
-        this._globalObservers[i](key, value);
+    for (var j = 0; j < this._globalObservers.length; j++) {
+        this._globalObservers[j](key, value);
     }
-}
+};
 
 /**
  * Update all observers that are watching
@@ -494,7 +494,7 @@ StateManager.prototype.onUpdate = function onUpdate() {
 
     // Update on each tick
     this._Famous.requestUpdate(this);
-}
+};
 
 function isTransitionable(key) {
     if (!this._transitionables[key]) return false;
@@ -563,13 +563,6 @@ function isArray(value) {
  */
 function isString(value) {
     return typeof value === 'string';
-}
-
-/**
- * Helper function to check if value is a number.
- */
-function isNumber(value) {
-    return typeof value === 'number';
 }
 
 module.exports = StateManager;

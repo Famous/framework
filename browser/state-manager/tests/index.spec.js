@@ -1,7 +1,6 @@
 'use strict';
 
 var test = require('tape');
-var path = require('path');
 var Famous = require('famous').core.FamousEngine;
 var Transitionable = require('famous').transitions.Transitionable;
 
@@ -21,14 +20,7 @@ test('StateManager', function(t) {
     size: [100, 200, 300],
     points: 10,
     fluffiness: 10
-  }
-
-  var globalObserverFlag = false;
-  var ageObserverFlag = false;
-
-  var globalObserver = function (key, value) {
-    globalObserverFlag = true;
-  }
+  };
 
   var SM = new StateManager(dogState, Famous, Transitionable);
 
@@ -45,7 +37,7 @@ test('StateManager', function(t) {
   console.log('LATEST STATE CHANGE');
   SM.setState('age', SM.get('age'));
   var latest = SM.getLatestStateChange();
-  var stateKey = Object.keys(latest)
+  var stateKey = Object.keys(latest);
   t.true(stateKey.length === 1 && stateKey[0] === 'age', 'should set key for latest state');
   t.equal(latest[stateKey], 4, 'should set value for latest state');
 
@@ -53,7 +45,7 @@ test('StateManager', function(t) {
   var ageObserverValue;
   var ageObserverFn = function(key, value) {
     ageObserverValue = value;
-  }
+  };
   SM.subscribeTo('age', ageObserverFn);
   SM.set('age', SM.get('age'));
   t.equal(ageObserverValue, 4, 'Subscribe to updates on state set');
@@ -89,7 +81,7 @@ test('StateManager', function(t) {
   var onceValue = 0;
   var once = function() {
     onceValue++;
-  }
+  };
   SM.subscribeOnce(once);
   SM.triggerGlobalChange();
   t.equal(onceValue, 1, 'subscribeOnce should trigger on first triggerGlobalChange');
@@ -136,7 +128,7 @@ test('StateManager', function(t) {
   SM.chain('isHungry').flip();
   t.equal(SM.getState('isHungry'), false, 'should be able to flip boolean');
   SM.chain('isHungry').toInt();
-  t.equal(SM.getState('isHungry'), 0, 'should be able to convert boolean to integer')
+  t.equal(SM.getState('isHungry'), 0, 'should be able to convert boolean to integer');
 
   t.test('Should work with arrays', function(st) {
     st.test('Array: Should retrieve values', function(stt){
@@ -156,24 +148,27 @@ test('StateManager', function(t) {
     });
 
     st.test('Array: Should operate with array', function(stt){
+      stt.plan(3);
       SM.chain('size').add([5]);
       stt.equal(SM.getState('size')[0], 105);
       stt.equal(SM.getState('size')[1], 200);
       stt.equal(SM.getState('size')[2], 300);
       SM.chain('size').subtract(5);
-
-      stt.end();
     });
 
     st.end();
   });
 
   console.log('ADDING A CUSTOM OPERATOR');
-  SM.addOperator('triple', function (a) { return 3 * a });
+  SM.addOperator('triple', function (a) {
+    return 3 * a;
+  });
   SM.chain('cutenessLevel').triple();
   t.equal(SM.getState('cutenessLevel'), 24, 'should be able to add custom operators');
 
-  SM.addOperator('addThenMultiplyBy2', function (a, b) { return (a + b) * 2 });
+  SM.addOperator('addThenMultiplyBy2', function (a, b) {
+    return (a + b) * 2;
+  });
   SM.chain('points').addThenMultiplyBy2(5);
   t.equal(SM.getState('points'), 30, 'should be able to add multiple operators (1/2)');
   SM.chain('points').triple();
