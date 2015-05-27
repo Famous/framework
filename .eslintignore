@@ -1,0 +1,8 @@
+.DS_Store
+*.log
+node_modules
+*.bundle.js
+server/ecosystem/public/*
+components/*
+**/test/*
+local/workspace/build/best.bundle.js
