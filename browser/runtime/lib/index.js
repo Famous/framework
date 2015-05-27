@@ -21,6 +21,5 @@ module.exports = {
     module: register, // alias for 'register'
     scene: register, // alias for 'register'
     message: Messenger.message,
-    helpers: helpers,
-    DataStore: DataStore // unsafe! Temporary for mock-timeline
+    helpers: helpers
 };
