@@ -43,35 +43,6 @@ Trees are _declarative representations of the [scene graph](http://en.wikipedia.
         <surface></surface>
     </view>
 
-## Ancillary patterns
-
-### Relational joins
-
-To keep module code as concise and declarative as possible, in implementation of the BEST pattern should make use of a [relational join](http://en.wikipedia.org/wiki/Relational_algebra#Joins_and_join-like_operators) system that can apply behaviors to any subset of a module's visual elements. Consider this snippet, which expresses that "the `position` return value should apply to all `view` elements":
-
-    // behavior
-    view: {
-        position: function(clickCount) {
-            return 200;
-        }
-    }
-    // tree
-    <view>
-        <view></view>
-    </view>
-    <other></other>
-
-### Dependency injection
-
-A robust [dependency injection](http://en.wikipedia.org/wiki/Dependency_injection) system allows the intent of a module's behaviors to be communicated clearly. The ideal implementation of the BEST pattern will perform dependency injection transparently, for both behavior and event functions. Consider the following example, which expresses that "the view's position is a function of the tally":
-
-    // behavior
-    view: {
-        position: function(tally) {
-            return tally / 123;
-        }
-    }
-
 ## Benefits of the pattern
 
 ### Isolated statefulness
