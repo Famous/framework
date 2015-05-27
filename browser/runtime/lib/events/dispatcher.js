@@ -4,7 +4,7 @@ function Dispatcher(domNode) {
     this.domNode = domNode;
 }
 
-var willEventsBubble = (function() {
+Dispatcher.willEventsBubble = (function() {
     var willBubble = false;
     var doc = window.document;
     if (doc) {
@@ -26,7 +26,7 @@ Dispatcher.prototype.emit = function(key, message) {
         detail: message,
         bubbles: true
     });
-    if (willEventsBubble) {
+    if (Dispatcher.willEventsBubble) {
         element.dispatchEvent(event);
     }
     else {
