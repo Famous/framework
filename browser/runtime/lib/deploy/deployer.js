@@ -88,6 +88,12 @@ Deployer.prototype.insertAsset = function(url, cb) {
                 cb();
             }.bind(this));
             break;
+        case 'html':
+            this.insertHTML(url, function() {
+                this.assetsLoaded[url] = true;
+                cb();
+            }.bind(this));
+            break;
         default:
             console.warn('Unexpected asset type `' + format + '`');
             console.warn(url);
@@ -117,6 +123,15 @@ Deployer.prototype.insertJavaScript = function(url, cb) {
     script.setAttribute('type', 'text/javascript');
     script.setAttribute('src', url);
     document.head.appendChild(script);
+};
+
+Deployer.prototype.insertHTML = function(url, cb) {
+    var link = document.createElement('link');
+    link.onload = cb;
+    link.setAttribute('rel', 'import');
+    link.setAttribute('type', 'text/html');
+    link.setAttribute('href', url);
+    document.body.appendChild(link);
 };
 
 Deployer.prototype.insertModule = function(name, tag, cb) {
