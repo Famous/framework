@@ -14,7 +14,6 @@ var VirtualDOM = require('./../virtual-dom/virtual-dom');
 var BehaviorRouter = require('./../behaviors/behavior-router');
 var ArrayUtils = require('./../../../utilities/array');
 var Utilities = require('./../utilities/utilities');
-var ObjectUtils = require('./../../../utilities/object');
 
 var NODE_UID_PREFIX = 'node';
 var YIELD_KEY = '$yield';
@@ -61,7 +60,6 @@ function Component(domNode, surrogateRoot, parent) {
 /*-----------------------------------------------------------------------------------------*/
 
 Component.prototype._initialize = function _initialize() {
-    var self = this;
     this.events.triggerLifecycleEvent(PRELOAD_KEY, this.uid);
     this._initializeControlFlow();
     this._processDOMMessages();
@@ -127,8 +125,8 @@ Component.prototype._executeAttachments = function _executeAttachments() {
         attachment = attachments[i];
         selector = attachment.selector;
         executable = attachment.executable;
-        component;
-        VirtualDOM.eachNode(nodeToQuery, selector, function (node){
+        component = attachment.component;
+        VirtualDOM.eachNode(nodeToQuery, selector, function (node) {
             Utilities.getComponent(node).sendMessage('attach', executable);
         });
     }
@@ -200,7 +198,6 @@ Component.prototype.processDynamicRepeat = function processDynamicRepeat(behavio
 
 Component.prototype.processDynamicIf = function processDynamicIf(behavior) {
     var expandedBlueprint = this.tree.getExpandedBlueprint();
-    var blueprint = this.tree.getBlueprint();
 
     ControlFlow.processIfBehavior(
         behavior, expandedBlueprint, this.uid, this.controlFlowDataMngr
@@ -235,7 +232,6 @@ Component.prototype._processControlFlowMessages = function _processControlFlowMe
 Component._processControlFlowMessage = function _processControlFlowMessage(node, progenitorExpandedBlueprint) {
     var info = VirtualDOM.getAttribute(node, CONTROL_FLOW_ACTION_KEY);
     var baseNode;
-    var component;
 
     if (info) {
         info = JSON.parse(info);

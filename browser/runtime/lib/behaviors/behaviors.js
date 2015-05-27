@@ -70,7 +70,7 @@ Behaviors.getPayload = function getPayload(behavior, component) {
 
 Behaviors.getPayloadFromUID = function getPayload(behavior, uid) {
     return Behaviors.getPayload(behavior, DataStore.getComponent(uid));
-}
+};
 
 /*
 example:
