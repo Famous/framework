@@ -72,7 +72,7 @@ BEST.module('famous:core:dom-element', 'HEAD', {
                     $state.set('initialContent', initialContent);
                     $state.set('didTemplate', true);
                 }
-                var templatedContent = $mustache(initialContent, $payload);
+                var templatedContent = $mustache(initialContent+'', $payload);
                 $state.set('content', templatedContent);
             }
         }
