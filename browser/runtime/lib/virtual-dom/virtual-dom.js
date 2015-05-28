@@ -5,8 +5,7 @@ var WRAPPER_NAME = 'wrapper';
 var DOM_PARSER = new DOMParser();
 var DO_CLONE_ATTRIBUTES = true;
 var COMPONENT_DELIM = ':';
-var ESCAPED_COLON = '\:';
-var ESCAPED_BACKSLASH_COLON = '\\\:';
+var ESCAPED_COLON = '\\\:';
 
 var BEST_ROOT = document.createElement('best-root');
 var UID_KEY = 'uid';
@@ -58,7 +57,7 @@ function query(node, selector) {
         // Strings like 'foo:bar:baz' aren't supported by
         // querySelector/querySelectorAll unless the colon
         // is escaped using a backslash.
-        selector = selector.replace(ESCAPED_COLON, ESCAPED_BACKSLASH_COLON);
+        selector = selector.split(COMPONENT_DELIM).join(ESCAPED_COLON);
     }
     return node.querySelectorAll(selector);
 }
