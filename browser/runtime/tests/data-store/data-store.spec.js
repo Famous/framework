@@ -6,13 +6,14 @@ var DataStore = require('../../lib/data-store/data-store');
 test('----- DataStore', function(t) {
     t.plan(3);
 
-    t.test('Saves/Retrieves modules', function(st){
+    t.test('Registers/Retrieves modules', function(st){
         st.plan(1);
         var name = 'test:module';
         var tag = 'HEAD';
         var definition = {a: 1};
+        DataStore.registerModule(name, tag, definition);
         var retrievedModule = DataStore.getModule(name, tag);
-        st.ok(retrievedModule.a === definition.a, 'saves and retrieves modules');
+        st.ok(retrievedModule.a === definition.a, 'registers and retrieves modules');
     });
 
     t.test('Saves/Retrieves executed components', function(st){
