@@ -245,7 +245,7 @@ Compiler.prototype.compileFile = function(file, cb) {
             }
         }
         else {
-            Errors.handle('Warning: No compiler found!', 'no-compiler-found', { extname: extname }, null, cb, function() {
+            Errors.handle('Warning: No compiler found!', 'no-compiler-found', { path: file.path, extname: extname }, null, cb, function() {
                 cb(null, file.content);
             });
         }

@@ -77,8 +77,9 @@ var handlers = {
         finalize(err, step, fin);
     },
     'no-compiler-found': function(err, info, step, fin, ok) {
-        warning('No compiler found for format `' + info.extname + '`');
-        warn(err);
+        var message = 'No compiler found for file extname `' + info.extname + '`. ';
+        message += 'Leaving the file `' + info.path + '` untouched.';
+        console.warn(message);
         ok();
     },
     'no-module-tag-found': function(err, info, step, fin, ok) {
