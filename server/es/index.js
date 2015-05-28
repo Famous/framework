@@ -210,7 +210,6 @@ es.getNativeValue = function(subTree) {
         case es.TYPES.OBJECT_EXPRESSION: return es.getObjectValue(subTree);
         case es.TYPES.TEMPLATE_LITERAL: return es.getTemplateLiteralValue(subTree);
         default:
-            console.error('Unhandled subtree type `' + subTree.type + '`');
             return es.buildScopeDependant(subTree);
     }
 };
