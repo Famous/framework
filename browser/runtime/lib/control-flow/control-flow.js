@@ -112,7 +112,7 @@ function removeNodesStoredInRepeatData(data) {
     for (var i = 0; i < data.parentUIDs.length; i++) {
         repeatedNodes = data.parentUIDs[i].repeatedNodes;
         for (var j = 0; j < repeatedNodes.length; j++) {
-            VirtualDOM.deleteNode(repeatedNodes[i]);
+            VirtualDOM.deleteNode(repeatedNodes[j]);
         }
     }
 }
