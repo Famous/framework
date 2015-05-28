@@ -1,6 +1,6 @@
 'use strict';
 
-var Es = require('./../../../es');
+var Es = require('./../es');
 var Lodash = require('lodash');
 
 /**

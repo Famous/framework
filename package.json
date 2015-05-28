@@ -25,7 +25,7 @@
     "test-state-manager": "browserify browser/state-manager/tests/*.spec.js | tap-closer | smokestack | tap-spec",
     "test-utilities": "browserify browser/utilities/tests/*.spec.js | tap-closer | smokestack | tap-spec",
     "test-ecosystem": "tape server/ecosystem/test/*.spec.js | tap-spec",
-    "test-es": "tape server/es/test/*.spec.js | tap-spec",
+    "test-es": "tape server/ecosystem/lib/es/test/*.spec.js | tap-spec",
     "lint": "eslint --ignore-path .eslintignore ."
   },
   "dependencies": {
