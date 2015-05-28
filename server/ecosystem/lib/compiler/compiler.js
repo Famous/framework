@@ -47,7 +47,7 @@ Compiler.DEFAULTS = {
         'famous:events': [
             'click', 'dblclick', 'keydown', 'keypress', 'keyup', 'mousedown', 'mousemove', 'mouseenter',
             'mouseleave', 'mouseout', 'mouseover', 'mouseup', 'size-change', 'parent-size-change', 'touchstart',
-            'touchmove', 'touchend'
+            'touchmove', 'touchend', 'wheel'
         ]
     },
     dependenciesKeyName: 'dependencies',
