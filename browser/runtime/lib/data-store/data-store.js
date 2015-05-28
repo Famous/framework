@@ -100,8 +100,24 @@ function hasModule(name, tag) {
     return !!getModule(name, tag);
 }
 
+var NORMAL_FACET_NAMES = {
+    'behaviors': true,
+    'events': true,
+    'states': true,
+    'tree': true
+};
+
+function validateModule(name, tag, definition) {
+    for (var facetName in definition) {
+        if (!(facetName in NORMAL_FACET_NAMES)) {
+            console.warn('`' + name + ' (' + tag + ')` ' + 'has an unrecognized property `' + facetName + '` in its definition');
+        }
+    }
+}
+
 function registerModule(name, tag, definition) {
     if (!hasModule(name, tag)) {
+        validateModule(name, tag, definition);
         return wrapModule(name, tag, saveModule(name, tag, definition));
     }
     else {
