@@ -245,7 +245,7 @@ Compiler.prototype.compileFile = function(file, cb) {
             }
         }
         else {
-            Errors.handle('Warning: No compiler found!', 'no-compiler-found', { path: file.path, extname: extname }, null, cb, function() {
+            Errors.handle('Warning: No compiler found!', 'no-compiler-found', { extname: extname }, null, cb, function() {
                 cb(null, file.content);
             });
         }
@@ -460,15 +460,25 @@ Compiler.prototype.buildDependencyTable = function(definitionAST, configAST, cb)
 
 // AST{Object} -> *AST{Object}
 Compiler.prototype.interpolateAST = function(name, tag, definitionAST, cb) {
+    var fullPath;
     Es.eachStringLiteral(definitionAST, function(stringValue, node, parent) {
-        var matches = 0;
-        this.helper.eachAssetMatch(stringValue, function(match, replaced) {
-            var fullPath = this.helper.getFullAssetPath(name, tag, replaced);
-            stringValue = stringValue.split(match).join(fullPath);
-            matches++;
-        }.bind(this));
-        if (matches > 0) {
-            node.value = stringValue;
+        var moduleCDNMatch = this.helper.getModuleCDNMatch(stringValue);
+        if (moduleCDNMatch) {
+            var moduleName = moduleCDNMatch.value.split(PIPE)[1] || name;
+            fullPath = this.helper.getFullAssetPath(moduleName, tag, '');
+            node.value = stringValue.split(moduleCDNMatch.match).join(fullPath);
+        }
+        else {
+            var matches = 0;
+            this.helper.eachAssetMatch(stringValue, function(match, replaced) {
+                fullPath = this.helper.getFullAssetPath(name, tag, replaced);
+                stringValue = stringValue.split(match).join(fullPath);
+                matches++;
+            }.bind(this));
+
+            if (matches > 0) {
+                node.value = stringValue;
+            }
         }
     }.bind(this));
     cb(null);
