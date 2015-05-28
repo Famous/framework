@@ -83,7 +83,7 @@ test('----- Virtual DOM', function(t) {
         st.notOk(VirtualDOM.getNodeByUID(stub, 5), 'removes node by uid');
 
         try {
-            VirtualDOM.removeNodeByUID(stub, 10)
+            VirtualDOM.removeNodeByUID(stub, 10);
         }
         catch (e) {
             st.ok(e, 'throws error if removal by uid attempted & node with corresponding uid does not exist');

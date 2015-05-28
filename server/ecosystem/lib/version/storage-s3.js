@@ -1,5 +1,7 @@
 'use strict';
 
+/*eslint-disable*/
+
 var Aws = require('aws-sdk');
 var Lodash = require('lodash');
 var Path = require('path');
@@ -21,10 +23,10 @@ function StorageS3(options) {
 }
 
 StorageS3.DEFAULTS = {
-    accessKeyId: SECRETS['aws_access_key_id'],
+    accessKeyId: SECRETS.aws_access_key_id,
     acl: 'public-read',
     apiVersion: '2006-03-01',
-    secretAccessKey: SECRETS['aws_secret_access_key']
+    secretAccessKey: SECRETS.aws_secret_access_key
 };
 
 // String -> String
@@ -81,5 +83,7 @@ StorageS3.prototype.putFile = function(path, data, cb) {
         ContentType: this.getContentType(path)
     }, cb);
 };
+
+/*eslint-enable*/
 
 module.exports = StorageS3;

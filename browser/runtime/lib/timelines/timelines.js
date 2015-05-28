@@ -1,10 +1,11 @@
 'use strict';
 
+/*global BEST*/
+
 var EventHandler = require('./../utilities/event-handler');
 
 var converter = require('./../../../utilities/converter');
 var toSalty = converter.sweetToSalty;
-var piecewise = require('./../helpers/helpers').piecewise;
 
 function Timelines(timelineGroups, states) {
     EventHandler.apply(this);
@@ -21,7 +22,7 @@ function Timelines(timelineGroups, states) {
 Timelines.prototype = Object.create(EventHandler.prototype);
 Timelines.prototype.constructor = Timelines;
 
-Timelines.prototype._createBehaviors = function _createBehaviors(timeline, duration) {
+Timelines.prototype._createBehaviors = function _createBehaviors(timelineDeclaration, duration) {
     for (var timelineName in this._timelineGroups) {
         var behaviorGroup = this._timelineGroups[timelineName];
 
@@ -33,8 +34,6 @@ Timelines.prototype._createBehaviors = function _createBehaviors(timeline, durat
 
             var selectorName = selectorBehavior.split('|')[0];
             var behaviorName = selectorBehavior.split('|')[1];
-
-            var piecewiseFunction = BEST.helpers.piecewise(timeline);
 
             var definition = {
                 timeName: time,
@@ -51,11 +50,11 @@ Timelines.prototype._createBehaviors = function _createBehaviors(timeline, durat
             }.bind(this, definition, timeline));
         }
     }
-}
+};
 
 Timelines.prototype.getBehaviors = function getBehaviors() {
     return this._behaviorList || {};
-}
+};
 
 Timelines.prototype.get = function get(timelineName) {
     this._currTimeline = this._timelineGroups[timelineName];
@@ -137,8 +136,12 @@ Timelines.mergeBehaviors = function(definitionBehaviors, timelineBehaviors) {
                 var timelineBehavior = timelineSelector[behavior];
                 var definitionBehavior = definitionSelector[behavior];
 
-                if (definitionBehavior) { /* decide on injected timelineArgument api */ }
-                else { behaviors[selector][behavior] = timelineBehavior; }
+                if (definitionBehavior) {
+                    /* decide on injected timelineArgument api */
+                }
+                else {
+                    behaviors[selector][behavior] = timelineBehavior;
+                }
             }
         }
     }

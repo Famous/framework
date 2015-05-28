@@ -45,7 +45,7 @@ function merge(a, b) {
     }
 
     return c;
-};
+}
 
 // source: http://stackoverflow.com/questions/1068834/object-comparison-in-javascript
 function isEqual() {
@@ -126,7 +126,7 @@ function isEqual() {
                 leftChain.push(x);
                 rightChain.push(y);
 
-                if (!compare2Objects (x[p], y[p])) {
+                if (!compare2Objects(x[p], y[p])) {
                     return false;
                 }
 

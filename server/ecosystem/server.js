@@ -1,7 +1,8 @@
+'use strict';
+
 var BodyParser = require('body-parser');
 var Colors = require('colors/safe');
 var Express = require('express');
-var ErrorHandler = require('errorhandler');
 var Morgan = require('morgan');
 var Version = require('./lib/version/version');
 var Env = require('./config/environment');
@@ -9,7 +10,7 @@ var Path = require('path');
 var PORT = Env.PORT;
 
 var app = Express();
-app.use(BodyParser.json())
+app.use(BodyParser.json());
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -21,8 +22,8 @@ app.use(Morgan('combined'));
 // curl http://localhost:3000/versions/fixtures:entrypoint/HEAD.json
 app.get('/versions/:name/:tag.json', function(req, res) {
     var version = new Version();
-    var name = req.params['name'];
-    var tag = req.params['tag'];
+    var name = req.params.name;
+    var tag = req.params.tag;
     var url = version.getBundleURL(name, tag);
     if (url) {
         res.status(200).json({

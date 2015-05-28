@@ -67,7 +67,7 @@ Wrapper.prototype.timelines = function timelines(timelines) {
     }
     TIMELINES[this.name][this.tag] = timelines;
     return this;
-}
+};
 
 function getTimelines(name, tag) {
     if (TIMELINES[name] && TIMELINES[name][tag]) {

@@ -154,7 +154,7 @@ Assistant.prototype.watchDirectory = function(baseDir, subDir) {
             this.syncSingle(baseDir, moduleRelativeDir, function(err, result) {
                 if (err) console.error('best-assistant:', err);
                 console.log('best-assistant:', result.body);
-            }.bind(this));
+            });
         }
     }.bind(this), 1000);
     watcher.on('all', handler);

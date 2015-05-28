@@ -1,7 +1,7 @@
+'use strict';
+
 var Lodash = require('lodash');
 var Request = require('request');
-
-var SLASH = '/';
 
 function APIClient(options) {
     this.setOptions(options);

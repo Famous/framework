@@ -5,7 +5,6 @@ var Lodash = require('lodash');
 var Path = require('path');
 
 var BLANK = '';
-var PROTOCOL_DELIMITER = '://';
 var SLASH = '/';
 var PIPE = '|';
 var STRING = 'string';
@@ -79,7 +78,7 @@ Helper.DEFAULTS = {
     storageHost: (Env.kind === Env.PRODUCTION)
         ? 'https://s3-us-west-2.amazonaws.com'
         : 'http://localhost:' + Env.PORT,
-    versionsFolder: '~versions',
+    versionsFolder: '~versions'
 };
 
 Helper.prototype.getDependencyModuleName = function(str) {
@@ -138,7 +137,7 @@ Helper.prototype.eachAssetMatch = function(string, iterator) {
                  .replace(PIPE, SLASH);
         iterator(match, str);
     }
-}
+};
 
 // String -> String
 Helper.prototype.getEntrypointBasename = function(moduleName) {

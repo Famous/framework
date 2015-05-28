@@ -1,6 +1,5 @@
 'use strict';
 
-var Env = require('./../../config/environment');
 var Fs = require('fs');
 var Lodash = require('lodash');
 var Mkdirp = require('mkdirp');
@@ -37,7 +36,7 @@ StorageFS.prototype.fetchFile = function(path, cb) {
         else {
             cb(null, { Body: result });
         }
-    }.bind(this));
+    });
 };
 
 // String -> String
@@ -49,7 +48,7 @@ StorageFS.prototype.fetchData = function(path, cb) {
         else if (result.Body) {
             cb(null, result.Body.toString());
         }
-    }.bind(this));
+    });
 };
 
 // String -> Boolean
@@ -61,7 +60,7 @@ StorageFS.prototype.fetchFileExists = function(path, cb) {
         else {
             cb(err, false);
         }
-    }.bind(this));
+    });
 };
 
 // String -> Array
@@ -78,7 +77,7 @@ StorageFS.prototype.fetchFilesList = function(path, cb) {
         }
         cb(null, {
             Contents: filesList.map(function(entry) {
-                return { Key: Path.join(path, entry) }
+                return { Key: Path.join(path, entry) };
             })
         }.bind(this));
     }.bind(this));
@@ -87,9 +86,11 @@ StorageFS.prototype.fetchFilesList = function(path, cb) {
 // String, String
 StorageFS.prototype.putFile = function(path, data, cb) {
     var fullPath = this.localPathFrom(path);
-    var extname = Path.extname(path);
     var baseDir = Path.dirname(fullPath);
     Mkdirp(baseDir, function(err) {
+        if (err) {
+            throw (err);
+        }
         if (this.helper.looksLikeBinary(path)) {
             data = new Buffer(data, 'binary');
         }

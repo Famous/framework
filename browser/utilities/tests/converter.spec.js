@@ -18,7 +18,7 @@ var sweetTimeline = {
             '50%'   : { value: [9, 9] }
         }
     }
-}
+};
 
 var saltyTimeline = {
     '#pen|position': [
@@ -29,12 +29,12 @@ var saltyTimeline = {
         [0,     [0, 0],  'outExpo'],
         [500,   [9, 9],  'linear']
     ]
-}
+};
 
 test('convert between timeline representations', function(t) {
     t.plan(2);
 
-    var options = { duration: 1000 }
+    var options = { duration: 1000 };
 
     var actualSaltyTimeline = toSalty(sweetTimeline, options);
     t.deepEqual(actualSaltyTimeline, saltyTimeline, 'should convert sweet to salty');

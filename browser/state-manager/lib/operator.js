@@ -3,7 +3,7 @@
 function handleArrayInput (operator, a, b) {
     if (Array.isArray(b)) {
         for (var i = 0; i < b.length; i++) {
-            if (b === a.length) return;
+            if (b === a.length) return undefined;
             a[i] = operations[operator](a[i], b[i]);
         }
     }

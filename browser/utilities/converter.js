@@ -1,7 +1,5 @@
 'use strict';
 
-var ObjectUtils = require('./object');
-
 /**
  * Converter
  *
@@ -92,4 +90,4 @@ function numberToPercent(number, total) {
 module.exports = {
     sweetToSalty: sweetToSalty,
     saltyToSweet: saltyToSweet
-}
+};

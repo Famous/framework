@@ -4,7 +4,6 @@ var VirtualDOM = require('./../virtual-dom/virtual-dom');
 var Behaviors = require('./../behaviors/behaviors');
 var ControlFlowUtils = require('./control-flow-utils');
 
-var IF_KEY = ControlFlowUtils.CONSTANTS.IF_KEY;
 var REPEAT_KEY = ControlFlowUtils.CONSTANTS.REPEAT_KEY;
 var YIELD_KEY = ControlFlowUtils.CONSTANTS.YIELD_KEY;
 var BOOLEAN_KEY = 'boolean';
@@ -16,7 +15,7 @@ function initializeSelfContainedFlows(blueprint, uid, controlFlowDataMngr) {
     initializeIfBehaviors(blueprint, expandedBlueprint, uid, controlFlowDataMngr);
     initializeRepeatBehaviors(expandedBlueprint, uid, controlFlowDataMngr);
     return expandedBlueprint;
-};
+}
 
 function removeNodesFromExpandedBlueprint(expandedBlueprint, selector) {
     VirtualDOM.eachNode(expandedBlueprint, selector, function(node) {
@@ -28,7 +27,6 @@ function initializeIfBehaviors(blueprint, expandedBlueprint, uid, controlFlowDat
     var ifBehaviors = controlFlowDataMngr.getIfBehaviors();
     var behavior;
     var payload;
-    var selector;
     for (var i = 0; i < ifBehaviors.length; i++) {
         behavior = ifBehaviors[i];
         payload = Behaviors.getPayloadFromUID(behavior, uid);
@@ -39,7 +37,7 @@ function initializeIfBehaviors(blueprint, expandedBlueprint, uid, controlFlowDat
             removeNodesFromExpandedBlueprint(expandedBlueprint, behavior.selector);
         }
     }
-};
+}
 
 function findChildRepeatSelectors(ifSelector, expandedBlueprint, controlFlowDataMngr) {
     var repeatSelectors = Object.keys(controlFlowDataMngr.getRepeatData());
@@ -94,7 +92,7 @@ function processIfBehavior(behavior, expandedBlueprint, uid, controlFlowDataMngr
 
         controlFlowDataMngr.setIfPayload(selector, payload);
     }
-};
+}
 
 function verifyRepeatPayload(payload) {
     if (!(payload instanceof Array)) {
@@ -107,7 +105,7 @@ function initializeRepeatBehaviors(expandedBlueprint, uid, controlFlowDataMngr) 
     for (var i = 0; i < repeatBehaviors.length; i++) {
         processRepeatBehavior(repeatBehaviors[i], expandedBlueprint, uid, controlFlowDataMngr);
     }
-};
+}
 
 function removeNodesStoredInRepeatData(data) {
     var repeatedNodes;
@@ -138,13 +136,13 @@ function processRepeatBehavior(behavior, expandedBlueprint, uid, controlFlowData
     // Update repeat payload
     controlFlowDataMngr.setRepeatPayload(selector, payload);
     applyRepeatBehaviorToVirtualDOM(expandedBlueprint, repeatData[selector]);
-};
+}
 
 function initializeParentDefinedFlows(expandedBlueprint, injectablesRoot, controlFlowDataMngr) {
     var childrenRoot = VirtualDOM.clone(expandedBlueprint);
     processYield(childrenRoot, injectablesRoot, controlFlowDataMngr);
     return childrenRoot;
-};
+}
 
 function processYield(target, injectablesRoot, controlFlowDataMngr) {
     if (injectablesRoot) {
@@ -153,7 +151,7 @@ function processYield(target, injectablesRoot, controlFlowDataMngr) {
             applyYieldBehaviorToVirtualDOM(yieldBehaviors[i], target, injectablesRoot);
         }
     }
-};
+}
 
 /*-----------------------------------------------------------------------------------------*/
 // VirtualDOM manipulation

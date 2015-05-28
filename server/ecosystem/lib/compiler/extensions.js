@@ -1,3 +1,5 @@
+'use strict';
+
 var Babel = require('babel');
 var Coffee = require('coffee-script');
 var Jade = require('jade');
@@ -21,7 +23,6 @@ COMPILERS['.jade'] = function(source, cb) {
 
 // String -> String
 COMPILERS['.js'] = function(source, cb) {
-    var wrapped = '(function(){\n' + source + '\n}());';
     var result = Babel.transform(source, {
         // Don't give a name to anonymous functions because then naming collisions
         // may occur which will trigger Babel to modify the function parameter names
@@ -103,6 +104,9 @@ function hasCompilerFor(extname) {
 // Given a source code string and extname, compile the source
 function compileSource(source, extname, cb) {
     COMPILERS[extname](source, function(err, result) {
+        if (err) { 
+            throw (err); 
+        }
         cb(null, result);    
     });
 }

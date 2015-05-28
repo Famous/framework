@@ -1,4 +1,4 @@
-var VirtualDOM = require('../../lib/virtual-dom/virtual-dom');
+'use strict';
 
 /*
 Virtual DOM Stub One:
@@ -34,7 +34,7 @@ function createStubOne () {
     parent.id = STUB_ONE_INFO.PARENT_ID;
     wrapper.appendChild(parent);
 
-    var child
+    var child;
     var grandchild;
     var greatgrandchild;
     for(var i = 0; i < STUB_ONE_INFO.CHILD_COUNT; i++) {
@@ -60,4 +60,4 @@ function createStubOne () {
 module.exports = {
     stubOneInfo: STUB_ONE_INFO,
     getStubOne: createStubOne
-}
+};

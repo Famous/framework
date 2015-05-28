@@ -5,10 +5,10 @@
 function get(url, cb) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.status == 200) {
+        if (xhr.readyState === 4 && xhr.status === 200) {
             cb(xhr.responseText);
         }
-    }
+    };
     xhr.open('GET', url, true);
     xhr.send();
 }

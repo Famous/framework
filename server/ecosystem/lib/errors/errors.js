@@ -117,6 +117,7 @@ var handlers = {
     },
     'no-asset-host-specified': function(err, info, step, fin, ok) {
         warning('No asset host has been specified!');
+        note(err);
         if (ok) ok();
     }
 };

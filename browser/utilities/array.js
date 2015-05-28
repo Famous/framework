@@ -2,8 +2,6 @@
 
 var ObjectUtils = require('./object');
 
-var ARRAY_TYPE = 'array';
-
 // Iterate over the array, passing each element to the given function.
 function each(a, cb) {
     for (var i = 0; i < a.length; i++) {
@@ -21,7 +19,7 @@ function union(a, b) {
     for (i = 0; i < maxLength; i++) {
         if (i < a.length) set[a[i]] = true;
         if (i < b.length) set[b[i]] = true;
-    };
+    }
 
     for (key in set) {
         result.push(key);
@@ -46,7 +44,7 @@ function checkElementEquality(a, b) {
     for (var i = 0; i < maxLength; i++) {
         isEqual = (a.length > i && b.length > i) ? ObjectUtils.isEqual(a[i], b[i]) : false;
         result.push(isEqual);
-    };
+    }
     return result;
 }
 
@@ -70,4 +68,4 @@ module.exports = {
     union: union,
     checkElementEquality: checkElementEquality,
     shareValue: shareValue
-}
+};

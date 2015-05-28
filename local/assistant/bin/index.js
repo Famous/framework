@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict';
+
 var Program = require('commander');
 var Assistant = require('./../lib/assistant');
 

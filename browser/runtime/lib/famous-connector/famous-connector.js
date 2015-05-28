@@ -1,6 +1,5 @@
 'use strict';
 
-var Famous = window.Famous = require('famous');
 var FamousEngine = window.FamousEngine = require('famous/core/FamousEngine');
 
 FamousEngine.init();

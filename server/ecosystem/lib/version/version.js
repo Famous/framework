@@ -10,8 +10,6 @@ var Errors = require('./../errors/errors');
 var Helper = require('./../helper/helper');
 var Storage = require('./storage');
 
-var SLASH = '/';
-
 function Version(options) {
     this.options = Lodash.assign(Lodash.clone(Version.DEFAULTS || {}), Lodash.clone(options || {}));
     this.storage = new Storage(this.options);

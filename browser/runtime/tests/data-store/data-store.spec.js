@@ -11,7 +11,6 @@ test('----- DataStore', function(t) {
         var name = 'test:module';
         var tag = 'HEAD';
         var definition = {a: 1};
-        var module = DataStore.registerModule(name, tag, definition);
         var retrievedModule = DataStore.getModule(name, tag);
         st.ok(retrievedModule.a === definition.a, 'saves and retrieves modules');
     });

@@ -8,8 +8,6 @@ var Behaviors = require('../../lib/behaviors/behaviors');
 
 var CONTROL_FLOW_CONSTANTS = require('../../lib/control-flow/control-flow-utils').CONSTANTS;
 var IF_KEY = CONTROL_FLOW_CONSTANTS.IF_KEY;
-var REPEAT_KEY = CONTROL_FLOW_CONSTANTS.REPEAT_KEY;
-var YIELD_KEY = CONTROL_FLOW_CONSTANTS.YIELD_KEY;
 
 test('----- Control Flow', function(t) {
     t.plan(2);
@@ -41,7 +39,7 @@ test('----- Control Flow', function(t) {
 
         var MOCK_BEHAVIOR_LIST = [
             {selector: '[uid="3"]', action: true, params: []},
-            {selector: '[uid="4"]', action: false, params: []},
+            {selector: '[uid="4"]', action: false, params: []}
         ];
         MOCK_BEHAVIOR_LIST[0].name = IF_KEY;
         MOCK_BEHAVIOR_LIST[1].name = IF_KEY;
@@ -58,7 +56,7 @@ test('----- Control Flow', function(t) {
         var getPayloadFromUID = Behaviors.getPayloadFromUID;
         Behaviors.getPayloadFromUID = function (behavior, uid) {
             return behavior.action;
-        }
+        };
         ControlFlow.initializeIfBehaviors(blueprint, expandedBlueprint, null, controlFlowDataMngr);
 
         st.ok(expandedBlueprint.querySelector('[uid="3"]'), 'dom nodes remain in expandedBlueprint if payload is true');

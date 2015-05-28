@@ -1,3 +1,5 @@
+'use strict';
+
 var test = require('tape');
 var ControlFlowUtils = require('../../lib/control-flow/control-flow-utils');
 var VirtualDOM = require('../../lib/virtual-dom/virtual-dom');
@@ -16,7 +18,7 @@ test('----- Control Flow Utilities', function(t) {
 
     t.test('exports', function(st) {
         st.plan(6);
-        st.ok(ControlFlowUtils, 'ControlFlowUtils exports')
+        st.ok(ControlFlowUtils, 'ControlFlowUtils exports');
         st.ok(ControlFlowUtils.addRepeatInfo, 'ControlFlowUtils.addRepeatInfo exports');
         st.ok(ControlFlowUtils.addCreateMessage, 'ControlFlowUtils.addCreateMessage exports');
         st.ok(ControlFlowUtils.addDeleteMessage, 'ControlFlowUtils.addDeleteMessage exports');
@@ -99,7 +101,7 @@ test('----- Control Flow Utilities', function(t) {
     });
 
     t.test('strips messages from node', function(st) {
-        st.plan(2);''
+        st.plan(2);
         var node1 = VirtualDOM.create('node-one');
         ControlFlowUtils.addDeleteMessage(node1);
         var node2 = VirtualDOM.create('node-two');
@@ -109,4 +111,4 @@ test('----- Control Flow Utilities', function(t) {
         st.notOk(VirtualDOM.getAttribute(node1, CONTROL_FLOW_ACTION_KEY), 'strips messages from passed in node');
         st.notOk(VirtualDOM.getAttribute(node2, CONTROL_FLOW_ACTION_KEY), 'strips messages from passed in node\'s descendants');
     });
-})
+});

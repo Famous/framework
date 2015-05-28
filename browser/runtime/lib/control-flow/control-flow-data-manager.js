@@ -1,7 +1,6 @@
 'use strict';
 
 var ControlFlowUtils = require('./control-flow-utils');
-var Behaviors = require('../behaviors/behaviors');
 var VirtualDOM = require('../virtual-dom/virtual-dom');
 var ArrayUtils = require('./../../../utilities/array');
 
@@ -42,46 +41,46 @@ function ControlFlowDataManager(behaviorList) {
 
 ControlFlowDataManager.prototype.getIfBehaviors = function getIfBehaviors() {
     return this._behaviors[IF_KEY];
-} 
+};
 
 ControlFlowDataManager.prototype.getRepeatBehaviors = function getRepeatBehaviors() {
     return this._behaviors[REPEAT_KEY];
-} 
+};
 
 ControlFlowDataManager.prototype.getYieldBehaviors = function getYieldBehaviors() {
     return this._behaviors[YIELD_KEY];
-}
+};
 
 ControlFlowDataManager.prototype.getIfData = function getIfData() {
     return this._ifData;
-}
+};
 
 ControlFlowDataManager.prototype.getRepeatData = function getRepeatData() {
     return this._repeatData;
-}
+};
 
 ControlFlowDataManager.prototype.getIfPayload = function getIfPayload(selector) {
     return this._ifData[selector].payload;
-}
+};
 
 ControlFlowDataManager.prototype.setIfPayload = function setIfPayload(selector, payload) {
     if (!(typeof payload === 'boolean')) {
-        throw new Error ('If payload must be set to a boolean. `' + payload + '` is not a valid payload.');
+        throw new Error('If payload must be set to a boolean. `' + payload + '` is not a valid payload.');
     }
     this._ifData[selector].payload = payload;
-}
+};
 
 ControlFlowDataManager.prototype.setRepeatPayload = function setRepeatPayload(selector, payload) {
     var data = this._repeatData[selector];
     data.payloadEquality = ArrayUtils.checkElementEquality(data.payload || [], payload);
     data.payload = payload;
-}
+};
 
 ControlFlowDataManager.prototype.resetRepeatData = function resetRepeatData(selectors) {
     for (var i = 0; i < selectors.length; i++) {
         this._repeatData[selectors[i]] = null;
     }
-}
+};
 
 /**
  * Creates a stateful representation of the behavior by attaching the behavior payload
@@ -102,7 +101,7 @@ ControlFlowDataManager.prototype.initializeDataForIfBehavior = function initiali
         parentUID = VirtualDOM.getParentUID(target);
         data.parentUIDs[parentUID] = VirtualDOM.clone(target);
     }
-}
+};
 
 ControlFlowDataManager.prototype.initializeDataForRepeatBehavior = function initializeDataForRepeatBehavior(selector, payload, blueprint) {
     this._repeatData[selector] = {};
@@ -113,7 +112,6 @@ ControlFlowDataManager.prototype.initializeDataForRepeatBehavior = function init
     var parentUID;
     var processedParentUIDs = {};
     var blueprintNode;
-    var repeatedNodesFromBlueprint;
     VirtualDOM.eachNode(blueprint, selector, function(repeatedNode) {
         parentUID = VirtualDOM.getParentUID(repeatedNode);
 
@@ -135,7 +133,7 @@ ControlFlowDataManager.prototype.initializeDataForRepeatBehavior = function init
     });
 
     data.initialzed = true;
-}
+};
 
 ControlFlowDataManager.processBehaviorList = function processBehaviorList(behaviorList) {
     var controlFlowBehaviors = {};

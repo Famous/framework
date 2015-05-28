@@ -138,7 +138,7 @@ Events.sendMessageBySelector = function sendMessageBySelector(key, value, target
         component = DataStore.getComponent(VirtualDOM.getUID(targets[i]));
         component.sendMessage(key, value);
     }
-}
+};
 
 /*
 events
@@ -160,7 +160,6 @@ Events.prototype.processPassThroughEvents = function processPassThroughEvents(me
     var passThroughEvents = this.eventStore[PASS_THROUGH_KEY];
     var selector;
     var event;
-    var selector;
     var value;
     for (selector in passThroughEvents) {
         event = passThroughEvents[selector];
@@ -183,7 +182,7 @@ Events.prototype.processPassThroughEvents = function processPassThroughEvents(me
             throw new Error('`' + value + '` is not a valid value for a $pass-through event');
         }
     }
-}
+};
 
 Events.prototype.sendDescendantMessage = function sendDescendantMessage(eventName, message, selector, uid) {
     var eventsToFire = [];
@@ -259,7 +258,7 @@ Events.prototype.triggerLifecycleEvent = function(name, uid) {
     if (event) {
         this._executeEvent(event, null, uid);
     }
-}
+};
 
 Events.prototype._executeEvent = function _executeEvent(event, payload, uid) {
     var args = Injector.getArgs(event.params, payload, uid);

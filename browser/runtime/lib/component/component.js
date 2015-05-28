@@ -119,13 +119,11 @@ Component.prototype._executeAttachments = function _executeAttachments() {
     var attachment;
     var selector;
     var executable;
-    var component;
 
     for (var i = 0; i < attachments.length; i++) {
         attachment = attachments[i];
         selector = attachment.selector;
         executable = attachment.executable;
-        component = attachment.component;
         VirtualDOM.eachNode(nodeToQuery, selector, function (node) {
             Utilities.getComponent(node).sendMessage('attach', executable);
         });
