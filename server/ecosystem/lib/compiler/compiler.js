@@ -45,6 +45,7 @@ Compiler.DEFAULTS = {
     defaultImports: {
         'famous:core': ['components', 'context', 'dom-element', 'ui-element', 'view', 'wrapper'],
         'famous:events': [
+
             'click', 'dblclick', 'keydown', 'keypress', 'keyup', 'mousedown', 'mousemove', 'mouseenter',
             'mouseleave', 'mouseout', 'mouseover', 'mouseup', 'size-change', 'parent-size-change', 'touchstart',
             'touchmove', 'touchend', 'wheel'
@@ -521,12 +522,21 @@ function allEventFunctionFilters(key, filters) {
 }
 
 function buildFunctionAST(key, value, fnStringTemplate) {
-    var functionParts = value.split(PIPE);
+    if (value[0] !== '[' && value[1] !== '[') {
+        // warn developer and correct syntax in the meantime to prevent breaking all components
+        console.warn('Please use the correct shorthand syntax for ' + key + ' denoted by double brackets. [[' + value + ']] rather than ' + value);
+        value = '[[' + value + ']]';
+    }
+
+    var subValueVal = value.substr(2, value.length - 4); // Remove brackets
+    var functionParts = subValueVal.split(PIPE);
     var functionKey = functionParts[0];
     var filters = functionParts.slice(1, functionParts.length);
+
     var stateName;
     var fnString;
     var body;
+
     switch (functionKey) {
         case 'setter':
             stateName = allEventFunctionFilters(key, filters);
@@ -554,7 +564,6 @@ Compiler.prototype.expandBehaviorsObject = function(behaviorsAST) {
         // Loop through behaviors
         Es.eachObjectProperty(valueObj, function(keyName, _1, subValueVal, subValueObj, eventProp) {
             if (Es.isStringLiteral(subValueObj) && subValueVal.match(Compiler.DEFAULTS.behaviorSetterRegex)) {
-                subValueVal = subValueVal.substr(2, subValueVal.length - 4); // Remove brackets
                 eventProp.value = buildFunctionAST(keyName, subValueVal, behaviorFnStringTemplate);
             }
         });
