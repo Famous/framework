@@ -2,7 +2,7 @@
 
 #### *May 28, 2015*
 
-- Ensured dotfiles and non-extname files were handled
+- Ensured dotfiles and non-extname files in projects are allowed
 - Increased save payload size limit to 128mb
 - Added `@{CDN_HOST}` for easy pathing
 - Enabled asset references to other projects: `@{foo:bar|assets/baz.jpg}`
