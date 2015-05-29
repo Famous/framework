@@ -119,7 +119,7 @@ Behaviors.targetMessagingBehavior = function targetMessagingBehavior(behavior, c
             Logger.log(errorMsg, 1);
         }
         else {
-            targetComponent.events.triggerPublicEvent(behavior.name, payload, uid);
+            targetComponent.events.sendMessage(behavior.name, payload, uid);
         }
     }
 };
@@ -141,7 +141,7 @@ Behaviors.invertedBehavior = function invertedBehavior(behavior, component, targ
         }
 
         payload = behavior.action.apply(null, args);
-        targetComponent.events.triggerPublicEvent(behavior.name, payload, targetComponent.uid);
+        targetComponent.events.sendMessage(behavior.name, payload, targetComponent.uid);
     }
 };
 

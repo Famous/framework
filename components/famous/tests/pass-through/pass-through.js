@@ -25,6 +25,16 @@ BEST.module('famous:tests:pass-through', 'HEAD', {
         },
         '#three' : {
             position: [500, 0]
+        },
+        // <child-component> exposes 'pass-through' event for `position` that
+        // allows the parent to directly interface with its <view>
+        '#child' : {
+            position: [0, 500],
+            content: `
+                This child component\'s view is positioned directly by its
+                parent because the child exposes a pass-through event for
+                \`position\`.
+            `
         }
     },
     events: {
@@ -35,5 +45,10 @@ BEST.module('famous:tests:pass-through', 'HEAD', {
         }
     },
     states: {
+    }
+})
+.config({
+    imports: {
+        'famous:tests:pass-through' : ['child-component']
     }
 });

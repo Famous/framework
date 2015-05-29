@@ -131,93 +131,6 @@ Events.prototype.setupDispatchedEvent = function setupDispatchedEvent(event, tar
     }
 };
 
-Events.prototype.sendMessage = function sendMessage(key, value, uid) {
-    var publicEvents = this.eventStore[PUBLIC_KEY];
-    var eventsToFire = [];
-    if (publicEvents[ANY_KEY]) {
-        eventsToFire.push(publicEvents[key]);
-    }
-    if (publicEvents[key]) {
-        eventsToFire.push(publicEvents[key]);
-    }
-    else {
-        if (publicEvents[MISS_KEY]) {
-            eventsToFire.push(publicEvents[MISS_KEY]);
-        }
-    }
-
-    if (eventsToFire.length < 1) {
-        Logger.log('Unknown public event `' + key + '` for `' + this.name + '`', 1);
-    }
-
-    var event;
-    var args;
-    for (var i = 0; i < eventsToFire.length; i++) {
-        event = eventsToFire[i];
-        args = Injector.getArgs(event.params, value, uid);
-        event.action.apply(null, args);
-    }
-};
-
-Events.prototype.sendMessages = function sendMessages(messages, uid) {
-    for (var key in messages) {
-        this.sendMessage(key, messages[key], uid);
-    }
-};
-
-Events.sendMessageBySelector = function sendMessageBySelector(key, value, targetDOM, selector) {
-    var targets = VirtualDOM.query(targetDOM, selector);
-    var component;
-    for (var i = 0; i < targets.length; i++) {
-        component = DataStore.getComponent(VirtualDOM.getUID(targets[i]));
-        component.sendMessage(key, value);
-    }
-};
-
-/*
-events
-    $pass-through
-        selector: *
-        (Every public message gets passed along to selected elements)
-
-        selector: ['position', 'opacity']
-        (Whitelist of public messages get passed along to selected elements)
-
-        selector: {
-            child-position: position,
-            child-opacity: opacity
-        }
-        (Whitelist of public messages get passed along where key is public event &
-        value is the public message that gets sent to )
- */
-Events.prototype.processPassThroughEvents = function processPassThroughEvents(messageKey, messagePayload, targetDOM) {
-    var passThroughEvents = this.eventStore[PASS_THROUGH_KEY];
-    var selector;
-    var event;
-    var value;
-    for (selector in passThroughEvents) {
-        event = passThroughEvents[selector];
-        selector = event.name;
-        value = event.action;
-        if (typeof value === 'string') {
-            Events.sendMessageBySelector(messageKey, messagePayload, targetDOM, selector);
-        }
-        else if (Array.isArray(value)) {
-            if (value.indexOf(messageKey) > -1) {
-                Events.sendMessageBySelector(messageKey, messagePayload, targetDOM, selector);
-            }
-        }
-        else if (typeof value === 'object') {
-            if (messageKey in value) {
-                Events.sendMessageBySelector(value[messageKey], messagePayload, targetDOM, selector);
-            }
-        }
-        else {
-            throw new Error('`' + value + '` is not a valid value for a $pass-through event');
-        }
-    }
-};
-
 Events.prototype.sendDescendantMessage = function sendDescendantMessage(eventName, message, selector, uid) {
     var eventsToFire = [];
     var descendantEvents = this.eventStore[DESCENDANT_KEY][selector] || {};
@@ -299,13 +212,105 @@ Events.prototype._executeEvent = function _executeEvent(event, payload, uid) {
     event.action.apply(null, args);
 };
 
-Events.prototype.triggerPublicEvent = function triggerPublicEvent(eventName, payload, uid) {
-    var event = this.eventStore[PUBLIC_KEY][eventName];
-    if (!event) {
-        throw new Error('Unknown public event `' + eventName + '` for `' + this.name + '`');
+/*
+events
+    $pass-through
+        selector: *
+        (Every public message gets passed along to selected elements)
+
+        selector: ['position', 'opacity']
+        (Whitelist of public messages get passed along to selected elements)
+
+        selector: {
+            child-position: position,
+            child-opacity: opacity
+        }
+        (Whitelist of public messages get passed along where key is public event &
+        value is the public message that gets sent to )
+ */
+Events.prototype._processPassThroughEvents = function _processPassThroughEvents(messageKey, messagePayload, uid) {
+    var passThroughEvents = this.eventStore[PASS_THROUGH_KEY];
+    var eventPassedThrough = false;
+    var selector;
+    var event;
+    var value;
+    for (selector in passThroughEvents) {
+        event = passThroughEvents[selector];
+        selector = event.name;
+        value = event.action;
+        if (value === '*') {
+            Events.sendMessageBySelector(messageKey, messagePayload, uid, selector);
+            eventPassedThrough = true;
+        }
+        else if (Array.isArray(value)) {
+            if (value.indexOf(messageKey) > -1) {
+                Events.sendMessageBySelector(messageKey, messagePayload, uid, selector);
+                eventPassedThrough = true;
+            }
+        }
+        else if (typeof value === 'object') {
+            if (messageKey in value) {
+                Events.sendMessageBySelector(value[messageKey], messagePayload, uid, selector);
+                eventPassedThrough = true;
+            }
+        }
+        else {
+            throw new Error('`' + value + '` is not a valid value for a $pass-through event');
+        }
     }
 
-    this._executeEvent(event, payload, uid);
+    return eventPassedThrough;
+};
+
+Events.prototype.sendMessage = function sendMessage(key, payload, uid) {
+    // Check public events
+    var publicEvents = this.eventStore[PUBLIC_KEY];
+    var eventsToFire = [];
+    if (publicEvents[ANY_KEY]) {
+        eventsToFire.push(publicEvents[key]);
+    }
+    if (publicEvents[key]) {
+        eventsToFire.push(publicEvents[key]);
+    }
+    else {
+        if (publicEvents[MISS_KEY]) {
+            eventsToFire.push(publicEvents[MISS_KEY]);
+        }
+    }
+
+    // Check pass through events
+    var messagePassedThrough = this._processPassThroughEvents(key, payload, uid);
+
+    //  Trigger events
+    if (eventsToFire.length < 1) {
+        if (!messagePassedThrough) {
+            Logger.log('Unknown public/passthrough event `' + key + '` for `' + this.name + '`', 1);
+        }
+    }
+    else {
+        var event;
+        var args;
+        for (var i = 0; i < eventsToFire.length; i++) {
+            event = eventsToFire[i];
+            this._executeEvent(event, payload, uid);
+        }
+    }
+};
+
+Events.prototype.sendMessages = function sendMessages(messages, uid) {
+    for (var key in messages) {
+        this.sendMessage(key, messages[key], uid);
+    }
+};
+
+Events.sendMessageBySelector = function sendMessageBySelector(key, value, uid, selector) {
+    var parentComponent = DataStore.getComponent(uid);
+    var targets = VirtualDOM.query(parentComponent.tree.getExpandedBlueprint(), selector);
+    var component;
+    for (var i = 0; i < targets.length; i++) {
+        component = DataStore.getComponent(VirtualDOM.getUID(targets[i]));
+        component.sendMessage(key, value);
+    }
 };
 
 Events.processEventGroups = function processEventGroups(groups) {

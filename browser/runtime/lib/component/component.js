@@ -189,7 +189,7 @@ Component.prototype._initializeControlFlow = function _initializeControlFlow() {
     // Check for default '$yield' overwrite via public events to minimize
     // ControlFlow's concerns
     if (this.events.getPublicEvent(YIELD_KEY)) {
-        this.events.triggerPublicEvent(YIELD_KEY, {
+        this.events.sendMessage(YIELD_KEY, {
             surrogateRoot: this.surrogateRoot
         }, this.uid);
     }
@@ -292,7 +292,6 @@ function createChild(domNode, surrogateRoot, parent) {
 
 Component.prototype.sendMessage = function sendMessage(key, message) {
     this.events.sendMessage(key, message, this.uid);
-    this.events.processPassThroughEvents(key, message, this.tree.getExpandedBlueprint());
 };
 
 Component.prototype.getRootNode = function getRootNode() {
