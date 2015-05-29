@@ -13,7 +13,7 @@ var EVENT_NAME = 'custom-event';
 var EVENT_PAYLOAD = 'payload';
 
 test('----- Dispatcher', function(t) {
-    t.plan(3);
+    t.plan(4);
 
     t.test('exports', function(st){
         st.plan(1);
@@ -70,5 +70,31 @@ test('----- Dispatcher', function(t) {
 
         var dispatcher = new Dispatcher(grandChild);
         dispatcher.emit(EVENT_NAME, EVENT_PAYLOAD);
+    });
+
+    t.test('Dispatcher broadcasts events [environment trickles events]', function(st) {
+        st.plan(3);
+
+        var virtualDOM = VirtualDOMStub.getStubOne();
+
+        var parent = VirtualDOM.query(virtualDOM, '#' + PARENT_ID)[0];
+        var firstChild = VirtualDOM.query(virtualDOM, '.' + FIRST_CHILD_CLASS_NAME)[0];
+        var grandChild = VirtualDOM.query(virtualDOM, GRANDCHILD_NAME)[0];
+
+        var parentDispatcher = new Dispatcher(parent);
+        var firstChildDispatcher = new Dispatcher(firstChild);
+        var grandChildDispatcher = new Dispatcher(grandChild);
+
+        st.ok(parent && firstChild && grandChild, 'target elements found');
+
+        firstChildDispatcher.on(EVENT_NAME, function() {
+            st.pass('broadcasted event captured by child');
+        });
+
+        grandChildDispatcher.on(EVENT_NAME, function() {
+            st.pass('broadcasted event captured by grandchild');
+        });
+
+        parentDispatcher.broadcast(EVENT_NAME, EVENT_PAYLOAD);
     });
 });
