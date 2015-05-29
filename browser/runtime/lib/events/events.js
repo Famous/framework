@@ -16,6 +16,7 @@ var PASS_THROUGH_KEY = '$pass-through';
 var DESCENDANT_KEY = 'descendant';
 var MISS_KEY = '$miss';
 var ANY_KEY = '$any';
+var INDEX_KEY = '$index';
 
 function Events(eventGroups, name, dependencies, rootNode) {
     EventHandler.apply(this);
@@ -58,21 +59,37 @@ Events.prototype.setupProxyEvent = function setupProxyEvent(event, targetRoot, u
     var triggerParams = Utilities.getParameterNames(trigger);
     var lastDelimIdx = event.name.lastIndexOf(COMPONENT_DELIM);
     var eventName = event.name.slice(lastDelimIdx + 1); // 'famous:events:click' -> 'click'
-
     var payload = {
         eventName: eventName
     };
-
     var targets = VirtualDOM.query(targetRoot, event.selector);
     var targetUID;
     var triggerArgs;
-    for (var i = targets.length - 1; i >= 0; i--) {
+    var listenerArgs;
+    var component;
+    var $indexIndex;
+    for (var i = 0; i < targets.length; i++) {
         targetUID = VirtualDOM.getUID(targets[i]);
 
-        payload.listener = function(eventPayload) {
-            var listenerArgs = Injector.getArgs(event.params, eventPayload, uid);
-            event.action.apply(null, listenerArgs);
-        };
+        // If $index is injected into an event handler, the value of $index should
+        // correspond to the $index associated with the item that is capturing the event.
+        // For example, if items are repeated, the $index value on a click handler should be
+        // the index of the repeated item, not the parent component.
+        $indexIndex = event.params.indexOf(INDEX_KEY);
+        if ($indexIndex !== -1) {
+            component = Utilities.getComponent(targets[i]);
+            payload.listener = function(component, eventPayload) {
+                listenerArgs = Injector.getArgs(event.params, eventPayload, uid);
+                listenerArgs[$indexIndex] = component.states.get(INDEX_KEY);
+                event.action.apply(null, listenerArgs);
+            }.bind(null, component);
+        }
+        else {
+            payload.listener = function(eventPayload) {
+                listenerArgs = Injector.getArgs(event.params, eventPayload, uid);
+                event.action.apply(null, listenerArgs);
+            };
+        }
 
         triggerArgs = Injector.getArgs(triggerParams, payload, targetUID);
         trigger.apply(null, triggerArgs);

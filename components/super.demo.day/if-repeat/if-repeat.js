@@ -71,7 +71,18 @@ BEST.module('super.demo.day:if-repeat', 'HEAD', {
                     'box-sizing': 'border-box',
                     'font-family': 'Lato',
                     'background-color' : getColorStep($index),
-                    'color' : '#F2F2F0'
+                    'color' : '#F2F2F0',
+                    'cursor': 'pointer'
+                }
+            },
+            'unselectable': true,
+            'origin' : [0.5, 1],
+            'position-x' : function($index, selectedIndex, rotationX) {
+                if ($index === selectedIndex) {
+                    return rotationX;
+                }
+                else {
+                    return 0;
                 }
             }
         }
@@ -90,10 +101,20 @@ BEST.module('super.demo.day:if-repeat', 'HEAD', {
             }
         },
         '#remove-button': {
-            'click': function($state) {
+            'click': function($state, $index) {
                 if ($state.get('showState') && $state.get('blockCount') > 0) {
                     $state.chain('blockCount').subtract(1);
                 }
+            }
+        },
+        '.block' : {
+            'click' : function($state, $payload, $index) {
+                console.log('Index: ', $index);
+                $state.set('selectedIndex', $index);
+
+                var blockWidth = $state.get('blockSize')[0];
+                $state.set('rotationX', blockWidth * .25, {duration: 150, curve: 'outExpo'})
+                      .thenSet('rotationX', 0, {duration: 200, curve: 'outBounce'});
             }
         }
     },
@@ -101,7 +122,9 @@ BEST.module('super.demo.day:if-repeat', 'HEAD', {
         containerPosition: [100, 100],
         blockSize: [260, 100],
         blockCount: 5,
-        showState: true
+        showState: true,
+        selectedIndex: null,
+        rotationX: 0
     },
     tree: 'if-repeat.jade',
 });
