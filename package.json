@@ -43,7 +43,7 @@
     "esprima": "^2.2.0",
     "estraverse": "^4.1.0",
     "express": "^4.12.3",
-    "famous": "https://github.com/Famous/engine.git#master",
+    "famous": "Famous/engine",
     "fs-walk": "0.0.1",
     "jade": "^1.9.2",
     "jsdom": "^3.1.2",
