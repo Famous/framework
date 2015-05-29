@@ -30,20 +30,35 @@ function Events(eventGroups, name, dependencies, rootNode) {
 Events.prototype = Object.create(EventHandler.prototype);
 Events.prototype.constructor = Events;
 
-Events.prototype.initializeDescendantEvents = function initializeDescendantEvents(targetRoot, uid) {
+Events.prototype.initializeDescendantEvents = function initializeDescendantEvents(expandedBlueprint, uid, uidWhiteList) {
     var events;
     var event;
     var selector;
     var eventName;
+    var targets;
     for (selector in this.eventStore[DESCENDANT_KEY]) {
         events = this.eventStore[DESCENDANT_KEY][selector];
+        targets = VirtualDOM.query(expandedBlueprint, selector);
+
+        // If white list is included, only attach events to nodes corresponding to UIDs in
+        // that white list (i.e., dynamically added nodes).
+        if (uidWhiteList) {
+            var whiteListTargets = [];
+            for (var i = 0; i < targets.length; i++) {
+                if (uidWhiteList.indexOf(VirtualDOM.getUID(targets[i])) !== -1) {
+                    whiteListTargets.push(targets[i]);
+                }
+            }
+            targets = whiteListTargets;
+        }
+
         for (eventName in events) {
             event = events[eventName];
             if (eventName.indexOf(COMPONENT_DELIM) >= 0) {
-                this.setupProxyEvent(event, targetRoot, uid);
+                this.setupProxyEvent(event, targets, uid);
             }
             else {
-                this.setupDispatchedEvent(event, targetRoot, uid);
+                this.setupDispatchedEvent(event, targets, uid);
             }
         }
     }
@@ -55,7 +70,7 @@ events:
     '#surface'
         'famous:events:click' ()=>
  */
-Events.prototype.setupProxyEvent = function setupProxyEvent(event, targetRoot, uid) {
+Events.prototype.setupProxyEvent = function setupProxyEvent(event, targets, uid) {
     var trigger = Events.getDirectEventAction(event.name, this.dependencies);
     var triggerParams = Utilities.getParameterNames(trigger);
     var lastDelimIdx = event.name.lastIndexOf(COMPONENT_DELIM);
@@ -63,7 +78,6 @@ Events.prototype.setupProxyEvent = function setupProxyEvent(event, targetRoot, u
     var payload = {
         eventName: eventName
     };
-    var targets = VirtualDOM.query(targetRoot, event.selector);
     var targetUID;
     var triggerArgs;
     var listenerArgs;
@@ -106,9 +120,8 @@ events:
     '#surface'
         'custom-event' ()=>
  */
-Events.prototype.setupDispatchedEvent = function setupDispatchedEvent(event, targetRoot, uid) {
+Events.prototype.setupDispatchedEvent = function setupDispatchedEvent(event, targets, uid) {
     var self = this;
-    var targets = VirtualDOM.query(targetRoot, event.selector);
     var component;
     for (var i = 0; i < targets.length; i++) {
         component = DataStore.getComponent(VirtualDOM.getUID(targets[i]));

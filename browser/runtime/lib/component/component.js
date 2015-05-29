@@ -38,7 +38,7 @@ function Component(domNode, surrogateRoot, parent) {
     this.config = DataStore.getConfig(this.name, this.tag);
     this.attachments = DataStore.getAttachments(this.name, this.tag);
     if (!this.definition) {
-        console.error('No module found for `' + this.name + ' (' + this.tag + ')`');
+        throw new Error('No module found for `' + this.name + ' (' + this.tag + ')`');
     }
     this.surrogateRoot = surrogateRoot;
     this.tree = new Tree(domNode, this.definition.tree, this.dependencies, parent.tree.rootNode);
@@ -53,6 +53,7 @@ function Component(domNode, surrogateRoot, parent) {
     DataStore.registerComponent(this.uid, this);
     this._setEventListeners();
     this._initialize();
+    this._createExpandedBlueprintObserver(this.tree.getExpandedBlueprint());
 }
 
 /*-----------------------------------------------------------------------------------------*/
@@ -68,6 +69,35 @@ Component.prototype._initialize = function _initialize() {
     this.events.initializeDescendantEvents(this.tree.getExpandedBlueprint(), this.uid);
     this.events.triggerLifecycleEvent(POSTLOAD_KEY, this.uid);
 };
+
+// Create a MutationObserver that will trigger a callback whenever nodes are added or removed
+// from the component's expanded blueprint. Whenever nodes are added, initializeDescendantEvents
+// is retriggered with a white list of node uids in order to add events to the newly created components
+// without re-adding events to unchanged components.
+Component.prototype._createExpandedBlueprintObserver = function _createExpandedBlueprintObserver(expandedBlueprint) {
+    var _this = this;
+    var mutation;
+    var addedNodesUIDs = [];
+    this._observer = new MutationObserver(function(mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+            mutation = mutations[i];
+
+            // Record newly added node UIDs
+            if (mutation.addedNodes.length > 0) {
+                for (var j = 0; j < mutation.addedNodes.length; j++) {
+                    addedNodesUIDs.push(VirtualDOM.getUID(mutation.addedNodes[j]));
+                }
+            }
+        }
+
+        // Initialize events on new components
+        if (addedNodesUIDs.length > 0) {
+            _this.events.initializeDescendantEvents(expandedBlueprint, _this.uid, addedNodesUIDs);
+            addedNodesUIDs = [];
+        }
+    });
+    this._observer.observe(expandedBlueprint, {childList: true, subtree: true});
+}
 
 Component.prototype._processDOMMessages = function _processDOMMessages() {
     var node = this.getRootNode();
