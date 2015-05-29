@@ -17,6 +17,7 @@ var DESCENDANT_KEY = 'descendant';
 var MISS_KEY = '$miss';
 var ANY_KEY = '$any';
 var INDEX_KEY = '$index';
+var REPEAT_PAYLOAD_KEY = '$repeatPayload';
 
 function Events(eventGroups, name, dependencies, rootNode) {
     EventHandler.apply(this);
@@ -68,6 +69,7 @@ Events.prototype.setupProxyEvent = function setupProxyEvent(event, targetRoot, u
     var listenerArgs;
     var component;
     var $indexIndex;
+    var $repeatPayloadIndex;
     for (var i = 0; i < targets.length; i++) {
         targetUID = VirtualDOM.getUID(targets[i]);
 
@@ -76,11 +78,13 @@ Events.prototype.setupProxyEvent = function setupProxyEvent(event, targetRoot, u
         // For example, if items are repeated, the $index value on a click handler should be
         // the index of the repeated item, not the parent component.
         $indexIndex = event.params.indexOf(INDEX_KEY);
-        if ($indexIndex !== -1) {
+        $repeatPayloadIndex = event.params.indexOf(REPEAT_PAYLOAD_KEY);
+        if ($indexIndex !== -1 || $repeatPayloadIndex !== -1) {
             component = Utilities.getComponent(targets[i]);
             payload.listener = function(component, eventPayload) {
                 listenerArgs = Injector.getArgs(event.params, eventPayload, uid);
                 listenerArgs[$indexIndex] = component.states.get(INDEX_KEY);
+                listenerArgs[$repeatPayloadIndex] = component.states.get(REPEAT_PAYLOAD_KEY);
                 event.action.apply(null, listenerArgs);
             }.bind(null, component);
         }

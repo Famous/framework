@@ -108,8 +108,9 @@ BEST.module('super.demo.day:if-repeat', 'HEAD', {
             }
         },
         '.block' : {
-            'click' : function($state, $payload, $index) {
+            'click' : function($state, $payload, $index, $repeatPayload) {
                 console.log('Index: ', $index);
+                console.log('Repeat Payload: ', $repeatPayload);
                 $state.set('selectedIndex', $index);
 
                 var blockWidth = $state.get('blockSize')[0];
