@@ -46,9 +46,9 @@ BEST.module('arkady.pevzner:control-flow:repeat', 'HEAD', {
     },
     events: {
         '$public': {
-            'row-count' : 'setter|camel',
-            'col-count' : 'setter|camel',
-            'horizontal-offset' : 'setter|camel'
+            'row-count' : '[[setter|camel]]',
+            'col-count' : '[[setter|camel]]',
+            'horizontal-offset' : '[[setter|camel]]'
         }
     },
     states: {

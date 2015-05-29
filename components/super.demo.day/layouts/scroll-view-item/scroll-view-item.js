@@ -23,10 +23,10 @@ BEST.module('super.demo.day:layouts:scroll-view-item', 'HEAD', {
     },
     events: {
         $public: {
-            'content' : 'setter',
-            'height' : 'setter',
-            'position' : 'setter',
-            'style' : 'setter'
+            'content' : '[[setter]]',
+            'height' : '[[setter]]',
+            'position' : '[[setter]]',
+            'style' : '[[setter]]'
         },
         /*
         A see-through <ui-element> is overlayed on top of the actual scroll-view-item in order

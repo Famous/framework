@@ -32,12 +32,12 @@ BEST.module('super.demo.day:layouts:footer-bar', 'HEAD', {
     },
     events: {
         $public: {
-            'background-style' : 'setter|camel',
-            'button-style' : 'setter|camel',
-            'button-size' : 'setter|camel',
-            'button-one-content' : 'setter|camel',
-            'button-two-content' : 'setter|camel',
-            'button-three-content' : 'setter|camel'
+            'background-style' : '[[setter|camel]]',
+            'button-style' : '[[setter|camel]]',
+            'button-size' : '[[setter|camel]]',
+            'button-one-content' : '[[setter|camel]]',
+            'button-two-content' : '[[setter|camel]]',
+            'button-three-content' : '[[setter|camel]]'
         },
         /*
         `$dispatcher.emit` will send a message up the component hierarchy.

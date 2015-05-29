@@ -36,8 +36,8 @@ BEST.scene('super.demo.day:attach-webgl', 'HEAD', {
      */
     events: {
         '$public' : {
-            opacity: 'setter',
-            scale: 'setter'
+            opacity: '[[setter]]',
+            scale: '[[setter]]'
         }
     },
     /**

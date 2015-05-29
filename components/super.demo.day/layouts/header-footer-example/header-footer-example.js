@@ -109,7 +109,7 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
     events: {
         $public: {
             /*
-            'setter|camel' in events is a shorthand that gets expanded during server side
+            '[[setter|camel]]' in events is a shorthand that gets expanded during server side
             compilation to:
             'container-proportion' : function($state) {
                 $state.set('containerProportion');
@@ -122,20 +122,20 @@ BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
                 '$root' corresponds to the component that was deployed. Alternatively, a CSS selector can
                         be used to send messages to subcomponents of the deployed component.
              */
-            'container-proportion' : 'setter|camel',
-            'title' : 'setter',
-            'header-height' : 'setter|camel',
-            'header-background-color' : 'setter|camel',
-            'panel-transition' : 'setter|camel',
-            'count' : 'setter',
-            'item-height' : 'setter|camel',
-            'item-style' : 'setter|camel',
-            'footer-background-style' : 'setter|camel',
-            'footer-button-style' : 'setter|camel',
-            'footer-button-size' : 'setter|camel',
-            'button-one-content' : 'setter|camel',
-            'button-two-content' : 'setter|camel',
-            'button-three-content' : 'setter|camel',
+            'container-proportion' : '[[setter|camel]]',
+            'title' : '[[setter]]',
+            'header-height' : '[[setter|camel]]',
+            'header-background-color' : '[[setter|camel]]',
+            'panel-transition' : '[[setter|camel]]',
+            'count' : '[[setter]]',
+            'item-height' : '[[setter|camel]]',
+            'item-style' : '[[setter|camel]]',
+            'footer-background-style' : '[[setter|camel]]',
+            'footer-button-style' : '[[setter|camel]]',
+            'footer-button-size' : '[[setter|camel]]',
+            'button-one-content' : '[[setter|camel]]',
+            'button-two-content' : '[[setter|camel]]',
+            'button-three-content' : '[[setter|camel]]',
         },
         /*
         '$private' events can only be triggered via behaviors under the '$self' selector

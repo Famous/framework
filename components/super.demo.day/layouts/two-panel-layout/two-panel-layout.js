@@ -22,7 +22,7 @@ BEST.module('super.demo.day:layouts:two-panel-layout', 'HEAD', {
             'display-right-panel' : function($state, $payload) {
                 $state.set('offsetX', -$payload, $state.get('curve'));
             },
-            'curve' : 'setter'
+            'curve' : '[[setter]]'
         },
     },
     states: {

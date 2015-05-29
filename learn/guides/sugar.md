@@ -18,7 +18,7 @@ The following example is equivalent to the above:
 
     events: {
         '$public': {
-            'thing': 'setter'
+            'thing': '[[setter]]'
         }
     }
 

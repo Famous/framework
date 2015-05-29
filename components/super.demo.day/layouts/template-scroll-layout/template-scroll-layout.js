@@ -44,7 +44,7 @@ BEST.module('super.demo.day:layouts:template-scroll-layout', 'HEAD', {
 
                 $state.set('content', content);
             },
-            'style' : 'setter'
+            'style' : '[[setter]]'
         },
     },
     states: {

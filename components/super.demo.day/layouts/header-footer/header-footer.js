@@ -46,8 +46,8 @@ BEST.module('super.demo.day:layouts:header-footer', 'HEAD', {
     },
     events: {
         '$public' : {
-            'header-height' : 'setter|camel',
-            'footer-height' : 'setter|camel'
+            'header-height' : '[[setter|camel]]',
+            'footer-height' : '[[setter|camel]]'
         }
     },
     states: {

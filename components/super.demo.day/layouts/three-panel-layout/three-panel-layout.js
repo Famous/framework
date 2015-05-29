@@ -31,8 +31,8 @@ BEST.module('super.demo.day:layouts:three-panel-layout', 'HEAD', {
             'display-panel-three' : function($state, $payload) {
                 $state.set('offset', -2 * $state.get('panelWidth'), $state.get('curve'));
             },
-            'curve' : 'setter',
-            'panel-width' : 'setter|camel'
+            'curve' : '[[setter]]',
+            'panel-width' : '[[setter|camel]]'
         },
     },
     states: {

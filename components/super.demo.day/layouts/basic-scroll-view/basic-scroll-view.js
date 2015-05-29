@@ -52,10 +52,10 @@ BEST.module('super.demo.day:layouts:basic-scroll-view', 'HEAD', {
     },
     events: {
         '$public' : {
-            'count': 'setter',
-            'item-height': 'setter|camel',
-            'content': 'setter',
-            'item-style' : 'setter|camel'
+            'count': '[[setter]]',
+            'item-height': '[[setter|camel]]',
+            'content': '[[setter]]',
+            'item-style' : '[[setter|camel]]'
         }
     },
     states: {
