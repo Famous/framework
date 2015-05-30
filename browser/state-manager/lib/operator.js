@@ -54,7 +54,7 @@ var operations = {
         return Math.tan(a);
     },
     'ceil': function(a) {
-        return Math.floor(a);
+        return Math.ceil(a);
     },
     'floor': function(a) {
         return Math.floor(a);
