@@ -65,7 +65,7 @@ Compiler.DEFAULTS = {
 };
 
 // Name{String}, Files{Array}, Object -> Result
-Compiler.prototype.compileModule = function(moduleName, originalFiles, options, finalCB) {
+Compiler.prototype.compileModule = function(moduleName, originalFiles, finalCB) {
     // Saving bound versions of these functions for better readability below
     var buildDepTableFn = this.buildDependencyTable.bind(this);
     var compileFileFn = this.compileFile.bind(this);

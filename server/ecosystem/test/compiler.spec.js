@@ -9,7 +9,7 @@ Tape('compiler', function(t) {
     t.ok(Compiler, 'exports');
     t.ok(new Compiler(), 'instance');
     var compiler = new Compiler();
-    compiler.compileModule(content.name, content.files, {}, function(err, result) {
+    compiler.compileModule(content.name, content.files, function(err, result) {
         // console.log(err, result);
     });
 });
