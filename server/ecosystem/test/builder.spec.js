@@ -10,8 +10,9 @@ Tape('compiler', function(t) {
     t.ok(Compiler, 'exports');
     t.ok(new Compiler(), 'instance');
     var compiler = new Compiler();
-    compiler.compileModule(content.name, content.files, {}, function(err, compilation) {
-        Builder.buildBundle(compilation, {}, function(err, bundle) {
+    var builder = new Builder();
+    compiler.compileModule(content.name, content.files, function(err, compilation) {
+        builder.buildBundle(compilation, function(err, bundle) {
             // console.log(err, bundle);
         });
     });

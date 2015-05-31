@@ -28,12 +28,11 @@ Builder.DEFAULTS = {
 };
 
 // Object, Object -> String
-Builder.buildBundle = function(compilation, options, cb) {
-    var builder = new Builder(options);
+Builder.prototype.buildBundle = function(compilation, cb) {
     try {
-        var importTupleString = builder.buildImportTupleString(compilation.dependencyTable, compilation.configs);
-        var mainCodeBlock = builder.buildMainCodeBlock(compilation.moduleName, compilation.moduleTag, compilation.entrypointAST);
-        var bundleSource = builder.buildBundleSource(compilation.moduleName, compilation.moduleTag, importTupleString, mainCodeBlock);
+        var importTupleString = this.buildImportTupleString(compilation.dependencyTable, compilation.configs);
+        var mainCodeBlock = this.buildMainCodeBlock(compilation.moduleName, compilation.moduleTag, compilation.entrypointAST);
+        var bundleSource = this.buildBundleSource(compilation.moduleName, compilation.moduleTag, importTupleString, mainCodeBlock);
         cb(null, bundleSource);
     }
     catch (e) {
