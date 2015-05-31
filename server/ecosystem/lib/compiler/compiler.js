@@ -45,7 +45,6 @@ Compiler.DEFAULTS = {
     defaultImports: {
         'famous:core': ['components', 'context', 'dom-element', 'ui-element', 'view', 'wrapper'],
         'famous:events': [
-
             'click', 'dblclick', 'keydown', 'keypress', 'keyup', 'mousedown', 'mousemove', 'mouseenter',
             'mouseleave', 'mouseout', 'mouseover', 'mouseup', 'size-change', 'parent-size-change', 'touchstart',
             'touchmove', 'touchend', 'wheel'
