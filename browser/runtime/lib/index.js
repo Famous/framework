@@ -11,6 +11,7 @@ var deployer = new Deployer();
 // any modules that happen to not have a tag a default one.
 var UNSPECIFIED_TAG = '!unspecified!';
 var OBJECT_TYPE = 'object';
+var STRING_TYPE = 'string';
 
 function returnUnspecifiedTag(name, tag) {
     console.warn('Tag given for `' + name + '` was `' + tag + '`; defaulting to `unspecified` instead');
@@ -34,7 +35,7 @@ function register(name, tag, definition) {
             }
             else {
                 definition = {};
-                if (typeof tag !== 'string') {
+                if (typeof tag !== STRING_TYPE) {
                     tag = returnUnspecifiedTag(name, tag);
                 }
             }
