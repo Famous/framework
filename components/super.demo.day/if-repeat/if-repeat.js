@@ -9,7 +9,7 @@ function getColorStep(step) {
     return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
-BEST.module('super.demo.day:if-repeat', 'HEAD', {
+BEST.module('super.demo.day:if-repeat', {
     behaviors: {
         '#container': {
             'align': [0.4, 0.1],

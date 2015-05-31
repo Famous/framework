@@ -1,2 +1,2 @@
-BEST.module('famous:tests:assets-large', 'HEAD', {});
+BEST.module('famous:tests:assets-large', {});
 

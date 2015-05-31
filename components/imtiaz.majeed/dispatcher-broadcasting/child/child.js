@@ -1,4 +1,4 @@
-BEST.scene('imtiaz.majeed:dispatcher-broadcasting:child', 'HEAD', {
+BEST.scene('imtiaz.majeed:dispatcher-broadcasting:child', {
     behaviors: {
         '#child': {
             'align': [0.5, 0.5],

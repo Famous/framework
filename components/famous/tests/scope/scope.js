@@ -1,4 +1,4 @@
-BEST.module('famous:tests:scope', 'HEAD', {
+BEST.module('famous:tests:scope', {
     behaviors: {
         '#surface' : {
             'content' : 'This square should be blue. \n\n Above square should be gray.',

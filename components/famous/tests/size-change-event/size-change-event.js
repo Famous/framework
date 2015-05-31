@@ -1,4 +1,4 @@
-BEST.module('famous:tests:size-change-event', 'HEAD', {
+BEST.module('famous:tests:size-change-event', {
     behaviors: {
         '#container' : {
             'size-proportional': [0.5, 0.5],

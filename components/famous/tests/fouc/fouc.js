@@ -1,4 +1,4 @@
-BEST.scene('famous:tests:fouc', 'HEAD', {
+BEST.scene('famous:tests:fouc', {
     behaviors: {
         '#view': {
             'size': [200, 200],

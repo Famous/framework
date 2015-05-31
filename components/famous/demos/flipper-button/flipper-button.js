@@ -1,4 +1,4 @@
-BEST.module('famous:demos:flipper-button', 'HEAD', {
+BEST.module('famous:demos:flipper-button', {
     tree: 'flipper-button.html',
     behaviors: {
         '.flipper-container': {

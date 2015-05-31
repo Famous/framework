@@ -1,4 +1,4 @@
-BEST.scene('super.demo.day:lifecycle', 'HEAD', {
+BEST.scene('super.demo.day:lifecycle', {
     /**
      * Behaviors:
      *      Target the ball and ground in our tree

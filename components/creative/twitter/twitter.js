@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter', 'HEAD', {
+BEST.scene('creative:twitter', {
     behaviors: {
         '#container': {
             'align': [0.5, 0],

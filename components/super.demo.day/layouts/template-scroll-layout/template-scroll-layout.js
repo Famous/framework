@@ -1,4 +1,4 @@
-BEST.module('super.demo.day:layouts:template-scroll-layout', 'HEAD', {
+BEST.module('super.demo.day:layouts:template-scroll-layout', {
     behaviors: {
         '$self' : {
             'set-template' : '[[identity|mockTemplatedContent]]'

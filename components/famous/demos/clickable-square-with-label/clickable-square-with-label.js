@@ -1,4 +1,4 @@
-BEST.module('famous:demos:clickable-square-with-label', 'HEAD', {
+BEST.module('famous:demos:clickable-square-with-label', {
     tree: 'clickable-square-with-label.html',
     behaviors: {
         '#context': {

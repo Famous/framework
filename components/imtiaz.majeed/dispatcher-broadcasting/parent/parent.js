@@ -1,4 +1,4 @@
-BEST.scene('imtiaz.majeed:dispatcher-broadcasting:parent', 'HEAD', {
+BEST.scene('imtiaz.majeed:dispatcher-broadcasting:parent', {
     behaviors: {
         '#parent': {
             'size': [window.innerWidth, window.innerHeight]

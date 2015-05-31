@@ -1,4 +1,4 @@
-BEST.module('famous:core:view', 'HEAD', {
+BEST.module('famous:core:view', {
     behaviors: {
         '$self': {
             '$yield' : true,

@@ -1,4 +1,4 @@
-BEST.scene('super.demo.day:animation-timeline', 'HEAD', {
+BEST.scene('super.demo.day:animation-timeline', {
     /**
      * Behaviors:
      *      Target each circle in our tree

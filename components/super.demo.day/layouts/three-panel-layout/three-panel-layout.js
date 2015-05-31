@@ -1,4 +1,4 @@
-BEST.module('super.demo.day:layouts:three-panel-layout', 'HEAD', {
+BEST.module('super.demo.day:layouts:three-panel-layout', {
     behaviors: {
         '#panel-1' : {
             // See <header-footer> for discussion of '$yield'

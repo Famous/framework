@@ -1,4 +1,4 @@
-BEST.module('super.demo.day:layouts:header-footer-example', 'HEAD', {
+BEST.module('super.demo.day:layouts:header-footer-example', {
     behaviors: {
         /*
         `$self` behaviors are routed to a component's events. The framework first checks

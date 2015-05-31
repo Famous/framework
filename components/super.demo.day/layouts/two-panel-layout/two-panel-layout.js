@@ -1,4 +1,4 @@
-BEST.module('super.demo.day:layouts:two-panel-layout', 'HEAD', {
+BEST.module('super.demo.day:layouts:two-panel-layout', {
     behaviors: {
         '#left-panel' : {
             '$yield' : '.left-panel',

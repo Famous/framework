@@ -1,4 +1,4 @@
-BEST.module('famous:demos:clickable-square', 'HEAD', {
+BEST.module('famous:demos:clickable-square', {
     behaviors: {
         '#context': {
             'size': function(size) { return [size, size]; },

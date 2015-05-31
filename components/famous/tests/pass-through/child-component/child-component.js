@@ -1,4 +1,4 @@
-BEST.module('famous:tests:pass-through:child-component', 'HEAD', {
+BEST.module('famous:tests:pass-through:child-component', {
     behaviors: {
         '#el' : {
             size: [400, 100],

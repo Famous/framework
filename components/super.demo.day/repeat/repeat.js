@@ -1,4 +1,4 @@
-BEST.scene('super.demo.day:repeat', 'HEAD', {
+BEST.scene('super.demo.day:repeat', {
     /**
      * Behaviors:
      *      Target the line in our tree

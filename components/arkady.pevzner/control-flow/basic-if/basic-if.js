@@ -1,4 +1,4 @@
-BEST.module('arkady.pevzner:control-flow:basic-if', 'HEAD', {
+BEST.module('arkady.pevzner:control-flow:basic-if', {
     behaviors: {
         '#button' : {
             position: [200, 200],

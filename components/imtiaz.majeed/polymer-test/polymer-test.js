@@ -1,4 +1,4 @@
-BEST.scene('imtiaz.majeed:polymer-test', 'HEAD', {
+BEST.scene('imtiaz.majeed:polymer-test', {
     behaviors: {
         '#spinner': {
             'size': [100, 100],

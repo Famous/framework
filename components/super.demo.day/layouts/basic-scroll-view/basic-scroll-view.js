@@ -14,7 +14,7 @@ function createColorStep(step) {
 }
 /*---------------------------------------------------------------------------------*/
 
-BEST.module('super.demo.day:layouts:basic-scroll-view', 'HEAD', {
+BEST.module('super.demo.day:layouts:basic-scroll-view', {
     behaviors: {
         '#container' : {
             'overflow' : 'scroll' // Scrollview needs to hide items outside its clipping window

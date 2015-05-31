@@ -1,4 +1,4 @@
-BEST.scene('imtiaz.majeed:array-tweening', 'HEAD', {
+BEST.scene('imtiaz.majeed:array-tweening', {
     behaviors: {
         '#square': {
             'position': '[[identity|position]]',

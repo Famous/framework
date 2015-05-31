@@ -1,4 +1,4 @@
-BEST.module('famous:tests:pass-through', 'HEAD', {
+BEST.module('famous:tests:pass-through', {
     tree: 'pass-through.html',
     behaviors: {
         '#container' : {

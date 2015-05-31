@@ -1,4 +1,4 @@
-BEST.scene('super.demo.day:hello-famous', 'HEAD', {
+BEST.scene('super.demo.day:hello-famous', {
     /**
      * Behaviors:
      *      Target the background and text in

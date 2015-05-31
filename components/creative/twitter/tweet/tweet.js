@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter:tweet', 'HEAD', {
+BEST.scene('creative:twitter:tweet', {
     behaviors: {
         '#background': {
             style: {

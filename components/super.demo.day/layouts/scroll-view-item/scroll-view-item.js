@@ -1,4 +1,4 @@
-BEST.module('super.demo.day:layouts:scroll-view-item', 'HEAD', {
+BEST.module('super.demo.day:layouts:scroll-view-item', {
     behaviors: {
         '#item' : {
             content: '[[setter]]',

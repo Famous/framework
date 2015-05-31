@@ -1,4 +1,4 @@
-BEST.scene('imtiaz.majeed:dom-skyscraper:base', 'HEAD', {
+BEST.scene('imtiaz.majeed:dom-skyscraper:base', {
     behaviors: {
         '#base-container': {
             'align': [0.5, 0.5],

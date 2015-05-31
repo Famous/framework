@@ -1,4 +1,4 @@
-BEST.scene('famous:tests:platform-a', 'HEAD', {
+BEST.scene('famous:tests:platform-a', {
     tree: `<view id="view"><context id="ctx"></context></view>`,
     behaviors: {
         '#view': {

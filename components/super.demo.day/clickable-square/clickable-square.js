@@ -1,4 +1,4 @@
-BEST.scene('super.demo.day:clickable-square', 'HEAD', {
+BEST.scene('super.demo.day:clickable-square', {
     /**
      * Behaviors:
      *      Target the square in our tree

@@ -23,7 +23,7 @@ var Color = Famous.utilities.Color;
  *      have access to the node of that context
  *      and can use it with
  */
-BEST.attach('super.demo.day:attach-webgl', 'HEAD', '#webgl', function(node) {
+BEST.attach('super.demo.day:attach-webgl', '#webgl', function(node) {
     /**
      * Create a dynamic geometry from a sphere
      */

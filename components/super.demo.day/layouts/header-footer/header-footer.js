@@ -1,4 +1,4 @@
-BEST.module('super.demo.day:layouts:header-footer', 'HEAD', {
+BEST.module('super.demo.day:layouts:header-footer', {
     tree: 'header-footer.html',
     behaviors: {
         '#header' : {

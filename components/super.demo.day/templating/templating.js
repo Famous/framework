@@ -1,4 +1,4 @@
-BEST.scene('super.demo.day:templating', 'HEAD', {
+BEST.scene('super.demo.day:templating', {
     /**
      * Behaviors:
      *      Target the circle in our tree

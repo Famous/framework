@@ -2,7 +2,7 @@ var DOMElement = Famous.domRenderables.DOMElement;
 
 var Size = Famous.components.Size;
 
-BEST.attach('famous:tests:platform-a', 'HEAD', '#ctx', function(renderNode) {
+BEST.attach('famous:tests:platform-a', '#ctx', function(renderNode) {
     var domEl = new DOMElement(renderNode);
     domEl.setContent('Hello Famous!');
     domEl.setProperty('background-color', 'red');

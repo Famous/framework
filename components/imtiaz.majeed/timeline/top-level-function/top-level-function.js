@@ -1,4 +1,4 @@
-BEST.scene('imtiaz.majeed:timeline:top-level-function', 'HEAD', {
+BEST.scene('imtiaz.majeed:timeline:top-level-function', {
     behaviors: {
         '#wrapper': {
             'align': [0.5, 0.5]

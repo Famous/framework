@@ -1,4 +1,4 @@
-BEST.scene('famous:tests:static-assets', 'HEAD', {
+BEST.scene('famous:tests:static-assets', {
     behaviors: {
         '#one-a': {
             'content': '<img src="@{assets/excite.png}">'

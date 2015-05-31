@@ -1,4 +1,4 @@
-BEST.scene('imtiaz.majeed:dom-skyscraper:side', 'HEAD', {
+BEST.scene('imtiaz.majeed:dom-skyscraper:side', {
     behaviors: {
         '#tile': {
             '$repeat': function() {

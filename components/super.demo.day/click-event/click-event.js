@@ -1,4 +1,4 @@
-BEST.scene('super.demo.day:click-event', 'HEAD', {
+BEST.scene('super.demo.day:click-event', {
     /**
      * Behaviors:
      *      Target the background in our tree

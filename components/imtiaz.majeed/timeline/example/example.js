@@ -1,4 +1,4 @@
-BEST.module('imtiaz.majeed:timeline:example', 'HEAD', {
+BEST.module('imtiaz.majeed:timeline:example', {
     behaviors: {
         '#circle-container': {
             'size': function(size) {

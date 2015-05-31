@@ -1,5 +1,5 @@
 function foo(){}
-BEST.scene('famous:tests:weird-files', 'HEAD', {});
+BEST.scene('famous:tests:weird-files', {});
 /////HELLO
 ///
 ///

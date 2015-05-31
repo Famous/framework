@@ -1,4 +1,4 @@
-BEST.scene('imtiaz.majeed:state-manager-test', 'HEAD', {
+BEST.scene('imtiaz.majeed:state-manager-test', {
     behaviors: {
         '#element': {
             'position': function(position) {

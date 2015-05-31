@@ -1,4 +1,4 @@
-BEST.module('famous:tests:mount-point', 'HEAD', {
+BEST.module('famous:tests:mount-point', {
     behaviors: {
         '$self' : {
             start: true

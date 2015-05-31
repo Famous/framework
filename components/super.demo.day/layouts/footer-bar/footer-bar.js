@@ -1,4 +1,4 @@
-BEST.module('super.demo.day:layouts:footer-bar', 'HEAD', {
+BEST.module('super.demo.day:layouts:footer-bar', {
     behaviors: {
         '#background' : {
             style: '[[identity|backgroundStyle]]'

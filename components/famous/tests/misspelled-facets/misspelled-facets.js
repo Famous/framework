@@ -1,4 +1,4 @@
-BEST.scene('famous:tests:misspelled-facets', 'HEAD', {
+BEST.scene('famous:tests:misspelled-facets', {
     behaviours: {},
     state: {},
     event: {},

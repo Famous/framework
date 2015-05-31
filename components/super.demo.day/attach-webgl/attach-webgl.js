@@ -1,4 +1,4 @@
-BEST.scene('super.demo.day:attach-webgl', 'HEAD', {
+BEST.scene('super.demo.day:attach-webgl', {
     /**
      * Behaviors:
      *      Target the view in our tree

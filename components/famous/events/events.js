@@ -1,4 +1,4 @@
-BEST.module('famous:events', 'HEAD', {
+BEST.module('famous:events', {
     events: {
         '$public': {
             '$miss': function($DOMElement, $famousNode, $payload) {
