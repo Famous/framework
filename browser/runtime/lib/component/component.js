@@ -97,7 +97,7 @@ Component.prototype._createExpandedBlueprintObserver = function _createExpandedB
         }
     });
     this._observer.observe(expandedBlueprint, {childList: true, subtree: true});
-}
+};
 
 Component.prototype._processDOMMessages = function _processDOMMessages() {
     var node = this.getRootNode();
