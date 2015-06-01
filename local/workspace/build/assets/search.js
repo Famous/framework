@@ -37,5 +37,7 @@
     }
 
     // Hack to mask FOUC when using align
-    setTimeout(function() { stage.removeAttribute('unresolved'); }, 1000);
+    setTimeout(function() {
+        stage.removeAttribute('unresolved');
+    }, 1000);
 }());
