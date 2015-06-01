@@ -61,11 +61,11 @@ function getConfig(name, tag) {
     }
 }
 
-Wrapper.prototype.timelines = function timelines(timelines) {
+Wrapper.prototype.timelines = function timelines(timelinesObject) {
     if (!TIMELINES[this.name]) {
         TIMELINES[this.name] = {};
     }
-    TIMELINES[this.name][this.tag] = timelines;
+    TIMELINES[this.name][this.tag] = timelinesObject;
     return this;
 };
 
