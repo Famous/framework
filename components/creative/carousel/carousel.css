@@ -1,0 +1,16 @@
+#stage {
+    -webkit-perspective: 2000px;
+    perspective: 2000px;
+    opacity:1;
+    transition: none;
+}
+
+html,body {
+    overflow: hidden !important;
+}
+
+body > div:first-child {
+    display:none;
+}
+
+
