@@ -51,7 +51,7 @@ Dispatcher.willEventsTrickle = (function() {
         parent.dispatchEvent(new CustomEvent('e', { trickles: true }));
     }
     return willTrickle;
-})()
+})();
 
 
 Dispatcher.prototype.broadcast = function(key, message) {
@@ -61,7 +61,7 @@ Dispatcher.prototype.broadcast = function(key, message) {
         trickles: true
     });
     if (Dispatcher.willEventsTrickle) {
-        element.dispatchEvent(event)
+        element.dispatchEvent(event);
     }
     else {
         var broadcastToChildNodes = function(node) {
@@ -70,7 +70,7 @@ Dispatcher.prototype.broadcast = function(key, message) {
                 child.dispatchEvent(event);
                 broadcastToChildNodes(child);
             }
-        }
+        };
 
         broadcastToChildNodes(element);
     }
