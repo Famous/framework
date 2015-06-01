@@ -4,7 +4,8 @@
     "node": true
   },
   "globals": {
-    "BEST": true
+    "BEST": true,
+    "QUERY": true
   },
   "rules": {
     // Possible Errors
