@@ -3,6 +3,9 @@
     "browser": true,
     "node": true
   },
+  "globals": {
+    "BEST": true
+  },
   "rules": {
     // Possible Errors
     "comma-dangle": 1,
