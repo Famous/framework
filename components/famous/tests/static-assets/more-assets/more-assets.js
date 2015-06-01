@@ -1,4 +1,4 @@
-BEST.scene('famous:tests:assets-a:more-assets', 'HEAD', {
+BEST.scene('famous:tests:static-assets:more-assets', 'HEAD', {
     behaviors: {
         'ui-element' : {
             'content': '<img src="@{assets/excite3.png}">'

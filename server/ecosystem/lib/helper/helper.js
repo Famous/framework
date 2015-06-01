@@ -8,6 +8,7 @@ var BLANK = '';
 var SLASH = '/';
 var PIPE = '|';
 var STRING = 'string';
+var DELIMETER
 
 function Helper(options) {
     this.options = Lodash.assign(Lodash.clone(Helper.DEFAULTS), Lodash.clone(options || {}));
@@ -91,8 +92,10 @@ Helper.prototype.getDependencyModuleName = function(str) {
 
 Helper.prototype.eachDependencyIn = function(str, iterator) {
     var matches = str.match(this.options.dependencyRegexp);
+    var username;
     for (var i = 0; i < matches.length; i++) {
-        if (!(matches[i] in this.options.dependencyBlacklist)) {
+        username = matches[i].split(this.options.componentDelimiter)[0];
+        if (!(username in this.options.dependencyBlacklist)) {
             iterator(matches[i]);
         }
     }

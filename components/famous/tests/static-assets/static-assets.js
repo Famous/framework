@@ -1,7 +1,11 @@
-BEST.scene('famous:tests:assets-a', 'HEAD', {
+BEST.scene('famous:tests:static-assets', 'HEAD', {
     behaviors: {
-        '#one': {
+        '#one-a': {
             'content': '<img src="@{assets/excite.png}">'
+        },
+        // Content is defined inside of the tree
+        '#one-b': {
+            'position' : [400, 0]
         },
         '#two': {
             'content': function(imageTwoPath) {
@@ -16,18 +20,24 @@ BEST.scene('famous:tests:assets-a', 'HEAD', {
             'content': function(imageThreePath) {
                 // @{CDN_PATH|username:component} is a keyword that will be evaluated during compilation
                 // to match the CDN location where `username:component` is hosted.
-                return '<img src="@{CDN_PATH|famous:tests:assets-a:more-assets}' + imageThreePath + '">';
+                return '<img src="@{CDN_PATH|famous:tests:static-assets:more-assets}' + imageThreePath + '">';
             },
             'position': [0, 600]
         }
     },
     states: {
-        imageTwoPath: 'assets/excite2.png',
+        imageTwoPath: 'assets/excite2.png', 
         imageThreePath: 'assets/excite3.png'
     },
     tree: `
-        <ui-element id="one"></ui-element>
+        <ui-element id="one-a"></ui-element>
+
+        <ui-element id="one-b">
+            <img src="@{assets/excite.png}">
+        </ui-element>
+
         <ui-element id="two"></ui-element>
+
         <ui-element id="three"></ui-element>
     `,
 });
