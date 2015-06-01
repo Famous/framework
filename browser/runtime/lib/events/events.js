@@ -289,7 +289,6 @@ Events.prototype.sendMessage = function sendMessage(key, payload, uid) {
     }
     else {
         var event;
-        var args;
         for (var i = 0; i < eventsToFire.length; i++) {
             event = eventsToFire[i];
             this._executeEvent(event, payload, uid);
