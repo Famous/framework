@@ -6,83 +6,60 @@
     <title>best-workspace</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <link href='assets/reset.min.css' rel='stylesheet' type='text/css'>
+    <link href='assets/search.css' rel='stylesheet' type='text/css'>
     <script>document.write('<script src="http://'+(location.host||'localhost').split(':')[0]+':35729/livereload.js?snipver=1"></'+'script>')</script>
     <style type="text/css">
-      html, body {
-        height: 100%;
-        overflow: scroll !important; /* overwrite default Famo.us CSS */
+      /* container specific rules */
+      html,body {
         background: #444444;
       }
-      #stage {
+      #best-stage {
         height: 100%;
+        position: relative;
+        transition: opacity ease-in 0.3s;
         width: 100%;
+        z-index: 1;
+      }
+      [unresolved] {
         opacity: 0;
-        transition: 4s all;
-      }
-      input {
-        width: 100%;
-        height: 50px;
-        font-size: 40px;
-        color: #7099EE;
-        background: transparent;
-        border-width: 0px 0px 2px 0px;
-        border-color: #7099EE;`
-        padding: 10px;
-      }
-      input:focus {
-        outline: none;
+        display: block;
+        overflow: hidden;
       }
     </style>
   </head>
 
   <body>
 
-    <div>
+    <div id="best-components-search">
+      <button class="best-components-search-btn"></button>
+      <button class="best-components-search-dropdown"></button>
       <form>
-        <input type="text" list="scenes" name="best" id="input" placeholder="hello-famous">
-        <datalist id="scenes">
-          <option value="animation-timeline">
-          <option value="attach-webgl">
-          <option value="click-event">
-          <option value="clickable-square">
-          <option value="hello-famous">
-          <option value="lifecycle">
-          <option value="repeat">
-          <option value="templating">
-        </datalist>
+        <input type="text" name="best" placeholder="hello-famous">
+        <ul>
+          <li>animation-timeline</li>
+          <li>attach-webgl</li>
+          <li>click-event</li>
+          <li>clickable-square</li>
+          <li>hello-famous</li>
+          <li>lifecycle</li>
+          <li>repeat</li>
+          <li>templating</li>
+        </ul>
       </form>
     </div>
 
-    <div id="stage"></div>
+    <div id="best-stage" unresolved></div>
 
     <script type="text/javascript" src="best.bundle.js"></script>
     <script type="text/javascript" src="assets/query-string.js"></script>
-
-    <script type="text/javascript">
-      (function() {
-        document.getElementById('input').value = QUERY.best || 'hello-famous';
-
-        if (QUERY.best) {
-          if (QUERY.best.split(':').length < 2) QUERY.best = 'super.demo.day:' + QUERY.best;
-          BEST.deploy(QUERY.best, 'HEAD', '#stage');
-        }
-        else {
-          BEST.deploy('super.demo.day:hello-famous', 'HEAD', '#stage');
-        }
-
-        var stage = document.getElementById('stage');
-        stage.scrollIntoView();
-
-        // Hack to mask FOUC when using align
-        setTimeout(function() { stage.style.opacity = 1; }, 200);
-      }());
-    </script>
+    <script type="text/javascript" src="assets/search.js"></script>
 
   </body>
 
- 
 
- 
 
- 
+
+
+
 </html>
