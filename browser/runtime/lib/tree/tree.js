@@ -64,13 +64,22 @@ Tree.setUID = function(node) {
 };
 
 Tree.assignChildUIDs = function assignChildUIDs(parent) {
-    for (var i = 0; i < parent.children.length; i++) {
-        var child = parent.children[i];
+    for (var i = 0; i < parent.childNodes.length; i++) {
+        var child = parent.childNodes[i];
+
+        if (child.nodeName === '#text') {
+            if (child.nodeValue.trim()) {
+                var spanWrapper = document.createElement('span');
+                spanWrapper.appendChild(child);
+                parent.insertBefore(spanWrapper, parent.firstChild);
+            }
+        }
+
         // BEST component DOM nodes are instances of `HTMLUnknownElement`;
         // we use this to detect whether we have entered a leaf node.
         if (Tree.isUnknownElement(child)) {
             Tree.setUID(child);
-            Tree.assignChildUIDs(parent.children[i]);
+            Tree.assignChildUIDs(parent.childNodes[i]);
         }
     }
 };
