@@ -10,7 +10,7 @@ BEST.scene('imtiaz.majeed:ui-element-content', 'HEAD', {
             'position': [200, 0, 0],
             'style': {
                 'background': '#996699'
-            },
+            }
         },
         '.element': {
             'size': [200, 200],
