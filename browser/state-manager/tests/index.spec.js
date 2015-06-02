@@ -114,7 +114,7 @@ test('StateManager', function(t) {
   SM.chain('age').tan();
   t.equal(SM.getState('age'), Math.tan(Math.cos(Math.sin(5))), 'should be able to perform tangent');
   SM.chain('playfulnessLevel').ceil();
-  t.equal(SM.getState('playfulnessLevel'), 8, 'should be able to round up');
+  t.equal(SM.getState('playfulnessLevel'), 9, 'should be able to round up');
   SM.chain('cutenessLevel').floor();
   t.equal(SM.getState('cutenessLevel'), 8, 'should be able to round down');
   SM.chain('name').concat('Yorkie');
