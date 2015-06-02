@@ -88,6 +88,9 @@ BEST.module('super.demo.day:if-repeat', 'HEAD', {
         }
     },
     events: {
+        '$public' : {
+            'block-count': '[[setter|camel]]'
+        },
         '#toggle-button': {
             'click': function($state) {
                 $state.set('showState', !$state.get('showState'));

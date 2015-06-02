@@ -122,11 +122,12 @@ Component.prototype._processDOMMessages = function _processDOMMessages() {
     this.tree.stripExpandedBlueprintMessages();
 };
 
-Component.prototype._runBehaviors = function _runBehaviors(runControlFlow) {
+Component.prototype._runBehaviors = function _runBehaviors(runControlFlow, blackList) {
+    blackList = blackList || [];
+
     if (!runControlFlow) {
         this.blockControlFlow = true;
     }
-
     var behaviorList = this.behaviors.getBehaviorList();
     var stateNames = this.states.getNames();
     var behavior;
@@ -137,7 +138,9 @@ Component.prototype._runBehaviors = function _runBehaviors(runControlFlow) {
         // piece of state or have no params because otherwise
         // undefined values will accidently be introduced into system.
         if (behavior.params.length === 0 || ArrayUtils.shareValue(stateNames, behavior.params)) {
-            BehaviorRouter.route(behaviorList[i], this);
+            if (blackList.indexOf(behavior) === -1) {
+                BehaviorRouter.route(behavior, this);
+            }
         }
     }
     this.blockControlFlow = false;
@@ -221,7 +224,7 @@ Component.prototype.processDynamicRepeat = function processDynamicRepeat(behavio
         behavior, expandedBlueprint, this.uid, this.controlFlowDataMngr
     );
 
-    this._processControlFlowMessages();
+    this._processControlFlowMessages(behavior);
 };
 
 Component.prototype.processDynamicIf = function processDynamicIf(behavior) {
@@ -231,10 +234,10 @@ Component.prototype.processDynamicIf = function processDynamicIf(behavior) {
         behavior, expandedBlueprint, this.uid, this.controlFlowDataMngr
     );
 
-    this._processControlFlowMessages();
+    this._processControlFlowMessages(behavior);
 };
 
-Component.prototype._processControlFlowMessages = function _processControlFlowMessages() {
+Component.prototype._processControlFlowMessages = function _processControlFlowMessages(behavior) {
     var expandedBlueprint = this.tree.getExpandedBlueprint();
     var nodes = VirtualDOM.queryAttribute(expandedBlueprint, CONTROL_FLOW_ACTION_KEY);
     var newComponentCreated = false;
@@ -252,8 +255,9 @@ Component.prototype._processControlFlowMessages = function _processControlFlowMe
     if (newComponentCreated) {
         // Control-flow behaviors should also be run because due to cascading behaviors
         // For example, a dynamic $if could re-introduce a parent element whose children
-        // should be repeated.
-        this._runBehaviors(true);
+        // should be repeated. However, the behavior that triggered the current processing
+        // of control flow messages should not be re-triggered.
+        this._runBehaviors(true, [behavior]);
     }
 };
 
