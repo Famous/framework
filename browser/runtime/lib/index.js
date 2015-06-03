@@ -26,7 +26,7 @@ function register(name, tag, definition) {
     if (!definition) {
         if (!tag) {
             definition = {};
-            tag = returnUnspecifiedTag(name tag);
+            tag = returnUnspecifiedTag(name, tag);
         }
         else {
             if (typeof tag === OBJECT_TYPE) {
