@@ -50,7 +50,7 @@ BEST.scene('jordan.papaleo:hello-famous', {
     })
     .config({
         imports: {
-            'super.demo.day:layouts' : [
+            'famous:demos:layouts' : [
                 'header-footer', 'basic-scroll-view', 'footer-bar',
                 'three-panel-layout', 'template-scroll-layout'
             ]

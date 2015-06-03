@@ -262,6 +262,6 @@ BEST.scene('creative:twitter', {
     ],
     imports: {
         'creative:twitter': ['tweet2'],
-        'super.demo.day:layouts': ['header-footer']
+        'famous:demos:layouts': ['header-footer']
     }
 });
