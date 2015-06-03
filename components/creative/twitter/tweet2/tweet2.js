@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter:tweet2', 'HEAD', {
+BEST.scene('creative:twitter:tweet2', {
     behaviors: {
         '.tweet': {
              'template': (model) => {

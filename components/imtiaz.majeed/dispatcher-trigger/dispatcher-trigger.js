@@ -1,4 +1,4 @@
-BEST.scene('imtiaz.majeed:dispatcher-trigger', 'HEAD', {
+BEST.scene('imtiaz.majeed:dispatcher-trigger', {
     behaviors: {
         '#element': {
             'align': [0.5, 0.5],

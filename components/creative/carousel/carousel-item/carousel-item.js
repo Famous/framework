@@ -1,4 +1,4 @@
-BEST.scene('creative:carousel:carousel-item', 'HEAD', {
+BEST.scene('creative:carousel:carousel-item', {
     behaviors: {},
     events: {},
     states: {},
