@@ -13,8 +13,8 @@ var state = {
 var observerState = {
     args: [],
     hasFired: false,
-    hasFiredMoreThanOnce: false,
-}
+    hasFiredMoreThanOnce: false
+};
 
 // Deep-clone the given object.
 function clone(b) {
@@ -47,5 +47,5 @@ function clone(b) {
 module.exports = {
     state: state,
     clone: clone,
-    observerState: observerState,
+    observerState: observerState
 };

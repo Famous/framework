@@ -14,7 +14,7 @@ var _observerState = fixtures.observerState;
 test('StateManager', function(t) {
 
     t.test('constructor', function(t) {
-        t.equal(typeof StateManager, 'function', 'should be a function')
+        t.equal(typeof StateManager, 'function', 'should be a function');
 
         var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
 
@@ -109,7 +109,7 @@ test('StateManager', function(t) {
             }
             observerState.hasFired = true;
             observerState.args.push(key, value);
-        }
+        };
 
         SM.subscribeTo('number', observerFunc);
         SM.set('number', 0);
@@ -129,7 +129,7 @@ test('StateManager', function(t) {
             }
             observerState.hasFired = true;
             observerState.args.push(key, value);
-        }
+        };
 
         SM.subscribe(globalObserverFunc);
         SM.set('number', 0);
@@ -150,7 +150,7 @@ test('StateManager', function(t) {
             }
             observerState.hasFired = true;
             observerState.args.push(key, value);
-        }
+        };
 
         SM.subscribeOnce(observerFunc);
         SM.set('number', 0);
@@ -172,7 +172,7 @@ test('StateManager', function(t) {
             }
             observerState.hasFired = true;
             observerState.args.push(key, value);
-        }
+        };
 
         SM.subscribeTo('number', observerFunc);
         SM.set('number', 0);
@@ -180,7 +180,7 @@ test('StateManager', function(t) {
 
         SM.unsubscribeFrom('number', observerFunc);
         SM.set('number', 1);
-        t.ok(!observerState.hasFiredMoreThanOnce, 'should not fire observer once unsubscribed')
+        t.ok(!observerState.hasFiredMoreThanOnce, 'should not fire observer once unsubscribed');
 
         t.end();
     });
@@ -195,7 +195,7 @@ test('StateManager', function(t) {
             }
             observerState.hasFired = true;
             observerState.args.push(key, value);
-        }
+        };
 
         SM.subscribe(observerFunc);
         SM.set('number', 0);
@@ -203,7 +203,7 @@ test('StateManager', function(t) {
 
         SM.unsubscribe(observerFunc);
         SM.set('number', 1);
-        t.ok(!observerState.hasFiredMoreThanOnce, 'should not fire observer once unsubscribed')
+        t.ok(!observerState.hasFiredMoreThanOnce, 'should not fire observer once unsubscribed');
 
         t.end();
     });

@@ -22,7 +22,7 @@ function extractModuleConfigASTs(entrypointAST) {
         }
     }.bind(this));
     return moduleConfigASTs;
-};
+}
 
 function isASTNodeALibraryInvocation(node, libNamespace, libWhitelist) {
     if (EsprimaHelpers.isCallExpression(node)) {
@@ -50,7 +50,7 @@ function findLibraryInvocations(entrypointAST) {
         }
     }.bind(this));
     return libraryInvocations;
-};
+}
 
 function extractModuleDefinitionASTs(entrypointAST) {
     var moduleDefinitions = {};

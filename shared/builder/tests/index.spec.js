@@ -18,6 +18,11 @@ Test('builder', function(t) {
     var baseDir = Path.join(__dirname, '..', '..', '..', 'components');
     var subDir = Path.join('famous', 'core', 'components');
     assistant.buildSingle(baseDir, subDir, function(err, result) {
-        t.ok(result);
+        if (err) {
+            console.error(err);
+        }
+        else {
+            t.ok(result);
+        }
     });
 });

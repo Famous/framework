@@ -39,12 +39,12 @@ function eachAssetStringMatchInString(str, iterator) {
     var matches = str.match(this.options.assetRegexp) || [];
     for (var i = 0; i < matches.length; i++) {
         var match = matches[i];
-        var str = match + BLANK;
-        str = str.replace(this.options.assetPrefixRegexp, BLANK)
+        var tmpStr = match + BLANK;
+        tmpStr = tmpStr.replace(this.options.assetPrefixRegexp, BLANK)
                  .replace(this.options.assetSuffixRegexp, BLANK)
                  .replace(this.options.componentDelimiterRegexp, FSLASH)
                  .replace(PIPE, FSLASH);
-        iterator(match, str);
+        iterator(match, tmpStr);
     }
 }
 

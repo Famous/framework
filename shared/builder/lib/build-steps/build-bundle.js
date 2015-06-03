@@ -82,7 +82,9 @@ function buildInlineModuleTupleString(name, version, data) {
         type: 'module',
         name: name,
         version: version,
-        inline: function(){ return data; } // A function here signifies a function to run on the client-side
+        inline: function() { // A function here signifies a function to run on the client-side
+            return data;
+        }
     });
 }
 

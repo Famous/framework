@@ -136,12 +136,10 @@ Timelines.mergeBehaviors = function(definitionBehaviors, timelineBehaviors) {
                 var timelineBehavior = timelineSelector[behavior];
                 var definitionBehavior = definitionSelector[behavior];
 
-                if (definitionBehavior) {
-                    /* decide on injected timelineArgument api */
-                }
-                else {
+                if (!definitionBehavior) {
                     behaviors[selector][behavior] = timelineBehavior;
                 }
+                /* decide on injected timelineArgument api */
             }
         }
     }

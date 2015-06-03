@@ -40,8 +40,8 @@ function buildAssetPath(moduleName, moduleVersion, assetPath, makeRelative) {
 }
 
 function buildAssetURL(moduleName, moduleVersion, assetPath) {
-    var assetPath = buildAssetPath.call(this, moduleName, moduleVersion, assetPath);
-    return this.options.codeManagerHost + assetPath;
+    var assetPathRelative = buildAssetPath.call(this, moduleName, moduleVersion, assetPath);
+    return this.options.codeManagerHost + assetPathRelative;
 }
 
 module.exports = {

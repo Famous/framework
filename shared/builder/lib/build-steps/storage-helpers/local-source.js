@@ -21,6 +21,7 @@ function loadDependenciesFromLocalSourceFolder(baseDir, dependencies, finish) {
                 // If we weren't able to locate a dependency in the
                 // local folder, or if we errored when doing the operation,
                 // assume that we just couldn't discover the file
+                console.error(err);
             }
             var output = {
                 name: depName,
@@ -35,7 +36,7 @@ function loadDependenciesFromLocalSourceFolder(baseDir, dependencies, finish) {
             dependencies[dependencyData.name].data = dependencyData.data;
         }
         finish(null, dependencies);
-    }.bind(this));
+    });
 }
 
 function saveAssets(baseDir, name, files, finish) {
@@ -58,7 +59,7 @@ function saveAssets(baseDir, name, files, finish) {
         Mkdirp(baseDir, function(mkdirErr) {
             Fs.writeFile(fullPath, fileData, this.options.fileOptions, function(fileWriteErr) {
                 cb(null);
-            }.bind(this));
+            });
         }.bind(this));
     }.bind(this), function(versionSaveErr) {
         finish(null, {
@@ -74,8 +75,8 @@ function saveBundle(baseDir, name, content, finish) {
     var bundleAssetPath = this.options.bundleAssetPath;
     var bundleRelPath = PathingHelpers.buildAssetPath.call(this, name, bundleRef, bundleAssetPath, true);
     var bundleAbsPath = Path.join(baseDir, bundleRelPath);
-    var baseDir = Path.dirname(bundleAbsPath);
-    Mkdirp(baseDir, function(mkdirErr) {
+    var baseDirFull = Path.dirname(bundleAbsPath);
+    Mkdirp(baseDirFull, function(mkdirErr) {
         Fs.writeFile(bundleAbsPath, content, this.options.fileOptions, function(fileWriteErr) {
             finish(null, {
                 bundleVersionRef: bundleRef,

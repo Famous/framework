@@ -49,13 +49,13 @@ function eventFnStringTemplate(stateName) {
 
 var FUNCTION_FILTERS = {};
 // Camel-case the given hyphen-separated string
-FUNCTION_FILTERS['camel'] = function(str) {
+FUNCTION_FILTERS.camel = function(str) {
     return str.replace(/-([a-z])/g, function(g) {
         return g[1].toUpperCase();
     });
 };
 // Alias
-FUNCTION_FILTERS['camel-case'] = FUNCTION_FILTERS['camel'];
+FUNCTION_FILTERS['camel-case'] = FUNCTION_FILTERS.camel;
 
 function allEventFunctionFilters(key, filters) {
     for (var i = 0; i < filters.length; i++) {
@@ -138,13 +138,14 @@ function addVersionRefToLibraryInvocation(versionRef, libraryInvocation) {
 }
 
 function expandSyntax(info, cb) {
-    for (var moduleName in info.moduleDefinitionASTs) {
+    var moduleName;
+    for (moduleName in info.moduleDefinitionASTs) {
         var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
         var moduleConfigAST = info.moduleConfigASTs[moduleName];
         interpolateAssetStrings.call(this, moduleName, info.versionRef, moduleDefinitionAST);
         processSyntacticalSugar.call(this, moduleName, moduleDefinitionAST, moduleConfigAST);
     }
-    for (var moduleName in info.libraryInvocations) {
+    for (moduleName in info.libraryInvocations) {
         var libraryInvocation = info.libraryInvocations[moduleName];
         addVersionRefToLibraryInvocation.call(this, info.versionRef, libraryInvocation);
     }

@@ -4,8 +4,14 @@ var StorageHelpers = require('./storage-helpers');
 
 function derefDependencies(info, cb) {
     StorageHelpers.derefDependencies.call(this, info.dependencyTable, function(err, dereffedDeps) {
-        info.dereffedDependencyTable = dereffedDeps;
-        cb(null, info);
+        if (err) {
+            console.error(err);
+            cb(err, info);
+        }
+        else {
+            info.dereffedDependencyTable = dereffedDeps;
+            cb(null, info);
+        }
     });
 }
 

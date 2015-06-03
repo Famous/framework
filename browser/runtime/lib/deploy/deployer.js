@@ -175,7 +175,7 @@ Deployer.prototype.deploy = function(name, tag, selector) {
             }
             else {
                 if (timeSoFar >= awaitMaxTime) {
-                    console.error('Gave up waiting on `' + name + '` (' + tag + ')')
+                    console.error('Gave up waiting on `' + name + '` (' + tag + ')');
                     clearInterval(deployInterval);
                 }
             }
