@@ -1,10 +1,11 @@
 'use strict';
 
-var APIClient = require('./api-client');
 var Chokidar = require('chokidar');
 var Fs = require('fs');
 var Lodash = require('lodash');
 var Path = require('path');
+
+var Builder = require('./../../../shared/builder/lib/builder');
 
 var BLANK = '';
 var DOUBLE_DOT = '..';
@@ -12,14 +13,18 @@ var SLASH = '/';
 
 function Assistant(options) {
     this.setOptions(options);
-    this.apiClient = new APIClient();
+    this.builder = new Builder();
 }
 
 Assistant.DEFAULTS = {
     chokidarIgnored: /[\/\\]\./,
     componentDelimiter: ':',
-    entrypointExtnames: { '.js': true },
-    fileOptions: { encoding: 'utf8' },
+    entrypointExtnames: {
+        '.js': true
+    },
+    fileOptions: {
+        encoding: 'utf8'
+    },
     folderBlacklist: {
         'node_modules': true,
         '.git': true
@@ -30,28 +35,28 @@ Assistant.prototype.setOptions = function(options) {
     this.options = Lodash.defaults(Lodash.clone(Assistant.DEFAULTS), Lodash.clone(options || {}));
 };
 
-Assistant.prototype.persistModule = function(moduleName, files, cb) {
-    this.apiClient.saveModule(moduleName, files, cb);
+Assistant.prototype.buildModule = function(moduleName, files, cb) {
+    this.builder.buildModule(moduleName, files, cb);
 };
 
-Assistant.prototype.syncAll = function(baseDir, subDir, cb) {
-    this.syncRecursive(baseDir, subDir, function(err, result) {
+Assistant.prototype.buildAll = function(baseDir, subDir, cb) {
+    this.buildRecursive(baseDir, subDir, function(err, result) {
         if (err) cb(err);
         else cb(null, result);
     });
 };
 
-Assistant.prototype.syncSingle = function(baseDir, subDir, cb) {
+Assistant.prototype.buildSingle = function(baseDir, subDir, cb) {
     var moduleName = subDir.split(SLASH).join(this.options.componentDelimiter);
     var files = [];
     this.pushFilesToArray(files, baseDir, subDir, BLANK);
-    this.persistModule(moduleName, files, function(err, result) {
+    this.buildModule(moduleName, files, function(err, result) {
         if (err) cb(err);
         else cb(null, result);
     });
 };
 
-Assistant.prototype.syncRecursive = function(baseDir, subDir, cb) {
+Assistant.prototype.buildRecursive = function(baseDir, subDir, cb) {
     var mainPath = Path.join(baseDir, subDir);
     var entries = Fs.readdirSync(mainPath);
     entries.forEach(function(entryPath) {
@@ -60,9 +65,9 @@ Assistant.prototype.syncRecursive = function(baseDir, subDir, cb) {
         if (entryStat.isDirectory()) {
             var partialPath = Path.join(subDir, entryPath);
             if (this.isModuleDir(fullEntryPath)) {
-                this.syncSingle(baseDir, partialPath, cb);
+                this.buildSingle(baseDir, partialPath, cb);
             }
-            this.syncRecursive(baseDir, partialPath, cb);
+            this.buildRecursive(baseDir, partialPath, cb);
         }
     }.bind(this));
 };
@@ -90,8 +95,7 @@ Assistant.prototype.pushFilesToArray = function(files, baseDir, subDir, prefix) 
             var finalPath = Path.join(prefix, entryPath);
             if (!entryStat.isDirectory()) {
                 var entryContent = Fs.readFileSync(entryFullPath);
-                var encodedContent = new Buffer(entryContent).toString('base64');
-                files.push({ path: finalPath, content: encodedContent });
+                files.push({ path: finalPath, content: entryContent });
             }
             else {
                 this.pushFilesToArray(files, baseDir, entryPartialPath, finalPath);
@@ -151,7 +155,7 @@ Assistant.prototype.watchDirectory = function(baseDir, subDir) {
         var moduleFullDir = this.getModuleDir(baseDir, fileChangedDir);
         if (moduleFullDir) {
             var moduleRelativeDir = moduleFullDir.replace(baseDir, BLANK).replace(/^\//, '');
-            this.syncSingle(baseDir, moduleRelativeDir, function(err, result) {
+            this.buildSingle(baseDir, moduleRelativeDir, function(err, result) {
                 if (err) console.error('best-assistant:', err);
                 console.log('best-assistant:', result.body);
             });

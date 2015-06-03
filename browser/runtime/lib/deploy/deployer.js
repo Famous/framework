@@ -14,20 +14,10 @@ function Deployer() {
     this.assetsLoaded = {};
 }
 
-// We assume developers use Browserify to build the runtime
-var ECOSYSTEM_BASE_URI = process.env.ECOSYSTEM_BASE_URI;
-if (!ECOSYSTEM_BASE_URI) {
-    throw new Error('best-runtime: `ECOSYSTEM_BASE_URI` must be specified!');
-}
-
 Deployer.DEFAULTS = {
     awaitInterval: 10,
     awaitMaxTime: 1000,
     componentDelimiter: ':',
-    defaultModuleTag: 'HEAD',
-    bucket: 'best-ecosystem',
-    bundlesFolder: '~bundles',
-    versionsFolder: '~versions',
     bundleFilename: 'bundle.js'
 };
 
