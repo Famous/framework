@@ -6,20 +6,20 @@ BEST.scene('super.demo.day:hello-famous', 'HEAD', {
      *      style and other Famous properties.
      */
     behaviors: {
-        '#background': {
-            'style': {
-                'background': 'linear-gradient(to right, #00B9D7, #9783F2)'
-            }
-        },
         '#text': {
-            'size': [400, 80],
+            'size': [400, 400, 400],
             'align': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
-            'style': {
-                'color': 'white',
-                'font-family': 'Lato',
-                'font-size': '60px',
-                'text-align': 'center'
+            'base-color': 'red',
+            'geometry': {
+                shape: 'Sphere',
+                options: {
+                    detail: 100
+                }
+            },
+            content: 'ZZZZZ',
+            style: {
+                background: 'yellow'
             }
         }
     },
