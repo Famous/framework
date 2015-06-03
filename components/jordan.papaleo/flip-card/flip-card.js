@@ -33,8 +33,8 @@ BEST.scene('jordan.papaleo:flip-card', {
     events: {
         //Publicly accessible params
         '$public': {
-            'position': 'setter',
-            'model': 'setter'
+            'position': '[[setter]]',
+            'model': '[[setter]]'
         },
         '.flip-card': {
             'loaded': (payload) => {
