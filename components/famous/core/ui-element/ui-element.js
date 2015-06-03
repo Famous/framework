@@ -173,25 +173,25 @@ BEST.module('famous:core:ui-element', {
                 $state.set('content', templatedContent);
             },
             'remove-class': function($DOMElement, $payload) { $DOMElement.removeClass($payload); },
-            'assign-geometry': function($Mesh, $payload, $state) {
-                $Mesh.setGeometry(new Famous.webglGeometries[$payload.shape]($payload.options));
+            'assign-geometry': function($mesh, $payload, $state) {
+                $mesh.setGeometry(new Famous.webglGeometries[$payload.shape]($payload.options));
                 $state.set('hasGeometry', true);
             },
-            'assign-base-color': function($Mesh, $payload, $state) {
-                $Mesh.setBaseColor(new Famous.utilities.Color($payload));
+            'assign-base-color': function($mesh, $payload, $state) {
+                $mesh.setBaseColor(new Famous.utilities.Color($payload));
                 if (!$state.get('hasGeometry')) {
-                    $Mesh.setGeometry(new Famous.webglGeometries.Plane());
+                    $mesh.setGeometry(new Famous.webglGeometries.Plane());
                     $state.set('hasGeometry', true);
                 }
             },
-            'assign-normals': function($Mesh, $payload) {
-                $Mesh.setNormals($payload);
+            'assign-normals': function($mesh, $payload) {
+                $mesh.setNormals($payload);
             },
-            'assign-position-offsets': function($Mesh, $payload) {
-                $Mesh.setPositonOffsets($payload);
+            'assign-position-offsets': function($mesh, $payload) {
+                $mesh.setPositonOffsets($payload);
             },
-            'assign-glossiness': function($Mesh, $payload) {
-                $Mesh.setGlossiness($payload.glossiness, $payload.strength);
+            'assign-glossiness': function($mesh, $payload) {
+                $mesh.setGlossiness($payload.glossiness, $payload.strength);
             }
         }
     },
