@@ -6,7 +6,7 @@ BEST.scene('creative:twitter', {
         },
         '#hf': {
             'header-height' : '[[identity|headerHeight]]',
-            'footer-height' : '[[identity|footerHeight]]',
+            'footer-height' : '[[identity|footerHeight]]'
 
         },
         '.header-background': {
@@ -65,12 +65,15 @@ BEST.scene('creative:twitter', {
                 }
             }
         },
-        '.body': {
-            style: () => {
-                return {
-                    'font-family': 'Helvetica, Arial, \'Lucida Grande\', sans-serif',
-                    'border-bottom': '1px solid rgb(229, 235, 239)',
-                }
+        '.body-background': {
+            style: {
+                'border-bottom': '1px solid rgb(229, 235, 239)',
+                'background-color': 'white'
+            }
+        },
+        '.footer-background': {
+            style: {
+                'background-color': 'white'
             }
         },
         '.footer': {
@@ -78,7 +81,8 @@ BEST.scene('creative:twitter', {
             'size-proportional-x': 1,
             style: () => {
                 return {
-                    'font-family': 'Helvetica, Arial, \'Lucida Grande\', sans-serif'
+                    'font-family': 'Helvetica, Arial, \'Lucida Grande\', sans-serif',
+                    'background-color': 'white'
                 };
             }
         },
@@ -100,7 +104,6 @@ BEST.scene('creative:twitter', {
         '.link-home': {
             'align': [0, 0],
             'content': (homeIcon) => {
-                console.log('homeIcon',homeIcon);
                 return '<a><img width="25px" src="@{CDN_PATH}' + homeIcon + '"><br>Home</a>';
             },
             'style': {
@@ -124,53 +127,121 @@ BEST.scene('creative:twitter', {
             'content': (profileIcon) => {
                 return '<a><img width="25px" src="@{CDN_PATH}' + profileIcon + '"><br>Me</a>';
             }
+        },
+        '.home-view': {
+            '$if': (currentView) => {
+                return (currentView === 'home');
+            },
+            '$repeat': () => {
+                console.log('repeat');
+                const testData = [
+                    {
+                        imageURL: "./images/users/1.png",
+                        displayName: "Opbeat",
+                        userName: "@opbeat",
+                        tweetContent: "Slack + Opbeat = ❤️ - Native @SlackHQ integration is here! <span class='tweet-link'>https://opbeat.com/blog/posts/better-slacking-with-opbeat/ ... </span>",
+                        tweetImage: "./images/tweets/1.png",
+                        tweetAge: "19h",
+                        retweets: 14,
+                        favorites: 24
+                    },
+                    {
+                        imageURL: "./images//users/2.png",
+                        displayName: "The Next Web",
+                        userName: "@TheNextWeb",
+                        tweetContent: "Facebook threatens Europe with crappy features if regulators don't back off <span class='tweet-link'>http://tnw.co/1Kt1lVS</span>",
+                        tweetImage: "./images/tweets/2.png",
+                        tweetAge: "7m",
+                        retweets: 432,
+                        favorites: 1
+                    }
+                ];
+
+                let tweets = [];
+
+                for(var i = 0, j = testData.length; i < j; i++) {
+                    tweets.push({
+                       index: i,
+                       position: [],
+                       model: testData[i]
+                    });
+                }
+                console.log(tweets);
+                return tweets;
+            }
+        },
+        '.notifications-view': {
+            '$if': (currentView) => {
+                return (currentView === 'notifications');
+            }
+        },
+        '.messages-view': {
+            '$if': (currentView) => {
+                return (currentView === 'messages');
+            }
+        },
+        '.profile-view': {
+            '$if': (currentView) => {
+                return (currentView === 'profile');
+            }
+        },
+        '$self': {
+            'currentView': '[[identity|currentView]]'
         }
     },
     events: {
+        '$public' : {
+            'messageMe' : function($payload, $state) {
+                //console.log($payload);
+                $state.set('somechangedState', $payload)
+            }
+        },
+        '$private': {
+            'currentView': function($state, $payload) {
+                console.log('HERE: ',$payload);
+
+                //Reset icon states
+                $state.set('homeIcon', 'assets/images/home.png');
+                $state.set('notificationsIcon', 'assets/images/notifications.png');
+                $state.set('messagesIcon', 'assets/images/messages.png');
+                $state.set('profileIcon', 'assets/images/profile.png');
+
+                // Set new active icon state
+                $state.set($payload + 'Icon', 'assets/images/' + $payload + '-active.png');
+            }
+        },
         '.link-home': {
-            'click': () => {
-                console.log('home clicked');
-            },
-            'mouseover': ($state) => {
-                $state.set('homeIcon', 'assets/images/home-active.png')
-            },
-            'mouseout': ($state) => {
-                $state.set('homeIcon', 'assets/images/home.png')
+            'click': ($state) => {
+                console.log('home');
+                $state.set('currentView', 'home');
             }
         },
         '.link-notifications': {
-            'click': () => {
-                console.log('notifications clicked');
-            },
-            'mouseover': ($state) => {
-                $state.set('notificationsIcon', 'assets/images/notifications-active.png')
-            },
-            'mouseout': ($state) => {
-                $state.set('notificationsIcon', 'assets/images/notifications.png')
+            'click': ($state) => {
+                console.log('link');
+                $state.set('currentView', 'notifications');
             }
         },
         '.link-message': {
-            'click': () => {
-                console.log('message clicked');
-            },
-            'mouseover': ($state) => {
-                $state.set('messagesIcon', 'assets/images/messages-active.png')
-            },
-            'mouseout': ($state) => {
-                $state.set('messagesIcon', 'assets/images/messages.png')
+            'click': ($state) => {
+                console.log('msg');
+                $state.set('currentView', 'messages');
             }
         },
         '.link-profile': {
-            'click': () => {
-                console.log('profile clicked');
-            },
-            'mouseover': ($state) => {
-                $state.set('profileIcon', 'assets/images/profile-active.png')
-            },
-            'mouseout': ($state) => {
-                $state.set('profileIcon', 'assets/images/profile.png')
+            'click': ($state) => {
+                console.log('prof');
+                $state.set('currentView', 'profile');
             }
         }
+        //    <!--<my:api:adapter id="adapter"></my:api:adapter>-->
+
+        //"#adapter":{
+        //  "on-tweets-loaded": function($state, $payload){
+        //      //$payload contains tweets
+        //      $state.set('tweets', $payload.tweets)
+        //  }
+        //},
     },
     states: {
         headerHeight: 58,
@@ -180,12 +251,17 @@ BEST.scene('creative:twitter', {
         homeIcon: 'assets/images/home.png',
         notificationsIcon: 'assets/images/notifications.png',
         messagesIcon: 'assets/images/messages.png',
-        profileIcon: 'assets/images/profile.png'
+        profileIcon: 'assets/images/profile.png',
+        currentView: 'home'
+        //tweets: Tweets
     },
     tree: 'twitter.html'
 }).config({
+    includes: [
+        //'data/twitter-data.js'
+    ],
     imports: {
-        //'creative:twitter': ['tweets'],
+        'creative:twitter': ['tweet2'],
         'super.demo.day:layouts': ['header-footer']
     }
 });

@@ -1,5 +1,7 @@
 'use strict';
 
+var getComponent = require('../utilities/utilities').getComponent;
+
 function Dispatcher(domNode) {
     this.domNode = domNode;
 }
@@ -37,22 +39,10 @@ Dispatcher.prototype.emit = function(key, message) {
     }
 };
 
-Dispatcher.willEventsTrickle = (function() {
-    var willTrickle = false;
-    var doc = window.document;
-    if (doc) {
-        var parent = doc.createElement('div');
-        var child = parent.cloneNode();
-        parent.appendChild(child);
-        child.addEventListener('e', function() {
-            willTrickle = true;
-        });
-
-        parent.dispatchEvent(new CustomEvent('e', { trickles: true }));
-    }
-    return willTrickle;
-})();
-
+Dispatcher.prototype.trigger = function(key, message) {
+    var component = getComponent(this.domNode);
+    component.sendMessage(key, message);
+}
 
 Dispatcher.prototype.broadcast = function(key, message) {
     var element =  this.domNode;
@@ -60,20 +50,15 @@ Dispatcher.prototype.broadcast = function(key, message) {
         detail: message,
         trickles: true
     });
-    if (Dispatcher.willEventsTrickle) {
-        element.dispatchEvent(event);
-    }
-    else {
-        var broadcastToChildNodes = function(node) {
-            for (var i = 0; i < node.childNodes.length; i++) {
-                var child = node.childNodes[i];
-                child.dispatchEvent(event);
-                broadcastToChildNodes(child);
-            }
-        };
+    var broadcastToChildNodes = function(node) {
+        for (var i = 0; i < node.childNodes.length; i++) {
+            var child = node.childNodes[i];
+            child.dispatchEvent(event);
+            broadcastToChildNodes(child);
+        }
+    };
 
-        broadcastToChildNodes(element);
-    }
+    broadcastToChildNodes(element);
 };
 
 Dispatcher.prototype.on = function(key, cb) {

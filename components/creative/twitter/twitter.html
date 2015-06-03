@@ -6,12 +6,19 @@
             <ui-element class="content-center"></ui-element>
             <ui-element class="content-right"></ui-element>
         </view>
+
         <view id="body">
-            <ui-element class="body">
-                <div>TWEETS GO HERE</div>
-            </ui-element>
+            <dom-element class="body-background"></dom-element>
+            <tweet2 class="home-view"></tweet2>
+
+            <ui-element class="notifications-view"><div>Notifications</div></ui-element>
+            <ui-element class="messages-view"><div>Messages</div></ui-element>
+            <ui-element class="profile-view"><div>Profile</div></ui-element>
         </view>
+
         <view id="footer">
+            <dom-element class="footer-background"></dom-element>
+
             <ui-element class="footer-link link-home"></ui-element>
             <ui-element class="footer-link link-notifications"></ui-element>
             <ui-element class="footer-link link-message"></ui-element>

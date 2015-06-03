@@ -1,66 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>best-workspace</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-        <link href='assets/reset.min.css' rel='stylesheet' type='text/css'>
-        <link href='assets/search.css' rel='stylesheet' type='text/css'>
-        <script>document.write('<script src="http://'+(location.host||'localhost').split(':')[0]+':35729/livereload.js?snipver=1"></'+'script>');</script>
-        <style type="text/css">
-            /* container specific rules */
-            html,body {
-                background: #444444;
-            }
-            #best-stage {
-                height: 100%;
-                position: relative;
-                -webkit-transition: opacity ease-in 0.3s;
-                transition: opacity ease-in 0.3s;
-                width: 100%;
-                z-index: 1;
-            }
-            [unresolved] {
-                opacity: 0;
-                display: block;
-                overflow: hidden;
-            }
-        </style>
-    </head>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>best-workspace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <link href='assets/reset.min.css' rel='stylesheet' type='text/css'>
+    <link href='assets/search.css' rel='stylesheet' type='text/css'>
+    <script>document.write('<script src="http://'+(location.host||'localhost').split(':')[0]+':35729/livereload.js?snipver=1"></'+'script>');</script>
+    <style type="text/css">
+        /* container specific rules */
+        html,body {
+            background: #444444;
+        }
+        #best-stage {
+            height: 100%;
+            position: relative;
+            -webkit-transition: opacity ease-in 0.3s;
+            transition: opacity ease-in 0.3s;
+            width: 100%;
+            z-index: 1;
+        }
 
-    <body>
+        #best-components-search {
+            /*display: none;*/
+        }
+        [unresolved] {
+            opacity: 0;
+            display: block;
+            overflow: hidden;
+        }
+    </style>
+</head>
 
-        <div id="best-components-search">
-            <button class="best-components-search-btn"></button>
-            <button class="best-components-search-dropdown"></button>
-            <form>
-                <input type="text" name="best" placeholder="hello-famous">
-                <ul>
-                    <li>animation-timeline</li>
-                    <li>attach-webgl</li>
-                    <li>click-event</li>
-                    <li>clickable-square</li>
-                    <li>hello-famous</li>
-                    <li>lifecycle</li>
-                    <li>repeat</li>
-                    <li>templating</li>
-                </ul>
-            </form>
-        </div>
+<body>
+<div id="best-components-search">
+    <button class="best-components-search-btn"></button>
+    <button class="best-components-search-dropdown"></button>
+    <form>
+        <input type="text" name="best" placeholder="hello-famous">
+        <ul>
+            <li>animation-timeline</li>
+            <li>attach-webgl</li>
+            <li>click-event</li>
+            <li>clickable-square</li>
+            <li>hello-famous</li>
+            <li>lifecycle</li>
+            <li>repeat</li>
+            <li>templating</li>
+        </ul>
+    </form>
+</div>
 
-        <div id="best-stage" unresolved></div>
+<div id="best-stage" unresolved></div>
 
-        <script type="text/javascript" src="best.bundle.js"></script>
-        <script type="text/javascript" src="assets/query-string.js"></script>
-        <script type="text/javascript" src="assets/search.js"></script>
-
-    </body>
-
-
-
-
-
-
+<script type="text/javascript" src="best.bundle.js"></script>
+<script type="text/javascript" src="assets/query-string.js"></script>
+<script type="text/javascript" src="assets/search.js"></script>
+</body>
 </html>
