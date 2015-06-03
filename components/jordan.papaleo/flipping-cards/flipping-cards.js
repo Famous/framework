@@ -78,7 +78,6 @@ BEST.scene('jordan.papaleo:flipping-cards', 'HEAD', {
     events: {
         '$lifecycle': {
             'post-load': ($dispatcher) => {
-                debugger;
                 $dispatcher.emit('loaded', true);
             }
         }
