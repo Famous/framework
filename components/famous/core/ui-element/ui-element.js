@@ -2,6 +2,7 @@ BEST.module('famous:core:ui-element', 'HEAD', {
     behaviors: {
         '$self' : {
             '$yield': true,
+            'add-class': '[[identity|addClass]]',
             'assign-id': '[[identity|id]]',
             'assign-content': '[[identity|content]]',
             'assign-style': '[[identity|style]]',
@@ -44,32 +45,50 @@ BEST.module('famous:core:ui-element', 'HEAD', {
             'famous:core:components:size-differential': '[[identity|sizeDifferential]]',
             'famous:core:components:size-differential-x': '[[identity|sizeDifferentialX]]',
             'famous:core:components:size-differential-y': '[[identity|sizeDifferentialY]]',
-            'famous:core:components:size-differential-z': '[[identity|sizeDifferentialZ]]'
+            'famous:core:components:size-differential-z': '[[identity|sizeDifferentialZ]]',
+            'remove-class' : '[[identity|removeClass]]'
         }
     },
     events: {
         '$public': {
-            // events from view
+            'add-class': '[[setter|camel]]',
             'align': '[[setter]]',
             'align-x': '[[setter|camel]]',
             'align-y': '[[setter|camel]]',
             'align-z': '[[setter|camel]]',
+            'attributes': '[[setter]]',
+            'backface-visible': function($state, $payload) {
+                var style = $state.get('style') || {};
+                style['-webkit-backface-visibility'] = ($payload) ? 'visible' : 'hidden';
+                style['backface-visibility'] = ($payload) ? 'visible' : 'hidden';
+                $state.set('style', style);
+            },
             'border' : function($DOMElement, $payload) { $DOMElement.setProperty('border', $payload); },
+            'box-shadow': function($state, $payload) {
+                var style = $state.get('style') || {};
+                style['-webkit-box-shadow'] = $payload;
+                style['-moz-box-shadow'] = $payload;
+                style['box-shadow'] = $payload;
+                $state.set('style', style);
+            },
+            'content': '[[setter]]',
+            'id': '[[setter]]',
             'mount-point': '[[setter|camel]]',
             'mount-point-x': '[[setter|camel]]',
             'mount-point-y': '[[setter|camel]]',
             'mount-point-z': '[[setter|camel]]',
+            'offset-position' : '[[setter|camel]]',
             'opacity': '[[setter]]',
             'origin': '[[setter]]',
             'origin-x': '[[setter|camel]]',
             'origin-y': '[[setter|camel]]',
             'origin-z': '[[setter|camel]]',
+            'overflow' : function($DOMElement, $payload) { $DOMElement.setProperty('overflow', $payload); },
             'position': '[[setter]]',
             'position-x': '[[setter|camel]]',
             'position-y': '[[setter|camel]]',
             'position-z': '[[setter|camel]]',
-            'offset-position' : '[[setter|camel]]',
-            'overflow' : function($DOMElement, $payload) { $DOMElement.setProperty('overflow', $payload); },
+            'remove-class' : '[[setter|camel]]',
             'rotation': '[[setter]]',
             'rotation-x': '[[setter|camel]]',
             'rotation-y': '[[setter|camel]]',
@@ -83,32 +102,14 @@ BEST.module('famous:core:ui-element', 'HEAD', {
             'size-absolute-x': '[[setter|camel]]',
             'size-absolute-y': '[[setter|camel]]',
             'size-absolute-z': '[[setter|camel]]',
-            'size-proportional': '[[setter|camel]]',
-            'size-proportional-x': '[[setter|camel]]',
-            'size-proportional-y': '[[setter|camel]]',
-            'size-proportional-z': '[[setter|camel]]',
             'size-differential': '[[setter|camel]]',
             'size-differential-x': '[[setter|camel]]',
             'size-differential-y': '[[setter|camel]]',
             'size-differential-z': '[[setter|camel]]',
-
-            // events from dom-element
-            'attributes': '[[setter]]',
-            'backface-visible': function($state, $payload) {
-                var style = $state.get('style') || {};
-                style['-webkit-backface-visibility'] = ($payload) ? 'visible' : 'hidden';
-                style['backface-visibility'] = ($payload) ? 'visible' : 'hidden';
-                $state.set('style', style);
-            },
-            'box-shadow': function($state, $payload) {
-                var style = $state.get('style') || {};
-                style['-webkit-box-shadow'] = $payload;
-                style['-moz-box-shadow'] = $payload;
-                style['box-shadow'] = $payload;
-                $state.set('style', style);
-            },
-            'content': '[[setter]]',
-            'id': '[[setter]]',
+            'size-proportional': '[[setter|camel]]',
+            'size-proportional-x': '[[setter|camel]]',
+            'size-proportional-y': '[[setter|camel]]',
+            'size-proportional-z': '[[setter|camel]]',
             'style': '[[setter]]',
             'template': function($state, $payload) { $state.set('locals', $payload); },
             'unselectable': function($state, $payload) {
@@ -133,6 +134,7 @@ BEST.module('famous:core:ui-element', 'HEAD', {
             }
         },
         '$private' : {
+            'add-class': function($DOMElement, $payload) { $DOMElement.addClass($payload); },
             'assign-id': function($DOMElement, $payload) { $DOMElement.setId($payload); },
             'assign-content': function($DOMElement, $payload) {
                 $DOMElement.setContent($payload);
@@ -158,7 +160,8 @@ BEST.module('famous:core:ui-element', 'HEAD', {
                 }
                 var templatedContent = $mustache(initialContent+'', $payload);
                 $state.set('content', templatedContent);
-            }
+            },
+            'remove-class': function($DOMElement, $payload) { $DOMElement.removeClass($payload); },
         }
     },
     states: {
