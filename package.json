@@ -21,8 +21,8 @@
     "Jordan Papaleo <jordan@famo.us>"
   ],
   "scripts": {
-    "watch-components": "FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER=$PWD/shared/builder/public local/assistant/bin/index.js watch --baseDir=$PWD/components/",
-    "build-components": "FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER=$PWD/shared/builder/public local/assistant/bin/index.js build-all --baseDir=$PWD/components/",
+    "watch-components": "CODE_MANAGER_HOST=http://localhost:3000 FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER=$PWD/shared/builder/public local/assistant/bin/index.js watch --baseDir=$PWD/components/",
+    "build-components": "CODE_MANAGER_HOST=http://localhost:3000 FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER=$PWD/shared/builder/public local/assistant/bin/index.js build-all --baseDir=$PWD/components/",
     "serve-components": "serve shared/builder/public -p 3000",
     "watch-runtime": "watchify browser/runtime/lib/index.js --standalone BEST -t [ envify --CODE_MANAGER_HOST http://localhost:3000 ] -o local/workspace/build/best.bundle.js --debug --verbose",
     "serve-build": "serve local/workspace/build -p 1337",
