@@ -42,7 +42,7 @@ Dispatcher.prototype.emit = function(key, message) {
 Dispatcher.prototype.trigger = function(key, message) {
     var component = getComponent(this.domNode);
     component.sendMessage(key, message);
-}
+};
 
 Dispatcher.prototype.broadcast = function(key, message) {
     var element =  this.domNode;
