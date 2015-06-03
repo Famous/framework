@@ -95,6 +95,13 @@ function buildMissingModuleTupleString(name, version) {
     });
 }
 
+function buildIncludeTupleString(includeName) {
+    return objectTemplate({
+        type: 'include',
+        path: includeName
+    });
+}
+
 function buildImportTuplesStatement(dependencyTable, dependencies, moduleConfigs) {
     var importTupleStrings = [];
     for (var depName in dependencyTable) {
@@ -108,6 +115,15 @@ function buildImportTuplesStatement(dependencyTable, dependencies, moduleConfigs
             }
             else {
                 importTupleStrings.push(buildMissingModuleTupleString(depName, depVersion));
+            }
+        }
+    }
+    for (var i = 0; i < moduleConfigs.length; i++) {
+        var moduleConfig = moduleConfigs[i];
+        if (moduleConfig.includes) {
+            for (var j = 0; j < moduleConfig.includes.length; j++) {
+                var includeName = moduleConfig.includes[j];
+                importTupleStrings.push(buildIncludeTupleString(includeName));
             }
         }
     }
