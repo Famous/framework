@@ -97,4 +97,6 @@ test('----- Dispatcher', function(t) {
 
         parentDispatcher.broadcast(EVENT_NAME, EVENT_PAYLOAD);
     });
+
+    // TODO: add trigger tests
 });
