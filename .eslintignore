@@ -6,3 +6,5 @@ server/ecosystem/public/*
 components/*
 **/test/*
 local/workspace/build/best.bundle.js
+shared/builder/public/*
+shared/builder/lib/build-steps/esprima-helpers/tests/fixtures
