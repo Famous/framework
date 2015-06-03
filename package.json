@@ -23,14 +23,15 @@
   "scripts": {
     "watch-components": "FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER=$PWD/shared/builder/public local/assistant/bin/index.js watch --baseDir=$PWD/components/",
     "build-components": "FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER=$PWD/shared/builder/public local/assistant/bin/index.js build-all --baseDir=$PWD/components/",
-    "watch-runtime": "watchify browser/runtime/lib/index.js --standalone BEST -t [ envify ] -o local/workspace/build/best.bundle.js --debug --verbose",
+    "serve-components": "serve shared/builder/public -p 3000",
+    "watch-runtime": "watchify browser/runtime/lib/index.js --standalone BEST -t [ envify --CODE_MANAGER_HOST http://localhost:3000 ] -o local/workspace/build/best.bundle.js --debug --verbose",
     "serve-build": "serve local/workspace/build -p 1337",
-    "develop": "node local/workspace/livereload.js & npm run watch-components & npm run watch-runtime & npm run serve-build",
+    "develop": "npm run build-components && (node local/workspace/livereload.js & npm run serve-components & npm run watch-components & npm run watch-runtime & npm run serve-build)",
     "test-runtime": "browserify browser/runtime/tests/**/*.spec.js -t [ envify ] -d | tap-closer | smokestack | tap-spec",
     "test-state-manager": "browserify browser/state-manager/tests/*.spec.js | tap-closer | smokestack | tap-spec",
     "test-utilities": "browserify browser/utilities/tests/*.spec.js | tap-closer | smokestack | tap-spec",
     "test-builder": "tape shared/builder/tests/*.spec.js",
-    "test-es": "tape server/ecosystem/lib/es/test/*.spec.js | tap-spec",
+    "test-esprima-helpers": "tape shared/builder/lib/build-steps/esprima-helpers/tests/*.spec.js",
     "lint": "eslint --ignore-path .eslintignore ."
   },
   "dependencies": {
