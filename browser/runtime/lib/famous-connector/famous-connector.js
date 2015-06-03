@@ -8,7 +8,8 @@ FamousEngine.init();
 var COMPONENT_PREFIX = '__best-';
 
 var RENDERING_COMPONENTS = {
-    'DOMElement': require('famous/dom-renderables/DOMElement')
+    'DOMElement': require('famous/dom-renderables/DOMElement'),
+    'Mesh': require('famous/webgl-renderables/Mesh')
 };
 
 function addChild(famousNode) {

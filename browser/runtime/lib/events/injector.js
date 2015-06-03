@@ -12,6 +12,7 @@ var FAMOUS_NODE_KEY = '$famousNode';
 var BEST_DOM_NODE_KEY = '$domNode';
 var DISPATCHER_KEY = '$dispatcher';
 var DOM_ELEMENT_KEY = '$DOMElement';
+var MESH_KEY = '$Mesh';
 var MUSTACHE_KEY = '$mustache';
 var INDEX_KEY = '$index';
 var REPEAT_PAYLOAD_KEY = '$repeatPayload';
@@ -32,6 +33,7 @@ function getArgs(paramNames, payload, uid) {
             case INDEX_KEY: args.push(component.states.get(INDEX_KEY)); break;
             case REPEAT_PAYLOAD_KEY: args.push(component.states.get(REPEAT_PAYLOAD_KEY)); break;
             case DOM_ELEMENT_KEY: args.push(FamousConnector.decorateComponent(component, 'DOMElement')); break;
+            case MESH_KEY: args.push(FamousConnector.decorateComponent(component, 'Mesh')); break;
             default:
                 throw new Error('No such object `' + paramNames[i] + '`');
         }
