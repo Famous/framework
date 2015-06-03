@@ -6,6 +6,12 @@ BEST.module('famous:core:ui-element', {
             'assign-id': '[[identity|id]]',
             'assign-content': '[[identity|content]]',
             'assign-style': '[[identity|style]]',
+            'assign-geometry': '[[identity|geometry]]',
+            'assign-material': '[[identity|material]]',
+            'assign-base-color': '[[identity|baseColor]]',
+            'assign-normals': '[[identity|normals]]',
+            'assign-position-offsets': '[[identity|positionOffsets]]',
+            'assign-glossiness': '[[identity|glossiness]]',
             'assign-attributes': '[[identity|attributes]]',
             'assign-locals': '[[identity|locals]]',
             'famous:core:components:align': '[[identity|align]]',
@@ -57,6 +63,11 @@ BEST.module('famous:core:ui-element', {
             'align-y': '[[setter|camel]]',
             'align-z': '[[setter|camel]]',
             'attributes': '[[setter]]',
+            'base-color': '[[setter|camel]]',
+            'normals': '[[setter]]',
+            'position-offsets': '[[setter|camel]]',
+            'glossiness': '[[setter]]',
+            'geometry': '[[setter]]',
             'backface-visible': function($state, $payload) {
                 var style = $state.get('style') || {};
                 style['-webkit-backface-visibility'] = ($payload) ? 'visible' : 'hidden';
@@ -162,11 +173,32 @@ BEST.module('famous:core:ui-element', {
                 $state.set('content', templatedContent);
             },
             'remove-class': function($DOMElement, $payload) { $DOMElement.removeClass($payload); },
+            'assign-geometry': function($Mesh, $payload, $state) {
+                $Mesh.setGeometry(new Famous.webglGeometries[$payload.shape]($payload.options));
+                $state.set('hasGeometry', true);
+            },
+            'assign-base-color': function($Mesh, $payload, $state) {
+                $Mesh.setBaseColor(new Famous.utilities.Color($payload));
+                if (!$state.get('hasGeometry')) {
+                    $Mesh.setGeometry(new Famous.webglGeometries.Plane());
+                    $state.set('hasGeometry', true);
+                }
+            },
+            'assign-normals': function($Mesh, $payload) {
+                $Mesh.setNormals($payload);
+            },
+            'assign-position-offsets': function($Mesh, $payload) {
+                $Mesh.setPositonOffsets($payload);
+            },
+            'assign-glossiness': function($Mesh, $payload) {
+                $Mesh.setGlossiness($payload.glossiness, $payload.strength);
+            }
         }
     },
     states: {
         'locals': {},
         'didTemplate': false,
-        'initialContent': ''
+        'initialContent': '',
+        'hasGeometry': false
     }
 });
