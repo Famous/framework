@@ -201,13 +201,13 @@ BEST.scene('creative:twitter', 'HEAD', {
                 console.log('HERE: ',$payload);
 
                 //Reset icon states
-                /*$state.set('homeIcon', 'assets/images/home.png');
+                $state.set('homeIcon', 'assets/images/home.png');
                 $state.set('notificationsIcon', 'assets/images/notifications.png');
                 $state.set('messagesIcon', 'assets/images/messages.png');
                 $state.set('profileIcon', 'assets/images/profile.png');
-*/
+
                 // Set new active icon state
-                //$state.set($payload + 'Icon', 'assets/images/' + $payload + '-active.png');
+                $state.set($payload + 'Icon', 'assets/images/' + $payload + '-active.png');
             }
         },
         '.link-home': {
