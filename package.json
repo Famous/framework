@@ -81,7 +81,6 @@
     "tap-closer": "^1.0.0",
     "tap-spec": "^3.0.0",
     "tape": "^4.0.0",
-    "testling": "^1.7.1",
     "uglify-js": "^2.4.16",
     "watchify": "^3.2.1"
   }
