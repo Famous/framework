@@ -123,7 +123,7 @@ function buildImportTuplesStatement(dependencyTable, dependencies, moduleConfigs
         if (moduleConfig.includes) {
             for (var j = 0; j < moduleConfig.includes.length; j++) {
                 var includeName = moduleConfig.includes[j];
-                importTupleStrings.push(buildIncludeTupleString(includeName));
+                importTupleStrings.unshift(buildIncludeTupleString(includeName));
             }
         }
     }

@@ -79,7 +79,7 @@ Deployer.prototype.insertAsset = function(url, cb) {
             }.bind(this));
             break;
         default:
-            console.warn('Unexpected asset type `' + format + '` @ ' + url);
+            console.warn('Unexpected include type `' + format + '` @ ' + url);
             this.assetsLoaded[url] = true;
             cb();
             break;
@@ -191,6 +191,8 @@ Deployer.prototype.postRequireHook = function(name, tag, finish) {
 // have been loaded onto the page. 'Requires' is a list of either name-tag
 // component desginators, or asset URLs (such as JavaScripts).
 Deployer.prototype.requires = function(name, tag, requires, finish) {
+    this.currentLoadingModuleName = name;
+    this.currentLoadingModuleTag = tag;
     DataStore.saveDependencies(name, tag, requires);
     var requiresLength = requires.length;
     if (requiresLength === 0) {
@@ -231,8 +233,8 @@ Deployer.prototype.requires = function(name, tag, requires, finish) {
     }
 };
 
-Deployer.prototype.attach = function(name, tag, selector, executable) {
-    DataStore.setAttachment(name, tag, {
+Deployer.prototype.attach = function(selector, executable) {
+    DataStore.setAttachment(this.currentLoadingModuleName, this.currentLoadingModuleTag, {
         selector: selector,
         executable: executable
     });
