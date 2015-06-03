@@ -2,7 +2,13 @@
   "name": "famous-framework",
   "version": "0.8.0",
   "description": "A modern take on building reusable components and maintainable applications",
-  "keywords": ["famous", "framework", "best", "architecture", "pattern"],
+  "keywords": [
+    "famous",
+    "framework",
+    "best",
+    "architecture",
+    "pattern"
+  ],
   "license": "MIT",
   "repository": "Famous/framework",
   "bugs": "https://github.com/Famous/framework/issues",
@@ -59,6 +65,7 @@
     "xhr": "^2.0.1"
   },
   "devDependencies": {
+    "babel-eslint": "^3.1.10",
     "babelify": "^5.0.3",
     "browser-sync": "^2.2.0",
     "browserify": "^10.1.3",
