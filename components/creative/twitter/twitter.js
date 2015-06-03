@@ -133,6 +133,7 @@ BEST.scene('creative:twitter', 'HEAD', {
                 return (currentView === 'home');
             },
             '$repeat': () => {
+                console.log('repeat');
                 const testData = [
                     {
                         imageURL: "./images/users/1.png",
@@ -143,6 +144,16 @@ BEST.scene('creative:twitter', 'HEAD', {
                         tweetAge: "19h",
                         retweets: 14,
                         favorites: 24
+                    },
+                    {
+                        imageURL: "./images//users/2.png",
+                        displayName: "The Next Web",
+                        userName: "@TheNextWeb",
+                        tweetContent: "Facebook threatens Europe with crappy features if regulators don't back off <span class='tweet-link'>http://tnw.co/1Kt1lVS</span>",
+                        tweetImage: "./images/tweets/2.png",
+                        tweetAge: "7m",
+                        retweets: 432,
+                        favorites: 1
                     }
                 ];
 
@@ -155,7 +166,7 @@ BEST.scene('creative:twitter', 'HEAD', {
                        model: testData[i]
                     });
                 }
-
+                console.log(tweets);
                 return tweets;
             }
         },
@@ -190,32 +201,36 @@ BEST.scene('creative:twitter', 'HEAD', {
                 console.log('HERE: ',$payload);
 
                 //Reset icon states
-                $state.set('homeIcon', 'assets/images/home.png');
+                /*$state.set('homeIcon', 'assets/images/home.png');
                 $state.set('notificationsIcon', 'assets/images/notifications.png');
                 $state.set('messagesIcon', 'assets/images/messages.png');
                 $state.set('profileIcon', 'assets/images/profile.png');
-
+*/
                 // Set new active icon state
-                $state.set($payload + 'Icon', 'assets/images/' + $payload + '-active.png');
+                //$state.set($payload + 'Icon', 'assets/images/' + $payload + '-active.png');
             }
         },
         '.link-home': {
             'click': ($state) => {
+                console.log('home');
                 $state.set('currentView', 'home');
             }
         },
         '.link-notifications': {
             'click': ($state) => {
+                console.log('link');
                 $state.set('currentView', 'notifications');
             }
         },
         '.link-message': {
             'click': ($state) => {
+                console.log('msg');
                 $state.set('currentView', 'messages');
             }
         },
         '.link-profile': {
             'click': ($state) => {
+                console.log('prof');
                 $state.set('currentView', 'profile');
             }
         }

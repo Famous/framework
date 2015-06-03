@@ -2,6 +2,7 @@ BEST.scene('creative:twitter:tweet2', 'HEAD', {
     behaviors: {
         '.tweet': {
              'template': (model) => {
+                 console.log('template');
                  return {
                      userImage: model.imageURL,
                      displayName: model.displayName,
