@@ -79,8 +79,7 @@ Deployer.prototype.insertAsset = function(url, cb) {
             }.bind(this));
             break;
         default:
-            console.warn('Unexpected asset type `' + format + '`');
-            console.warn(url);
+            console.warn('Unexpected asset type `' + format + '` @ ' + url);
             this.assetsLoaded[url] = true;
             cb();
             break;
