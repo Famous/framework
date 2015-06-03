@@ -1,5 +1,7 @@
 'use strict';
 
+var getComponent = require('../utilities/utilities').getComponent;
+
 function Dispatcher(domNode) {
     this.domNode = domNode;
 }
@@ -36,6 +38,11 @@ Dispatcher.prototype.emit = function(key, message) {
         }
     }
 };
+
+Dispatcher.prototype.trigger = function(key, message) {
+    var component = getComponent(this.domNode);
+    component.sendMessage(key, message);
+}
 
 Dispatcher.willEventsTrickle = (function() {
     var willTrickle = false;
