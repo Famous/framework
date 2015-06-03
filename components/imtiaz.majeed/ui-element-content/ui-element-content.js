@@ -1,4 +1,4 @@
-BEST.scene('imtiaz.majeed:ui-element-content', 'HEAD', {
+BEST.scene('imtiaz.majeed:ui-element-content', {
     behaviors: {
         '#element-with-div': {
             'position': [-200, 0, 0],

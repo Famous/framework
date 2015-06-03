@@ -6,7 +6,7 @@ The Famous Framework currently supports three basic control-flow operations: `$i
 
 The `$if` control-flow behavior is a special behavior that will add/remove selected components from the scene graph based on a boolean return value. Here's a simple example, in which an element is removed from the scene when it is clicked:
 
-    BEST.scene('zelda.zulu:control-flow-if', 'HEAD', {
+    BEST.scene('zelda.zulu:control-flow-if', {
         behaviors: {
             '#el': {
                 // Elements in the tree that match the `#el` selector will
@@ -32,7 +32,7 @@ The `$if` control-flow behavior is a special behavior that will add/remove selec
 
 The `$repeat` control-flow behavior will repeat the selected components a certain number of times, where the number of times reflects the `.length` of the array returned from the function. For example, the following example repeats a `ui-element` three times:
 
-    BEST.scene('zelda.zulu:repeat', 'HEAD', {
+    BEST.scene('zelda.zulu:repeat', {
         tree: `<ui-element id="el"></ui-element>`,
         behaviors: {
             '#el': {
@@ -55,7 +55,7 @@ The `$yield` control-flow behavior allows a component define the conditions unde
 
     // zelda.zulu/yield/yield.js
     // This scene allows content to "punch through"
-    BEST.scene('zelda.zulu:yield', 'HEAD', {
+    BEST.scene('zelda.zulu:yield', {
         tree: `
             <view id="main"></view>
             <view id="sidebar"></view>

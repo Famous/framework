@@ -1,4 +1,4 @@
-BEST.module('famous:demos:styling-inner-divs', 'HEAD', {
+BEST.module('famous:demos:styling-inner-divs', {
     behaviors: {
         'ui-element' : {
             position: [100, 100],

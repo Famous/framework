@@ -6,7 +6,7 @@ Although we recommend sticking to the BEST pattern as closely as possible, somet
     function myHelperFunction() {
         return hiddenState * Math.random();
     }
-    BEST.scene('zelda.zulu:hello-best', 'HEAD', {
+    BEST.scene('zelda.zulu:hello-best', {
         // etc
     });
 

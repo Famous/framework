@@ -1,4 +1,4 @@
-BEST.scene('jordan.papaleo:hello-famous', 'HEAD', {
+BEST.scene('jordan.papaleo:hello-famous', {
         behaviors: {
             ".meow": {
                 'origin': [0.5, 0.5],

@@ -2,7 +2,7 @@
 
 When making use of other modules, scenes can sometimes get more verbose than we'd like. Take this example:
 
-    BEST.scene('foo:bar', 'HEAD', {
+    BEST.scene('foo:bar', {
         behaviors: {
             '#el': {
                 'famous:components:size': [200, 200]
@@ -28,7 +28,7 @@ Having to refer to all of these dependencies by their full name makes the code m
 
 To mitigate this, an `imports` object can be given with the `.config` method call that can be chained to the `BEST.scene` invocation. The following example is equivalent to the above:
 
-    BEST.scene('foo:bar', 'HEAD', {
+    BEST.scene('foo:bar', {
         behaviors: {
             '#el': {
                 'size': [200, 200]

@@ -11,7 +11,7 @@ To include external CSS or JavaScript with your module, first place the files in
 
 Then, indicate that you want to load these files by using the `config` method, which can be chained to your main scene definition:
 
-    BEST.scene('zelda.zulu:hello-famous', 'HEAD', {
+    BEST.scene('zelda.zulu:hello-famous', {
         // etc
     })
     .config({

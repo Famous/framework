@@ -33,7 +33,7 @@ Now create a project folder inside your folder: From inside your `zelda.zulu/` f
 
 The file `hello-framework.js` will be the main entrypoint into your scene. Let's add some code to that file to get something simple into the browser window. Copy and paste the following code snippet into the entrypoint file:
 
-    BEST.scene('zelda.zulu:hello-framework', 'HEAD', {
+    BEST.scene('zelda.zulu:hello-framework', {
         tree: `<ui-element><h1>Hello Famous Framework</h1></ui-element>`
     });
 
@@ -47,7 +47,7 @@ Then visit [localhost:1337](http://localhost:1337) in your browser, and you shou
 
 Let's extend the code snippet to create a more complex scene that includes styles, animation, and user interaction. Replace the contents of `hello-framework.js` with the following snippet:
 
-    BEST.scene('zelda.zulu:hello-framework', 'HEAD', {
+    BEST.scene('zelda.zulu:hello-framework', {
         behaviors: {
             '#element': {
                 'style': {

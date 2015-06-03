@@ -6,7 +6,7 @@ Some developers need a way to drop down to the low-level Famous Engine in order 
     var root = context.addChild();
     var el = new Famous.domRenderables.DOMElement(root);
     el.setProperty('background', 'yellow');
-    BEST.scene('zelda.zulu:hello-best', 'HEAD', {
+    BEST.scene('zelda.zulu:hello-best', {
         // etc
     });
 

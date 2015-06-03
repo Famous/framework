@@ -15,16 +15,12 @@ This is an overview of our core team's taxonomy for the parts that make up a fra
     BEST.scene('foo:bar:baz', ...)
 
 
-    //              ↓ module version
-    BEST.scene(..., '0.1.1', ...)
-
-
-    //                                ↓ module definition
-    BEST.scene('foo:bar:baz', 'HEAD', { ... })
+    //                         ↓ module definition
+    BEST.scene('foo:bar:baz', { ... })
 
 
 
-    BEST.scene('foo:bar:baz', 'HEAD', {
+    BEST.scene('foo:bar:baz', {
 
         // ↓ module facets
         behaviors: { ... }, // ← behaviors object
@@ -36,7 +32,7 @@ This is an overview of our core team's taxonomy for the parts that make up a fra
 
 
 
-    BEST.scene('foo:bar:baz', 'HEAD', {
+    BEST.scene('foo:bar:baz', {
         behaviors: 'my-behaviors.js', // ← behaviors file reference
         events: 'my-events.js',       // ← events file reference
         states: 'my-states.js',       // ← states file reference
@@ -45,7 +41,7 @@ This is an overview of our core team's taxonomy for the parts that make up a fra
 
 
 
-    BEST.scene('foo:bar:baz', 'HEAD', {
+    BEST.scene('foo:bar:baz', {
         behaviors: {
 
             // ↓ behavior selector
@@ -60,7 +56,7 @@ This is an overview of our core team's taxonomy for the parts that make up a fra
 
 
 
-    BEST.scene('foo:bar:baz', 'HEAD', {
+    BEST.scene('foo:bar:baz', {
         events: {
 
             // ↓ event selector
@@ -74,7 +70,7 @@ This is an overview of our core team's taxonomy for the parts that make up a fra
 
 
 
-    BEST.scene('foo:bar:baz', 'HEAD', {
+    BEST.scene('foo:bar:baz', {
         tree: `
             <view>                  <!-- ← tree node tag -->
                 <ui-element>        <!-- ← tree node tag -->

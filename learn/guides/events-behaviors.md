@@ -12,7 +12,7 @@ Behavior functions, on the other hand, are _projections of the state_. They resp
 
 When you apply a behavior to some node in your scene's `tree`, you're really just sending a message to that descendant component. The message will be received if the target component exposes an equivalently named event. Take this example of a scene that is applying a `'size'` behavior to a `ui-element` component:
 
-    BEST.scene('my:scene', 'HEAD', {
+    BEST.scene('my:scene', {
         behaviors: {
             '#el': {
                 'size': function(){ return [200, 200]; }
@@ -25,7 +25,7 @@ When you apply a behavior to some node in your scene's `tree`, you're really jus
 
 As it turns out, the `ui-element` component (a.k.a. `famous:core:ui-element`) defines a event called `'size'` that it makes accessible to parent components. Its implementation looks (roughly) like this:
 
-    BEST.scene('famous:core:ui-element', 'HEAD', {
+    BEST.scene('famous:core:ui-element', {
         events: {
             // '$public' is a special event group name that says
             // "I am exposing these functions to other components"
@@ -50,7 +50,7 @@ We like to say that event functions are "where the rubber meets the road." Via d
 
 The most basic type of state access an event function can get is to the `$state` object, usually with the complementary `$payload` that is the value of the received message:
 
-    BEST.scene('foo:bar', 'HEAD', {
+    BEST.scene('foo:bar', {
         events: {
             '$public': {
                 'something-or-other': function($state, $payload) {
@@ -70,7 +70,7 @@ The `$state` object gives event functions access to the collection of values tha
 
 To emit a message, you'll need to dependency-inject a `$dispatcher` instance into your event function:
 
-    BEST.scene('foo:bar', 'HEAD', {
+    BEST.scene('foo:bar', {
         events: {
             '$public': {
                 'something': function($dispatcher) {
@@ -82,7 +82,7 @@ To emit a message, you'll need to dependency-inject a `$dispatcher` instance int
 
 Scenes can listen to messages emitted by any component declared in their tree.
 
-    BEST.scene('my:scene', 'HEAD', {
+    BEST.scene('my:scene', {
         events: {
             '#foo': {
                 // This will run any time a tree node matching '#foo'
@@ -101,7 +101,7 @@ Scenes can listen to messages emitted by any component declared in their tree.
 
 Behaviors need not apply only to the descendants of a scene. Using the `$self` behavior group, you can route behaviors to the scene itself:
 
-    BEST.scene('my:scene', 'HEAD', {
+    BEST.scene('my:scene', {
         behaviors: {
             '$self': {
                 'foo': function() {
