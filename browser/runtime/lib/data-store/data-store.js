@@ -160,9 +160,10 @@ function saveDependencies(name, tag, requires) {
     }
     DEPENDENCIES[name][tag] = {};
     for (var i = 0; i < requires.length; i++) {
-        var moduleName = requires[i][0];
-        var moduleTag = requires[i][1];
-        DEPENDENCIES[name][tag][moduleName] = moduleTag;
+        var requirement = requires[i];
+        var reqName = requirement.name;
+        var reqTag = requirement.version;
+        DEPENDENCIES[name][tag][reqName] = reqTag;
     }
 }
 

@@ -48,6 +48,12 @@ function localValue(val) {
         var fnStr = val();
         return '(function(){\n' + indent(fnStr) + '\n}())';
     }
+    else if (val === true) {
+        return 'true';
+    }
+    else if (val === false) {
+        return 'false';
+    }
     else if (val === null) {
         return 'null';
     }
@@ -71,16 +77,18 @@ function objectTemplate(locals) {
     ].join(NEWLINE);
 }
 
-function buildInlineTupleString(name, version, data) {
+function buildInlineModuleTupleString(name, version, data) {
     return objectTemplate({
+        type: 'module',
         name: name,
         version: version,
         inline: function(){ return data; } // A function here signifies a function to run on the client-side
     });
 }
 
-function buildMissingTupleString(name, version) {
+function buildMissingModuleTupleString(name, version) {
     return objectTemplate({
+        type: 'module',
         name: name,
         version: version,
         missing: true
@@ -96,10 +104,10 @@ function buildImportTuplesStatement(dependencyTable, dependencies, moduleConfigs
             // Data we get might be a buffer object, so we have to stringify
             if (depData) {
                 var depData = depObject.data.toString();
-                importTupleStrings.push(buildInlineTupleString(depName, depVersion, depData));
+                importTupleStrings.push(buildInlineModuleTupleString(depName, depVersion, depData));
             }
             else {
-                importTupleStrings.push(buildMissingTupleString(depName, depVersion));
+                importTupleStrings.push(buildMissingModuleTupleString(depName, depVersion));
             }
         }
     }

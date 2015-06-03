@@ -4,6 +4,8 @@ var ObjUtils = require('./../../../utilities/object');
 var Component = require('./../component/component');
 var DataStore = require('./../data-store/data-store');
 
+var PathingHelpers = require('./../../../../shared/builder/lib/build-steps/storage-helpers/pathing');
+
 var SLASH = '/';
 
 function Deployer() {
@@ -18,7 +20,10 @@ Deployer.DEFAULTS = {
     awaitInterval: 10,
     awaitMaxTime: 1000,
     componentDelimiter: ':',
-    bundleFilename: 'bundle.js'
+    bundleAssetPath: '~bundles/bundle.js',
+    codeManagerHost: process.env.CODE_MANAGER_HOST || 'http://localhost:3000',
+    codeManagerApiVersion: 'v1',
+    codeManagerAssetGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath'
 };
 
 Deployer.prototype.getModulePath = function(name) {
@@ -26,22 +31,11 @@ Deployer.prototype.getModulePath = function(name) {
 };
 
 Deployer.prototype.getBundleURL = function(name, tag) {
-    return ECOSYSTEM_BASE_URI +
-             [this.options.bucket,
-              this.getModulePath(name),
-              this.options.bundlesFolder,
-              tag || this.options.defaultModuleTag,
-              this.options.bundleFilename
-            ].join(SLASH);
+    return PathingHelpers.buildAssetURL.call(this, name, tag, this.options.bundleAssetPath);
 };
 
-Deployer.prototype.getVersionBaseURL = function(name, tag) {
-    return ECOSYSTEM_BASE_URI +
-             [this.options.bucket,
-              this.getModulePath(name),
-              this.options.versionsFolder,
-              tag || this.options.defaultModuleTag
-            ].join(SLASH);
+Deployer.prototype.getAssetURL = function(name, tag, assetPath) {
+    return PathingHelpers.buildAssetURL.call(this, name, tag, assetPath);
 };
 
 Deployer.prototype.markModuleLoaded = function(name, tag) {
@@ -124,15 +118,25 @@ Deployer.prototype.insertHTML = function(url, cb) {
     document.body.appendChild(link);
 };
 
-Deployer.prototype.insertModule = function(name, tag, cb) {
-    var url = this.getBundleURL(name, tag);
-    this.insertJavaScript(url, function() {
+Deployer.prototype.insertModule = function(requirement, cb) {
+    var name = requirement.name;
+    var tag = requirement.version;
+    if (requirement.inline) {
+        requirement.inline();
+        this.markModuleInserted(name, tag);
         this.markModuleLoaded(name, tag);
-        if (cb) {
-            cb(null, name, tag, url);
-        }
-    }.bind(this));
-    this.markModuleInserted(name, tag);
+    }
+    else if (requirement.missing || requirement.remote) {
+        var url = this.getBundleURL(name, tag);
+        console.info('Loading `' + name + '` (' + tag + ') from ' + url);
+        this.insertJavaScript(url, function() {
+            this.markModuleLoaded(name, tag);
+            if (cb) {
+                cb(null, name, tag, url);
+            }
+        }.bind(this));
+        this.markModuleInserted(name, tag);
+    }
 };
 
 Deployer.prototype.everythingLoaded = function() {
@@ -152,16 +156,31 @@ Deployer.prototype.everythingLoaded = function() {
 
 Deployer.prototype.deploy = function(name, tag, selector) {
     var awaitInterval = this.options.awaitInterval;
-    this.insertModule(name, tag, function(err, insertedName, insertedTag) {
+    var awaitMaxTime = this.options.awaitMaxTime;
+    // Quick shim to be compatible with the `insertModule` API
+    var requirementObj = {
+        name: name,
+        version: tag,
+        remote: true
+    };
+    this.insertModule(requirementObj, function(err, insertedName, insertedTag) {
         if (err) {
             console.error(err);
         }
+        var timeSoFar = 0;
         var deployInterval = setInterval(function() {
+            timeSoFar += awaitInterval;
             if (this.everythingLoaded()) {
                 clearInterval(deployInterval);
                 this.execute(insertedName, insertedTag, selector);
             }
-        }.bind(this), awaitInterval);
+            else {
+                if (timeSoFar >= awaitMaxTime) {
+                    console.error('Gave up waiting on `' + name + '` (' + tag + ')')
+                    clearInterval(deployInterval);
+                }
+            }
+            }.bind(this), awaitInterval);
     }.bind(this));
 };
 
@@ -169,30 +188,21 @@ Deployer.prototype.postRequireHook = function(name, tag, finish) {
     finish();
 };
 
-Deployer.prototype.looksLikeModuleRequire = function(name, tag) {
-    var parts = name.split('.');
-    var lastPart = parts[parts.length - 1];
-    return tag && tag.length && lastPart.indexOf(this.options.componentDelimiter) !== -1;
-};
-
 // Fire the 'finish' callback once all of the elements in 'requires' array
 // have been loaded onto the page. 'Requires' is a list of either name-tag
 // component desginators, or asset URLs (such as JavaScripts).
 Deployer.prototype.requires = function(name, tag, requires, finish) {
     DataStore.saveDependencies(name, tag, requires);
-    var versionBaseURL = this.getVersionBaseURL(name, tag);
-
     var requiresLength = requires.length;
     if (requiresLength === 0) {
         return this.postRequireHook(name, tag, finish); // Early return if nothing to do
     }
     var requiresLoaded = 0;
     for (var i = 0; i < requiresLength; i++) {
-        var requireName = requires[i][0];
-        var requireTag = requires[i][1];
-        if (this.looksLikeModuleRequire(requireName, requireTag)) {
-            if (!this.isModuleInserted(requireName, requireTag)) {
-                this.insertModule(requireName, requireTag, function() {
+        var requirement = requires[i];
+        if (requirement.type === 'module') {
+            if (!this.isModuleInserted(requirement.name, requirement.version)) {
+                this.insertModule(requirement, function() {
                     if (++requiresLoaded === requiresLength) {
                         this.postRequireHook(name, tag, finish);
                     }
@@ -204,9 +214,8 @@ Deployer.prototype.requires = function(name, tag, requires, finish) {
                 }
             }
         }
-        else {
-            var requireURL = requireName;
-            var fullURL = versionBaseURL + SLASH + requireURL;
+        else if (requirement.type === 'include') {
+            var fullURL = this.getAssetURL(name, tag, requirement.path);
             if (!this.isAssetInserted(fullURL)) {
                 this.insertAsset(fullURL, function() {
                     if (++requiresLoaded === requiresLength) {
