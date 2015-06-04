@@ -42,7 +42,7 @@ test('StateManager', function(t) {
         t.end();
     });
 
-    t.test('setting state #1 - set', function(t) {
+    t.test('setting state #1 - set(value)', function(t) {
         var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
 
         SM.set('number', 2);
@@ -66,7 +66,7 @@ test('StateManager', function(t) {
         t.end();
     });
 
-    t.test('setting state #2 - set with transition', function(t) {
+    t.test('setting state #2 - set(transition)', function(t) {
         var time = 0;
         var _now = Date.now();
 
@@ -99,7 +99,7 @@ test('StateManager', function(t) {
         t.end();
     });
 
-    t.test('setting state #3 - chaining set', function(t) {
+    t.test('setting state #3 - set(value).set(value).set(value)', function(t) {
         var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
 
         SM
@@ -124,7 +124,7 @@ test('StateManager', function(t) {
         t.end();
     });
 
-    t.test('setting state #4 - chaining set with transition', function(t) {
+    t.test('setting state #4 - set(transition).set(transition).set(transition)', function(t) {
         var time = 0;
         var _now = Date.now();
 
@@ -150,7 +150,7 @@ test('StateManager', function(t) {
         t.end();
     });
 
-    t.test('setting state #5 - chaining set with and without transition', function(t) {
+    t.test('setting state #5 - set(value).set(transition).set(value)', function(t) {
         var time = 0;
         var _now = Date.now();
 
@@ -376,7 +376,7 @@ test('StateManager', function(t) {
         t.end();
     });
 
-    t.test('subscribing to state #3 - subscribeOnce', function(t) {
+    t.test('subscribing to state #3 - subscribeOnce + triggerGlobalChange', function(t) {
         var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
 
         var observerState = clone(_observerState);
