@@ -244,6 +244,97 @@ test('StateManager', function(t) {
         t.end();
     });
 
+    t.test('setting state #8 - set(value).set(transition).thenSet(transition)', function(t) {
+        var time = 0;
+        var _now = Date.now();
+
+        Transitionable.Clock = {
+            now: function() {
+                return time;
+            }
+        };
+
+        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+
+        time = 0;
+        SM
+            .set('number', 0)
+            .set('array', [5, 5, 5], { duration: 1000 })
+            .thenSet(['nestedState', 'moreNesting', 'nestingArray', 0], 0, { duration: 1000 });
+        time = 500;
+        SM.onUpdate();
+        t.equal(SM.get('number'), 0);
+        t.deepEqual(SM.get('array'), [4, 4, 4], 'should tween array state while setting number state');
+        time = 1000;
+        SM.onUpdate();
+        t.deepEqual(SM.get('array'), [5, 5, 5]);
+        time = 1500;
+        SM.onUpdate();
+        t.equal(SM.get(['nestedState', 'moreNesting', 'nestingArray', 0]), 0.5, 'should tween nested state after tweening array state');
+
+        t.end();
+    });
+
+    t.test('setting state #9 - set(value).thenSet(transition).thenSet(transition)', function(t) {
+        var time = 0;
+        var _now = Date.now();
+
+        Transitionable.Clock = {
+            now: function() {
+                return time;
+            }
+        };
+
+        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+
+        time = 0;
+        SM
+            .set('number', 0)
+            .thenSet('array', [5, 5, 5], { duration: 1000 })
+            .thenSet(['nestedState', 'moreNesting', 'nestingArray', 0], 0, { duration: 1000 });
+        time = 500;
+        SM.onUpdate();
+        t.equal(SM.get('number'), 0);
+        t.deepEqual(SM.get('array'), [4, 4, 4], 'should tween array state while setting number state');
+        time = 1000;
+        SM.onUpdate();
+        t.deepEqual(SM.get('array'), [5, 5, 5]);
+        time = 1500;
+        SM.onUpdate();
+        t.equal(SM.get(['nestedState', 'moreNesting', 'nestingArray', 0]), 0.5, 'should tween nested state after tweening array state');
+
+        t.end();
+    });
+
+    t.test('setting state #10 - set(value).thenSet(transition).thenSet(value)', function(t) {
+        var time = 0;
+        var _now = Date.now();
+
+        Transitionable.Clock = {
+            now: function() {
+                return time;
+            }
+        };
+
+        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+
+        time = 0;
+        SM
+            .set('number', 0)
+            .thenSet('array', [5, 5, 5], { duration: 1000 })
+            .thenSet(['nestedState', 'moreNesting', 'nestingArray', 0], 0);
+        time = 500;
+        SM.onUpdate();
+        t.equal(SM.get('number'), 0);
+        t.deepEqual(SM.get('array'), [4, 4, 4], 'should tween array state while setting number state');
+        time = 1000;
+        SM.onUpdate();
+        t.deepEqual(SM.get('array'), [5, 5, 5]);
+        t.equal(SM.get(['nestedState', 'moreNesting', 'nestingArray', 0]), 0, 'should tween nested state after tweening array state');
+
+        t.end();
+    });
+
     t.test('subscribing to state #1 - subscribeTo', function(t) {
         var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
 
