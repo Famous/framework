@@ -23,11 +23,10 @@ function loadDependenciesFromLocalSourceFolder(baseDir, dependencies, finish) {
                 // assume that we just couldn't discover the file
                 console.error(err);
             }
-            var output = {
-                name: depName,
-                version: depVersion,
-                data: bundleData
-            };
+            var output = {};
+            output.name = depName;
+            output.version = depVersion;
+            output.data = (bundleData) ? bundleData.toString() : null;
             cb(null, output);
         });
     }.bind(this), function(localDepLoadErr, dependencyDatas) {

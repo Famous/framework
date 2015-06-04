@@ -111,7 +111,7 @@ function buildImportTuplesStatement(dependencyTable, dependencies, moduleConfigs
         var depObject = dependencies[depName];
         if (depObject.version === depVersion) {
             // Data we get might be a buffer object, so we have to stringify
-            if (depData) {
+            if (depObject.data) {
                 var depData = depObject.data.toString();
                 importTupleStrings.push(buildInlineModuleTupleString(depName, depVersion, depData));
             }
