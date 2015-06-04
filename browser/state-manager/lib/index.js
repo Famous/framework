@@ -13,7 +13,7 @@ function StateManager(initialState, Famous, Transitionable) {
     this._globalObservers = [];
     this._once = [];
     this._globalChangeListeners = [];
-    this._latestStateChange = {};
+    this._latestStateChange = [];
     this._Transitionable = Transitionable;
 
     //keep track of Transitionables associated with states
@@ -267,8 +267,7 @@ StateManager.prototype.getLatestStateChange = function getLatestStateChange() {
  * @protected
  */
 StateManager.prototype._setLatestStateChange = function _setLatestStateChange(key, value) {
-    this._latestStateChange = {};
-    this._latestStateChange[key] = value;
+    this._latestStateChange = [key, value];
 };
 
 /**

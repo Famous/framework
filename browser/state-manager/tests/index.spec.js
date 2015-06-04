@@ -22,7 +22,7 @@ test('StateManager', function(t) {
         t.end();
     });
 
-    t.test('getting state - get', function(t) {
+    t.test('getting state #1 - get', function(t) {
         var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
 
         t.equal(SM.get('number'), 1, 'should get number state');
@@ -38,6 +38,15 @@ test('StateManager', function(t) {
         ]), 2, 'should get nested state');
 
         t.deepEqual(SM.getStateObject(), _state, 'should get entire state object');
+
+        t.end();
+    });
+
+    t.test('getting state #3 - latestStateChange', function(t) {
+        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+
+        SM.set('number', 2);
+        t.deepEqual(SM.getLatestStateChange(), ['number', 2], 'should get last state that was set and value');
 
         t.end();
     });
