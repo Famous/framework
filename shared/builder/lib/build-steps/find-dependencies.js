@@ -74,6 +74,13 @@ function findDependencies(info, cb) {
             // meaning only one dependency version per name
             dependencyTable[depName] = depRef;
         }
+
+        // Check for `extends` key in config, use default extends if key is missing,
+        // push values into dependency list
+        var extensions = configObject.extends || this.options.defaultExtends;
+        for (var i = 0; i < extensions.length; i++) {
+            dependenciesList.push(extensions[i]);
+        }
     }
 
     // Finally, push any gathered dependencies into the table object

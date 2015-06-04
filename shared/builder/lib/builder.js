@@ -104,6 +104,7 @@ Builder.DEFAULTS = {
     componentDelimiter: ':', // e.g. my:great:module
     componentDelimiterRegexp: /:/g,
     configMethodIdentifier: 'config', // e.g. BEST.scene(...).config({...})
+    defaultExtends: ['famous:core:node'],
     defaultImports: {
         'famous:core': [
             'components', 
