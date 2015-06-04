@@ -37,7 +37,7 @@ BEST.scene('creative:twitter', 'HEAD', {
             'size-absolute-x': window.innerWidth / 3,
             'size-absolute-y': 35,
             'content': (pageTitle) => {
-                return '<div>' + pageTitle + '</div>';
+                return '<div class="title">' + pageTitle + '</div>';
             },
             style: () => {
                 return {
@@ -96,15 +96,14 @@ BEST.scene('creative:twitter', 'HEAD', {
                     'padding-top': '5px',
                     'color': 'rgb(85, 172, 238)',
                     'text-decoration': 'none',
-                    'font-size': '11px',
-                    'font-family': 'Helvetica, Arial, \'Lucida Grande\', sans-serif'
+                    'font-size': '11px'
                 };
             }
         },
         '.link-home': {
             'align': [0, 0],
             'content': (homeIcon) => {
-                return '<a><img width="25px" src="@{CDN_PATH}' + homeIcon + '"><br>Home</a>';
+                return '<a><img width="25px" height="25px" src="@{CDN_PATH}' + homeIcon + '"><br>Home</a>';
             },
             'style': {
                 'background-image': '@{assets/images/home.png}'
@@ -113,44 +112,40 @@ BEST.scene('creative:twitter', 'HEAD', {
         '.link-notifications': {
             'align': [.25, 0],
             'content': (notificationsIcon) => {
-                return '<a><img width="25px" src="@{CDN_PATH}' + notificationsIcon + '"><br>Notifications</a>';
+                return '<a><img width="25px" height="25px" src="@{CDN_PATH}' + notificationsIcon + '"><br>Notifications</a>';
             }
         },
         '.link-message': {
             'align': [.5, 0],
             'content': (messagesIcon) => {
-                return '<a><img width="25px" src="@{CDN_PATH}' + messagesIcon + '"><br>Messages</a>';
+                return '<a><img width="25px" height="25px" src="@{CDN_PATH}' + messagesIcon + '"><br>Messages</a>';
             }
         },
         '.link-profile': {
             'align': [.75, 0],
             'content': (profileIcon) => {
-                return '<a><img width="25px" src="@{CDN_PATH}' + profileIcon + '"><br>Me</a>';
+                return '<a><img width="25px" height="25px" src="@{CDN_PATH}' + profileIcon + '"><br>Me</a>';
             }
         },
-        '.home-view': {
-            '$if': (currentView) => {
-                return (currentView === 'home');
-            },
+        '.tweet': {
             '$repeat': () => {
-                console.log('repeat');
                 const testData = [
                     {
-                        imageURL: "./images/users/1.png",
+                        imageURL: "assets/images/users/1.png",
                         displayName: "Opbeat",
                         userName: "@opbeat",
                         tweetContent: "Slack + Opbeat = ❤️ - Native @SlackHQ integration is here! <span class='tweet-link'>https://opbeat.com/blog/posts/better-slacking-with-opbeat/ ... </span>",
-                        tweetImage: "./images/tweets/1.png",
+                        tweetImage: "",
                         tweetAge: "19h",
                         retweets: 14,
                         favorites: 24
                     },
                     {
-                        imageURL: "./images//users/2.png",
+                        imageURL: "assets/images/users/1.png",
                         displayName: "The Next Web",
                         userName: "@TheNextWeb",
                         tweetContent: "Facebook threatens Europe with crappy features if regulators don't back off <span class='tweet-link'>http://tnw.co/1Kt1lVS</span>",
-                        tweetImage: "./images/tweets/2.png",
+                        tweetImage: "assets/images/tweets/best.png",
                         tweetAge: "7m",
                         retweets: 432,
                         favorites: 1
@@ -160,30 +155,42 @@ BEST.scene('creative:twitter', 'HEAD', {
                 let tweets = [];
 
                 for(var i = 0, j = testData.length; i < j; i++) {
+                    let model = testData[i];
+
                     tweets.push({
-                       index: i,
-                       position: [],
-                       model: testData[i]
+                        model: model,
+                        index: i,
+                        positionY: i * 150,
+                        sizeY: 150
                     });
                 }
-                console.log(tweets);
+
                 return tweets;
             }
         },
+        '.home-view': {
+            'position-x': '[[identity|homeViewPositionX]]'
+            /*'position-x': (currentView) => {
+                return (currentView === 'home') ? 0 : window.innerWidth;
+            }*/
+        },
         '.notifications-view': {
-            '$if': (currentView) => {
-                return (currentView === 'notifications');
-            }
+            'position-x': '[[identity|notificationsViewPositionX]]'
+            /*'position-x': (currentView) => {
+                return (currentView === 'notifications') ? 0 : window.innerWidth;
+            }*/
         },
         '.messages-view': {
-            '$if': (currentView) => {
-                return (currentView === 'messages');
-            }
+            'position-x': '[[identity|messagesViewPositionX]]'
+            /*'position-x': (currentView) => {
+                return (currentView === 'messages') ? 0 : window.innerWidth;
+            }*/
         },
         '.profile-view': {
-            '$if': (currentView) => {
-                return (currentView === 'profile');
-            }
+            'position-x': '[[identity|profileViewPositionX]]'
+            /*'position-x': (currentView) => {
+                return (currentView === 'profile') ? 0 : window.innerWidth;
+            }*/
         },
         '$self': {
             'currentView': '[[identity|currentView]]'
@@ -192,45 +199,66 @@ BEST.scene('creative:twitter', 'HEAD', {
     events: {
         '$public' : {
             'messageMe' : function($payload, $state) {
-                //console.log($payload);
                 $state.set('somechangedState', $payload)
             }
         },
         '$private': {
             'currentView': function($state, $payload) {
-                console.log('HERE: ',$payload);
-
-                //Reset icon states
                 $state.set('homeIcon', 'assets/images/home.png');
                 $state.set('notificationsIcon', 'assets/images/notifications.png');
                 $state.set('messagesIcon', 'assets/images/messages.png');
                 $state.set('profileIcon', 'assets/images/profile.png');
+                $state.set('pageTitle', $payload);
 
-                // Set new active icon state
+                let transition = {
+                    duration: 1000,
+                    curve: 'inOutBack'
+                };
+
+                let offScreenPos = window.innerWidth;
+
+                if ($payload === 'home') {
+                    $state.set('homeViewPositionX', 0, transition);
+                    $state.set('notificationsViewPositionX', offScreenPos, transition);
+                    $state.set('messagesViewPositionX', offScreenPos, transition);
+                    $state.set('profileViewPositionX', offScreenPos, transition);
+                } else if($payload === 'notifications') {
+                    $state.set('homeViewPositionX', offScreenPos, transition);
+                    $state.set('notificationsViewPositionX', 0, transition);
+                    $state.set('messagesViewPositionX', offScreenPos, transition);
+                    $state.set('profileViewPositionX', offScreenPos, transition);
+                } else if($payload === 'messages') {
+                    $state.set('homeViewPositionX', offScreenPos, transition);
+                    $state.set('notificationsViewPositionX', offScreenPos, transition);
+                    $state.set('messagesViewPositionX', 0, transition);
+                    $state.set('profileViewPositionX', offScreenPos, transition);
+                } else if($payload === 'profile') {
+                    $state.set('homeViewPositionX', offScreenPos, transition);
+                    $state.set('notificationsViewPositionX', offScreenPos, transition);
+                    $state.set('messagesViewPositionX', offScreenPos, transition);
+                    $state.set('profileViewPositionX', 0, transition);
+                }
+
                 $state.set($payload + 'Icon', 'assets/images/' + $payload + '-active.png');
             }
         },
         '.link-home': {
             'click': ($state) => {
-                console.log('home');
                 $state.set('currentView', 'home');
             }
         },
         '.link-notifications': {
             'click': ($state) => {
-                console.log('link');
                 $state.set('currentView', 'notifications');
             }
         },
         '.link-message': {
             'click': ($state) => {
-                console.log('msg');
                 $state.set('currentView', 'messages');
             }
         },
         '.link-profile': {
             'click': ($state) => {
-                console.log('prof');
                 $state.set('currentView', 'profile');
             }
         }
@@ -252,16 +280,19 @@ BEST.scene('creative:twitter', 'HEAD', {
         notificationsIcon: 'assets/images/notifications.png',
         messagesIcon: 'assets/images/messages.png',
         profileIcon: 'assets/images/profile.png',
-        currentView: 'home'
-        //tweets: Tweets
+        currentView: 'home',
+        homeViewPositionX: 0,
+        notificationViewPositionX: window.innerWidth,
+        messagesViewPositionX: window.innderWidth,
+        profileViewPositionX: window.innerWidth
     },
     tree: 'twitter.html'
 }).config({
     includes: [
-        //'data/twitter-data.js'
+        'assets/styles/twitter.css'
     ],
     imports: {
-        'creative:twitter': ['tweet2'],
+        'creative:twitter': ['tweet'],
         'super.demo.day:layouts': ['header-footer']
     }
 });

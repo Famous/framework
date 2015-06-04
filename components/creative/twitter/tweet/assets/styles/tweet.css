@@ -1,0 +1,100 @@
+*, body, html, div {
+    font-family: Helvetica, Arial, 'Lucida Grande', sans-serif;
+}
+
+.tweet-body {
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-left: 75px;
+    word-spacing: 0.25px;
+    line-height: 1.4;
+}
+
+.tweet h1.display-name {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.tweet h3.user-name {
+    display: inline-block;
+    font-weight: 400;
+    font-size: 12px;
+    color: #8899a6;
+}
+
+.tweet p.tweet-content {
+    font-size: 15px;
+    margin: 0 0 5px 0;
+    overflow: hidden;
+}
+
+.tweet span.tweet-age {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 14px;
+    color: #8899a6;
+}
+
+.tweet .tweet-image {
+    width: 100%;
+    border-radius: 5px;
+    margin: 5px 0;
+}
+
+.tweet .user-image {
+    border: 1px solid black;
+    margin-top: 15px;
+    margin-left: 12px;
+    width: 51px;
+    height: 51px;
+    position: absolute;
+}
+
+.tweet .tweet-link {
+    color: #2b7bb9;
+}
+
+.tweet .tweet-link:hover {
+    cursor: pointer;
+}
+
+.tweet-respond-container {
+    margin-left: 70px;
+    margin-right: 20px;
+    font-size: 15px;
+    position: relative;
+}
+
+.tweet-respond-container img {
+    width: 25px;
+    height: 25px;
+}
+
+.tweet-respond-container img.respond {
+    margin-right: 25px;
+}
+
+.tweet-respond-container .retweet, .tweet-respond-container .favorite {
+    padding-right: 20px;
+    color: #8899a6;
+    position: relative;
+    bottom: 7px;
+    font-size: 14px;
+}
+
+.tweet-respond-container img.follow {
+    position: absolute;
+    right: 0;
+}
+
+.footer-link a {
+    color: rgb(135, 153, 167);
+}
+
+.footer-link a.active {
+    color: rgb(85, 172, 238);
+}
+
