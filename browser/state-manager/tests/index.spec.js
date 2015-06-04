@@ -16,7 +16,9 @@ test('StateManager', function(t) {
     t.test('constructor', function(t) {
         t.equal(typeof StateManager, 'function', 'should be a function')
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        t.doesNotThrow(function() {
+            new StateManager(clone(_state), FamousEngine, Transitionable);
+        });
 
         t.ok(StateManager, 'should export');
         t.end();
