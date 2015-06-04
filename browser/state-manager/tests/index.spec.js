@@ -37,6 +37,12 @@ test('StateManager', function(t) {
                         1
         ]), 2, 'should get nested state');
 
+        t.end();
+    });
+
+    t.test('getting state #2 - getStateObject', function(t) {
+        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+
         t.deepEqual(SM.getStateObject(), _state, 'should get entire state object');
 
         t.end();
