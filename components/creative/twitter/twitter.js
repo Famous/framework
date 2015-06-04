@@ -1,3 +1,171 @@
+const Tweets = [
+    {
+        imageURL: "assets/images/users/1.png",
+        displayName: "Opbeat",
+        userName: "@opbeat",
+        tweetContent: "Slack + Opbeat = ❤️ - Native @SlackHQ integration is here! <span class='tweet-link'>https://opbeat.com/blog/posts/better-slacking-with-opbeat/ ... </span>",
+        tweetImage: "assets/images/tweets/1.png",
+        tweetAge: "19h",
+        retweets: 14,
+        favorites: 24
+    },
+    {
+        imageURL: "assets/images/users/2.png",
+        displayName: "The Next Web",
+        userName: "@TheNextWeb",
+        tweetContent: "Facebook threatens Europe with crappy features if regulators don't back off <span class='tweet-link'>http://tnw.co/1Kt1lVS</span>",
+        tweetImage: "assets/images/tweets/2.png",
+        tweetAge: "7m",
+        retweets: 432,
+        favorites: 1
+    },
+    {
+        imageURL: "assets/images/users/4.png",
+        displayName: "Huffington Post",
+        userName: "@HuffingtonPost",
+        tweetContent: "Queen Latifah sounds off on the gay community <span class='tweet-link'>http://huff.to/1DI2gNN</span>",
+        tweetAge: "11m",
+        retweets: 43,
+        favorites: 109
+    },
+    {
+        imageURL: "assets/images/users/5.png",
+        displayName: "Design Learn Bot",
+        userName: "@DesignLearnBot",
+        tweetContent: "<span class='tweet-link'>http://hemuhemu2013.web.fc2.com/</span> #html #HTML #html5 #HTML5 #css #CSS #css3 #CSS3 #html #web #WEB #follow #Rt #rt",
+        tweetAge: "32m",
+        retweets: 87,
+        favorites: 742
+    },
+    {
+        imageURL: "assets/images/users/6.png",
+        displayName: "The Verge",
+        userName: "@verge",
+        tweetContent: "James Cameron may have accidentally written a fifth Avatar movie already <span class='tweet-link'>http://theverge.com/e/8275680</span>",
+        tweetImage: "assets/images/tweets/6.png",
+        tweetAge: "1h",
+        retweets: 872,
+        favorites: 22
+    },
+    {
+        imageURL: "assets/images/users/7.png",
+        displayName: "The New York Times",
+        userName: "@nytimes",
+        tweetContent: "Meet a man condemned to be executed in Iran who won a rare pardon <span class='tweet-link'>http://nyti.ms/1bSduIJ</span>",
+        tweetImage: "assets/images/tweets/7.png",
+        tweetAge: "4d",
+        retweets: 342,
+        favorites: 42
+    },
+    {
+        imageURL: "assets/images/users/8.png",
+        displayName: "The Verge",
+        userName: "@verge",
+        tweetContent: "European cars will automatically call emergency services after a crash <span class='tweet-link'>http://theverge.com/e/8276886</span>",
+        tweetImage: "assets/images/tweets/8.png",
+        tweetAge: "28m",
+        retweets: 22,
+        favorites: 62
+    },
+    {
+        imageURL: "assets/images/users/9.png",
+        displayName: "OXITS",
+        userName: "@OXITS",
+        tweetContent: "DDoS-ers Top 330Gbps in Massive Attack <span class='tweet-link'>http://goo.gl/o9AruH</span>  #Cyber #Wearables",
+        tweetImage: "assets/images/tweets/9.png",
+        tweetAge: "31m",
+        retweets: 22,
+        favorites: 492
+    },
+    {
+        imageURL: "assets/images/users/10.png",
+        displayName: "Forbes News",
+        userName: "@ForbesTech",
+        tweetContent: "\"The evidence of Ulbricht's guilt was, in all respects, overwhelming.\" <span class='tweet-link'>http://onforb.es/1DxStsa</span>",
+        tweetImage: "assets/images/tweets/10.png",
+        tweetAge: "37m",
+        retweets: 14,
+        favorites: 24
+    },
+    {
+        imageURL: "assets/images/users/11.png",
+        displayName: "Mashable",
+        userName: "@mashable",
+        tweetContent: "Is it possible to predict where and when earthquakes will strike? <span class='tweet-link'>http://on.mash.to/1EnlYkj</span> @conversationuk",
+        tweetAge: "40m",
+        retweets: 432,
+        favorites: 1
+    },
+    {
+        imageURL: "assets/images/users/12.png",
+        displayName: "Engadget",
+        userName: "@engadget",
+        tweetContent: "Movie streaming service Popcorn Time blocked by UK court <span class='tweet-link'>http://engt.co/1GGJmwT</span>",
+        tweetImage: "assets/images/tweets/12.png",
+        tweetAge: "41m",
+        retweets: 43,
+        favorites: 109
+    },
+    {
+        imageURL: "assets/images/users/13.png",
+        displayName: "The Next Web",
+        userName: "@TheNextWeb",
+        tweetContent: "UX designers: Side drawer navigation could cost you 50% of your user engagement <span class='tweet-link'>http://tnw.me/w0JrUHR</span>",
+        tweetImage: "assets/images/tweets/13.png",
+        tweetAge: "1h",
+        retweets: 87,
+        favorites: 742
+    },
+    {
+        imageURL: "assets/images/users/14.png",
+        displayName: "Meteor",
+        userName: "@meteorjs",
+        tweetContent: "\"Two weeks with @reactjs + #meteorjs,\" a talk by @MaxHarris9 <span class='tweet-link'>https://www.meteor.com/blog/2015/04/29/two-weeks-with-react-and-meteor ...</span>",
+        tweetAge: "1h",
+        retweets: 872,
+        favorites: 22
+    },
+    {
+        imageURL: "assets/images/users/15.png",
+        displayName: "TechCrunch",
+        userName: "@TechCrunch",
+        tweetContent: "IBM Researchers Can Now Spot Errors In Quantum Calculations <span class='tweet-link'>http://tcrn.ch/1drCV4i</span> by @kylebrussell",
+        tweetAge: "1h",
+        retweets: 342,
+        favorites: 42
+    },
+    {
+        imageURL: "assets/images/users/16.png",
+        displayName: "The New York Times",
+        userName: "@nytimes",
+        tweetContent: "Excerpts from the #SCOTUS same-sex marriage arguments <span class='tweet-link'>http://nyti.ms/1bSdsR7</span>",
+        tweetImage: "assets/images/tweets/16.png",
+        tweetAge: "1h",
+        retweets: 22,
+        favorites: 62
+    },
+    {
+        imageURL: "assets/images/users/17.png",
+        displayName: "WIRED",
+        userName: "WIRED",
+        tweetContent: "Holograms could bring videogame-like navigation to your car <span class='tweet-link'>http://wrd.cm/1AcY2MD</span>",
+        tweetImage: "assets/images/tweets/17.png",
+        tweetAge: "2h",
+        retweets: 22,
+        favorites: 492
+    },
+    {
+        imageURL: "assets/images/users/18.png",
+        displayName: "Tobias Mauel",
+        userName: "@TobiasMauel",
+        tweetContent: "Some have Disneyland, I have #TNWEurope. So excited to be here!",
+        tweetImage: "assets/images/tweets/18.png",
+        tweetAge: "2h",
+        retweets: 14,
+        favorites: 24
+    }
+];
+
 BEST.scene('creative:twitter', 'HEAD', {
     behaviors: {
         '#container': {
@@ -8,6 +176,9 @@ BEST.scene('creative:twitter', 'HEAD', {
             'header-height' : '[[identity|headerHeight]]',
             'footer-height' : '[[identity|footerHeight]]'
 
+        },
+        '#body': {
+            'overflow': 'hidden'
         },
         '.header-background': {
             'size-proportional-x': 1,
@@ -128,36 +299,13 @@ BEST.scene('creative:twitter', 'HEAD', {
             }
         },
         '.tweet': {
-            '$repeat': () => {
-                const testData = [
-                    {
-                        imageURL: "assets/images/users/1.png",
-                        displayName: "Opbeat",
-                        userName: "@opbeat",
-                        tweetContent: "Slack + Opbeat = ❤️ - Native @SlackHQ integration is here! <span class='tweet-link'>https://opbeat.com/blog/posts/better-slacking-with-opbeat/ ... </span>",
-                        tweetImage: "",
-                        tweetAge: "19h",
-                        retweets: 14,
-                        favorites: 24
-                    },
-                    {
-                        imageURL: "assets/images/users/1.png",
-                        displayName: "The Next Web",
-                        userName: "@TheNextWeb",
-                        tweetContent: "Facebook threatens Europe with crappy features if regulators don't back off <span class='tweet-link'>http://tnw.co/1Kt1lVS</span>",
-                        tweetImage: "assets/images/tweets/best.png",
-                        tweetAge: "7m",
-                        retweets: 432,
-                        favorites: 1
-                    }
-                ];
+            '$repeat': (tweets) => {
+                let twts = [];
 
-                let tweets = [];
+                for(let i = 0, j = tweets.length; i < j; i++) {
+                    let model = tweets[i];
 
-                for(var i = 0, j = testData.length; i < j; i++) {
-                    let model = testData[i];
-
-                    tweets.push({
+                    twts.push({
                         model: model,
                         index: i,
                         positionY: i * 150,
@@ -165,7 +313,7 @@ BEST.scene('creative:twitter', 'HEAD', {
                     });
                 }
 
-                return tweets;
+                return twts;
             }
         },
         '.home-view': {
@@ -284,7 +432,8 @@ BEST.scene('creative:twitter', 'HEAD', {
         homeViewPositionX: 0,
         notificationViewPositionX: window.innerWidth,
         messagesViewPositionX: window.innderWidth,
-        profileViewPositionX: window.innerWidth
+        profileViewPositionX: window.innerWidth,
+        tweets: Tweets
     },
     tree: 'twitter.html'
 }).config({
@@ -292,7 +441,7 @@ BEST.scene('creative:twitter', 'HEAD', {
         'assets/styles/twitter.css'
     ],
     imports: {
-        'creative:twitter': ['tweet'],
+        'creative:twitter': ['tweet', 'message', 'notification', 'profile'],
         'super.demo.day:layouts': ['header-footer']
     }
 });

@@ -16,18 +16,6 @@ export var Trending = [
 ];
 
 export var Ads = [
-    // {
-    //     name: 'Jaguar',
-    //     url: './images/jaguar-ad.jpg'
-    // },
-    // {
-    //     name: 'Coffee',
-    //     url: './images/coffee-ad.jpg'
-    // },
-    // {
-    //     name: 'Visa',
-    //     url: './images/visa-ad.jpg'
-    // },
     {
         imageURL: './images/users/apple.jpg',
         // adURL: 'http://disrupt.famo.us/playdoh-goes-boing/ads/watch/',
