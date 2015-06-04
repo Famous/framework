@@ -7,6 +7,7 @@ var BuildHelpers = require('./build-helpers');
 var EsprimaHelpers = require('./esprima-helpers');
 
 var QUOTE = '\'';
+var EXTENDS_KEY = 'extends';
 
 function fixChildNode(node, tree, imports, doc) {
     fixTree(node, imports, doc);
@@ -46,6 +47,21 @@ function expandObjectKeyShorthands(facetObj, imports) {
     }.bind(this));
 }
 
+function expandExtendsShorthand(facetArray, imports) {
+    EsprimaHelpers.eachArrayElement(facetArray, function(elementValue, elementObject){
+        for (var importNamespace in imports) {
+            var importItems = imports[importNamespace];
+            for (var i = 0; i < importItems.length; i++) {
+                if (importItems[i] === elementValue) {
+                    var expandedExtends = BuildHelpers.moduleNamespaceAndBasenameToModuleName.call(this, importNamespace, elementValue);
+                    elementObject.value = expandedExtends;
+                    elementObject.raw = QUOTE + expandedExtends + QUOTE;
+                }
+            }
+        }
+    }.bind(this));
+}
+
 function expandImportsShorthand(info, cb) {
     for (var moduleName in info.moduleDefinitionASTs) {
         var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
@@ -73,6 +89,16 @@ function expandImportsShorthand(info, cb) {
             var flatImports = BuildHelpers.importsObjectToFlatImportsObject.call(this, imports);
             var newTree = fixTree(doc.body, flatImports, doc);
             treeNode.value = newTree;
+        }
+
+        // Step 4: Expand values in extends array from configuration object
+        var moduleConfigAST = info.moduleConfigASTs[moduleName];
+        if (moduleConfigAST) {
+            EsprimaHelpers.eachObjectProperty(info.moduleConfigASTs[moduleName], function(keyName, _1, _2, valueObj) {
+                if (keyName === EXTENDS_KEY) {
+                    expandExtendsShorthand.call(this, valueObj, imports);
+                }
+            }.bind(this));
         }
     }
     cb(null, info);
