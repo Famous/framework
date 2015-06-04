@@ -428,7 +428,7 @@ BEST.scene('creative:twitter', {
         notificationsIcon: 'assets/images/notifications.png',
         messagesIcon: 'assets/images/messages.png',
         profileIcon: 'assets/images/profile.png',
-        currentView: 'home',
+        currentView: 'messages',
         homeViewPositionX: 0,
         notificationViewPositionX: window.innerWidth,
         messagesViewPositionX: window.innderWidth,
@@ -441,7 +441,7 @@ BEST.scene('creative:twitter', {
         'assets/styles/twitter.css'
     ],
     imports: {
-        'creative:twitter': ['tweet', 'message', 'notification', 'profile'],
+        'creative:twitter': ['tweet', 'messages', 'notification', 'profile'],
         'famous:demos:layouts': ['header-footer']
     }
 });

@@ -38,5 +38,5 @@ BEST.scene('creative:twitter:tweet', {
 }).config({
     includes: [
         'assets/styles/tweet.css'
-    ],
+    ]
 });
