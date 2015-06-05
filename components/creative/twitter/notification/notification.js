@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter:notification', 'HEAD', {
+BEST.scene('creative:twitter:notification', {
     behaviors: {},
     events: {},
     states: {},

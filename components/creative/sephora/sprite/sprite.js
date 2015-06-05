@@ -14,7 +14,7 @@ const SPRITE_TYPES = {
     'letter-s': [27, 36],
     'light': [15, 15]
 };
-BEST.module('creative:sephora:sprite', 'HEAD', {
+BEST.module('creative:sephora:sprite', {
     behaviors: {
         '#sprite': {
             'add-class': currType => { return `sephora-sprite-${currType}` },

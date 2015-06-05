@@ -1,4 +1,4 @@
-BEST.module('creative:sephora', 'HEAD', {
+BEST.module('creative:sephora', {
     behaviors: {
         '#background': { style: { background: '#000' } },
         '#bottle': { 'type': 'bottle' },

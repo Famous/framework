@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter:profile', 'HEAD', {
+BEST.scene('creative:twitter:profile', {
     behaviors: {},
     events: {},
     states: {},
