@@ -108,11 +108,12 @@ Builder.DEFAULTS = {
     defaultExtends: ['famous:core:node'],
     defaultImports: {
         'famous:core': [
-            'components', 
-            'context', 
-            'dom-element', 
-            'ui-element', 
-            'view', 
+            'components',
+            'context',
+            'dom-element',
+            'node',
+            'ui-element',
+            'view',
             'wrapper'
         ],
         'famous:events': [

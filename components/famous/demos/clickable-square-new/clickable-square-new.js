@@ -26,13 +26,18 @@ BEST.scene('famous:demos:clickable-square-new', {
      *          }
      */
     behaviors: {
-        '#square': {
+        '$self': {
             'size': [400, 400],
             'align': [0.5, 0.5],
             'origin': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
-            'content': function(numberOfClicks) {
-                return '<h1>' + numberOfClicks + '</h1>';
+            // 'content': function(numberOfClicks) {
+            //     return '<h1>' + numberOfClicks + '</h1>';
+            // },
+            template: function(numberOfClicks) {
+                return {
+                    clickCount: numberOfClicks
+                };
             },
             'rotation-z': function(angle) {
                 return angle;
@@ -47,6 +52,12 @@ BEST.scene('famous:demos:clickable-square-new', {
                 'cursor': 'pointer'
             },
             'unselectable': true
+        },
+        'ui-element' : {
+            size: [100, 100],
+            style: {
+                background: 'red'
+            }
         }
     },
     /**
@@ -62,7 +73,7 @@ BEST.scene('famous:demos:clickable-square-new', {
      *      plus the current numberOfClicks state.
      */
     events: {
-        '#square': {
+        '$self': {
             'click': function($state) {
                 $state.set('numberOfClicks', 1 + $state.get('numberOfClicks'));
                 $state.set('angle', $state.get('angle') + Math.PI/2, {
@@ -80,9 +91,8 @@ BEST.scene('famous:demos:clickable-square-new', {
         numberOfClicks: 0,
         angle: 0
     },
-    /**
-     * Tree:
-     *      Create a square.
-     */
-    tree: `<ui-element id="square"></ui-element>`
+    tree: `
+        <h1>{{clickCount}}</h1>
+        <p>This is some text</p>
+    `
 });

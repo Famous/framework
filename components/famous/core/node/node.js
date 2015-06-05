@@ -1,114 +1,90 @@
 BEST.module('famous:core:node', {
     behaviors: {
         '$self' : {
-            '$yield': true,
-            'add-class': '[[identity|addClass]]',
-            'assign-id': '[[identity|id]]',
-            'assign-content': '[[identity|content]]',
-            'assign-style': '[[identity|style]]',
-            'assign-geometry': '[[identity|geometry]]',
-            'assign-material': '[[identity|material]]',
-            'assign-base-color': '[[identity|baseColor]]',
-            'assign-normals': '[[identity|normals]]',
-            'assign-position-offsets': '[[identity|positionOffsets]]',
-            'assign-glossiness': '[[identity|glossiness]]',
-            'assign-attributes': '[[identity|attributes]]',
-            'assign-locals': '[[identity|locals]]',
-            'famous:core:components:align': '[[identity|align]]',
-            'famous:core:components:align-x': '[[identity|alignX]]',
-            'famous:core:components:align-y': '[[identity|alignY]]',
-            'famous:core:components:align-z': '[[identity|alignZ]]',
-            'famous:core:components:mount-point': '[[identity|mountPoint]]',
-            'famous:core:components:mount-point-x': '[[identity|mountPointX]]',
-            'famous:core:components:mount-point-y': '[[identity|mountPointY]]',
-            'famous:core:components:mount-point-z': '[[identity|mountPointZ]]',
-            'famous:core:components:opacity': '[[identity|opacity]]',
-            'famous:core:components:origin': '[[identity|origin]]',
-            'famous:core:components:origin-x': '[[identity|originX]]',
-            'famous:core:components:origin-y': '[[identity|originY]]',
-            'famous:core:components:origin-z': '[[identity|originZ]]',
-            'famous:core:components:position': '[[identity|position]]',
-            'famous:core:components:position-x': '[[identity|positionX]]',
-            'famous:core:components:position-y': '[[identity|positionY]]',
-            'famous:core:components:position-z': '[[identity|positionZ]]',
-            'famous:core:components:offset-position': '[[identity|offsetPosition]]',
-            'famous:core:components:rotation': '[[identity|rotation]]',
-            'famous:core:components:rotation-x': '[[identity|rotationX]]',
-            'famous:core:components:rotation-y': '[[identity|rotationY]]',
-            'famous:core:components:rotation-z': '[[identity|rotationZ]]',
-            'famous:core:components:scale': '[[identity|scale]]',
-            'famous:core:components:scale-x': '[[identity|scaleX]]',
-            'famous:core:components:scale-y': '[[identity|scaleY]]',
-            'famous:core:components:scale-z': '[[identity|scaleZ]]',
-            'famous:core:components:size-absolute': '[[identity|sizeAbsolute]]',
-            'famous:core:components:size-absolute-x': '[[identity|sizeAbsoluteX]]',
-            'famous:core:components:size-absolute-y': '[[identity|sizeAbsoluteY]]',
-            'famous:core:components:size-absolute-z': '[[identity|sizeAbsoluteZ]]',
-            'famous:core:components:size-proportional': '[[identity|sizeProportional]]',
-            'famous:core:components:size-proportional-x': '[[identity|sizeProportionalX]]',
-            'famous:core:components:size-proportional-y': '[[identity|sizeProportionalY]]',
-            'famous:core:components:size-proportional-z': '[[identity|sizeProportionalZ]]',
-            'famous:core:components:size-differential': '[[identity|sizeDifferential]]',
-            'famous:core:components:size-differential-x': '[[identity|sizeDifferentialX]]',
-            'famous:core:components:size-differential-y': '[[identity|sizeDifferentialY]]',
-            'famous:core:components:size-differential-z': '[[identity|sizeDifferentialZ]]',
-            'remove-class' : '[[identity|removeClass]]'
+            '$yield': true
         }
     },
     events: {
         '$public': {
-            'add-class': '[[setter|camel]]',
-            'align': '[[setter]]',
-            'align-x': '[[setter|camel]]',
-            'align-y': '[[setter|camel]]',
-            'align-z': '[[setter|camel]]',
-            'attributes': '[[setter]]',
-            'base-color': '[[setter|camel]]',
-            'normals': '[[setter]]',
-            'position-offsets': '[[setter|camel]]',
-            'glossiness': '[[setter]]',
-            'geometry': '[[setter]]',
-            'backface-visible': function($state, $payload) {
+            'add-class': function($DOMElement, $payload) { $DOMElement.addClass($payload); },
+            'align': function($famousNode, $payload) { $famousNode.setAlign($payload[0], $payload[1], $payload[2]); },
+            'align-x': function($famousNode, $payload) { $famousNode.setAlign($payload, null, null); },
+            'align-y': function($famousNode, $payload) { $famousNode.setAlign(null, $payload, null); },
+            'align-z': function($famousNode, $payload) { $famousNode.setAlign(null, null, $payload); },
+            'attributes': function($DOMElement, $payload) {
+                for (var attributeName in $payload) {
+                    $DOMElement.setAttribute(attributeName, $payload[attributeName]);
+                }
+            },
+            'backface-visible': function($state, $payload, $dispatcher) {
                 var style = $state.get('style') || {};
                 style['-webkit-backface-visibility'] = ($payload) ? 'visible' : 'hidden';
                 style['backface-visibility'] = ($payload) ? 'visible' : 'hidden';
-                $state.set('style', style);
+                $dispatcher.trigger('style', style);
             },
-            'border' : function($DOMElement, $payload) { $DOMElement.setProperty('border', $payload); },
-            'box-shadow': function($state, $payload) {
+            'base-color': function($mesh, $payload, $state) {
+                $mesh.setBaseColor(new Famous.utilities.Color($payload));
+                if (!$state.get('hasGeometry')) {
+                    $mesh.setGeometry(new Famous.webglGeometries.Plane());
+                    $state.set('hasGeometry', true);
+                }
+            },
+            'box-shadow': function($state, $payload, $dispatcher) {
                 var style = $state.get('style') || {};
                 style['-webkit-box-shadow'] = $payload;
                 style['-moz-box-shadow'] = $payload;
                 style['box-shadow'] = $payload;
-                $state.set('style', style);
+                $dispatcher.trigger('style', style);
             },
-            'content': '[[setter]]',
-            'id': '[[setter]]',
-            'mount-point': '[[setter|camel]]',
-            'mount-point-x': '[[setter|camel]]',
-            'mount-point-y': '[[setter|camel]]',
-            'mount-point-z': '[[setter|camel]]',
-            'offset-position' : '[[setter|camel]]',
-            'opacity': '[[setter]]',
-            'origin': '[[setter]]',
-            'origin-x': '[[setter|camel]]',
-            'origin-y': '[[setter|camel]]',
-            'origin-z': '[[setter|camel]]',
-            'overflow' : function($DOMElement, $payload) { $DOMElement.setProperty('overflow', $payload); },
-            'position': '[[setter]]',
-            'position-x': '[[setter|camel]]',
-            'position-y': '[[setter|camel]]',
-            'position-z': '[[setter|camel]]',
-            'remove-class' : '[[setter|camel]]',
-            'rotation': '[[setter]]',
-            'rotation-x': '[[setter|camel]]',
-            'rotation-y': '[[setter|camel]]',
-            'rotation-z': '[[setter|camel]]',
-            'scale': '[[setter]]',
-            'scale-x': '[[setter|camel]]',
-            'scale-y': '[[setter|camel]]',
-            'scale-z': '[[setter|camel]]',
-            'set-html': function($state, $payload) {
+            'camera': function($camera, $payload) { $camera.set($payload[0], $payload[1]); },
+            'content': function($DOMElement, $payload) {
+                $DOMElement.setContent($payload);
+            },
+            'geometry': function($mesh, $payload, $state) {
+                $mesh.setGeometry(new Famous.webglGeometries[$payload.shape]($payload.options));
+                $state.set('hasGeometry', true);
+            },
+            'glossiness': function($mesh, $payload) {
+                $mesh.setGlossiness($payload.glossiness, $payload.strength);
+            },
+            'id': function($DOMElement, $payload) { $DOMElement.setId($payload); },
+            'mount-point': function($famousNode, $payload) { $famousNode.setMountPoint($payload[0], $payload[1], $payload[2]); },
+            'mount-point-x': function($famousNode, $payload) { $famousNode.setMountPoint($payload, null, null); },
+            'mount-point-y': function($famousNode, $payload) { $famousNode.setMountPoint(null, $payload, null); },
+            'mount-point-z': function($famousNode, $payload) { $famousNode.setMountPoint(null, null, $payload); },
+            'normals': function($mesh, $payload) {
+                $mesh.setNormals($payload);
+            },
+            'offset-position': function($famousNode, $payload) {
+                var currentPos = $famousNode.getPosition();
+                $famousNode.setPosition(
+                    currentPos[0] + $payload[0] || 0,
+                    currentPos[1] + $payload[1] || 0,
+                    currentPos[2] + $payload[2] || 0
+                );
+            },
+            'opacity': function($famousNode, $payload) { $famousNode.setOpacity($payload); },
+            'origin': function($famousNode, $payload) {$famousNode.setOrigin($payload[0], $payload[1], $payload[2]); },
+            'origin-x': function($famousNode, $payload) { $famousNode.setOrigin($payload, null, null); },
+            'origin-y': function($famousNode, $payload) { $famousNode.setOrigin(null, $payload, null); },
+            'origin-z': function($famousNode, $payload) { $famousNode.setOrigin(null, null, $payload); },
+            'position': function($famousNode, $payload) { $famousNode.setPosition($payload[0], $payload[1], $payload[2]); },
+            'position-offsets': function($mesh, $payload) {
+                $mesh.setPositonOffsets($payload);
+            },
+            'position-x': function($famousNode, $payload) { $famousNode.setPosition($payload, null, null); },
+            'position-y': function($famousNode, $payload) { $famousNode.setPosition(null, $payload, null); },
+            'position-z': function($famousNode, $payload) { $famousNode.setPosition(null, null, $payload); },
+            'remove-class': function($DOMElement, $payload) { $DOMElement.removeClass($payload); },
+            'rotation': function($famousNode, $payload) { $famousNode.setRotation($payload[0], $payload[1], $payload[2], $payload[3]); },
+            'rotation-x': function($famousNode, $payload) { $famousNode.setRotation($payload, null, null); },
+            'rotation-y': function($famousNode, $payload) { $famousNode.setRotation(null, $payload, null); },
+            'rotation-z': function($famousNode, $payload) { $famousNode.setRotation(null, null, $payload); },
+            'scale': function($famousNode, $payload) { $famousNode.setScale($payload[0], $payload[1], $payload[2]); },
+            'scale-x': function($famousNode, $payload) { $famousNode.setScale($payload, null, null); },
+            'scale-y': function($famousNode, $payload) { $famousNode.setScale(null, $payload, null); },
+            'scale-z': function($famousNode, $payload) { $famousNode.setScale(null, null, $payload); },
+            'set-html': function($state, $payload, $dispatcher) {
                 var content = '';
                 var outerHTML;
                 for (var i = 0; i < $payload.length; i++) {
@@ -116,51 +92,67 @@ BEST.module('famous:core:node', {
                     content += (outerHTML) ? outerHTML : '';
                 }
                 $state.set('content', content);
+                $dispatcher.trigger('content', content);
             },
-            'size': function($state, $payload){ $state.set('sizeAbsolute', $payload); },
-            'size-absolute': '[[setter|camel]]',
-            'size-absolute-x': '[[setter|camel]]',
-            'size-absolute-y': '[[setter|camel]]',
-            'size-absolute-z': '[[setter|camel]]',
-            'size-differential': '[[setter|camel]]',
-            'size-differential-x': '[[setter|camel]]',
-            'size-differential-y': '[[setter|camel]]',
-            'size-differential-z': '[[setter|camel]]',
-            'size-proportional': '[[setter|camel]]',
-            'size-proportional-x': '[[setter|camel]]',
-            'size-proportional-y': '[[setter|camel]]',
-            'size-proportional-z': '[[setter|camel]]',
-            'style': '[[setter]]',
-            'template': function($state, $payload) { $state.set('locals', $payload); },
-            'unselectable': function($state, $payload) {
-                if ($payload) {
-                    var style = $state.get('style') || {};
-                    style['-moz-user-select'] = '-moz-none';
-                    style['-khtml-user-select'] = 'none';
-                    style['-webkit-user-select'] = 'none';
-                    style['-o-user-select'] = 'none';
-                    style['user-select'] = 'none';
-                    $state.set('style', style);
-                }
+            size: function($famousNode, $payload) {
+                // `size` defaults to `size-absolute`
+                $famousNode.setSizeMode(1, 1, 1);
+                $famousNode.setAbsoluteSize($payload[0], $payload[1], $payload[2]);
             },
-        },
-        '$private' : {
-            'add-class': function($DOMElement, $payload) { $DOMElement.addClass($payload); },
-            'assign-id': function($DOMElement, $payload) { $DOMElement.setId($payload); },
-            'assign-content': function($DOMElement, $payload) {
-                $DOMElement.setContent($payload);
+            'size-absolute': function($famousNode, $payload) {
+                $famousNode.setSizeMode(1, 1, 1);
+                $famousNode.setAbsoluteSize($payload[0], $payload[1], $payload[2]);
             },
-            'assign-style': function($DOMElement, $payload) {
+            'size-absolute-x': function($famousNode, $payload) {
+                $famousNode.setSizeMode(1, null, null);
+                $famousNode.setAbsoluteSize($payload, null, null);
+            },
+            'size-absolute-y': function($famousNode, $payload) {
+                $famousNode.setSizeMode(null, 1, null);
+                $famousNode.setAbsoluteSize(null, $payload, null);
+            },
+            'size-absolute-z': function($famousNode, $payload) {
+                $famousNode.setSizeMode(null, null, 1);
+                $famousNode.setAbsoluteSize(null, null, $payload[2]);
+            },
+            'size-differential': function($famousNode, $payload) {
+                $famousNode.setSizeMode(0, 0, 0);
+                $famousNode.setDifferentialSize($payload[0], $payload[1], $payload[2]);
+            },
+            'size-differential-x': function($famousNode, $payload) {
+                $famousNode.setSizeMode(0, null, null);
+                $famousNode.setDifferentialSize($payload, null, null);
+            },
+            'size-differential-y': function($famousNode, $payload) {
+                $famousNode.setSizeMode(null, 0, null);
+                $famousNode.setDifferentialSize(null, $payload, null);
+            },
+            'size-differential-z': function($famousNode, $payload) {
+                $famousNode.setSizeMode(null, null, 0);
+                $famousNode.setDifferentialSize(null, null, $payload[2]);
+            },
+            'size-proportional': function($famousNode, $payload) {
+                $famousNode.setSizeMode(0, 0, 0);
+                $famousNode.setProportionalSize($payload[0], $payload[1], $payload[2]);
+            },
+            'size-proportional-x': function($famousNode, $payload) {
+                $famousNode.setSizeMode(0, null, null);
+                $famousNode.setProportionalSize($payload, null, null);
+            },
+            'size-proportional-y': function($famousNode, $payload) {
+                $famousNode.setSizeMode(null, 0, null);
+                $famousNode.setProportionalSize(null, $payload, null);
+            },
+            'size-proportional-z': function($famousNode, $payload) {
+                $famousNode.setSizeMode(null, null, 0);
+                $famousNode.setProportionalSize(null, null, $payload[2]);
+            },
+            'style': function($DOMElement, $payload) {
                 for (var styleName in $payload) {
                     $DOMElement.setProperty(styleName, $payload[styleName]);
                 }
             },
-            'assign-attributes': function($DOMElement, $payload) {
-                for (var attributeName in $payload) {
-                    $DOMElement.setAttribute(attributeName, $payload[attributeName]);
-                }
-            },
-            'assign-locals': function($mustache, $state, $payload) {
+            'template': function($mustache, $state, $payload, $dispatcher) {
                 if ($state.get('didTemplate')) {
                     var initialContent = $state.get('initialContent');
                 }
@@ -170,33 +162,22 @@ BEST.module('famous:core:node', {
                     $state.set('didTemplate', true);
                 }
                 var templatedContent = $mustache(initialContent+'', $payload);
-                $state.set('content', templatedContent);
+                $dispatcher.trigger('content', templatedContent);
             },
-            'remove-class': function($DOMElement, $payload) { $DOMElement.removeClass($payload); },
-            'assign-geometry': function($mesh, $payload, $state) {
-                $mesh.setGeometry(new Famous.webglGeometries[$payload.shape]($payload.options));
-                $state.set('hasGeometry', true);
-            },
-            'assign-base-color': function($mesh, $payload, $state) {
-                $mesh.setBaseColor(new Famous.utilities.Color($payload));
-                if (!$state.get('hasGeometry')) {
-                    $mesh.setGeometry(new Famous.webglGeometries.Plane());
-                    $state.set('hasGeometry', true);
+            'unselectable': function($state, $payload, $dispatcher) {
+                if ($payload) {
+                    var style = $state.get('style') || {};
+                    style['-moz-user-select'] = '-moz-none';
+                    style['-khtml-user-select'] = 'none';
+                    style['-webkit-user-select'] = 'none';
+                    style['-o-user-select'] = 'none';
+                    style['user-select'] = 'none';
+                    $dispatcher.trigger('style', style);
                 }
             },
-            'assign-normals': function($mesh, $payload) {
-                $mesh.setNormals($payload);
-            },
-            'assign-position-offsets': function($mesh, $payload) {
-                $mesh.setPositonOffsets($payload);
-            },
-            'assign-glossiness': function($mesh, $payload) {
-                $mesh.setGlossiness($payload.glossiness, $payload.strength);
-            }
         }
     },
     states: {
-        'locals': {},
         'didTemplate': false,
         'initialContent': '',
         'hasGeometry': false
