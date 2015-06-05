@@ -1,40 +1,98 @@
-BEST.module('famous:demos:clickable-square', {
+BEST.scene('famous:demos:clickable-square', {
+    /**
+     * Behaviors:
+     *      Target the square in our tree
+     *      using selectors and set size, style
+     *      and other Famous properties.
+     *
+     *      Content is a function of our numberOfClicks state
+     *      and will rerun on each numberOfClicks state change.
+     *
+     *      Rotation is also a function
+     *      of our numberOfClicks state.
+     *
+     *      Sugar:
+     *          'unselectable': true
+     *
+     *          ... is equivalent to ...
+     *
+     *          'style': {
+     *              '-webkit-touch-callout': 'none'
+     *              '-webkit-user-select': 'none'
+     *              '-khtml-user-select': 'none'
+     *              '-moz-user-select': 'none'
+     *              '-ms-user-select': 'none'
+     *              'user-select': 'none'
+     *          }
+     */
     behaviors: {
-        '#context': {
-            'size': function(size) { return [size, size]; },
-            'rotation-z': function(time) { return time / 1000; },
-            'mount-point': [0.5, 0.5],
+        '$self': {
+            'size': [400, 400],
             'align': [0.5, 0.5],
-            'origin': [0.5, 0.5]
-        },
-        '#surface': {
-            'content': function(count) { return '<h1>' + count + '</h1>'; },
-            'unselectable': true,
+            'origin': [0.5, 0.5],
+            'mount-point': [0.5, 0.5],
+            // 'content': function(numberOfClicks) {
+            //     return '<h1>' + numberOfClicks + '</h1>';
+            // },
+            template: function(numberOfClicks) {
+                return {
+                    clickCount: numberOfClicks
+                };
+            },
+            'rotation-z': function(angle) {
+                return angle;
+            },
             'style': {
-                'background-color': 'gray',
-                'border-radius': '10px',
-                'cursor': 'pointer',
-                'font-family': 'Helvetica'
+                'color': '#7099EE',
+                'background': '#222222',
+                'border': '6px solid #333333',
+                'text-align': 'center',
+                'font-size': '60px',
+                'font-family': 'Lato',
+                'cursor': 'pointer'
+            },
+            'unselectable': true
+        },
+        'ui-element' : {
+            size: [100, 100],
+            style: {
+                background: 'red'
             }
         }
     },
+    /**
+     * Events:
+     *      Target the square in our tree
+     *      using selectors and attach a click
+     *      event listener with a callback.
+     *
+     *      Inject state (denoted with a $)
+     *      into our callback function.
+     *
+     *      Set the numberOfClicks state to one
+     *      plus the current numberOfClicks state.
+     */
     events: {
-        '$lifecycle': {
-            'post-load': function($state) {
-                var time = 1000000;
-                $state.set('time', time, { duration: time });
-            }
-        },
-        '#context': {
-            'click': function($state, $payload) {
-                $state.set('count', $state.get('count') + 1);
-                $state.set('size', $state.get('size') + 50, {
-                    duration: 1000,
+        '$self': {
+            'click': function($state) {
+                $state.set('numberOfClicks', 1 + $state.get('numberOfClicks'));
+                $state.set('angle', $state.get('angle') + Math.PI/2, {
+                    duration: 500,
                     curve: 'outBounce'
                 });
             }
         }
     },
-    states: { time: 0, count: 0, size: 100, offset: 50 },
-    tree: 'clickable-square.html'
+    /**
+     * States:
+     *      The numberOfClicks state is 0.
+     */
+    states: {
+        numberOfClicks: 0,
+        angle: 0
+    },
+    tree: `
+        <h1>{{clickCount}}</h1>
+        <ui-element><div>HI</div></ui-element>
+    `
 });
