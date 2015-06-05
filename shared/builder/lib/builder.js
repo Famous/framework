@@ -158,7 +158,6 @@ Builder.DEFAULTS = {
     treeFacetKeyName: 'tree'
 };
 
-<<<<<<< HEAD
 Builder.prototype.buildModule = function(info, finish) {
     var subRoutines = [];
     subRoutines.push(this.preprocessFiles);
