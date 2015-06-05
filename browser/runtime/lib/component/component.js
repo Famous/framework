@@ -16,6 +16,7 @@ var ArrayUtils = require('./../../../utilities/array');
 var Utilities = require('./../utilities/utilities');
 
 var NODE_UID_PREFIX = 'node';
+var SET_HTML_KEY = 'set-html';
 var YIELD_KEY = '$yield';
 var REPEAT_INFO_KEY = 'repeat-info';
 var CONTROL_FLOW_ACTION_KEY = 'control-flow-action';
@@ -184,8 +185,15 @@ Component.prototype._handleBehaviorUpdate = function _handleBehaviorUpdate(behav
 /*-----------------------------------------------------------------------------------------*/
 
 Component.prototype._initializeControlFlow = function _initializeControlFlow() {
+    var blueprint = this.tree.getBlueprint();
+    var htmlElements = VirtualDOM.stripHTMLElements(blueprint);
+
+    if (this.events.getPublicEvent(SET_HTML_KEY)) {
+        this.events.sendMessage(SET_HTML_KEY, htmlElements, this.uid);
+    }
+
     var expandedBlueprint = ControlFlow.initializeSelfContainedFlows(
-        this.tree.getBlueprint(), this.uid, this.controlFlowDataMngr
+        blueprint, this.uid, this.controlFlowDataMngr
     );
     this.tree.setExpandedBlueprint(expandedBlueprint);
 

@@ -7,23 +7,37 @@ var DO_CLONE_ATTRIBUTES = true;
 var COMPONENT_DELIM = ':';
 var ESCAPED_COLON = '\\\:';
 
+
 var BEST_ROOT = document.createElement('best-root');
 var UID_KEY = 'uid';
 var TAG_KEY = 'tag';
+var VALID_HTML_TAGS = [
+    '<a>', '<abbr>', '<address>', '<area>', '<article>', '<aside>', '<audio>', '<b>',
+    '<base>', '<bdi>', '<bdo>', '<blockquote>', '<body>', '<br>', '<button>', '<canvas>',
+    '<caption>', '<cite>', '<code>', '<col>', '<colgroup>', '<command>', '<content>', '<data>',
+    '<datalist>', '<dd>', '<del>', '<details>', '<dfn>', '<div>', '<dl>', '<dt>', '<element>',
+    '<em>', '<embed>', '<fieldset>', '<figcaption>', '<figure>', '<font>', '<footer>', '<form>',
+    '<head>', '<header>', '<hgroup>', '<hr>', '<html>', '<i>', '<iframe>', '<image>', '<img>',
+    '<input>', '<ins>', '<kbd>', '<keygen>', '<label>', '<legend>', '<li>', '<link>', '<main>',
+    '<map>', '<mark>', '<menu>', '<menuitem>', '<meta>', '<meter>', '<nav>', '<noframes>', '<noscript>',
+    '<object>', '<ol>', '<optgroup>', '<option>', '<output>', '<p>', '<param>', '<picture>', '<pre>',
+    '<progress>', '<q>', '<rp>', '<rt>', '<rtc>', '<ruby>', '<s>', '<samp>', '<script>', '<section>',
+    '<select>', '<shadow>', '<small>', '<source>', '<span>', '<strong>', '<style>', '<sub>', '<summary>',
+    '<sup>', '<table>', '<tbody>', '<td>', '<template>', '<textarea>', '<tfoot>', '<th>', '<thead>', '<time>',
+    '<title>', '<tr>', '<track>', '<u>', '<ul>', '<var>', '<video>', '<wbr>'
+];
 
 function create(str) {
     return document.createElement(str);
 }
-
-function addNode(childNode, parentNode) {
+ function addNode(childNode, parentNode) {
     parentNode.appendChild(childNode);
 }
 
 function getBaseNode() {
     return BEST_ROOT;
 }
-
-function transferChildNodes(from, to) {
+ function transferChildNodes(from, to) {
     while (from.childNodes[0]) {
         to.appendChild(from.childNodes[0]);
     }
@@ -135,26 +149,49 @@ function isDescendant(desendant, progenitor) {
     return result;
 }
 
+function stripHTMLElements(domNode) {
+    var htmlElements = [];
+    var child;
+    var tag;
+    var nodesToProcess = domNode.children.length;
+    var processCount = 0;
+    var childIndex = 0;
+    while (processCount < nodesToProcess) {
+        child = domNode.children[childIndex];
+        tag = '<' + child.tagName.toLowerCase() + '>';
+
+        if (VALID_HTML_TAGS.indexOf(tag) !== -1) {
+            htmlElements.push(domNode.removeChild(child));
+        }
+        else {
+            childIndex++;
+        }
+        processCount++;
+    }
+    return htmlElements;
+}
+
 module.exports = {
-    create: create,
     addNode: addNode,
-    getBaseNode: getBaseNode,
-    parse: parse,
-    clone: clone,
-    query: query,
-    eachNode: eachNode,
     attachAttributeFromJSON: attachAttributeFromJSON,
+    clone: clone,
+    create: create,
+    deleteNode: deleteNode,
+    eachNode: eachNode,
     getAttribute: getAttribute,
+    getBaseNode: getBaseNode,
+    getNodeByUID: getNodeByUID,
+    getParentUID: getParentUID,
+    getTag: getTag,
+    getUID: getUID,
+    isDescendant: isDescendant,
+    parse: parse,
+    query: query,
     queryAttribute: queryAttribute,
     removeChildNodes: removeChildNodes,
-    transferChildNodes: transferChildNodes,
     removeNodeByUID: removeNodeByUID,
     setTag: setTag,
-    getTag: getTag,
     setUID: setUID,
-    getUID: getUID,
-    getParentUID: getParentUID,
-    getNodeByUID: getNodeByUID,
-    deleteNode: deleteNode,
-    isDescendant: isDescendant
+    stripHTMLElements: stripHTMLElements,
+    transferChildNodes: transferChildNodes
 };

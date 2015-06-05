@@ -1,4 +1,4 @@
-BEST.module('famous:core:ui-element', {
+BEST.module('famous:core:node', {
     behaviors: {
         '$self' : {
             '$yield': true,
@@ -108,6 +108,15 @@ BEST.module('famous:core:ui-element', {
             'scale-x': '[[setter|camel]]',
             'scale-y': '[[setter|camel]]',
             'scale-z': '[[setter|camel]]',
+            'set-html': function($state, $payload) {
+                var content = '';
+                var outerHTML;
+                for (var i = 0; i < $payload.length; i++) {
+                    outerHTML = $payload[i].outerHTML;
+                    content += (outerHTML) ? outerHTML : '';
+                }
+                $state.set('content', content);
+            },
             'size': function($state, $payload){ $state.set('sizeAbsolute', $payload); },
             'size-absolute': '[[setter|camel]]',
             'size-absolute-x': '[[setter|camel]]',
@@ -134,15 +143,6 @@ BEST.module('famous:core:ui-element', {
                     $state.set('style', style);
                 }
             },
-            '$yield': function($state, $payload) {
-                var content = '';
-                var surrogates = $payload.surrogateRoot ? $payload.surrogateRoot.childNodes : [];
-                for (var i = 0; i < surrogates.length; i++) {
-                    var outerHTML = surrogates[i].outerHTML;
-                    content += (outerHTML) ? outerHTML : '';
-                }
-                $state.set('content', content);
-            }
         },
         '$private' : {
             'add-class': function($DOMElement, $payload) { $DOMElement.addClass($payload); },
@@ -201,4 +201,8 @@ BEST.module('famous:core:ui-element', {
         'initialContent': '',
         'hasGeometry': false
     }
+})
+.config({
+    extends: [],
+    imports: {}
 });
