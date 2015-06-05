@@ -223,7 +223,7 @@ test('StateManager', function(t) {
         t.deepEqual(SM.get('array'), [4, 4, 4], 'should tween array state after tweening number state');
         time = 2000;
         SM.onUpdate();
-        t.deepEqual(SM.get('array'), [5, 5, 5])
+        t.deepEqual(SM.get('array'), [5, 5, 5]);
         time = 2500;
         SM.onUpdate();
         t.equal(SM.get(['nestedState', 'moreNesting', 'nestingArray', 0]), 0.5, 'should tween nested state after tweening number state');

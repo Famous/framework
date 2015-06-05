@@ -78,6 +78,9 @@ Assistant.prototype.tuplesRecursive = function(tuples, baseDir, subDir, cb) {
 
 Assistant.prototype.buildRecursive = function(baseDir, subDir, finish) {
     this.tuplesRecursive([], baseDir, subDir, function(err, tuples) {
+        if (err) {
+            console.error(err);
+        }
         Async.mapSeries(tuples, function(tuple, cb) {
             this.buildSingle(tuple[0], tuple[1], cb);
         }.bind(this), finish);

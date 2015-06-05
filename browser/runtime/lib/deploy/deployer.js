@@ -145,7 +145,7 @@ Deployer.prototype.deploy = function(moduleName, moduleTag, selector) {
         // This can be called before the includes have finished loading
         this.whenIncludesAreReady(moduleName, moduleTag, function() {
             this.execute(moduleName, moduleTag, selector);
-        }.bind(this))
+        }.bind(this));
     }.bind(this));
 };
 

@@ -225,7 +225,6 @@ module.exports = {
     getTimelines: getTimelines,
     registerComponent: registerComponent,
     registerModule: registerModule,
-    registerModule: registerModule,
     saveDependencies: saveDependencies,
     saveExecutedComponent: saveExecutedComponent,
     setAttachment: setAttachment

@@ -240,7 +240,7 @@ function expandSyntax(info, cb) {
         var extname = Path.extname(file.path);
         if (extname === '.js') {
             var basename = Path.basename(file.path, extname);
-            var entrypointBasename = BuildHelpers.moduleNameToEntrypointBasename.call(this, info.name)
+            var entrypointBasename = BuildHelpers.moduleNameToEntrypointBasename.call(this, info.name);
             // We don't want to inline a file into itself.
             if (basename !== entrypointBasename) {
                 // Only push files that are explicitly 'includes' into the bundle

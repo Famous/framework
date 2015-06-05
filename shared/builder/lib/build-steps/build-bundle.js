@@ -19,10 +19,6 @@ function indent(str) {
     return (TAB + str).replace(NEWLINE_REGEXP, NEWLINE + TAB);
 }
 
-function iifeWrap(code) {
-    return '(function(){\n' + code + '\n}());';
-}
-
 function copyright() {
     var startYear = '2015';
     var currYear = new Date().getFullYear().toString();
@@ -69,7 +65,7 @@ function buildRegistrationBlocks(parcelHash) {
 }
 
 function buildIncludesSuffix() {
-    return '});'
+    return '});';
 }
 
 function buildBundleString(info) {

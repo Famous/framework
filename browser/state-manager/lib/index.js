@@ -171,7 +171,6 @@ StateManager.prototype.setState = function setState(key, value, transition) {
             break;
         case 'Function':
             throw new Error('Cannot set state of type: ' + valueType);
-            break;
         default:
             if (transition) {
                 throw new Error('Cannot transition state of type: ' + valueType);
@@ -509,10 +508,10 @@ StateManager.prototype.onUpdate = function onUpdate() {
     this._Famous.requestUpdate(this);
 };
 
-function isTransitionable(key) {
-    if (!this._transitionables[key]) return false;
-    return this._transitionables[key] instanceof this._Transitionable;
-}
+// function isTransitionable(key) {
+//     if (!this._transitionables[key]) return false;
+//     return this._transitionables[key] instanceof this._Transitionable;
+// }
 
 function setObject(key, val, object) {
     key = parse(key);
