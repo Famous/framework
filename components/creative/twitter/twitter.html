@@ -9,11 +9,22 @@
 
         <view id="body">
             <dom-element class="body-background"></dom-element>
-            <tweet2 class="home-view"></tweet2>
 
-            <ui-element class="notifications-view"><div>Notifications</div></ui-element>
-            <ui-element class="messages-view"><div>Messages</div></ui-element>
-            <ui-element class="profile-view"><div>Profile</div></ui-element>
+            <view class="home-view">
+                <tweet class="tweet"></tweet>
+            </view>
+
+            <view class="notifications-view">
+                <notification class="notification"></notification>
+            </view>
+
+            <view class="messages-view">
+                <message class="message"></message>
+            </view>
+
+            <view class="profile-view">
+                <profile class="profile"></profile>
+            </view>
         </view>
 
         <view id="footer">
