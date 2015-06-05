@@ -111,6 +111,7 @@ Deployer.prototype.includes = function(includeURLs, cb) {
 // Load the given module and kick off the rendering process
 Deployer.prototype.deploy = function(moduleName, moduleTag, selector) {
     var bundleURL = this.getBundleURL(moduleName, moduleTag);
+    console.info('Deploying', bundleURL);
     this.insertJavaScript(bundleURL, function() {
         this.execute(moduleName, moduleTag, selector);
     }.bind(this));

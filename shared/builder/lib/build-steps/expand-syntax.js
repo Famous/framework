@@ -228,16 +228,26 @@ function expandSyntax(info, cb) {
         var libraryInvocation = info.libraryInvocations[moduleName];
         expandLibraryInvocation.call(this, info, moduleName, libraryInvocation);
     }
+
+    // Accumulate a list of files that have been inlined so
+    // we can avoid including them via AJAX on the client
     var inlinedFiles = [];
+
+    // Includes without the path expansion
+    var includes = BuildHelpers.buildIncludesArray(info, true);
     for (var i = 0; i < info.files.length; i++) {
         var file = info.files[i];
         var extname = Path.extname(file.path);
         if (extname === '.js') {
             var basename = Path.basename(file.path, extname);
+            var entrypointBasename = BuildHelpers.moduleNameToEntrypointBasename.call(this, info.name)
             // We don't want to inline a file into itself.
-            if (basename !== BuildHelpers.moduleNameToEntrypointBasename.call(this, info.name)) {
-                inlineJavaScriptFile.call(this, info, file);
-                inlinedFiles.push(file.path);
+            if (basename !== entrypointBasename) {
+                // Only push files that are explicitly 'includes' into the bundle
+                if (includes.indexOf(file.path) !== -1) {
+                    inlineJavaScriptFile.call(this, info, file);
+                    inlinedFiles.push(file.path);
+                }
             }
         }
     }

@@ -96,7 +96,46 @@ function stringToModuleCDNMatch(string) {
     }
 }
 
+var HTTP_REGEXP = /^https?:\/\//i;
+
+function buildIncludesArray(info, skipURLExpansion) {
+    var versionURL = info.versionURL;
+    var moduleConfigs = info.moduleConfigs;
+    var inlinedFiles = info.inlinedFiles || [];
+    var includesArray = [];
+    for (var i = 0; i < moduleConfigs.length; i++) {
+        var moduleConfig = moduleConfigs[i];
+        if (moduleConfig.includes) {
+            for (var j = 0; j < moduleConfig.includes.length; j++) {
+                var includeStr = moduleConfig.includes[j];
+                // Someone might want to get the 'raw' includes array without
+                // any expansion e.g. ['foo.js', 'bar.css']
+                if (skipURLExpansion) {
+                    includesArray.push(includeStr);
+                }
+                else {
+                    // No need to 'include' any files that have been already
+                    // inlined inside of the entrypoint
+                    if (inlinedFiles.indexOf(includeStr) === -1) {
+                        // If a full URL was given, don't prefix it with the version URL
+                        if (HTTP_REGEXP.test(includeStr)) {
+                            includesArray.push(includeStr);
+                        }
+                        else {
+                            // Note that version URL is an absolute path to the version
+                            // folder on HTTP
+                            includesArray.push(versionURL + includeStr);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return Lodash.uniq(includesArray);
+}
+
 module.exports = {
+    buildIncludesArray: buildIncludesArray,
     dependencyStringToModuleName: dependencyStringToModuleName,
     doesFileLookLikeAsset: doesFileLookLikeAsset,
     doesFileLookLikeBinary: doesFileLookLikeBinary,
