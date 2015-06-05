@@ -49,7 +49,11 @@ function buildIncludesPrefix(info) {
 
 function getFlatRegistrations(flatRegistrations, alreadyRegistered, parcelHash) {
     if (parcelHash.entrypoint) {
-        flatRegistrations.unshift(parcelHash.entrypoint);
+        flatRegistrations.unshift({
+            name: parcelHash.name,
+            version: parcelHash.version,
+            entrypoint: parcelHash.entrypoint
+        });
     }
     if (parcelHash.dependencies) {
         for (var dependencyName in parcelHash.dependencies) {
@@ -61,7 +65,22 @@ function getFlatRegistrations(flatRegistrations, alreadyRegistered, parcelHash) 
 
 function buildRegistrationBlocks(parcelHash) {
     var flatRegistrations = getFlatRegistrations([], {}, parcelHash);
-    return flatRegistrations.join(NEWLINE);
+    // Remove duplicates from the registration blocks we got.
+    // No point in registering them multiple times!
+    var uniqRegistrations = [];
+    var regTuples = {};
+    for (var i = 0; i < flatRegistrations.length; i++) {
+        var flatReg = flatRegistrations[i];
+        var regKey = flatReg.name + '-' + flatReg.version;
+        if (!regTuples[regKey]) {
+            regTuples[regKey] = true;
+            uniqRegistrations.push(flatReg);
+        }
+    }
+    var flatEntrypoints = Lodash.map(uniqRegistrations, function(regObj) {
+        return regObj.entrypoint;
+    });
+    return flatEntrypoints.join(NEWLINE);
 }
 
 function buildIncludesSuffix() {
