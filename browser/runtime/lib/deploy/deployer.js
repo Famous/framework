@@ -129,12 +129,14 @@ Deployer.prototype.whenIncludesAreReady = function(moduleName, moduleTag, cb) {
     if (this.areIncludesReady(moduleName, moduleTag)) {
         cb(null, this.includesFor(moduleName, moduleTag));
     }
-    var includesWatcher = setInterval(function() {
-        if (this.areIncludesReady(moduleName, moduleTag)) {
-            clearInterval(includesWatcher);
-            cb(this.includesFor(moduleName, moduleTag));
-        }
-    }.bind(this), this.awaitInterval);
+    else {
+        var includesWatcher = setInterval(function() {
+            if (this.areIncludesReady(moduleName, moduleTag)) {
+                clearInterval(includesWatcher);
+                cb(this.includesFor(moduleName, moduleTag));
+            }
+        }.bind(this), this.awaitInterval);
+    }
 };
 
 // Load the given module and kick off the rendering process
