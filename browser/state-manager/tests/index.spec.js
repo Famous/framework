@@ -21,6 +21,7 @@ test('StateManager', function(t) {
         });
 
         t.ok(StateManager, 'should export');
+
         t.end();
     });
 
@@ -31,6 +32,7 @@ test('StateManager', function(t) {
         t.equal(SM.get('string'), 'two', 'should get string state');
         t.deepEqual(SM.get('array'), [3, 3, 3], 'should get array state');
         t.equal(SM.get('boolean'), true, 'should get boolean state');
+
 
         t.equal(SM.get([
             'nestedState',
@@ -348,6 +350,50 @@ test('StateManager', function(t) {
         SM.onUpdate();
         t.deepEqual(SM.get('array'), [5, 5, 5]);
         t.equal(SM.get(['nestedState', 'moreNesting', 'nestingArray', 0]), 0, 'should tween nested state after tweening array state');
+
+        t.end();
+    });
+
+    t.test('setting state #11 - same state set(value).set(value).set(value)', function(t) {
+        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+
+        SM
+            .set('number', 0)
+            .set('number', 1)
+            .set('number', 2)
+            .set('number', 3);
+
+        t.equal(SM.get('number'), 3, 'should override state');
+
+        t.end();
+    });
+
+    t.test('setting state #12 - same state set(transition).set(transition).set(transition)', function(t) {
+        var time = 0;
+        var _now = Date.now();
+
+        Transitionable.Clock = {
+            now: function() {
+                return time;
+            }
+        };
+
+        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+
+        time = 0;
+        SM
+            .set('number', 0, { duration: 1000 })
+            .set('number', 1, { duration: 1000 })
+            .set('number', 2, { duration: 1000 })
+            .set('number', 3, { duration: 1000 });
+        SM.onUpdate();
+        t.equal(SM.get('number'), 1);
+        time = 500;
+        SM.onUpdate();
+        t.equal(SM.get('number'), 2, 'should override state transition');
+        time = 1000;
+        SM.onUpdate();
+        t.equal(SM.get('number'), 3);
 
         t.end();
     });
