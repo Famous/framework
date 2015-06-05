@@ -168,8 +168,9 @@ Assistant.prototype.watchDirectory = function(baseDir, subDir) {
         if (moduleFullDir) {
             var moduleRelativeDir = moduleFullDir.replace(baseDir, BLANK).replace(/^\//, '');
             this.buildSingle(baseDir, moduleRelativeDir, function(err, result) {
-                if (err) console.error('best-assistant:', err);
-                console.log('best-assistant:', result.body);
+                if (err) {
+                    console.error('best-assistant:', err);
+                }
             });
         }
     }.bind(this), 1000);
