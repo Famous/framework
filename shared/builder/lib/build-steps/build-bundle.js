@@ -45,9 +45,10 @@ function getFlatIncludes(flatIncludes, parcelHash) {
     return Lodash.uniq(flatIncludes);
 }
 
-function buildIncludesPrefix(parcelHash) {
+function buildIncludesPrefix(info) {
+    var parcelHash = info.parcelHash;
     var flatIncludes = getFlatIncludes([], parcelHash);
-    return 'BEST.includes(' + JSON.stringify(flatIncludes) + ',function(){';
+    return 'BEST.includes("' + info.name + '", "' + info.versionRef + '", ' + JSON.stringify(flatIncludes) + ',function(){';
 }
 
 function getFlatRegistrations(flatRegistrations, alreadyRegistered, parcelHash) {
@@ -75,7 +76,7 @@ function buildBundleString(info) {
     return [
         copyright(),
         '\'use strict\';',
-        buildIncludesPrefix(info.parcelHash),
+        buildIncludesPrefix(info),
         indent(buildRegistrationBlocks(info.parcelHash)),
         buildIncludesSuffix(),
         copyright()

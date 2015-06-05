@@ -12,6 +12,8 @@ function Deployer() {
     this.options = ObjUtils.clone(Deployer.DEFAULTS);
     this.assetsLoaded = {};
     this.assetsInserted = {};
+    this.awaitInterval = 16;
+    this.includesReady = {};
 }
 
 Deployer.DEFAULTS = {
@@ -92,20 +94,47 @@ Deployer.prototype.insertHTML = function(url, cb) {
 };
 
 // Process any includes (remote URLs) and fire the callback
-Deployer.prototype.includes = function(includeURLs, cb) {
+Deployer.prototype.includes = function(moduleName, moduleTag, includeURLs, cb) {
     var includesLength = includeURLs.length;
     var includesLoaded = 0;
     if (includesLength < 1) {
         cb();
+        this.includesReady[moduleName] = {};
+        this.includesReady[moduleName][moduleTag] = [];
     }
     for (var i = 0; i < includeURLs.length; i++) {
         var includeURL = includeURLs[i];
         this.insertAsset(includeURL, function() {
             if (++includesLoaded === includesLength) {
                 cb();
+                this.includesReady[moduleName] = {};
+                this.includesReady[moduleName][moduleTag] = includeURLs;
             }
-        });
+        }.bind(this));
     }
+};
+
+// Return T/F if the given includes are ready
+Deployer.prototype.areIncludesReady = function(moduleName, moduleTag) {
+    return !!this.includesFor(moduleName, moduleTag);
+};
+
+// Return the includes for a given module/tag pair
+Deployer.prototype.includesFor = function(moduleName, moduleTag) {
+    return this.includesReady[moduleName] && this.includesReady[moduleName][moduleTag];
+};
+
+// Run the given callback when all includes for the given module are done.
+Deployer.prototype.whenIncludesAreReady = function(moduleName, moduleTag, cb) {
+    if (this.areIncludesReady(moduleName, moduleTag)) {
+        cb(null, this.includesFor(moduleName, moduleTag));
+    }
+    var includesWatcher = setInterval(function() {
+        if (this.areIncludesReady(moduleName, moduleTag)) {
+            clearInterval(includesWatcher);
+            cb(this.includesFor(moduleName, moduleTag));
+        }
+    }.bind(this), this.awaitInterval);
 };
 
 // Load the given module and kick off the rendering process
@@ -113,7 +142,10 @@ Deployer.prototype.deploy = function(moduleName, moduleTag, selector) {
     var bundleURL = this.getBundleURL(moduleName, moduleTag);
     console.info('Deploying', bundleURL);
     this.insertJavaScript(bundleURL, function() {
-        this.execute(moduleName, moduleTag, selector);
+        // This can be called before the includes have finished loading
+        this.whenIncludesAreReady(moduleName, moduleTag, function() {
+            this.execute(moduleName, moduleTag, selector);
+        }.bind(this))
     }.bind(this));
 };
 
