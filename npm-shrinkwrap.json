@@ -2300,6 +2300,30 @@
       "from": "mustache@>=1.1.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/mustache/-/mustache-1.2.0.tgz"
     },
+    "recursive-readdir": {
+      "version": "1.2.1",
+      "from": "recursive-readdir@*",
+      "resolved": "https://registry.npmjs.org/recursive-readdir/-/recursive-readdir-1.2.1.tgz",
+      "dependencies": {
+        "minimatch": {
+          "version": "0.3.0",
+          "from": "minimatch@>=0.3.0 <0.4.0",
+          "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-0.3.0.tgz",
+          "dependencies": {
+            "lru-cache": {
+              "version": "2.6.4",
+              "from": "lru-cache@>=2.0.0 <3.0.0",
+              "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-2.6.4.tgz"
+            },
+            "sigmund": {
+              "version": "1.0.1",
+              "from": "sigmund@>=1.0.0 <1.1.0",
+              "resolved": "https://registry.npmjs.org/sigmund/-/sigmund-1.0.1.tgz"
+            }
+          }
+        }
+      }
+    },
     "request": {
       "version": "2.57.0",
       "from": "request@>=2.55.0 <3.0.0",
