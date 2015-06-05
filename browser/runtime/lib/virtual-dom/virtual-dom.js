@@ -1,16 +1,17 @@
 'use strict';
 
-var PARSE_TYPE = 'text/html';
-var WRAPPER_NAME = 'wrapper';
-var DOM_PARSER = new DOMParser();
-var DO_CLONE_ATTRIBUTES = true;
-var COMPONENT_DELIM = ':';
-var ESCAPED_COLON = '\\\:';
-var SELF_KEY = '$self';
-
 var BEST_ROOT = document.createElement('best-root');
-var UID_KEY = 'uid';
+var COMPONENT_DELIM = ':';
+var DO_CLONE_ATTRIBUTES = true;
+var DOM_PARSER = new DOMParser();
+var ESCAPED_COLON = '\\\:';
+var PARSE_TYPE = 'text/html';
+var SELF_KEY = '$self';
+var SPAN_KEY = 'span';
 var TAG_KEY = 'tag';
+var TEXT_NODE_TYPE = 3;
+var UID_KEY = 'uid';
+var UNKNOWN_ELEMENT_NAME = 'HTMLUnknownElement';
 var VALID_HTML_TAGS = [
     '<a>', '<abbr>', '<address>', '<area>', '<article>', '<aside>', '<audio>', '<b>',
     '<base>', '<bdi>', '<bdo>', '<blockquote>', '<body>', '<br>', '<button>', '<canvas>',
@@ -26,7 +27,7 @@ var VALID_HTML_TAGS = [
     '<summary>', '<sup>', '<table>', '<tbody>', '<td>', '<template>', '<textarea>', '<tfoot>', '<th>',
     '<thead>', '<time>', '<title>', '<tr>', '<track>', '<u>', '<ul>', '<var>', '<video>', '<wbr>'
 ];
-var UNKNOWN_ELEMENT_NAME = 'HTMLUnknownElement';
+var WRAPPER_NAME = 'wrapper';
 
 function create(str) {
     return document.createElement(str);
@@ -165,15 +166,30 @@ function isValidHTMLElement(domNode) {
     }
 }
 
+function isTextNode(node) {
+    return node.nodeType === TEXT_NODE_TYPE;
+}
+
+function createSpan(text) {
+    var el = create(SPAN_KEY);
+    el.innerText = text;
+    return el;
+}
+
 function stripHTMLElements(domNode) {
     var htmlElements = [];
-    var child;
-    var nodesToProcess = domNode.children.length;
+    var nodesToProcess = domNode.childNodes.length;
     var processCount = 0;
     var childIndex = 0;
+    var child;
+    var span;
     while (processCount < nodesToProcess) {
-        child = domNode.children[childIndex];
-        if (isValidHTMLElement(child)) {
+        child = domNode.childNodes[childIndex];
+        if (isTextNode(child)) {
+            htmlElements.push(createSpan(child.textContent));
+            domNode.removeChild(child);
+        }
+        else if (isValidHTMLElement(child)) {
             htmlElements.push(domNode.removeChild(child));
         }
         else {
