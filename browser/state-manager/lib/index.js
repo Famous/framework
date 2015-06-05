@@ -8,7 +8,7 @@ var operator = require('./operator');
  * Manages states and observers to watch for changes in state.
  */
 function StateManager(initialState, Famous, Transitionable) {
-    this._state = initialState || {};
+    this._state = {};
     this._observers = {};
     this._globalObservers = [];
     this._once = [];
@@ -27,9 +27,17 @@ function StateManager(initialState, Famous, Transitionable) {
     // keep track of queue of .thenSet callbacks
     this._thenQueue = [];
 
+    this._setInitialState(initialState);
+
     this._Famous = Famous;
     this._Famous.requestUpdate(this);
 }
+
+StateManager.prototype._setInitialState = function(initialState) {
+    for (var key in initialState) {
+        this.setState(key, initialState[key]);
+    }
+};
 
 /**
  * Initializes observers by copying over
@@ -134,51 +142,57 @@ StateManager.prototype.thenSet = function thenSet(key, value, transition) {
  * (all numeric values can be treated as Transitionables)
  */
 StateManager.prototype.setState = function setState(key, value, transition) {
-    var previousState = this.get(key) || 0;
-    var transitionableExists = isTransitionable.call(this, JSON.stringify(key));
+    var keyType = getType(key);
+    var valueType = getType(value);
+    var previousValue = this.get(key);
 
-    if (!transition && transitionableExists) {
-        if (isArray(key)) key = JSON.stringify(key);
-        this._transitionables[key].halt();
-        this._setTransitionable(key, previousState, value, {});
-        return this;
+    // TODO: add type comparison of previousValue and value for error handling
+
+    if (keyType === 'Array') key = JSON.stringify(key);
+
+    switch(valueType) {
+        case 'Array':
+        case 'Number':
+            if (this._state[key]) {
+                this._transitionables[key].halt();
+            }
+            else {
+                this._transitionables[key] = new this._Transitionable(value);
+            }
+
+            if (!transition) {
+                this._transitionables[key].set(value, null, checkThenQueue.bind(this));
+                setObject(key, value, this._state);
+            }
+            else {
+                this._setTransitionable(key, previousValue, value, transition);
+                setObject(key, previousValue, this._state);
+            }
+            break;
+        case 'Function':
+            throw new Error('Cannot set state of type: ' + valueType);
+            break;
+        default:
+            if (transition) {
+                throw new Error('Cannot transition state of type: ' + valueType);
+            }
+            else {
+                setObject(key, value, this._state);
+            }
     }
 
-    if (transition) {
-        // stringify nested keys before setting transitionable
-        if (isArray(key)) key = JSON.stringify(key);
-
-        // create a new transitionable if it doesn't exist already
-        if (!transitionableExists) {
-            this._transitionables[key] = new this._Transitionable(previousState);
-        }
-        // if one exists, halt it
-        else {
-            this._transitionables[key].halt();
-        }
-
-        this._setTransitionable(key, previousState, value, transition);
-    }
-    else {
-        // If this used to be a transitionable and isn't anymore,
-        // clean up by halting and removing
-        if (transitionableExists) this._transitionables[JSON.stringify(key)].halt();
-        delete this._transitionables[JSON.stringify(key)];
-
-        // this._state[key] = value;
-        setObject(key, value, this._state);
-
-        if (isArray(key)) this._notifyObservers(key[0], value);
-        if (isString(key)) this._notifyObservers(key, value);
-    }
+    if (keyType === 'Array') this._notifyObservers(key[0], value);
+    if (keyType === 'String') this._notifyObservers(key, value);
 
     this._setLatestStateChange(key, value);
+
     return this;
 };
 
 StateManager.prototype.set = StateManager.prototype.setState;
 
 StateManager.prototype._setTransitionable = function _setTransitionable(key, previous, current, transition) {
+    transition = transition || {};
     transition.curve = transition.curve || 'linear';
     transition.duration = transition.duration || 0;
 
@@ -562,6 +576,13 @@ function isArray(value) {
  */
 function isString(value) {
     return typeof value === 'string';
+}
+
+/**
+ * Helper function to type check states.
+ */
+function getType(state) {
+    return Object.prototype.toString.call(state).slice(8, -1);
 }
 
 module.exports = StateManager;
