@@ -30,6 +30,7 @@ function findDependencyKeys(objectAST, dependenciesList) {
 function findDependencies(info, cb) {
     var dependencyTable = {};
     var dependenciesList = [];
+    var i;
 
     for (var moduleName in info.moduleDefinitionASTs) {
         var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
@@ -56,8 +57,8 @@ function findDependencies(info, cb) {
             var virtualDOM = Jsdom.jsdom(treeValue);
             var doc = virtualDOM.defaultView.document;
             var elements = doc.querySelectorAll(ALL_SELECTOR);
-            for (var j = 0; j < elements.length; j++) {
-                var element = elements[j];
+            for (i = 0; i < elements.length; i++) {
+                var element = elements[i];
                 var name = element.tagName.toLowerCase();
                 if (BuildHelpers.doesStringLookLikeDependency.call(this, name)) {
                     dependenciesList.push(name);
@@ -78,14 +79,14 @@ function findDependencies(info, cb) {
         // Check for `extends` key in config, use default extends if key is missing,
         // push values into dependency list
         var extensions = configObject.extends || this.options.defaultExtends;
-        for (var i = 0; i < extensions.length; i++) {
+        for (i = 0; i < extensions.length; i++) {
             dependenciesList.push(extensions[i]);
         }
     }
 
     // Finally, push any gathered dependencies into the table object
     var uniqDependencies = Lodash.uniq(dependenciesList);
-    for (var i = 0; i < uniqDependencies.length; i++) {
+    for (i = 0; i < uniqDependencies.length; i++) {
         var dependencyName = uniqDependencies[i];
         if (!dependencyTable[dependencyName]) {
             dependencyTable[dependencyName] = this.options.defaultDependencyVersion;

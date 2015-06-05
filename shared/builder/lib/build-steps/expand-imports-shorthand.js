@@ -92,7 +92,6 @@ function expandImportsShorthand(info, cb) {
         }
 
         // Step 4: Expand values in extends array from configuration object
-        var moduleConfigAST = info.moduleConfigASTs[moduleName];
         if (moduleConfigAST) {
             EsprimaHelpers.eachObjectProperty(info.moduleConfigASTs[moduleName], function(keyName, _1, _2, valueObj) {
                 if (keyName === EXTENDS_KEY) {

@@ -30,5 +30,6 @@ BEST.module('famous:events', {
 .config({
     imports: {
         'famous:events': [] // prevent expansion of 'size-change' to 'famous:events:size-change'
-    }
+    },
+    extends: []
 });

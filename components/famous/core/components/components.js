@@ -96,4 +96,7 @@ BEST.module('famous:core:components', {
             }
         }
     }
+})
+.config({
+    extends: []
 });

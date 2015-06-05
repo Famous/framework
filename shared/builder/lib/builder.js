@@ -5,6 +5,7 @@ var Lodash = require('lodash');
 
 function Builder(options) {
     this.options = Lodash.assign(Lodash.clone(Builder.DEFAULTS || {}), Lodash.clone(options || {}));
+    this.addExtendsToDefintion = require('./build-steps/add-extends-to-definition').bind(this);
     this.buildBundle = require('./build-steps/build-bundle').bind(this);
     this.derefDependencies = require('./build-steps/deref-dependencies').bind(this);
     this.expandImportsShorthand = require('./build-steps/expand-imports-shorthand').bind(this);
@@ -156,12 +157,14 @@ Builder.DEFAULTS = {
     treeFacetKeyName: 'tree'
 };
 
+<<<<<<< HEAD
 Builder.prototype.buildModule = function(info, finish) {
     var subRoutines = [];
     subRoutines.push(this.preprocessFiles);
     subRoutines.push(this.extractCoreObjects);
     subRoutines.push(this.linkFacets);
     subRoutines.push(this.expandImportsShorthand);
+    subRoutines.push(this.addExtendsToDefintion);
     subRoutines.push(this.findDependencies);
     subRoutines.push(this.derefDependencies);
     subRoutines.push(this.loadDependencies);

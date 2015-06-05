@@ -308,4 +308,14 @@ es.buildStringLiteralAST = function(str) {
     };
 };
 
+es.buildEsprimaArrayFromArrayOfStrings = function(arr) {
+    var result = {};
+    result.type = es.TYPES.ARRAY_EXPRESSION;
+    result.elements = [];
+    for (var i = 0; i < arr.length; i++) {
+        result.elements.push(es.buildStringLiteralAST(arr[i]));
+    }
+    return result;
+};
+
 module.exports = es;
