@@ -1,8 +1,8 @@
 'use strict';
 
-function loadDependenciesFromHub(codeManagerHost, dependencies, cb) {
+function loadDependenciesFromHub(codeManagerHost, dependenciesWanted, dependenciesFound, cb) {
     // TODO
-    cb(null, dependencies);
+    cb(null, dependenciesWanted, dependenciesFound);
 }
 
 module.exports = {

@@ -82,22 +82,26 @@ function wrapModule(name, tag, mod) {
     return new Wrapper(name, tag, mod);
 }
 
-function getModule(name, tag) {
+function getModuleDefinition(name, tag) {
     if (MODULES[name] && MODULES[name][tag]) {
-        return ObjUtils.clone(MODULES[name][tag]);
+        return ObjUtils.clone(MODULES[name][tag].definition);
     }
 }
 
-function saveModule(name, tag, definition) {
+function saveModule(name, tag, options, definition) {
     if (!MODULES[name]) {
         MODULES[name] = {};
     }
-    MODULES[name][tag] = definition;
-    return getModule(name, tag);
+    MODULES[name][tag] = {
+        definition: definition,
+        options: options
+    };
+    saveDependencies(name, tag, options.dependencies || {});
+    return getModuleDefinition(name, tag);
 }
 
 function hasModule(name, tag) {
-    return !!getModule(name, tag);
+    return !!getModuleDefinition(name, tag);
 }
 
 var NORMAL_FACET_NAMES = {
@@ -107,7 +111,7 @@ var NORMAL_FACET_NAMES = {
     'tree': true
 };
 
-function validateModule(name, tag, definition) {
+function validateModule(name, tag, options, definition) {
     for (var facetName in definition) {
         if (!(facetName in NORMAL_FACET_NAMES)) {
             console.warn('`' + name + ' (' + tag + ')` ' + 'has an unrecognized property `' + facetName + '` in its definition');
@@ -115,13 +119,13 @@ function validateModule(name, tag, definition) {
     }
 }
 
-function registerModule(name, tag, definition) {
+function registerModule(name, tag, options, definition) {
     if (!hasModule(name, tag)) {
-        validateModule(name, tag, definition);
-        return wrapModule(name, tag, saveModule(name, tag, definition));
+        validateModule(name, tag, options, definition);
+        return wrapModule(name, tag, saveModule(name, tag, options, definition));
     }
     else {
-        return wrapModule(name, tag, getModule(name, tag));
+        return wrapModule(name, tag, getModuleDefinition(name, tag));
     }
 }
 
@@ -154,16 +158,17 @@ function getExecutedComponent(selector) {
     return EXECUTED_COMPONENTS[selector];
 }
 
-function saveDependencies(name, tag, requires) {
+// We need to store the dependencies that a given module depends on
+// because we need to assign the version tags to all of the components
+// in the tree for use when selecting elements correctly
+function saveDependencies(name, tag, dependencies) {
     if (!DEPENDENCIES[name]) {
         DEPENDENCIES[name] = {};
     }
     DEPENDENCIES[name][tag] = {};
-    for (var i = 0; i < requires.length; i++) {
-        var requirement = requires[i];
-        var reqName = requirement.name;
-        var reqTag = requirement.version;
-        DEPENDENCIES[name][tag][reqName] = reqTag;
+    for (var depName in dependencies) {
+        var depVersion = dependencies[depName];
+        DEPENDENCIES[name][tag][depName] = depVersion;
     }
 }
 
@@ -177,7 +182,7 @@ function getDependencies(name, tag) {
 }
 
 module.exports = {
-    getModule: getModule,
+    getModuleDefinition: getModuleDefinition,
     registerModule: registerModule,
     getComponent: getComponent,
     getConfig: getConfig,

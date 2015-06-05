@@ -1,16 +1,26 @@
 'use strict';
 
-function getNotYetLoadedDependencies(dependencies) {
-    var notYetLoaded = [];
-    for (var depName in dependencies) {
-        var dependency = dependencies[depName];
-        if (dependency.data === this.options.defaultDependencyData) {
-            notYetLoaded.push([depName, dependency.version]);
+function getDependenciesMissing(wanted, found) {
+    var missing = {};
+    for (var depName in wanted) {
+        if (!found[depName]) {
+            missing[depName] = wanted[depName];
         }
     }
-    return notYetLoaded;
+    return missing;
+}
+
+function areAnyDependenciesMissing(wanted, found) {
+    var missing = getDependenciesMissing(wanted, found);
+    return Object.keys(missing).length > 0;
+}
+
+function looksLikeComponentWasAlreadyBuilt(info) {
+    return !!info.bundlePath;
 }
 
 module.exports = {
-    getNotYetLoadedDependencies: getNotYetLoadedDependencies
+    areAnyDependenciesMissing: areAnyDependenciesMissing,
+    getDependenciesMissing: getDependenciesMissing,
+    looksLikeComponentWasAlreadyBuilt: looksLikeComponentWasAlreadyBuilt
 };

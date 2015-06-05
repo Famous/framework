@@ -12,7 +12,7 @@ test('----- DataStore', function(t) {
         var tag = 'HEAD';
         var definition = {a: 1};
         DataStore.registerModule(name, tag, definition);
-        var retrievedModule = DataStore.getModule(name, tag);
+        var retrievedModule = DataStore.getModuleDefinition(name, tag);
         st.ok(retrievedModule.a === definition.a, 'registers and retrieves modules');
     });
 

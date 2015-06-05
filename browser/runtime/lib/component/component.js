@@ -33,7 +33,7 @@ function Component(domNode, surrogateRoot, parent) {
     this.uid = VirtualDOM.getUID(domNode);
     this.tag = VirtualDOM.getTag(domNode);
     this.dependencies = DataStore.getDependencies(this.name, this.tag);
-    this.definition = DataStore.getModule(this.name, this.tag);
+    this.definition = DataStore.getModuleDefinition(this.name, this.tag);
     this.timelineSpec = DataStore.getTimelines(this.name, this.tag);
     this.config = DataStore.getConfig(this.name, this.tag);
     this.attachments = DataStore.getAttachments(this.name, this.tag);

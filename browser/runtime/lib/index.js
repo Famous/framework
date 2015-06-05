@@ -13,43 +13,15 @@ var UNSPECIFIED_TAG = '!unspecified!';
 var OBJECT_TYPE = 'object';
 var STRING_TYPE = 'string';
 
-function returnUnspecifiedTag(name, tag) {
-    console.warn('Tag given for `' + name + '` was `' + tag + '`; defaulting to `unspecified` instead');
-    return UNSPECIFIED_TAG;
-}
-
-function register(name, tag, definition) {
-    // Allow the arguments to `register` to be flexible, i.e. allow:
-    // BEST.scene('foo:bar') (e.g. for a timeline-only API)
-    // BEST.scene('foo:bar', {...}),
-    // BEST.scene('foo:bar', '0.1', {...})
-    if (!definition) {
-        if (!tag) {
-            definition = {};
-            tag = returnUnspecifiedTag(name, tag);
-        }
-        else {
-            if (typeof tag === OBJECT_TYPE) {
-                definition = tag;
-                tag = returnUnspecifiedTag(name, tag);
-            }
-            else {
-                definition = {};
-                if (typeof tag !== STRING_TYPE) {
-                    tag = returnUnspecifiedTag(name, tag);
-                }
-            }
-        }
-
-    }
-    return DataStore.registerModule(name, tag, definition);
+function register(name, tag, options, definition) {
+    return DataStore.registerModule(name, tag, options, definition);
 }
 
 module.exports = {
     attach: deployer.attach.bind(deployer),
     deploy: deployer.deploy.bind(deployer),
     execute: deployer.execute.bind(deployer),
-    requires: deployer.requires.bind(deployer),
+    includes: deployer.includes.bind(deployer),
     register: register,
     component: register, // alias for 'register'
     module: register, // alias for 'register'

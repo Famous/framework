@@ -1,5 +1,7 @@
 'use strict';
 
+var Path = require('path');
+
 var BuildHelpers = require('./build-helpers');
 var EsprimaHelpers = require('./esprima-helpers');
 var PathingHelpers = require('./storage-helpers/pathing');
@@ -127,13 +129,76 @@ function processSyntacticalSugar(moduleName, moduleDefinitionAST, moduleConfigAS
     }.bind(this));
 }
 
-function addVersionRefToLibraryInvocation(versionRef, libraryInvocation) {
-    if (libraryInvocation.arguments) {
-        // Make the version ref the second argument to BEST.scene(...)
-        // since the client-side uses the ref internally for managing objects
-        var versionRefArgAST = EsprimaHelpers.buildStringLiteralAST(versionRef);
-        libraryInvocation.arguments[2] = libraryInvocation.arguments[1];
-        libraryInvocation.arguments[1] = versionRefArgAST;
+function buildOptionsArgAST(info, moduleName) {
+    var optionsObject = {};
+    optionsObject.dependencies = info.dependencyTable;
+
+    var optionsJSON = JSON.stringify(optionsObject);
+    var optionsString = '(' + optionsJSON + ')';
+    var optionsAST = EsprimaHelpers.parse(optionsString);
+    var optionsExpr = optionsAST.body[0].expression;
+    return optionsExpr;
+}
+
+function expandLibraryInvocation(info, moduleName, libraryInvocation) {
+    if (!libraryInvocation.arguments) {
+        libraryInvocation.arguments = [];
+    }
+    // Make the version ref the second argument to BEST.scene(...)
+    // since the client-side uses the ref internally for managing objects
+    var moduleNameArgAST = EsprimaHelpers.buildStringLiteralAST(moduleName);
+    var versionRefArgAST = EsprimaHelpers.buildStringLiteralAST(info.versionRef);
+    var optionsArgAST = buildOptionsArgAST(info, moduleName);
+    var definitionArgAST = info.moduleDefinitionASTs[moduleName] || EsprimaHelpers.EMPTY_OBJECT_EXPRESSION;
+
+    libraryInvocation.arguments[0] = moduleNameArgAST;
+    libraryInvocation.arguments[1] = versionRefArgAST;
+    libraryInvocation.arguments[2] = optionsArgAST;
+    libraryInvocation.arguments[3] = definitionArgAST;
+}
+
+function isAttachmentInvocation(node, libNamespace, libWhitelist) {
+    if (EsprimaHelpers.isCallExpression(node)) {
+        if (EsprimaHelpers.isMemberExpression(node.callee)) {
+            var calleeObject = node.callee.object;
+            var calleeProperty = node.callee.property;
+            if (EsprimaHelpers.isIdentifier(calleeObject)) {
+                if (EsprimaHelpers.isIdentifier(calleeProperty)) {
+                    return (calleeObject.name === libNamespace) && (calleeProperty.name in libWhitelist);
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function findAttachmentInvocations(entrypointAST) {
+    var attachmentInvocations = [];
+    EsprimaHelpers.traverse(entrypointAST, function(node, parent) {
+        if (isAttachmentInvocation.call(this, node, this.options.libraryMainNamespace, this.options.attachmentIdentifiers)) {
+            if (node.arguments) {
+                attachmentInvocations.push(node);
+            }
+        }
+    }.bind(this));
+    return attachmentInvocations;
+}
+
+function expandAttachmentSyntax(info, ast) {
+    var attachmentInvocations = findAttachmentInvocations.call(this, ast);
+    for (var i = 0; i < attachmentInvocations.length; i++) {
+        var attachmentInvocation = attachmentInvocations[i];
+        attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.versionRef));
+        attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.name));
+    }
+}
+
+function inlineJavaScriptFile(info, file) {
+    var parsedContent = EsprimaHelpers.parse(file.content);
+    expandAttachmentSyntax.call(this, info, parsedContent);
+    for (var i = parsedContent.body.length - 1; i > 0; i--) {
+        var bodyExpr = parsedContent.body[i];
+        info.entrypointAST.body.unshift(bodyExpr);
     }
 }
 
@@ -147,8 +212,22 @@ function expandSyntax(info, cb) {
     }
     for (moduleName in info.libraryInvocations) {
         var libraryInvocation = info.libraryInvocations[moduleName];
-        addVersionRefToLibraryInvocation.call(this, info.versionRef, libraryInvocation);
+        expandLibraryInvocation.call(this, info, moduleName, libraryInvocation);
     }
+    var inlinedFiles = [];
+    for (var i = 0; i < info.files.length; i++) {
+        var file = info.files[i];
+        var extname = Path.extname(file.path);
+        if (extname === '.js') {
+            var basename = Path.basename(file.path, extname);
+            // We don't want to inline a file into itself.
+            if (basename !== BuildHelpers.moduleNameToEntrypointBasename.call(this, info.name)) {
+                inlineJavaScriptFile.call(this, info, file);
+                inlinedFiles.push(file.path);
+            }
+        }
+    }
+    info.inlinedFiles = inlinedFiles;
     cb(null, info);
 }
 

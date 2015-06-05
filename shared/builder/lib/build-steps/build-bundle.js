@@ -1,6 +1,7 @@
 'use strict';
 
 var Lodash = require('lodash');
+var Path = require('path');
 
 var EsprimaHelpers = require('./esprima-helpers');
 var PathingHelpers = require('./storage-helpers/pathing');
@@ -21,133 +22,128 @@ function iifeWrap(code) {
     return '(function(){\n' + code + '\n}());';
 }
 
-function commentHeading(moduleName, moduleTag) {
-    return '/* ' + moduleName + ' (' + moduleTag + ') built at ' + Date.now() + ' */';
-}
-
 function copyright() {
-    return '// Copyright 2015 (c) Famous Industries, Inc.';
+    var startYear = '2015';
+    var currYear = new Date().getFullYear().toString();
+    var yearStr = startYear;
+    if (currYear !== startYear) {
+        yearStr += ('-' + currYear);
+    }
+    return '// Copyright ' + yearStr + ' (c) Famous Industries, Inc.';
 }
 
-function isolateWrap(moduleName, moduleTag, code) {
+function getFlatIncludes(flatIncludes, parcelHash) {
+    if (parcelHash.includes) {
+        flatIncludes = flatIncludes.concat(parcelHash.includes);
+    }
+    if (parcelHash.dependencies) {
+        for (var dependencyName in parcelHash.dependencies) {
+            getFlatIncludes(flatIncludes, parcelHash.dependencies[dependencyName]);
+        }
+    }
+    return Lodash.uniq(flatIncludes);
+}
+
+function buildIncludesPrefix(parcelHash) {
+    var flatIncludes = getFlatIncludes([], parcelHash);
+    return 'BEST.includes(' + JSON.stringify(flatIncludes) + ',function(){';
+}
+
+function getFlatRegistrations(flatRegistrations, alreadyRegistered, parcelHash) {
+    if (parcelHash.entrypoint) {
+        flatRegistrations.unshift(parcelHash.entrypoint);
+    }
+    if (parcelHash.dependencies) {
+        for (var dependencyName in parcelHash.dependencies) {
+            getFlatRegistrations(flatRegistrations, alreadyRegistered, parcelHash.dependencies[dependencyName]);
+        }
+    }
+    return flatRegistrations;
+}
+
+function buildRegistrationBlocks(parcelHash) {
+    var flatRegistrations = getFlatRegistrations([], {}, parcelHash);
+    return flatRegistrations.join(NEWLINE);
+}
+
+function buildIncludesSuffix() {
+    return '});'
+}
+
+function buildBundleString(info) {
     return [
-        commentHeading(moduleName, moduleTag),
-        iifeWrap(code)
+        copyright(),
+        '\'use strict\';',
+        buildIncludesPrefix(info.parcelHash),
+        indent(buildRegistrationBlocks(info.parcelHash)),
+        buildIncludesSuffix(),
+        copyright()
     ].join(NEWLINE);
 }
 
-function buildRequiresStatement(moduleName, versionRef) {
-    return 'BEST.requires(\'' + moduleName + '\',\'' + versionRef + '\', [';
-}
-
-function localValue(val) {
-    if (Lodash.isString(val)) {
-        return '"' + val + '"';
-    }
-    else if (Lodash.isFunction(val)) {
-        var fnStr = val();
-        return '(function(){\n' + indent(fnStr) + '\n}())';
-    }
-    else if (val === true) {
-        return 'true';
-    }
-    else if (val === false) {
-        return 'false';
-    }
-    else if (val === null) {
-        return 'null';
-    }
-    else {
-        return 'undefined';
-    }
-}
-
-function objectTemplate(locals) {
-    var open = '{';
-    var close = '}';
-    var props = [];
-    for (var localName in locals) {
-        var localVal = locals[localName];
-        props.push('"' + localName + '": ' + localValue(localVal));
-    }
-    return [
-        open,
-        props.join(',' + NEWLINE),
-        close
-    ].join(NEWLINE);
-}
-
-function buildInlineModuleTupleString(name, version, data) {
-    return objectTemplate({
-        type: 'module',
-        name: name,
-        version: version,
-        inline: function() { // A function here signifies a function to run on the client-side
-            return data;
+function normalizeDependenciesFound(dependenciesFound) {
+    var normalized = {};
+    for (var depName in dependenciesFound) {
+        var depJSON = dependenciesFound[depName];
+        if (typeof depJSON === 'string') {
+            normalized[depName] = JSON.parse(depJSON);
         }
-    });
-}
-
-function buildMissingModuleTupleString(name, version) {
-    return objectTemplate({
-        type: 'module',
-        name: name,
-        version: version,
-        missing: true
-    });
-}
-
-function buildIncludeTupleString(includeName) {
-    return objectTemplate({
-        type: 'include',
-        path: includeName
-    });
-}
-
-function buildImportTuplesStatement(dependencyTable, dependencies, moduleConfigs) {
-    var importTupleStrings = [];
-    for (var depName in dependencyTable) {
-        var depVersion = dependencyTable[depName];
-        var depObject = dependencies[depName];
-        if (depObject.version === depVersion) {
-            // Data we get might be a buffer object, so we have to stringify
-            if (depObject.data) {
-                var depData = depObject.data.toString();
-                importTupleStrings.push(buildInlineModuleTupleString(depName, depVersion, depData));
-            }
-            else {
-                importTupleStrings.push(buildMissingModuleTupleString(depName, depVersion));
-            }
+        else {
+            normalized[depName] = depJSON;
         }
     }
+    return normalized;
+}
+
+var HTTP_REGEXP = /^https?:\/\//i;
+
+function buildIncludesArray(info) {
+    var versionURL = info.versionURL;
+    var moduleConfigs = info.moduleConfigs;
+    var inlinedFiles = info.inlinedFiles || [];
+    var includesArray = [];
     for (var i = 0; i < moduleConfigs.length; i++) {
         var moduleConfig = moduleConfigs[i];
         if (moduleConfig.includes) {
             for (var j = 0; j < moduleConfig.includes.length; j++) {
-                var includeName = moduleConfig.includes[j];
-                importTupleStrings.unshift(buildIncludeTupleString(includeName));
+                var includeStr = moduleConfig.includes[j];
+                // No need to 'include' any files that have been already
+                // inlined inside of the entrypoint
+                if (inlinedFiles.indexOf(includeStr) === -1) {
+                    // If a full URL was given, don't prefix it with the version URL
+                    if (HTTP_REGEXP.test(includeStr)) {
+                        includesArray.push(includeStr);
+                    }
+                    else {
+                        // Note that version URL is an absolute path to the version
+                        // folder on HTTP
+                        includesArray.push(versionURL + includeStr);
+                    }
+                }
             }
         }
     }
-    return importTupleStrings.join(COMMA + NEWLINE);
+    return Lodash.uniq(includesArray);
 }
 
-function buildMainCodeBlock(moduleName, versionRef, entrypointAST) {
-    return isolateWrap(moduleName, versionRef, indent(EsprimaHelpers.generate(entrypointAST)));
+function buildEntrypointString(info) {
+    return EsprimaHelpers.generate(info.entrypointAST);
+}
+
+function buildParcelHash(info) {
+    return {
+        name: info.name,
+        version: info.versionRef,
+        timestamp: Date.now(),
+        includes: buildIncludesArray(info),
+        dependencies: normalizeDependenciesFound(info.dependenciesFound),
+        entrypoint: buildEntrypointString(info)
+    };
 }
 
 function buildBundle(info, cb) {
-    var bundleString = [
-        copyright(),
-        '\'use strict\';',
-        buildRequiresStatement(info.name, info.versionRef),
-        buildImportTuplesStatement(info.dereffedDependencyTable, info.dependencies, info.moduleConfigs),
-        '],function(){',
-        buildMainCodeBlock(info.name, info.versionRef, info.entrypointAST),
-        '});',
-        copyright()
-    ].join(NEWLINE);
-    info.bundleString = bundleString;
+    info.parcelHash = buildParcelHash(info);
+    info.bundleString = buildBundleString(info);
     cb(null, info);
 }
 

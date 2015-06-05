@@ -2,6 +2,7 @@
 
 var Async = require('async');
 var Lodash = require('lodash');
+var Path = require('path');
 
 var AssetCompilers = require('./asset-compilers');
 var BuildHelpers = require('./build-helpers');
@@ -12,7 +13,8 @@ function compileFile(file, cb) {
     }
     else {
         // In case file content is a buffer object, stringify it
-        file.content = file.content.toString();
+        var content = file.content.toString();
+        file.content = content;
         AssetCompilers.compileSource(file.content, file.path, cb);
     }
 }

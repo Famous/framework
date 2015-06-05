@@ -68,12 +68,14 @@ var ALIASES = {
 
 // The extname each type would normally get after compilation
 var COMPILATION_EXTNAME_MAPPING = {
-    '.styl': '.css',
-    '.stylus': '.css',
+    '.coffee': '.js',
     '.es': '.js',
     '.es6': '.js',
     '.es7': '.js',
-    '.coffee': '.js'
+    '.jade': '.html',
+    '.less': '.css',
+    '.styl': '.css',
+    '.stylus': '.css'
 };
 
 for (var aliasExtname in ALIASES) {
@@ -125,5 +127,6 @@ function compileSource(source, path, cb) {
 }
 
 module.exports = {
+    compiledPath: compiledPath,
     compileSource: compileSource
 };

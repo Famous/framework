@@ -6,7 +6,11 @@ function Dispatcher(domNode) {
     this.domNode = domNode;
 }
 
-Dispatcher.willEventsBubble = (function() {
+// Some browsers will not bubble events in a DOM tree that is
+// detached from the document; this block simply checks whether
+// detached DOM bubbling is supported or not, so we can know
+// whether we need to manually bubble events below.
+Dispatcher.willEventsBubbleInDetachedDOM = (function() {
     var willBubble = false;
     var doc = window.document;
     if (doc) {
@@ -28,7 +32,7 @@ Dispatcher.prototype.emit = function(key, message) {
         detail: message,
         bubbles: true
     });
-    if (Dispatcher.willEventsBubble) {
+    if (Dispatcher.willEventsBubbleInDetachedDOM) {
         element.dispatchEvent(event);
     }
     else {

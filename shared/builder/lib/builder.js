@@ -22,8 +22,9 @@ var IS_IN_BROWSER = (typeof window !== 'undefined');
 
 Builder.DEFAULTS = {
     // Persistence related
-    bundleAssetPath: '~bundles/bundle.js',
-    codeManagerHost: process.env.CODE_MANAGER_HOST,
+    bundleAssetPath: '~bundles/bundle.js', // Complete file that the client knows how to process
+    parcelAssetPath: '~bundles/parcel.json', // Data and dependencies object used for dependency gathering
+    codeManagerHost: process.env.CODE_MANAGER_HOST, // If not Famous CodeManager itself, a simple local server
     codeManagerApiVersion: 'v1',
     codeManagerBlockCreateRoute: 'POST|default|/:apiVersion/blocks',
     codeManagerBlockGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName',
@@ -33,8 +34,11 @@ Builder.DEFAULTS = {
     codeManagerAssetGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath',
     defaultDependencyVersion: 'HEAD',
     defaultDependencyData: undefined,
+    doAttemptToBuildDependenciesLocally: true,
     doLoadDependenciesFromBrowser: IS_IN_BROWSER,
+    doSkipAssetSaveStep: false,
     fileOptions: { encoding: 'utf8' },
+    localComponentsSourceFolder: process.env.FRAMEWORK_LOCAL_COMPONENTS_SOURCE_FOLDER,
     localDependenciesSourceFolder: process.env.FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER,
     localDependenciesCacheFolder: process.env.FRAMEWORK_LOCAL_DEPENDENCIES_CACHE_FOLDER,
 
@@ -94,6 +98,7 @@ Builder.DEFAULTS = {
     assetRegexp: /\@\{[a-zA-Z0-9\:\/\|\.-]+\}/ig,
     assetPrefixRegexp: /\}$/,
     assetSuffixRegexp: /^\@\{/,
+    attachmentIdentifiers: { 'attach': true },
     behaviorsFacetKeyName: 'behaviors',
     behaviorSetterRegex: /^\[\[[\w|\|]+\]\]$/,
     componentDelimiter: ':', // e.g. my:great:module
@@ -150,20 +155,27 @@ Builder.DEFAULTS = {
     treeFacetKeyName: 'tree'
 };
 
-Builder.prototype.buildModule = function(name, files, finish) {
-    Async.seq(
-        this.preprocessFiles,
-        this.extractCoreObjects,
-        this.linkFacets,
-        this.expandImportsShorthand,
-        this.findDependencies,
-        this.derefDependencies,
-        this.loadDependencies,
-        this.saveAssets.bind(this, 'local'),
-        this.expandSyntax,
-        this.buildBundle,
-        this.saveBundle.bind(this, 'local')
-    )({ name: name, files: files }, finish);
+Builder.prototype.buildModule = function(info, finish) {
+    var subRoutines = [];
+    subRoutines.push(this.preprocessFiles);
+    subRoutines.push(this.extractCoreObjects);
+    subRoutines.push(this.linkFacets);
+    subRoutines.push(this.expandImportsShorthand);
+    subRoutines.push(this.findDependencies);
+    subRoutines.push(this.derefDependencies);
+    subRoutines.push(this.loadDependencies);
+    if (!this.options.doSkipAssetSaveStep) {
+        // Note: Skipping this step may assume that already have
+        // an 'explicitVersion' set, since only saving assets
+        // can give us the version ref for the component.
+        subRoutines.push(this.saveAssets.bind(this, 'local'));
+    }
+    subRoutines.push(this.expandSyntax);
+    subRoutines.push(this.buildBundle);
+    subRoutines.push(this.saveBundle.bind(this, 'local'));
+    Async.seq.apply(Async, subRoutines)(info, function(err, result) {
+        finish(err, result);
+    });
 };
 
 module.exports = Builder;

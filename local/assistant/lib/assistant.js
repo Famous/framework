@@ -1,5 +1,6 @@
 'use strict';
 
+var Async = require('async');
 var Chokidar = require('chokidar');
 var Fs = require('fs');
 var Lodash = require('lodash');
@@ -36,7 +37,7 @@ Assistant.prototype.setOptions = function(options) {
 };
 
 Assistant.prototype.buildModule = function(moduleName, files, cb) {
-    this.builder.buildModule(moduleName, files, cb);
+    this.builder.buildModule({ name: moduleName, files: files }, cb);
 };
 
 Assistant.prototype.buildAll = function(baseDir, subDir, cb) {
@@ -56,7 +57,7 @@ Assistant.prototype.buildSingle = function(baseDir, subDir, cb) {
     });
 };
 
-Assistant.prototype.buildRecursive = function(baseDir, subDir, cb) {
+Assistant.prototype.tuplesRecursive = function(tuples, baseDir, subDir, cb) {
     var mainPath = Path.join(baseDir, subDir);
     var entries = Fs.readdirSync(mainPath);
     entries.forEach(function(entryPath) {
@@ -65,10 +66,21 @@ Assistant.prototype.buildRecursive = function(baseDir, subDir, cb) {
         if (entryStat.isDirectory()) {
             var partialPath = Path.join(subDir, entryPath);
             if (this.isModuleDir(fullEntryPath)) {
-                this.buildSingle(baseDir, partialPath, cb);
+                tuples.push([baseDir, partialPath]);
             }
-            this.buildRecursive(baseDir, partialPath, cb);
+            this.tuplesRecursive(tuples, baseDir, partialPath);
         }
+    }.bind(this));
+    if (cb) {
+        cb(null, tuples);
+    }
+};
+
+Assistant.prototype.buildRecursive = function(baseDir, subDir, finish) {
+    this.tuplesRecursive([], baseDir, subDir, function(err, tuples) {
+        Async.mapSeries(tuples, function(tuple, cb) {
+            this.buildSingle(tuple[0], tuple[1], cb);
+        }.bind(this), finish);
     }.bind(this));
 };
 

@@ -353,7 +353,7 @@ Events.getDirectEventAction = function getDirectEventAction(name, dependencies) 
     var moduleName = name.slice(0, lastDelimIdx);
     var handlerName = name.slice(lastDelimIdx + 1);
     var moduleTag = dependencies[moduleName];
-    var bestModule = DataStore.getModule(moduleName, moduleTag);
+    var bestModule = DataStore.getModuleDefinition(moduleName, moduleTag);
 
     var foundEvent;
     var fallbackEvent;
