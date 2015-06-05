@@ -47,6 +47,23 @@ function merge(a, b) {
     return c;
 }
 
+function naiveExtends(a, b) {
+    if (typeof b !== OBJ_TYPE) {
+        return;
+    }
+
+    for (var key in b) {
+        if (a[key] === undefined) {
+            a[key] = b[key];
+        }
+        else {
+            if (typeof a[key] === OBJ_TYPE && typeof b[key] === OBJ_TYPE) {
+                naiveExtends(a[key], b[key]);
+            }
+        }
+    }
+}
+
 // source: http://stackoverflow.com/questions/1068834/object-comparison-in-javascript
 function isEqual() {
   var i, l, leftChain, rightChain;
@@ -165,6 +182,7 @@ function isEqual() {
 
 module.exports = {
     clone: clone,
+    isEqual: isEqual,
     merge: merge,
-    isEqual: isEqual
+    naiveExtends: naiveExtends
 };

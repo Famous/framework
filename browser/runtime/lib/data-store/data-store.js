@@ -23,6 +23,13 @@ var TIMELINES = {};
 // Attachment objects ('raw code' wrappers)
 var ATTACHMENTS = {};
 
+var DEFAULT_TAG = 'HEAD';
+var BEHAVIORS_KEY = 'behaviors';
+var EVENTS_KEY = 'events';
+var STATES_KEY = 'states';
+var TREE_KEY = 'tree';
+var EXTENSION_KEY = 'extension';
+
 function getAttachments(name, tag) {
     if (ATTACHMENTS[name] && ATTACHMENTS[name][tag]) {
         return ObjUtils.clone(ATTACHMENTS[name][tag]);
@@ -82,9 +89,14 @@ function wrapModule(name, tag, mod) {
     return new Wrapper(name, tag, mod);
 }
 
-function getModuleDefinition(name, tag) {
+function getModuleDefinition(name, tag, useClone) {
+    useClone = useClone === undefined ? true : useClone;
+    tag = tag ? tag : DEFAULT_TAG;
     if (MODULES[name] && MODULES[name][tag]) {
-        return ObjUtils.clone(MODULES[name][tag].definition);
+        return useClone ? ObjUtils.clone(MODULES[name][tag]) : MODULES[name][tag];
+    }
+    else {
+        return null;
     }
 }
 
@@ -107,14 +119,36 @@ function hasModule(name, tag) {
 var NORMAL_FACET_NAMES = {
     'behaviors': true,
     'events': true,
+    'extension': true,
     'states': true,
     'tree': true
 };
 
-function validateModule(name, tag, options, definition) {
+function extendDefintion(definition, extensionNames) {
+    var extensionDefinition;
+    for (var i = 0; i < extensionNames.length; i++) {
+        extensionDefinition = getModuleDefinition(extensionNames[i], null, false);
+
+        definition[BEHAVIORS_KEY] = definition[BEHAVIORS_KEY] ? definition[BEHAVIORS_KEY] : {};
+        definition[EVENTS_KEY] = definition[EVENTS_KEY] ? definition[EVENTS_KEY] : {};
+        definition[STATES_KEY] = definition[STATES_KEY] ? definition[STATES_KEY] : {};
+        ObjUtils.naiveExtends(definition[BEHAVIORS_KEY], extensionDefinition[BEHAVIORS_KEY]);
+        ObjUtils.naiveExtends(definition[EVENTS_KEY], extensionDefinition[EVENTS_KEY]);
+        ObjUtils.naiveExtends(definition[STATES_KEY], extensionDefinition[STATES_KEY]);
+
+        if (!definition[TREE_KEY]) {
+            definition[TREE_KEY] = extensionDefinition[TREE_KEY] || '';
+        }
+    }
+}
+
+function validateModule(name, tag, definition) {
     for (var facetName in definition) {
         if (!(facetName in NORMAL_FACET_NAMES)) {
             console.warn('`' + name + ' (' + tag + ')` ' + 'has an unrecognized property `' + facetName + '` in its definition');
+        }
+        if (facetName === EXTENSION_KEY) {
+            extendDefintion(definition, definition[facetName]);
         }
     }
 }
@@ -182,16 +216,17 @@ function getDependencies(name, tag) {
 }
 
 module.exports = {
-    getModuleDefinition: getModuleDefinition,
-    registerModule: registerModule,
+    getAttachments: getAttachments,
     getComponent: getComponent,
     getConfig: getConfig,
+    getDependencies: getDependencies,
+    getExecutedComponent: getExecutedComponent,
+    getModuleDefinition: getModuleDefinition,
     getTimelines: getTimelines,
     registerComponent: registerComponent,
-    saveExecutedComponent: saveExecutedComponent,
-    getExecutedComponent: getExecutedComponent,
+    registerModule: registerModule,
+    registerModule: registerModule,
     saveDependencies: saveDependencies,
-    getDependencies: getDependencies,
-    getAttachments: getAttachments,
+    saveExecutedComponent: saveExecutedComponent,
     setAttachment: setAttachment
 };
