@@ -28,7 +28,7 @@ var BEHAVIORS_KEY = 'behaviors';
 var EVENTS_KEY = 'events';
 var STATES_KEY = 'states';
 var TREE_KEY = 'tree';
-var EXTENSION_KEY = 'extension';
+var EXTENSION_KEYS = 'extensions';
 
 function getAttachments(name, tag) {
     if (ATTACHMENTS[name] && ATTACHMENTS[name][tag]) {
@@ -93,7 +93,7 @@ function getModuleDefinition(name, tag, useClone) {
     useClone = useClone === undefined ? true : useClone;
     tag = tag ? tag : DEFAULT_TAG;
     if (MODULES[name] && MODULES[name][tag]) {
-        return useClone ? ObjUtils.clone(MODULES[name][tag]) : MODULES[name][tag];
+        return useClone ? ObjUtils.clone(MODULES[name][tag].definition) : MODULES[name][tag].definition;
     }
     else {
         return null;
@@ -119,15 +119,14 @@ function hasModule(name, tag) {
 var NORMAL_FACET_NAMES = {
     'behaviors': true,
     'events': true,
-    'extension': true,
     'states': true,
     'tree': true
 };
 
-function extendDefintion(definition, extensionNames) {
+function extendDefintion(definition, extensions) {
     var extensionDefinition;
-    for (var i = 0; i < extensionNames.length; i++) {
-        extensionDefinition = getModuleDefinition(extensionNames[i], null, false);
+    for (var i = 0; i < extensions.length; i++) {
+        extensionDefinition = getModuleDefinition(extensions[i].name, extensions[i].version, false);
 
         definition[BEHAVIORS_KEY] = definition[BEHAVIORS_KEY] ? definition[BEHAVIORS_KEY] : {};
         definition[EVENTS_KEY] = definition[EVENTS_KEY] ? definition[EVENTS_KEY] : {};
@@ -142,13 +141,15 @@ function extendDefintion(definition, extensionNames) {
     }
 }
 
-function validateModule(name, tag, definition) {
+function validateModule(name, tag, options, definition) {
     for (var facetName in definition) {
         if (!(facetName in NORMAL_FACET_NAMES)) {
             console.warn('`' + name + ' (' + tag + ')` ' + 'has an unrecognized property `' + facetName + '` in its definition');
         }
-        if (facetName === EXTENSION_KEY) {
-            extendDefintion(definition, definition[facetName]);
+
+        if (options[EXTENSION_KEYS]) {
+            console.log(name);
+            extendDefintion(definition, options[EXTENSION_KEYS]);
         }
     }
 }

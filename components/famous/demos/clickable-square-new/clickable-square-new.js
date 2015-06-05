@@ -93,6 +93,5 @@ BEST.scene('famous:demos:clickable-square-new', {
     },
     tree: `
         <h1>{{clickCount}}</h1>
-        <p>This is some text</p>
     `
 });

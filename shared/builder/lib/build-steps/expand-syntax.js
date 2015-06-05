@@ -129,9 +129,23 @@ function processSyntacticalSugar(moduleName, moduleDefinitionAST, moduleConfigAS
     }.bind(this));
 }
 
+function buildExtensionsArray(info, moduleName) {
+    var configObject = EsprimaHelpers.getObjectValue(info.moduleConfigASTs[moduleName] || { properties: [] });
+    var extensions = configObject.extends || this.options.defaultExtends;
+    var result = [];
+    for (var i = 0; i < extensions.length; i++) {
+        result.push({
+            name: extensions[i],
+            version: info.dependencyTable[extensions[i]]
+        });
+    }
+    return result;
+}
+
 function buildOptionsArgAST(info, moduleName) {
     var optionsObject = {};
     optionsObject.dependencies = info.dependencyTable;
+    optionsObject.extensions = buildExtensionsArray.call(this, info, moduleName);
 
     var optionsJSON = JSON.stringify(optionsObject);
     var optionsString = '(' + optionsJSON + ')';
@@ -148,7 +162,7 @@ function expandLibraryInvocation(info, moduleName, libraryInvocation) {
     // since the client-side uses the ref internally for managing objects
     var moduleNameArgAST = EsprimaHelpers.buildStringLiteralAST(moduleName);
     var versionRefArgAST = EsprimaHelpers.buildStringLiteralAST(info.versionRef);
-    var optionsArgAST = buildOptionsArgAST(info, moduleName);
+    var optionsArgAST = buildOptionsArgAST.call(this, info, moduleName);
     var definitionArgAST = info.moduleDefinitionASTs[moduleName] || EsprimaHelpers.EMPTY_OBJECT_EXPRESSION;
 
     libraryInvocation.arguments[0] = moduleNameArgAST;
