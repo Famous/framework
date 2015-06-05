@@ -148,7 +148,6 @@ function validateModule(name, tag, options, definition) {
         }
 
         if (options[EXTENSION_KEYS]) {
-            console.log(name);
             extendDefintion(definition, options[EXTENSION_KEYS]);
         }
     }
