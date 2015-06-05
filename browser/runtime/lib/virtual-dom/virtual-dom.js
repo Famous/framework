@@ -6,7 +6,7 @@ var DOM_PARSER = new DOMParser();
 var DO_CLONE_ATTRIBUTES = true;
 var COMPONENT_DELIM = ':';
 var ESCAPED_COLON = '\\\:';
-
+var SELF_KEY = '$self';
 
 var BEST_ROOT = document.createElement('best-root');
 var UID_KEY = 'uid';
@@ -17,15 +17,16 @@ var VALID_HTML_TAGS = [
     '<caption>', '<cite>', '<code>', '<col>', '<colgroup>', '<command>', '<content>', '<data>',
     '<datalist>', '<dd>', '<del>', '<details>', '<dfn>', '<div>', '<dl>', '<dt>', '<element>',
     '<em>', '<embed>', '<fieldset>', '<figcaption>', '<figure>', '<font>', '<footer>', '<form>',
-    '<head>', '<header>', '<hgroup>', '<hr>', '<html>', '<i>', '<iframe>', '<image>', '<img>',
-    '<input>', '<ins>', '<kbd>', '<keygen>', '<label>', '<legend>', '<li>', '<link>', '<main>',
-    '<map>', '<mark>', '<menu>', '<menuitem>', '<meta>', '<meter>', '<nav>', '<noframes>', '<noscript>',
-    '<object>', '<ol>', '<optgroup>', '<option>', '<output>', '<p>', '<param>', '<picture>', '<pre>',
-    '<progress>', '<q>', '<rp>', '<rt>', '<rtc>', '<ruby>', '<s>', '<samp>', '<script>', '<section>',
-    '<select>', '<shadow>', '<small>', '<source>', '<span>', '<strong>', '<style>', '<sub>', '<summary>',
-    '<sup>', '<table>', '<tbody>', '<td>', '<template>', '<textarea>', '<tfoot>', '<th>', '<thead>', '<time>',
-    '<title>', '<tr>', '<track>', '<u>', '<ul>', '<var>', '<video>', '<wbr>'
+    '<h1>', '<h2>', '<h3>', '<h4>', '<h5>', '<h6>', '<head>', '<header>', '<hgroup>', '<hr>', '<html>',
+    '<i>', '<iframe>', '<image>', '<img>', '<input>', '<ins>', '<kbd>', '<keygen>', '<label>', '<legend>',
+    '<li>', '<link>', '<main>', '<map>', '<mark>', '<menu>', '<menuitem>', '<meta>', '<meter>', '<nav>',
+    '<noframes>', '<noscript>', '<object>', '<ol>', '<optgroup>', '<option>', '<output>', '<p>', '<param>',
+    '<picture>', '<pre>', '<progress>', '<q>', '<rp>', '<rt>', '<rtc>', '<ruby>', '<s>', '<samp>', '<script>',
+    '<section>', '<select>', '<shadow>', '<small>', '<source>', '<span>', '<strong>', '<style>', '<sub>',
+    '<summary>', '<sup>', '<table>', '<tbody>', '<td>', '<template>', '<textarea>', '<tfoot>', '<th>',
+    '<thead>', '<time>', '<title>', '<tr>', '<track>', '<u>', '<ul>', '<var>', '<video>', '<wbr>'
 ];
+var UNKNOWN_ELEMENT_NAME = 'HTMLUnknownElement';
 
 function create(str) {
     return document.createElement(str);
@@ -67,13 +68,18 @@ function clone(node) {
 }
 
 function query(node, selector) {
-    if (selector.indexOf(COMPONENT_DELIM) !== -1) {
-        // Strings like 'foo:bar:baz' aren't supported by
-        // querySelector/querySelectorAll unless the colon
-        // is escaped using a backslash.
-        selector = selector.split(COMPONENT_DELIM).join(ESCAPED_COLON);
+    if (selector === SELF_KEY) {
+        return [node];
     }
-    return node.querySelectorAll(selector);
+    else {
+        if (selector.indexOf(COMPONENT_DELIM) !== -1) {
+            // Strings like 'foo:bar:baz' aren't supported by
+            // querySelector/querySelectorAll unless the colon
+            // is escaped using a backslash.
+            selector = selector.split(COMPONENT_DELIM).join(ESCAPED_COLON);
+        }
+        return node.querySelectorAll(selector);
+    }
 }
 
 // Calls a callback on each target that matches a query. Passes the
@@ -149,18 +155,25 @@ function isDescendant(desendant, progenitor) {
     return result;
 }
 
+function isValidHTMLElement(domNode) {
+    if (domNode.constructor.name === UNKNOWN_ELEMENT_NAME) {
+        return false;
+    }
+    else {
+        var tag = '<' + domNode.tagName.toLowerCase() + '>';
+        return VALID_HTML_TAGS.indexOf(tag) !== -1;
+    }
+}
+
 function stripHTMLElements(domNode) {
     var htmlElements = [];
     var child;
-    var tag;
     var nodesToProcess = domNode.children.length;
     var processCount = 0;
     var childIndex = 0;
     while (processCount < nodesToProcess) {
         child = domNode.children[childIndex];
-        tag = '<' + child.tagName.toLowerCase() + '>';
-
-        if (VALID_HTML_TAGS.indexOf(tag) !== -1) {
+        if (isValidHTMLElement(child)) {
             htmlElements.push(domNode.removeChild(child));
         }
         else {
@@ -185,6 +198,7 @@ module.exports = {
     getTag: getTag,
     getUID: getUID,
     isDescendant: isDescendant,
+    isValidHTMLElement: isValidHTMLElement,
     parse: parse,
     query: query,
     queryAttribute: queryAttribute,

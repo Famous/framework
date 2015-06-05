@@ -8,8 +8,6 @@ var EMPTY_STRING = '';
 var REPEAT_INFO_KEY = 'repeat-info';
 var CONTROL_FLOW_ACTION_KEY = 'control-flow-action';
 
-var HTMLUnknownElement = window.HTMLUnknownElement;
-
 function Tree(rootNode, treeString, dependencies, parentNode) {
     this.rootNode = rootNode;
     VirtualDOM.addNode(this.rootNode, parentNode);
@@ -55,17 +53,13 @@ Tree.prototype.eachChild = function eachChild(cb) {
     }
 };
 
-Tree.isUnknownElement = function isUnknownElement(element) {
-    return element instanceof HTMLUnknownElement;
-};
-
 Tree.setUID = function(node) {
     VirtualDOM.setUID(node, UID.generate(NODE_UID_PREFIX));
 };
 
 Tree.assignChildUIDs = function assignChildUIDs(parent) {
-    for (var i = 0; i < parent.childNodes.length; i++) {
-        var child = parent.childNodes[i];
+    for (var i = 0; i < parent.children.length; i++) {
+        var child = parent.children[i];
 
         if (child.nodeName === '#text') {
             if (child.nodeValue.trim()) {
@@ -77,9 +71,9 @@ Tree.assignChildUIDs = function assignChildUIDs(parent) {
 
         // BEST component DOM nodes are instances of `HTMLUnknownElement`;
         // we use this to detect whether we have entered a leaf node.
-        if (Tree.isUnknownElement(child)) {
+        if (!VirtualDOM.isValidHTMLElement(child)) {
             Tree.setUID(child);
-            Tree.assignChildUIDs(parent.childNodes[i]);
+            Tree.assignChildUIDs(parent.children[i]);
         }
     }
 };
