@@ -14,10 +14,11 @@ var SLASH = '/';
 
 function Assistant(options) {
     this.setOptions(options);
-    this.builder = new Builder();
+    this.builder = new Builder(this.options.builderOptions);
 }
 
 Assistant.DEFAULTS = {
+    builderOptions: {},
     chokidarIgnored: /[\/\\]\./,
     componentDelimiter: ':',
     entrypointExtnames: {
@@ -33,7 +34,7 @@ Assistant.DEFAULTS = {
 };
 
 Assistant.prototype.setOptions = function(options) {
-    this.options = Lodash.defaults(Lodash.clone(Assistant.DEFAULTS), Lodash.clone(options || {}));
+    this.options = Lodash.assign(Lodash.clone(Assistant.DEFAULTS), Lodash.clone(options || {}));
 };
 
 Assistant.prototype.buildModule = function(moduleName, files, cb) {
