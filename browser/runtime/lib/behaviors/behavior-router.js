@@ -33,7 +33,12 @@ function hasInvertedBehaviorParams(params) {
 
 function getTargets(component, selector) {
     var expandedBlueprint = component.tree.getExpandedBlueprint();
-    return VirtualDOM.query(expandedBlueprint, selector);
+    if (expandedBlueprint) {
+        return VirtualDOM.query(expandedBlueprint, selector);
+    }
+    else {
+        return [];
+    }
 }
 
 function route(behavior, component) {
