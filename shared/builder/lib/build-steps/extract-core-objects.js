@@ -6,17 +6,45 @@ var Path = require('path');
 var BuildHelpers = require('./build-helpers');
 var EsprimaHelpers = require('./esprima-helpers');
 
+function extractMethodChain(chain, node, parent) {
+    if (EsprimaHelpers.isCallExpression(node)) {
+        chain.push({ args: node.arguments });
+        extractMethodChain(chain, node.callee, node.callee.object);
+    }
+    else if (EsprimaHelpers.isMemberExpression(node)) {
+        chain[chain.length - 1].prop = node.property.name;
+        extractMethodChain(chain, node.object, node.object.callee);
+    }
+    else if (EsprimaHelpers.isIdentifier(node)) {
+        chain.push({ prop: node.name});
+    }
+    return chain;
+}
+
+// BEST.module('a:b:c', {})
+// .lala()
+// .config({}) <~ The AST of that object is what we want
+// .other()
+// .timelines({})
+// .etc(...)
 function extractModuleConfigASTs(entrypointAST) {
     var moduleConfigASTs = {};
     EsprimaHelpers.eachChainedMethodCall(entrypointAST, function(methodName, methodArgs, node, parent) {
         if (methodName === this.options.configMethodIdentifier) {
-            if (parent && parent.expression && parent.expression.callee && parent.expression.callee.object) {
-                var parentCallee = parent.expression.callee.object.callee;
-                if (parentCallee.object.name === this.options.libraryMainNamespace) {
-                    var parentArguments = parent.expression.callee.object.arguments;
-                    var moduleName = parentArguments[this.options.indexOfModuleNameArgument].value;
-                    var configObjectExpression = node.arguments[this.options.indexOfModuleConfigArgument];
-                    moduleConfigASTs[moduleName] = configObjectExpression;
+            var methodChain = extractMethodChain([], node, parent);
+            var propNames = Lodash.map(methodChain, function(meth) { return meth.prop; });
+            var doesChainFromIdentifier = propNames.indexOf(this.options.libraryMainNamespace) !== -1;
+            if (doesChainFromIdentifier) {
+                var firstCall = methodChain[methodChain.length - 2];
+                var firstArgs = firstCall.args;
+                if (firstArgs) {
+                    var moduleName = firstArgs[this.options.indexOfModuleNameArgument].value;
+                    if (node.arguments) {
+                         var configAST = node.arguments[this.options.indexOfModuleConfigArgument];
+                         if (configAST) {
+                            moduleConfigASTs[moduleName] = configAST;
+                         }
+                    }
                 }
             }
         }
