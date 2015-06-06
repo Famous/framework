@@ -16,7 +16,7 @@ function areAnyDependenciesMissing(wanted, found) {
 }
 
 function looksLikeComponentWasAlreadyBuilt(info) {
-    return !!info.bundlePath;
+    return !!info.bundleString;
 }
 
 module.exports = {
