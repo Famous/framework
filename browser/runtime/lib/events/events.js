@@ -304,11 +304,14 @@ Events.prototype.sendMessages = function sendMessages(messages, uid) {
 
 Events.sendMessageBySelector = function sendMessageBySelector(key, value, uid, selector) {
     var parentComponent = DataStore.getComponent(uid);
-    var targets = VirtualDOM.query(parentComponent.tree.getExpandedBlueprint(), selector);
-    var component;
-    for (var i = 0; i < targets.length; i++) {
-        component = DataStore.getComponent(VirtualDOM.getUID(targets[i]));
-        component.sendMessage(key, value);
+    var expandedBlueprint = parentComponent.tree.getExpandedBlueprint();
+    if (expandedBlueprint) {
+        var targets = VirtualDOM.query(expandedBlueprint, selector);
+        var component;
+        for (var i = 0; i < targets.length; i++) {
+            component = DataStore.getComponent(VirtualDOM.getUID(targets[i]));
+            component.sendMessage(key, value);
+        }
     }
 };
 
