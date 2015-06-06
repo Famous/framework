@@ -37,10 +37,12 @@ Builder.DEFAULTS = {
     doAttemptToBuildDependenciesLocally: true,
     doLoadDependenciesFromBrowser: IS_IN_BROWSER,
     doSkipAssetSaveStep: false,
+    doSkipBundleSaveStep: false,
     fileOptions: { encoding: 'utf8' },
     localComponentsSourceFolder: process.env.FRAMEWORK_LOCAL_COMPONENTS_SOURCE_FOLDER,
     localDependenciesSourceFolder: process.env.FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER,
     localDependenciesCacheFolder: process.env.FRAMEWORK_LOCAL_DEPENDENCIES_CACHE_FOLDER,
+    whereToPersistBuildFiles: 'local',
 
     // Content and assets
     assetTypes: {
@@ -170,11 +172,13 @@ Builder.prototype.buildModule = function(info, finish) {
         // Note: Skipping this step may assume that already have
         // an 'explicitVersion' set, since only saving assets
         // can give us the version ref for the component.
-        subRoutines.push(this.saveAssets.bind(this, 'local'));
+        subRoutines.push(this.saveAssets.bind(this, this.options.whereToPersistBuildFiles));
     }
     subRoutines.push(this.expandSyntax);
     subRoutines.push(this.buildBundle);
-    subRoutines.push(this.saveBundle.bind(this, 'local'));
+    if (!this.options.doSkipBundleSaveStep) {
+        subRoutines.push(this.saveBundle.bind(this, this.options.whereToPersistBuildFiles));
+    }
     Async.seq.apply(Async, subRoutines)(info, function(err, result) {
         finish(err, result);
     });
