@@ -1,4 +1,4 @@
-BEST.module('creative:sephora:mask', 'HEAD', {
+BEST.module('creative:sephora:mask', {
     behaviors: {
         '#mask': {
             'align': '[[identity|align]]',
