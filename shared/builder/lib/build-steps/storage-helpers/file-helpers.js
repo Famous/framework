@@ -19,8 +19,14 @@ function readFilesRecursive(baseDir, finish) {
                     var resultsArray = [];
                     for (var i = 0; i < fileContents.length; i++) {
                         var filePath = filePaths[i];
+                        filePath = filePath.replace(baseDir, '');
+                        // Remove the preceding slash since the users of this
+                        // function downstream expect the path to be relative
+                        if (filePath[0] === '/') {
+                            filePath = filePath.slice(1, filePath.length);
+                        }
                         resultsArray.push({
-                            path: filePath.replace(baseDir, ''),
+                            path: filePath,
                             content: fileContents[i].toString()
                         });
                     }
