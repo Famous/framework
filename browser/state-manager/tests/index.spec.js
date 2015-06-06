@@ -450,9 +450,9 @@ test('StateManager', function(t) {
             'z': 0
         });
 
-        t.equal(SM.get('x'), 0, 'should set x')
-        t.equal(SM.get('y'), 0, 'should set y')
-        t.equal(SM.get('z'), 0, 'should set z')
+        t.equal(SM.get('x'), 0, 'should set x');
+        t.equal(SM.get('y'), 0, 'should set y');
+        t.equal(SM.get('z'), 0, 'should set z');
 
         t.end();
     });
@@ -475,16 +475,16 @@ test('StateManager', function(t) {
             'z': 0
         });
 
-        t.equal(SM.get('x'), 0)
-        t.equal(SM.get('y'), 0)
-        t.equal(SM.get('z'), 0)
+        t.equal(SM.get('x'), 0);
+        t.equal(SM.get('y'), 0);
+        t.equal(SM.get('z'), 0);
 
         time = 0;
         SM.set({
             'x': 1,
             'y': 1,
             'z': 1
-        }, { duration: 1000 })
+        }, { duration: 1000 });
         time = 500;
         SM.onUpdate();
         t.equal(SM.get('x'), 0.5, 'should tween x');

@@ -32,7 +32,9 @@ function extractModuleConfigASTs(entrypointAST) {
     EsprimaHelpers.eachChainedMethodCall(entrypointAST, function(methodName, methodArgs, node, parent) {
         if (methodName === this.options.configMethodIdentifier) {
             var methodChain = extractMethodChain([], node, parent);
-            var propNames = Lodash.map(methodChain, function(meth) { return meth.prop; });
+            var propNames = Lodash.map(methodChain, function(meth) {
+                return meth.prop;
+            });
             var doesChainFromIdentifier = propNames.indexOf(this.options.libraryMainNamespace) !== -1;
             if (doesChainFromIdentifier) {
                 var firstCall = methodChain[methodChain.length - 2];

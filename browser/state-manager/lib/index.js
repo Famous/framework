@@ -150,9 +150,9 @@ StateManager.prototype.setState = function setState(key, value, transition) {
 
     if (keyType === 'Object') {
         var object = key;
-        var transition = value;
+        transition = value;
         for (var state in object) {
-            this.setState(state, object[state], transition)
+            this.setState(state, object[state], transition);
         }
         return this;
     }
