@@ -123,7 +123,7 @@ var NORMAL_FACET_NAMES = {
     'tree': true
 };
 
-function extendDefintion(definition, extensions) {
+function extendDefinition(definition, extensions) {
     var extensionDefinition;
     for (var i = 0; i < extensions.length; i++) {
         extensionDefinition = getModuleDefinition(extensions[i].name, extensions[i].version, false);
@@ -152,9 +152,13 @@ function validateModule(name, tag, options, definition) {
         if (!(facetName in NORMAL_FACET_NAMES)) {
             console.warn('`' + name + ' (' + tag + ')` ' + 'has an unrecognized property `' + facetName + '` in its definition');
         }
+    }
+}
 
+function enhanceModule(name, tag, options, definition) {
+    for (var facetName in definition) {
         if (options[EXTENSION_KEYS]) {
-            extendDefintion(definition, options[EXTENSION_KEYS]);
+            extendDefinition(definition, options[EXTENSION_KEYS]);
         }
     }
 }
@@ -162,6 +166,7 @@ function validateModule(name, tag, options, definition) {
 function registerModule(name, tag, options, definition) {
     if (!hasModule(name, tag)) {
         validateModule(name, tag, options, definition);
+        enhanceModule(name, tag, options, definition);
         return wrapModule(name, tag, saveModule(name, tag, options, definition));
     }
     else {
