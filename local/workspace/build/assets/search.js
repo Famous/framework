@@ -26,14 +26,14 @@
             window.location.search = '?best=' + event.currentTarget.textContent;
         });
     });
-    searchInput.value = QUERY.best || 'clickable-square-new';
+    searchInput.value = QUERY.best || 'clickable-square';
 
     if (QUERY.best) {
         if (QUERY.best.split(':').length < 2) QUERY.best = 'famous:demos:' + QUERY.best;
         BEST.deploy(QUERY.best, 'HEAD', '#best-stage');
     }
     else {
-        BEST.deploy('famous:demos:clickable-square-new', 'HEAD', '#best-stage');
+        BEST.deploy('famous:demos:clickable-square', 'HEAD', '#best-stage');
     }
 
     // Hack to mask FOUC when using align
