@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Famous Framework (tests page)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <link href='assets/reset.min.css' rel='stylesheet' type='text/css'>
+    <script>document.write('<script src="http://'+(location.host||'localhost').split(':')[0]+':35729/livereload.js?snipver=1"></'+'script>');</script>
+    <style type="text/css">
+    body {
+        font-family: Lato, Helvetica, Arial, sans-serif;
+    }
+    #demo {
+        height: 90%;
+        width: 100%;
+    }
+    #iframe {
+        height: 100%;
+        width: 100%;
+    }
+    #nav {
+        background-color: black;
+        height: 10%;
+        width: 100%;
+    }
+    #next-button,
+    #prev-button {
+        float: left;
+        background-color: black;
+        border-radius: 0;
+        border: 1px solid #666;
+        color: white;
+        cursor: pointer;
+        height: 100%;
+        outline: none;
+        width: 33.3%;
+    }
+    #current-module-name-box {
+        display: table;
+        float: left;
+        width: 33.3%;
+        height: 100%;
+        color: white;
+        text-align: center;
+        font-size: 0.8em;
+        border-top: 1px solid #666;
+        border-bottom: 1px solid #666;
+    }
+    #current-module-name-span {
+        display: table-cell;
+        vertical-align: middle;
+    }
+    </style>
+</head>
+<body>
+    <div id="demo">
+        <iframe id="iframe" scrolling="no"></iframe>
+    </div>
+    <div id="nav">
+        <button id="prev-button">
+            <span>&larr; Prev</span>
+        </button>
+        <div id="current-module-name-box"><span id="current-module-name-span">famous:demos:clickable-square</span></div>
+        <button id="next-button">
+            <span>Next &rarr;</span>
+        </button>
+    </div>
+    <script type="text/javascript" src="assets/query-string.js"></script>
+    <script type="text/javascript">
+        var modules = [
+            'arkady.pevzner:control-flow:basic-if',
+            'arkady.pevzner:control-flow:repeat',
+            'arkady.pevzner:control-flow:static-repeat',
+            'arkady.pevzner:timeline-example',
+            'creative:carousel',
+            'creative:carousel:carousel-item',
+            'creative:sephora',
+            'creative:sephora:mask',
+            'creative:sephora:sprite',
+            'creative:twitter',
+            'creative:twitter:message',
+            'creative:twitter:notification',
+            'creative:twitter:profile',
+            'creative:twitter:tweet',
+            'creative:twitter:tweetM',
+            'famous:core:components',
+            'famous:core:context',
+            'famous:core:dom-element',
+            'famous:core:node',
+            'famous:core:ui-element',
+            'famous:core:view',
+            'famous:core:wrapper',
+            'famous:demos:animation-timeline',
+            'famous:demos:attach-webgl',
+            'famous:demos:circle',
+            'famous:demos:click-event',
+            'famous:demos:clickable-square',
+            'famous:demos:flipper-button',
+            'famous:demos:hello-famous',
+            'famous:demos:if-repeat',
+            'famous:demos:layouts:basic-scroll-view',
+            'famous:demos:layouts:footer-bar',
+            'famous:demos:layouts:header-footer',
+            'famous:demos:layouts:header-footer-example',
+            'famous:demos:layouts:scroll-view-item',
+            'famous:demos:layouts:template-scroll-layout',
+            'famous:demos:layouts:three-panel-layout',
+            'famous:demos:layouts:two-panel-layout',
+            'famous:demos:lifecycle',
+            'famous:demos:repeat',
+            'famous:demos:repeat-square',
+            'famous:demos:styling-inner-divs',
+            'famous:demos:templating',
+            'famous:events',
+            'famous:tests:assets-large',
+            'famous:tests:custom-toolchain',
+            'famous:tests:fouc',
+            'famous:tests:misspelled-facets',
+            'famous:tests:mount-point',
+            'famous:tests:opacity',
+            'famous:tests:pass-through',
+            'famous:tests:pass-through:child-component',
+            'famous:tests:platform-a',
+            'famous:tests:scope',
+            'famous:tests:size-change-event',
+            'famous:tests:static-assets',
+            'famous:tests:static-assets:more-assets',
+            'famous:tests:weird-files',
+            'imtiaz.majeed:array-tweening',
+            'imtiaz.majeed:dispatcher-broadcasting:child',
+            'imtiaz.majeed:dispatcher-broadcasting:parent',
+            'imtiaz.majeed:dispatcher-trigger',
+            'imtiaz.majeed:dom-skyscraper:base',
+            'imtiaz.majeed:dom-skyscraper:side',
+            'imtiaz.majeed:polymer-test',
+            'imtiaz.majeed:state-manager-test',
+            'imtiaz.majeed:timeline:example',
+            'imtiaz.majeed:timeline:top-level-function',
+            'imtiaz.majeed:ui-element-content',
+            'jordan.papaleo:flip-card',
+            'jordan.papaleo:flipping-cards',
+            'jordan.papaleo:hello-famous'
+        ];
+        var iframeEl = document.getElementById('iframe');
+        var modSpan  = document.getElementById('current-module-name-span');
+        function updateCurrentModule(name) {
+            iframeEl.setAttribute('src', 'index.html?best=' + currentModule);
+            modSpan.innerText = currentModule;
+            window.history.pushState(currentModule, 'Famous Framework (tests page)', 'tests.html?best=' + currentModule);
+        }
+
+        var currentModule = QUERY.best || 'famous:demos:clickable-square';
+        updateCurrentModule(currentModule);
+
+        var nextButtonEl = document.getElementById('next-button');        
+        nextButtonEl.addEventListener('click', function(clickEvent) {
+            var indexOfCurrent = modules.indexOf(currentModule);
+            var indexOfNext = (indexOfCurrent + 1) % modules.length;
+            currentModule = modules[indexOfNext];
+            updateCurrentModule(currentModule);
+        });
+
+        var prevButtonEl = document.getElementById('prev-button');
+        prevButtonEl.addEventListener('click', function(clickEvent) {
+            var indexOfCurrent = modules.indexOf(currentModule);
+            var indexOfPrev = (indexOfCurrent - 1) % modules.length;
+            currentModule = modules[indexOfPrev];
+            updateCurrentModule(currentModule);
+        });
+    </script>
+</body>
+</html>
