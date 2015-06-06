@@ -4,7 +4,7 @@ const SPRITE_TYPES = {
     'five-black': [275, 330],
     'five-color': [275, 330],
     'five-light': [275, 330],
-    'getit': [211, 103],
+    'getit': [214, 104],
     'letter-a': [27, 36],
     'letter-e': [27, 36],
     'letter-h': [27, 36],
@@ -12,19 +12,21 @@ const SPRITE_TYPES = {
     'letter-p': [27, 36],
     'letter-r': [27, 36],
     'letter-s': [27, 36],
-    'light': [15, 15]
+    'light': [15, 15],
+    'no': [280, 280]
 };
 BEST.module('creative:sephora:sprite', 'HEAD', {
     behaviors: {
         '#sprite': {
-            'add-class': currType => { return `sephora-sprite-${currType}` },
-            'remove-class': prevType => { return `sephora-sprite-${prevType}` },
-            'mount-point': [0.5, 0.5],
-            align: [0.5, 0.5],
-            origin: [0.5, 0.5],
-            opacity: '[[identity|opacity]]',
-            position: '[[identity|position]]',
-            size: '[[identity|currSize]]'
+            'add-class': currType => { return `sephora-${currType === 'no' ? 'icon' : 'sprite'}-${currType}` },
+            'align': '[[identity|align]]',
+            'mount-point': [0.5, 0.5, 0.5],
+            'opacity': '[[identity|opacity]]',
+            'origin': [0.5, 0.5, 0.5],
+            'position': '[[identity|position]]',
+            'remove-class': prevType => { return `sephora-${prevType === 'no' ? 'icon' : 'sprite'}-${prevType}` },
+            'scale': '[[identity|scale]]',
+            'size': '[[identity|currSize]]'
         }
     },
     events: {
@@ -42,15 +44,17 @@ BEST.module('creative:sephora:sprite', 'HEAD', {
             }
         },
         '$pass-through' : {
-            '#sprite' : ['position', 'opacity']
+            '#sprite' : ['align', 'opacity', 'position', 'scale']
         }
     },
     states: {
-        position: [0, 0],
-        opacity: 1,
+        align: [0.5, 0.5, 0.5],
         currSize: [200, 240],
         currType: 'bottle',
-        prevType: 'bottle'
+        opacity: 0,
+        position: [0, 0, 0],
+        prevType: 'bottle',
+        scale: [1, 1, 1]
     },
     tree: 'sprite.html'
 });
