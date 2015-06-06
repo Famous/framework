@@ -1,69 +1,67 @@
+const LETTER_SPACING = 0.167;
+
+function getLetterPosition(val) {
+    return ~~(LETTER_SPACING * val * 100) / 100;
+}
+
 BEST.module('creative:sephora', {
     behaviors: {
-        '#background': { style: { background: '#000' } },
+        '#background': { 'style': { background: '#000' } },
         '#bottle': { 'type': 'bottle' },
         '#bottle-label': { 'type': 'bottle-label' },
-        '#five-black': { 'type': 'five-black' },
-        '#five-color': { 'type': 'five-color' },
-        '#five-light': { 'type': 'five-light' },
-        '#getit': { 'type': 'getit' },
-        '#letter-a': { 'type': 'letter-a' },
-        '#letter-e': { 'type': 'letter-e' },
-        '#letter-h': { 'type': 'letter-h' },
-        '#letter-o': { 'type': 'letter-o' },
-        '#letter-p': { 'type': 'letter-p' },
-        '#letter-r': { 'type': 'letter-r' },
-        '#letter-s': { 'type': 'letter-s' },
+        '#five-black': { 'type': 'five-black', 'opacity': 0 },
+        '#five-color': { 'type': 'five-color', 'opacity': 0 },
+        '#five-light': { 'type': 'five-light', 'opacity': 1 },
         '#light': { 'type': 'light' },
         '#container': {
-            'mount-point': [0.5, 0.5, 0.5],
-            'align': [0.5, 0.5, 0.5],
-            'origin': [0.5, 0.5, 0.5],
-            size: [320, 568]
+            'align': [0, 0.5, 0.5], 'mount-point': [0, 0.5, 0.5], 'origin': [0.5, 0.5, 0.5],
+            'overflow': 'hidden',
+            'size': [320, 568],
         },
-        '.sephora-container': {}
-        // 'sprite' : {
-        //     // type: function(type) {
-        //     //     console.log(type);
-        //     //     return type;
-        //     // }
-        //     $repeat : function(ids) {
-        //         var result = [];
-        //         for (var i = 0; i < ids.length; i++) {
-        //             result.push({
-        //                 position: [0, i * 200 - 200]
-        //             });
-        //         }
-        //         return result;
-        //     },
-        //     type: function($index, ids, type, selectedIndex) {
-        //         if (type && $index === selectedIndex) {
-        //             return type;
-        //         }
-        //         else {
-        //             return ids[$index];
-        //         }
-        //
-        //     }
-        // }
+        '#container-bottle': {
+            'align': [0.5, 0.5, 0.5], 'mount-point': [0.5, 0.5, 0.5], 'origin': [0.5, 0.5, 0.5],
+            'position': [0, 0, 0]
+        },
+        '#container-letter': {
+            'align': [0.5, 0.5, 0.5], 'mount-point': [0.5, 0.5, 0.5], 'origin': [0.5, 0.5, 0.5],
+            'position': [0, 205, 0], 'size': [220, 36]
+        },
+        '#getit': { 'type': 'getit', 'position': [0, 210, 0] },
+        '#intro1': {
+            size: [20, 46],
+            position: [95, -116]
+        },
+        '#intro2': {
+            size: [220, 180],
+            position: [0, 46]
+        },
+        '#intro3': {
+            size: [150, 10],
+            position: [11, -95]
+        },
+        '#intro4': {
+            size: [16, 60],
+            position: [-48, -78]
+        },
+        '#intro5': {
+            size: [156, 40],
+            position: [-20, -3]
+        },
+        '#letter-s': { 'type': 'letter-s', 'align': [getLetterPosition(0), 0.5, 0.5] },
+        '#letter-e': { 'type': 'letter-e', 'align': [getLetterPosition(1), 0.5, 0.5] },
+        '#letter-p': { 'type': 'letter-p', 'align': [getLetterPosition(2), 0.5, 0.5] },
+        '#letter-h': { 'type': 'letter-h', 'align': [getLetterPosition(3), 0.5, 0.5] },
+        '#letter-o': { 'type': 'letter-o', 'align': [getLetterPosition(4), 0.5, 0.5] },
+        '#letter-r': { 'type': 'letter-r', 'align': [getLetterPosition(5), 0.5, 0.5] },
+        '#letter-a': { 'type': 'letter-a', 'align': [getLetterPosition(6), 0.5, 0.5] },
+        '#no': { 'type': 'no', 'position': [-410, -10, 0] }
     },
     events: {
-        // '#getit': {
-        //     'click': function ($behaviors, $state, $payload) {
-        //         $payload.currentTarget.set('type', 'letter-s');
-        //         $behaviors['#getit'].set('type', 'letter-s');
-        //     }
-        // }
-        // 'sprite': {
-        //     'sprite-click' : function($state, $payload) {
-        //         // console.log('---------');
-        //         // console.log($payload);
-        //         // console.log($payload.detail.index);
-        //         // console.log('---------');
-        //         $state.set('selectedIndex', $payload.detail);
-        //         $state.set('type', 'letter-e');
-        //     }
-        // }
+        '$lifecycle': {
+            'post-load': function($state) {
+                // $timelines.get('intro-animation').start({duration: 1800});
+            }
+        }
     },
     states: {
         // type: 'letter-a',
@@ -71,9 +69,46 @@ BEST.module('creative:sephora', {
     },
     tree: 'sephora.html'
 })
+// .timelines({
+//     'intro-animation': {
+//         '#intro1': {
+//             'position': {
+//                 '0%': { value: [95, -116] },
+//                 '33%': { value: [95, -70] }
+//             }
+//         },
+//         '#intro2': {
+//             'position': {
+//                 '0%': { value: [0, 46] },
+//                 '83%': { value: [220, 46] }
+//             }
+//         },
+//         '#intro3': {
+//             'position': {
+//                 '0%': { value: [11, -95] },
+//                 '33%': { value: [11, -95] },
+//                 '61%': { value: [-126, -95] }
+//             }
+//         },
+//         '#intro4': {
+//             'position': {
+//                 '0%': { value: [-48, -78] },
+//                 '56%': { value: [-48, -78] },
+//                 '78%': { value: [-48, -14] }
+//             }
+//         },
+//         '#intro5': {
+//             'position': {
+//                 '0%': { value: [-20, -3] },
+//                 '58%': { value: [-20, -3] },
+//                 '100%': { value: [-175, -3] }
+//             }
+//         }
+//     }
+// })
 .config({
-    imports: {
-        'creative:sephora': ['sprite']
-    },
+    // imports: {
+    //     // 'creative:sephora': ['mask', 'sprite']
+    // },
     includes: ['sephora.css']
 });

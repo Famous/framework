@@ -148,6 +148,15 @@ StateManager.prototype.setState = function setState(key, value, transition) {
 
     // TODO: add type comparison of previousValue and value for error handling
 
+    if (keyType === 'Object') {
+        var object = key;
+        var transition = value;
+        for (var state in object) {
+            this.setState(state, object[state], transition)
+        }
+        return this;
+    }
+
     if (keyType === 'Array') key = JSON.stringify(key);
 
     switch(valueType) {
@@ -530,7 +539,7 @@ function setObject(key, val, object) {
  * Returns key if not a nested object.
  */
 function parse(key) {
-    if (key.indexOf('[') === 0) {
+    if (isString(key) && key.indexOf('[') === 0) {
         return JSON.parse(key);
     }
     else {
