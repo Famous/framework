@@ -45,6 +45,6 @@ BEST.module('famous:demos:repeat-square', {
 .config({
     imports: {
         'famous:core': ['dom-element', 'view', 'ui-element'],
-        'famous:demos': ['clickable-square-with-label']
+        'famous:demos': ['clickable-square']
     }
 });;
