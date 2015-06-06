@@ -166,6 +166,9 @@
         prevButtonEl.addEventListener('click', function(clickEvent) {
             var indexOfCurrent = modules.indexOf(currentModule);
             var indexOfPrev = (indexOfCurrent - 1) % modules.length;
+            if (indexOfPrev < 0) {
+                indexOfPrev = modules.length - 1;
+            }
             currentModule = modules[indexOfPrev];
             updateCurrentModule(currentModule);
         });
