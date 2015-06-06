@@ -142,6 +142,9 @@ function extendDefintion(definition, extensions) {
 }
 
 function validateModule(name, tag, options, definition) {
+    if (/[A-Z]/.test(name)) {
+        console.warn('`' + name + ' (' + tag + ')` ' + 'has an uppercase letter in its name; use lowercase only');
+    }
     for (var facetName in definition) {
         if (!(facetName in NORMAL_FACET_NAMES)) {
             console.warn('`' + name + ' (' + tag + ')` ' + 'has an unrecognized property `' + facetName + '` in its definition');
