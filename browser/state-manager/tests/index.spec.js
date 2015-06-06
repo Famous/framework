@@ -398,6 +398,49 @@ test('StateManager', function(t) {
         t.end();
     });
 
+    t.test('setting state #13 - simultaneous set(transition).thenSet(transition)', function(t) {
+        var time = 0;
+        var _now = Date.now();
+
+        Transitionable.Clock = {
+            now: function() {
+                return time;
+            }
+        };
+
+        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+
+        SM
+            .set('w', 0)
+            .set('x', 0)
+            .set('y', 0)
+            .set('z', 0);
+
+        time = 0;
+        SM
+            .set('w', 1, { duration: 1000 })
+            .thenSet('x', 1, { duration: 1000 });
+
+        SM
+            .set('y', 1, { duration: 500 })
+            .thenSet('z', 1, { duration: 1000 });
+
+        time = 500;
+        SM.onUpdate();
+        t.equal(SM.get('w'), 0.5);
+        t.equal(SM.get('y'), 1);
+        time = 1000;
+        SM.onUpdate();
+        t.equal(SM.get('w'), 1);
+        t.equal(SM.get('z'), 0.5, 'should transition z');
+        time = 1500;
+        SM.onUpdate();
+        t.equal(SM.get('z'), 1);
+        t.equal(SM.get('x'), 0.5, 'should transition x');
+
+        t.end();
+    });
+
     t.test('subscribing to state #1 - subscribeTo', function(t) {
         var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
 
