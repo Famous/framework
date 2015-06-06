@@ -1,7 +1,7 @@
 BEST.scene('famous:tests:static-assets', {
     behaviors: {
         '#one-a': {
-            'content': '<img src="@{assets/excite.png}">'
+            'content': '<img src="@{assets/excite.png}"><p style="color:white;">You should see several images on this page, showing that assets can be loaded/referenced in a variety of ways</p>'
         },
         // Content is defined inside of the tree
         '#one-b': {
@@ -30,7 +30,8 @@ BEST.scene('famous:tests:static-assets', {
         imageThreePath: 'assets/excite3.png'
     },
     tree: `
-        <ui-element id="one-a"></ui-element>
+        <ui-element id="one-a">
+        </ui-element>
 
         <ui-element id="one-b">
             <img src="@{assets/excite.png}">

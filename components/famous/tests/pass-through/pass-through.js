@@ -31,9 +31,9 @@ BEST.module('famous:tests:pass-through', {
         '#child' : {
             position: [0, 500],
             content: `
-                This child component\'s view is positioned directly by its
+                This child component's view is positioned directly by its
                 parent because the child exposes a pass-through event for
-                \`position\`.
+                'position'.
             `
         }
     },
