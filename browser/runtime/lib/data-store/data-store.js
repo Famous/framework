@@ -131,12 +131,15 @@ function extendDefintion(definition, extensions) {
         definition[BEHAVIORS_KEY] = definition[BEHAVIORS_KEY] ? definition[BEHAVIORS_KEY] : {};
         definition[EVENTS_KEY] = definition[EVENTS_KEY] ? definition[EVENTS_KEY] : {};
         definition[STATES_KEY] = definition[STATES_KEY] ? definition[STATES_KEY] : {};
-        ObjUtils.naiveExtends(definition[BEHAVIORS_KEY], extensionDefinition[BEHAVIORS_KEY]);
-        ObjUtils.naiveExtends(definition[EVENTS_KEY], extensionDefinition[EVENTS_KEY]);
-        ObjUtils.naiveExtends(definition[STATES_KEY], extensionDefinition[STATES_KEY]);
 
-        if (!definition[TREE_KEY]) {
-            definition[TREE_KEY] = extensionDefinition[TREE_KEY] || '';
+        if (extensionDefinition) {
+            ObjUtils.naiveExtends(definition[BEHAVIORS_KEY], extensionDefinition[BEHAVIORS_KEY]);
+            ObjUtils.naiveExtends(definition[EVENTS_KEY], extensionDefinition[EVENTS_KEY]);
+            ObjUtils.naiveExtends(definition[STATES_KEY], extensionDefinition[STATES_KEY]);
+
+            if (!definition[TREE_KEY]) {
+                definition[TREE_KEY] = extensionDefinition[TREE_KEY] || '';
+            }
         }
     }
 }
