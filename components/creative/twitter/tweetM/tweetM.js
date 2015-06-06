@@ -96,8 +96,8 @@ BEST.scene('creative:twitter:tweetM', {
     },
     events: {
         '$public': {
-            'position': 'setter',
-            'model': 'setter'
+            'position': '[[setter]]',
+            'model': '[[setter]]'
         },
         '#tweet-image': {
             'size-change': function($state, $payload) {
