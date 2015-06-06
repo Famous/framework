@@ -35,7 +35,7 @@ function getFlatIncludes(flatIncludes, parcelHash) {
     }
     if (parcelHash.dependencies) {
         for (var dependencyName in parcelHash.dependencies) {
-            getFlatIncludes(flatIncludes, parcelHash.dependencies[dependencyName]);
+            flatIncludes = getFlatIncludes(flatIncludes, parcelHash.dependencies[dependencyName]);
         }
     }
     return Lodash.uniq(flatIncludes);
@@ -132,12 +132,13 @@ function buildEntrypointString(info) {
 
 function buildParcelHash(info) {
     var includes = BuildHelpers.buildIncludesArray(info);
+    var dependencies = normalizeDependenciesFound(info.dependenciesFound);
     return {
         name: info.name,
         version: info.explicitVersion || info.versionRef,
         timestamp: Date.now(),
         includes: includes,
-        dependencies: normalizeDependenciesFound(info.dependenciesFound),
+        dependencies: dependencies,
         entrypoint: buildEntrypointString(info)
     };
 }
