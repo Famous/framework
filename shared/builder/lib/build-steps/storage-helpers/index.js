@@ -41,7 +41,8 @@ function loadDependencies(info, cb) {
     composedLoadFn(dependenciesWanted, dependenciesFound, function(depLoadErr) {
         var dependenciesMissing = Extra.getDependenciesMissing(dependenciesWanted, dependenciesFound);
         if (depLoadErr || Object.keys(dependenciesMissing).length > 0) {
-            console.error('Unable to load dependencies ' + JSON.stringify(dependenciesMissing));
+            console.error('Got error when trying to load dependencies:', depLoadErr);
+            console.error('Unable to load `' + info.name + '`\'s dependencies ' + JSON.stringify(dependenciesMissing));
         }
         cb(null, dependenciesFound);
     });
