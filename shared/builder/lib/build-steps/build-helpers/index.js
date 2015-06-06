@@ -110,7 +110,10 @@ function buildIncludesArray(info, skipURLExpansion) {
                 var includeStr = moduleConfig.includes[j];
                 // Someone might want to get the 'raw' includes array without
                 // any expansion e.g. ['foo.js', 'bar.css']
-                if (skipURLExpansion) {
+                // Also don't bother trying to expand the URL if there isn't
+                // a version URL to begin with, since then we'll end up with
+                // a bunch of useless ['undefinedb.css'] includes in the list.
+                if (skipURLExpansion || !versionURL) {
                     includesArray.push(includeStr);
                 }
                 else {
