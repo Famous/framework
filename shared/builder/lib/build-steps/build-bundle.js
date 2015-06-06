@@ -44,7 +44,7 @@ function getFlatIncludes(flatIncludes, parcelHash) {
 function buildIncludesPrefix(info) {
     var parcelHash = info.parcelHash;
     var flatIncludes = getFlatIncludes([], parcelHash);
-    return 'BEST.includes("' + info.name + '", "' + info.versionRef + '", ' + JSON.stringify(flatIncludes) + ',function(){';
+    return 'BEST.includes("' + info.name + '","' + (info.explicitVersion || info.versionRef) + '",' + JSON.stringify(flatIncludes) + ',function(){';
 }
 
 function getFlatRegistrations(flatRegistrations, alreadyRegistered, parcelHash) {
@@ -113,23 +113,46 @@ function normalizeDependenciesFound(dependenciesFound) {
 }
 
 function buildEntrypointString(info) {
-    return EsprimaHelpers.generate(info.entrypointAST);
+    try {
+        var generated = EsprimaHelpers.generate(info.entrypointAST);
+        return generated;
+    }
+    catch (entrypointBuildErr) {
+        // Dear developer:
+        // To get insight into what may have failed, try uncommenting this
+        // block and inspecting what all of the nodes in the AST are.
+        // EsprimaHelpers.traverse(info.entrypointAST, function(node) {
+        //     console.log(node);
+        // });
+        console.error('Esprima says:', entrypointBuildErr);
+        console.error('Failed to build `' + info.name + '` (' + info.versionRef + ') entrypoint; this is most likely a problem with the framework build tool');
+        return 'console.error("The build of `' + info.name + '` (' + info.versionRef + ') failed; this is most likely a problem with the framework build tool");';
+    }
 }
 
 function buildParcelHash(info) {
+    var includes = BuildHelpers.buildIncludesArray(info);
     return {
         name: info.name,
-        version: info.versionRef,
+        version: info.explicitVersion || info.versionRef,
         timestamp: Date.now(),
-        includes: BuildHelpers.buildIncludesArray(info),
+        includes: includes,
         dependencies: normalizeDependenciesFound(info.dependenciesFound),
         entrypoint: buildEntrypointString(info)
     };
 }
 
 function buildBundle(info, cb) {
-    info.parcelHash = buildParcelHash(info);
-    info.bundleString = buildBundleString(info);
+    // When building bundles in memory only (no persistence, say, when testing),
+    // we might not have either a version ref or an explicit version set; in that
+    // case, fall back to the dependency version so that the bundles don't have
+    // a bunch of "undefined" versions listed
+    if (!info.versionRef && !info.explicitVersion) {
+        info.versionRef = this.options.defaultDependencyVersion;
+    }
+
+    info.parcelHash = buildParcelHash.call(this, info);
+    info.bundleString = buildBundleString.call(this, info);
     cb(null, info);
 }
 
