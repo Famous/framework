@@ -16,6 +16,8 @@ Test('builder', function(t) {
     t.ok(new Builder(), 'instance');
 
     var baseDir = Path.join(__dirname, 'fixtures');
+    var subDir = Path.join('a');
+    var buildResult = Fs.readFileSync(Path.join(__dirname, 'fixtures', '__data', 'a-build.js'), {encoding:'utf8'});
 
     var assistant = new Assistant({
         builderOptions: {
@@ -25,15 +27,13 @@ Test('builder', function(t) {
         }
     });
     
-    var subDir = Path.join('a');
-    var buildResult = Fs.readFileSync(Path.join(__dirname, 'fixtures', '__data', 'a-build.js'), {encoding:'utf8'});
-
     assistant.buildSingle(baseDir, subDir, function(err, result) {
         if (err) {
             console.error(err);
         }
         else {
             t.equals(result.bundleString, buildResult, 'freshly generated bundle string matches a previously generated build result');
+            // console.log(result.bundleString);
         }
     });
 });

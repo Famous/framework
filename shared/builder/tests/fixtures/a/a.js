@@ -22,3 +22,8 @@ BEST.module('a', {
 .config({
     includes: ['a.css', 'other.js']
 })
+.timelines({
+
+})
+.foobar()
+.foobaz()

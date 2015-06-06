@@ -1,11 +1,14 @@
 // Copyright 2015 (c) Famous Industries, Inc.
 'use strict';
-BEST.includes("a","HEAD",["a.css","other.js"],function(){
+BEST.includes("a","HEAD",["a.css","other.js","yaya.css"],function(){
     'use strict';
     BEST.module('famous:core:node', 'HEAD', {
         'dependencies': {},
         'extensions': []
-    }, {}).config({ 'extends': [] });
+    }, {}).config({
+        'extends': [],
+        includes: ['yaya.css']
+    });
     function fromOther() {
     }
     BEST.attach('a', 'HEAD', '#ctx', function (node) {
@@ -42,6 +45,6 @@ BEST.includes("a","HEAD",["a.css","other.js"],function(){
             'a.css',
             'other.js'
         ]
-    });
+    }).timelines({}).foobar().foobaz();
 });
 // Copyright 2015 (c) Famous Industries, Inc.

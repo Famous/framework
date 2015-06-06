@@ -2,5 +2,6 @@ BEST.module('famous:core:node', {
 
 }).
 config({
-    extends: []
+    extends: [],
+    includes: ['yaya.css']
 })
