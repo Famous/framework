@@ -161,7 +161,7 @@ function expandLibraryInvocation(info, moduleName, libraryInvocation) {
     // Make the version ref the second argument to BEST.scene(...)
     // since the client-side uses the ref internally for managing objects
     var moduleNameArgAST = EsprimaHelpers.buildStringLiteralAST(moduleName);
-    var versionRefArgAST = EsprimaHelpers.buildStringLiteralAST(info.versionRef);
+    var versionRefArgAST = EsprimaHelpers.buildStringLiteralAST(info.versionRef || this.options.defaultDependencyVersion);
     var optionsArgAST = buildOptionsArgAST.call(this, info, moduleName);
     var definitionArgAST = info.moduleDefinitionASTs[moduleName] || EsprimaHelpers.EMPTY_OBJECT_EXPRESSION;
 
@@ -202,7 +202,7 @@ function expandAttachmentSyntax(info, ast) {
     var attachmentInvocations = findAttachmentInvocations.call(this, ast);
     for (var i = 0; i < attachmentInvocations.length; i++) {
         var attachmentInvocation = attachmentInvocations[i];
-        attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.versionRef));
+        attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.versionRef || this.options.defaultDependencyVersion));
         attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.name));
     }
 }
@@ -221,7 +221,7 @@ function expandSyntax(info, cb) {
     for (moduleName in info.moduleDefinitionASTs) {
         var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
         var moduleConfigAST = info.moduleConfigASTs[moduleName];
-        interpolateAssetStrings.call(this, moduleName, info.versionRef, moduleDefinitionAST);
+        interpolateAssetStrings.call(this, moduleName, ((info.versionRef || info.explicitVersion) || this.options.defaultDependencyVersion), moduleDefinitionAST);
         processSyntacticalSugar.call(this, moduleName, moduleDefinitionAST, moduleConfigAST);
     }
     for (moduleName in info.libraryInvocations) {
@@ -251,6 +251,7 @@ function expandSyntax(info, cb) {
             }
         }
     }
+
     info.inlinedFiles = inlinedFiles;
     cb(null, info);
 }
