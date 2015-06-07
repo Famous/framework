@@ -6,13 +6,7 @@ var Fs = require('fs');
 
 process.env.BEST_ASSET_READ_HOST = 'http://localhost:3000';
 process.env.BEST_BLOCKS_FOLDER = Path.join(__dirname, '..', 'public');
-
-// This removes any previously built versions from the local file system so we
-// don't end up creating a bundle that draws from non-fixture components.
-// This DUMB HACK almost certainly warrants a factoring-out
-if (Fs.existsSync(process.env.BEST_BLOCKS_FOLDER)) {
-    Fs.rmdirSync(process.env.BEST_BLOCKS_FOLDER);
-}
+process.env.BEST_VERSION_INFO_HOST = 'https://api-te.famo.us/codemanager';
 
 var Builder = require('./../lib/builder');
 var Assistant = require('./../../../local/assistant/lib/assistant');
