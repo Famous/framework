@@ -30,6 +30,15 @@ function buildVersionPath(moduleName, moduleVersion, makeRelative) {
     }, !!makeRelative);
 }
 
+function buildVersionInfoURL(moduleName, moduleVersion) {
+    var versionPath = persistencePathTemplate.call(this, this.options.codeManagerVersionGetRoute, {
+        apiVersion: this.options.codeManagerApiVersion,
+        blockIdOrName: moduleName,
+        versionRefOrTag: moduleVersion
+    }, true);
+    return this.options.codeManagerVersionInfoHost + SLASH + versionPath;
+}
+
 function buildComponentSourceCodePath(moduleName, moduleVersion, assetPath) {
     var relPath = moduleName.split(this.options.componentDelimiter).join(Path.sep);
     var absPath = Path.join(this.options.componentSourceCodeRoute, relPath);
@@ -54,5 +63,6 @@ module.exports = {
     buildAssetPath: buildAssetPath,
     buildAssetURL: buildAssetURL,
     buildComponentSourceCodePath: buildComponentSourceCodePath,
-    buildVersionPath: buildVersionPath   
+    buildVersionPath: buildVersionPath,
+    buildVersionInfoURL: buildVersionInfoURL
 };

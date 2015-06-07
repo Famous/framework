@@ -11,8 +11,13 @@ var LocalBlocksCacheFolder = require('./local-blocks-cache-folder');
 var Hub = require('./hub');
 
 function derefDependencies(depReferenceTable, cb) {
-    // TODO - Actually fetch the referenced dependencies (SHAs)
-    cb(null, depReferenceTable);
+    if (this.options.codeManagerVersionInfoHost) {
+        Hub.derefDependencies.call(this, this.options.codeManagerVersionInfoHost, depReferenceTable, cb);
+    }
+    else {
+        // Just return the normal reference table for now
+        cb(null, depReferenceTable);
+    }
 }
 
 function loadDependencies(info, cb) {
