@@ -1,10 +1,13 @@
 'use strict';
 
+var UID = require('./../../../utilities/uid');
+
 var BEST_ROOT = document.createElement('best-root');
 var COMPONENT_DELIM = ':';
 var DO_CLONE_ATTRIBUTES = true;
 var DOM_PARSER = new DOMParser();
 var ESCAPED_COLON = '\\\:';
+var NODE_UID_PREFIX = 'node';
 var PARSE_TYPE = 'text/html';
 var SELF_KEY = '$self';
 var SPAN_KEY = 'span';
@@ -120,8 +123,20 @@ function getTag(node) {
     return node.getAttribute(TAG_KEY);
 }
 
-function setUID(node, uid) {
-    node.setAttribute(UID_KEY, uid);
+function setUID(node) {
+    node.setAttribute(UID_KEY, UID.generate(NODE_UID_PREFIX));
+}
+
+function assignChildUIDs(parentNode) {
+    var i;
+    var child;
+    for (i = 0; i < parentNode.children.length; i++) {
+        child = parentNode.children[i];
+        if (!isValidHTMLElement(child)) {
+            setUID(child);
+            assignChildUIDs(parentNode.children[i]);
+        }
+    }
 }
 
 function getUID(node) {
@@ -190,9 +205,15 @@ function stripHTMLElements(domNode) {
     return htmlElements;
 }
 
+function removeAttribute(domNode, name) {
+    domNode.removeAttribute(name);
+    return domNode;
+}
+
 module.exports = {
     addNode: addNode,
     attachAttributeFromJSON: attachAttributeFromJSON,
+    assignChildUIDs: assignChildUIDs,
     clone: clone,
     create: create,
     deleteNode: deleteNode,
@@ -208,6 +229,7 @@ module.exports = {
     parse: parse,
     query: query,
     queryAttribute: queryAttribute,
+    removeAttribute: removeAttribute,
     removeChildNodes: removeChildNodes,
     removeNodeByUID: removeNodeByUID,
     setTag: setTag,

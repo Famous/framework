@@ -1,5 +1,7 @@
 'use strict';
 
+var ArrayUtils = require('./../../../utilities/array');
+var BehaviorRouter = require('./../behaviors/behavior-router');
 var Behaviors = require('./../behaviors/behaviors');
 var ControlFlow = require('./../control-flow/control-flow');
 var ControlFlowDataManager = require('./../control-flow/control-flow-data-manager');
@@ -9,25 +11,21 @@ var FamousConnector = require('./../famous-connector/famous-connector');
 var States = require('./../states/states');
 var Timelines = require('./../timelines/timelines');
 var Tree = require('./../tree/tree');
-var UID = require('./../../../utilities/uid');
-var VirtualDOM = require('./../virtual-dom/virtual-dom');
-var BehaviorRouter = require('./../behaviors/behavior-router');
-var ArrayUtils = require('./../../../utilities/array');
 var Utilities = require('./../utilities/utilities');
+var VirtualDOM = require('./../virtual-dom/virtual-dom');
 
-var NODE_UID_PREFIX = 'node';
-var SET_HTML_KEY = 'set-html';
-var YIELD_KEY = '$yield';
-var REPEAT_INFO_KEY = 'repeat-info';
 var CONTROL_FLOW_ACTION_KEY = 'control-flow-action';
 var CREATE_KEY = 'create';
 var DELETE_KEY = 'delete';
 var INDEX_KEY = '$index';
-var REPEAT_PAYLOAD_KEY = '$repeatPayload';
-var PRELOAD_KEY = 'pre-load';
 var POSTLOAD_KEY = 'post-load';
-var PREUNLOAD_KEY = 'pre-unload';
 var POSTUNLOAD_KEY = 'post-unload';
+var PRELOAD_KEY = 'pre-load';
+var PREUNLOAD_KEY = 'pre-unload';
+var REPEAT_INFO_KEY = 'repeat-info';
+var REPEAT_PAYLOAD_KEY = '$repeatPayload';
+var SET_HTML_KEY = 'set-html';
+var YIELD_KEY = '$yield';
 
 function Component(domNode, surrogateRoot, parent) {
     this.name = domNode.tagName.toLowerCase();
@@ -208,6 +206,10 @@ Component.prototype._initializeControlFlow = function _initializeControlFlow() {
         var childrenRoot = ControlFlow.initializeParentDefinedFlows(
             this.tree.getExpandedBlueprint(), this.surrogateRoot, this.controlFlowDataMngr
         );
+
+        // HTML Content from blueprint is overwritten by HTML content injected by parent,
+        // even if parent's injected HTML content are blank text nodes.
+        htmlElements = VirtualDOM.stripHTMLElements(childrenRoot);
         this._updateChildren(childrenRoot);
     }
 
@@ -222,8 +224,6 @@ Component.prototype._initializeControlFlow = function _initializeControlFlow() {
 // the components need to be initialized.
 Component.prototype._updateChildren = function _updateChildren(childrenRoot) {
     var self = this;
-    var htmlElements = VirtualDOM.stripHTMLElements(childrenRoot);
-
     this.tree.setChildrenRoot(childrenRoot);
     var baseNode;
     var childComponent;
@@ -232,9 +232,6 @@ Component.prototype._updateChildren = function _updateChildren(childrenRoot) {
         VirtualDOM.removeChildNodes(baseNode);
         createChild(baseNode, node, self);
     });
-
-    // Set DOMELement content
-    this._setHTMLContent(htmlElements);
 };
 
 Component.prototype._setHTMLContent = function _setHTMLContent(htmlElements) {
@@ -368,7 +365,7 @@ Component.executeComponent = function executeComponent(name, tag, selector) {
     var topLevelTree = new Tree(wrapperNode, '', dependencies, VirtualDOM.getBaseNode()); // Shim tree to match Component Constructor API
     var baseNode = VirtualDOM.create(name);
     VirtualDOM.setTag(baseNode, tag);
-    VirtualDOM.setUID(baseNode, UID.generate(NODE_UID_PREFIX));
+    VirtualDOM.setUID(baseNode);
     return new Component(baseNode, null, {
         tree: topLevelTree,
         famousNode: FamousConnector.createRoot(selector)

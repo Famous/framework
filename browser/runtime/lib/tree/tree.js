@@ -1,12 +1,10 @@
 'use strict';
 
-var UID = require('./../../../utilities/uid');
 var VirtualDOM = require('./../virtual-dom/virtual-dom');
 
-var NODE_UID_PREFIX = 'node';
+var CONTROL_FLOW_ACTION_KEY = 'control-flow-action';
 var EMPTY_STRING = '';
 var REPEAT_INFO_KEY = 'repeat-info';
-var CONTROL_FLOW_ACTION_KEY = 'control-flow-action';
 
 function Tree(rootNode, treeString, dependencies, parentNode) {
     this.rootNode = rootNode;
@@ -16,7 +14,7 @@ function Tree(rootNode, treeString, dependencies, parentNode) {
     var blueprintChildrenWrapper = VirtualDOM.parse(treeString || EMPTY_STRING);
 
     VirtualDOM.transferChildNodes(blueprintChildrenWrapper, this.blueprint);
-    Tree.assignChildUIDs(this.blueprint);
+    VirtualDOM.assignChildUIDs(this.blueprint);
     Tree.assignDependencyTags(this.blueprint, dependencies);
 
     this.expandedBlueprint = null; // Set via event after $if/$repeat
@@ -50,22 +48,6 @@ Tree.prototype.getRootNode = function getRootNode() {
 Tree.prototype.eachChild = function eachChild(cb) {
     for (var i = 0; i < this.childrenRoot.children.length; i++) {
         cb(this.childrenRoot.children[i]);
-    }
-};
-
-Tree.setUID = function(node) {
-    VirtualDOM.setUID(node, UID.generate(NODE_UID_PREFIX));
-};
-
-Tree.assignChildUIDs = function assignChildUIDs(parent) {
-    var i;
-    var child;
-    for (i = 0; i < parent.children.length; i++) {
-        child = parent.children[i];
-        if (!VirtualDOM.isValidHTMLElement(child)) {
-            Tree.setUID(child);
-            Tree.assignChildUIDs(parent.children[i]);
-        }
     }
 };
 

@@ -51,8 +51,8 @@ function attachNewNode(blueprintNode, expandedBlueprint, parentUID) {
     var clone = VirtualDOM.clone(blueprintNode);
 
     // Assign new UIDs to newly created elements to avoid collisions
-    Tree.setUID(clone);
-    Tree.assignChildUIDs(clone);
+    VirtualDOM.setUID(clone);
+    VirtualDOM.assignChildUIDs(clone);
 
     var parentNode = VirtualDOM.getNodeByUID(expandedBlueprint, parentUID);
 
