@@ -21,10 +21,24 @@ function Builder(options) {
 var IS_IN_BROWSER = (typeof window !== 'undefined');
 
 Builder.DEFAULTS = {
-    // Persistence related
-    bundleAssetPath: '~bundles/bundle.js', // Complete file that the client knows how to process
-    parcelAssetPath: '~bundles/parcel.json', // Data and dependencies object used for dependency gathering
-    codeManagerHost: process.env.CODE_MANAGER_HOST, // If not Famous CodeManager itself, a simple local server
+    // The folder where local components are being actively developed
+    localRawSourceFolder: process.env.BEST_RAW_SOURCE_FOLDER,
+
+    // The folder where block version (and bundles) are stored
+    localBlocksFolder: process.env.BEST_BLOCKS_FOLDER,
+
+    // A cache folder also for block version (and bundles) storage
+    localBlocksCacheFolder: process.env.BEST_BLOCKS_CACHE_FOLDER,
+
+    // Webservice host from which *assets* can be READ
+    codeManagerAssetReadHost: process.env.BEST_ASSET_READ_HOST,
+
+    // Webservice host to which *assets* can be WRITTEN
+    codeManagerAssetWriteHost: process.env.BEST_ASSET_WRITE_HOST,
+
+    // Webservice host that can return JSON data about versions
+    codeManagerVersionInfoHost: process.env.BEST_VERSION_INFO_HOST,
+
     codeManagerApiVersion: 'v1',
     codeManagerBlockCreateRoute: 'POST|default|/:apiVersion/blocks',
     codeManagerBlockGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName',
@@ -32,17 +46,18 @@ Builder.DEFAULTS = {
     codeManagerVersionUpdateRoute: 'PUT|multipart/form-data|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag',
     codeManagerVersionGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag',
     codeManagerAssetGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath',
-    defaultDependencyVersion: 'HEAD',
-    defaultDependencyData: undefined,
     doAttemptToBuildDependenciesLocally: true,
+    defaultDependencyVersion: 'HEAD',
+    whereToPersistBuildFiles: 'local',
+
+    // Persistence miscellany
+    bundleAssetPath: '~bundles/bundle.js', // Complete file that the client knows how to process
+    parcelAssetPath: '~bundles/parcel.json', // Data and dependencies object used for dependency gathering
+    defaultDependencyData: undefined,
     doLoadDependenciesFromBrowser: IS_IN_BROWSER,
     doSkipAssetSaveStep: false,
     doSkipBundleSaveStep: false,
     fileOptions: { encoding: 'utf8' },
-    localComponentsSourceFolder: process.env.FRAMEWORK_LOCAL_COMPONENTS_SOURCE_FOLDER,
-    localDependenciesSourceFolder: process.env.FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER,
-    localDependenciesCacheFolder: process.env.FRAMEWORK_LOCAL_DEPENDENCIES_CACHE_FOLDER,
-    whereToPersistBuildFiles: 'local',
 
     // Content and assets
     assetTypes: {

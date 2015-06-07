@@ -21,10 +21,10 @@
     "Jordan Papaleo <jordan@famo.us>"
   ],
   "scripts": {
-    "watch-components": "CODE_MANAGER_HOST=http://localhost:3000 FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER=$PWD/shared/builder/public FRAMEWORK_LOCAL_COMPONENTS_SOURCE_FOLDER=$PWD/components local/assistant/bin/index.js watch --baseDir=$PWD/components/",
-    "build-components": "CODE_MANAGER_HOST=http://localhost:3000 FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER=$PWD/shared/builder/public FRAMEWORK_LOCAL_COMPONENTS_SOURCE_FOLDER=$PWD/components local/assistant/bin/index.js build-all --baseDir=$PWD/components/",
+    "watch-components": "BEST_ASSET_READ_HOST=http://localhost:3000 BEST_BLOCKS_FOLDER=$PWD/shared/builder/public BEST_RAW_SOURCE_FOLDER=$PWD/components local/assistant/bin/index.js watch --baseDir=$PWD/components/",
+    "build-components": "BEST_ASSET_READ_HOST=http://localhost:3000 BEST_BLOCKS_FOLDER=$PWD/shared/builder/public BEST_RAW_SOURCE_FOLDER=$PWD/components local/assistant/bin/index.js build-all --baseDir=$PWD/components/",
     "serve-components": "serve shared/builder/public -p 3000",
-    "watch-runtime": "watchify browser/runtime/lib/index.js --standalone BEST -t [ envify --CODE_MANAGER_HOST http://localhost:3000 ] -o local/workspace/build/best.bundle.js --debug --verbose",
+    "watch-runtime": "watchify browser/runtime/lib/index.js --standalone BEST -t [ envify --BEST_ASSET_READ_HOST http://localhost:3000 ] -o local/workspace/build/best.bundle.js --debug --verbose",
     "serve-build": "serve local/workspace/build -p 1337",
     "develop": "npm run build-components && (node local/workspace/livereload.js & npm run serve-components & npm run watch-components & npm run watch-runtime & npm run serve-build)",
     "test-runtime": "browserify browser/runtime/tests/**/*.spec.js -t [ envify ] -d | tap-closer | smokestack | tap-spec",

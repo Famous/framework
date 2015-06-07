@@ -4,14 +4,14 @@ var Test = require('tape');
 var Path = require('path');
 var Fs = require('fs');
 
-process.env.CODE_MANAGER_HOST = 'http://localhost:3000';
-process.env.FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER = Path.join(__dirname, '..', 'public');
+process.env.BEST_ASSET_READ_HOST = 'http://localhost:3000';
+process.env.BEST_BLOCKS_FOLDER = Path.join(__dirname, '..', 'public');
 
 // This removes any previously built versions from the local file system so we
 // don't end up creating a bundle that draws from non-fixture components.
 // This DUMB HACK almost certainly warrants a factoring-out
-if (Fs.existsSync(process.env.FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER)) {
-    Fs.rmdirSync(process.env.FRAMEWORK_LOCAL_DEPENDENCIES_SOURCE_FOLDER);
+if (Fs.existsSync(process.env.BEST_BLOCKS_FOLDER)) {
+    Fs.rmdirSync(process.env.BEST_BLOCKS_FOLDER);
 }
 
 var Builder = require('./../lib/builder');
@@ -30,7 +30,7 @@ Test('builder', function(t) {
         builderOptions: {
             doSkipAssetSaveStep: true,
             doSkipBundleSaveStep: true,
-            localComponentsSourceFolder: baseDir
+            localRawSourceFolder: baseDir
         }
     });
     

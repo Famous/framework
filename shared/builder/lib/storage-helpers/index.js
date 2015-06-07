@@ -6,8 +6,8 @@ var Request = require('request');
 
 var Browser = require('./browser');
 var Extra = require('./extra');
-var LocalSourceFolder = require('./local-source');
-var LocalCacheFolder = require('./local-cache');
+var LocalBlocksFolder = require('./local-blocks-folder');
+var LocalBlocksCacheFolder = require('./local-blocks-cache-folder');
 var Hub = require('./hub');
 
 function derefDependencies(depReferenceTable, cb) {
@@ -25,15 +25,22 @@ function loadDependencies(info, cb) {
         loadAttemptActions.push(Browser.loadDependenciesFromBrowser.bind(this));
     }
     else {
-        if (this.options.localDependenciesSourceFolder) {
-            loadAttemptActions.push(LocalSourceFolder.loadDependenciesFromLocalSourceFolder.bind(this, this.options.localDependenciesSourceFolder));
+        if (this.options.localBlocksFolder || this.options.localRawSourceFolder) {
+            loadAttemptActions.push(LocalBlocksFolder.loadDependencies.bind(this,
+                this.options.localBlocksFolder,
+                this.options.localRawSourceFolder
+            ));
         }
-        if (this.options.localDependenciesCacheFolder) {
-            loadAttemptActions.push(LocalCacheFolder.loadDependenciesFromLocalCacheFolder.bind(this, this.options.localDependenciesCacheFolder));
+        if (this.options.localBlocksCacheFolder) {
+            loadAttemptActions.push(LocalBlocksCacheFolder.loadDependencies.bind(this,
+                this.options.localBlocksCacheFolder
+            ));
         }
     }
-    if (this.options.codeManagerHost) {
-        loadAttemptActions.push(Hub.loadDependenciesFromHub.bind(this, this.options.codeManagerHost));
+    if (this.options.codeManagerAssetReadHost) {
+        loadAttemptActions.push(Hub.loadDependencies.bind(this,
+            this.options.codeManagerAssetReadHost
+        ));
     }
     // After attempting to load the dependencies from all of the
     // possible sources, check to see if we succeeded overall
@@ -50,8 +57,8 @@ function loadDependencies(info, cb) {
 
 function saveAssets(where, info, cb) {
     if (where === 'local') {
-        if (this.options.localDependenciesSourceFolder) {
-            LocalSourceFolder.saveAssets.call(this, this.options.localDependenciesSourceFolder, info, function(localSourceSaveErr, localSourceSaveInfo) {
+        if (this.options.localBlocksFolder) {
+            LocalBlocksFolder.saveAssets.call(this, this.options.localBlocksFolder, info, function(localSourceSaveErr, localSourceSaveInfo) {
                 cb(null, localSourceSaveInfo);
             });
         }
@@ -60,8 +67,8 @@ function saveAssets(where, info, cb) {
 
 function saveBundle(where, info, cb) {
     if (where === 'local') {
-        if (this.options.localDependenciesSourceFolder) {
-            LocalSourceFolder.saveBundle.call(this, this.options.localDependenciesSourceFolder, info, function(localSourceSaveErr, localSourceSaveInfo) {
+        if (this.options.localBlocksFolder) {
+            LocalBlocksFolder.saveBundle.call(this, this.options.localBlocksFolder, info, function(localSourceSaveErr, localSourceSaveInfo) {
                 cb(null, localSourceSaveInfo);
             });
         }

@@ -7,12 +7,6 @@ var helpers = require('./helpers/helpers');
 
 var deployer = new Deployer();
 
-// We use the module's tag for reference, so we need to give
-// any modules that happen to not have a tag a default one.
-var UNSPECIFIED_TAG = '!unspecified!';
-var OBJECT_TYPE = 'object';
-var STRING_TYPE = 'string';
-
 function register(name, tag, options, definition) {
     return DataStore.registerModule(name, tag, options, definition);
 }

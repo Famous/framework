@@ -11,13 +11,13 @@ var FileHelpers = require('./file-helpers');
 var PathingHelpers = require('./pathing');
 var BuildHelpers = require('./../build-helpers');
 
-function buildDependencyFromLocalDependenciesSourceFolder(attemptInfo, cb) {
+function buildFromBlocksFolder(localBlocksFolder, attemptInfo, cb) {
     if (Extra.looksLikeComponentWasAlreadyBuilt(attemptInfo)) {
         cb(null, attemptInfo);
     }
     else {
         var versionPathRel = PathingHelpers.buildAssetPath.call(this, attemptInfo.name, attemptInfo.explicitVersion, '', true);
-        var versionPathAbs = Path.join(this.options.localDependenciesSourceFolder, versionPathRel);
+        var versionPathAbs = Path.join(localBlocksFolder, versionPathRel);
         FileHelpers.readFilesRecursive(versionPathAbs, function(readFilesErr, versionFilesFound) {
             if (!readFilesErr && versionFilesFound) {
                 this.buildModule({
@@ -37,13 +37,13 @@ function buildDependencyFromLocalDependenciesSourceFolder(attemptInfo, cb) {
     }
 }
 
-function buildDependencyFromLocalComponentSourceFolder(attemptInfo, cb) {
+function buildFromRawSourceFolder(localRawSourceFolder, attemptInfo, cb) {
     if (Extra.looksLikeComponentWasAlreadyBuilt(attemptInfo)) {
         cb(null, attemptInfo);
     }
     else {
         var componentPathRel = attemptInfo.name.split(this.options.componentDelimiter).join(Path.sep);
-        var componentPathAbs = Path.join(this.options.localComponentsSourceFolder, componentPathRel);
+        var componentPathAbs = Path.join(localRawSourceFolder, componentPathRel);
         FileHelpers.readFilesRecursive(componentPathAbs, function(readFilesErr, versionFilesFound) {
             if (!readFilesErr && versionFilesFound) {
                 this.buildModule({
@@ -62,14 +62,14 @@ function buildDependencyFromLocalComponentSourceFolder(attemptInfo, cb) {
     }
 }
 
-function attemptToBuildDependenciesLocally(dependencyName, dependencyVersion, cb) {
+function attemptToBuildDependenciesLocally(localBlocksFolder, localRawSourceFolder, dependencyName, dependencyVersion, cb) {
     var attemptActions = [];
     var attemptInfo = { name: dependencyName, explicitVersion: dependencyVersion };
-    if (this.options.localDependenciesSourceFolder) {
-        attemptActions.push(buildDependencyFromLocalDependenciesSourceFolder.bind(this));
+    if (localBlocksFolder) {
+        attemptActions.push(buildFromBlocksFolder.bind(this, localBlocksFolder));
     }
-    if (this.options.localComponentsSourceFolder) {
-        attemptActions.push(buildDependencyFromLocalComponentSourceFolder.bind(this));
+    if (localRawSourceFolder) {
+        attemptActions.push(buildFromRawSourceFolder.bind(this, localRawSourceFolder));
     }
     Async.seq.apply(Async, attemptActions)(attemptInfo, function(loadErr, populatedAttemptInfo) {
         if (!loadErr && populatedAttemptInfo && Extra.looksLikeComponentWasAlreadyBuilt(populatedAttemptInfo)) {
@@ -81,39 +81,70 @@ function attemptToBuildDependenciesLocally(dependencyName, dependencyVersion, cb
     });
 }
 
-function loadDependenciesFromLocalSourceFolder(baseDir, dependenciesWanted, dependenciesFound, finish) {
+// In some cases, such as locally developing a bunch of components,
+// it's useful to try to recursively build components that may
+// be missing. ABANDON HOPE ALL YE WHO ENTER HERE
+function maybeAttemptToBootstrapComponentsLocally(localBlocksFolder, localRawSourceFolder, dependencyName, dependencyVersion, cb) {
+    if (this.options.doAttemptToBuildDependenciesLocally && (localBlocksFolder || localRawSourceFolder)) {
+        attemptToBuildDependenciesLocally.call(this, localBlocksFolder, localRawSourceFolder, dependencyName, dependencyVersion, function(localBuildErr, localBuildInfo) {
+            if (!localBuildErr && localBuildInfo) {
+                cb(null, localBuildInfo.parcelHash);
+            }
+            else {
+                cb(localBuildErr);
+            }
+        });
+    }
+    else {
+        cb(new Error('No such local dependency `' + dependencyName + '` (' + dependencyVersion + ')'));
+    }
+}
+
+function loadDependencies(localBlocksFolder, localRawSourceFolder, dependenciesWanted, dependenciesFound, finish) {
     var dependenciesMissing = Extra.getDependenciesMissing(dependenciesWanted, dependenciesFound);
     var dependencyKeys = Lodash.uniq(Object.keys(dependenciesMissing));
     Async.map(dependencyKeys, function(dependencyName, cb) {
         var dependencyVersion = dependenciesMissing[dependencyName];
         var parcelRelPath = PathingHelpers.buildAssetPath.call(this, dependencyName, dependencyVersion, this.options.parcelAssetPath, true);
-        var parcelAbsPath = Path.join(baseDir, parcelRelPath);
-        Fs.readFile(parcelAbsPath, this.options.fileOptions, function(parcelReadErr, parcelJSONData) {
-            if (!parcelReadErr && parcelJSONData) {
-                // The parcel hash is an object that looks like this:
-                // {name:'',version:'',includes:[],dependencies:[]}
-                var parcelHash = JSON.parse(parcelJSONData || '{}');
-                cb(null, parcelHash);
-            }
-            else {
-                // In some cases, such as locally developing a bunch of components,
-                // it's useful to try to recursively build components that may
-                // be missing. ABANDON HOPE ALL YE WHO ENTER HERE
-                if (this.options.doAttemptToBuildDependenciesLocally) {
-                    attemptToBuildDependenciesLocally.call(this, dependencyName, dependencyVersion, function(localBuildErr, localBuildInfo) {
-                        if (!localBuildErr && localBuildInfo) {
-                            cb(null, localBuildInfo.parcelHash);
-                        }
-                        else {
-                            cb(localBuildErr);
-                        }
-                    });
+
+        if (localBlocksFolder) {
+            var parcelAbsPath = Path.join(localBlocksFolder, parcelRelPath);
+            Fs.readFile(parcelAbsPath, this.options.fileOptions, function(parcelReadErr, parcelJSONData) {
+                if (!parcelReadErr && parcelJSONData) {
+                    // The parcel hash is an object that looks like this:
+                    // {name:'',version:'',includes:[],dependencies:[]}
+                    var parcelHash = JSON.parse(parcelJSONData || '{}');
+                    cb(null, parcelHash);
                 }
                 else {
-                    cb(new Error('No such local dependency `' + dependencyName + '` (' + dependencyVersion + ')'));
+                    if (localRawSourceFolder) {
+                        maybeAttemptToBootstrapComponentsLocally.call(this,
+                            localBlocksFolder, 
+                            localRawSourceFolder, 
+                            dependencyName, 
+                            dependencyVersion,
+                            cb
+                        );
+                    }
+                    else {
+                        throw new Error('No source folders were given for loading dependencies locally!');
+                    }
                 }
-            }
-        }.bind(this));
+            }.bind(this));
+        }
+        else if (localRawSourceFolder) {
+            maybeAttemptToBootstrapComponentsLocally.call(this,
+                localBlocksFolder, 
+                localRawSourceFolder, 
+                dependencyName, 
+                dependencyVersion,
+                cb
+            );
+        }
+        else {
+            throw new Error('No source folders were given for loading dependencies locally!');
+        }
+
     }.bind(this), function(localDepLoadErr, parcelsLoaded) {
         if (localDepLoadErr) {
             finish(localDepLoadErr, dependenciesWanted, dependenciesFound);
@@ -194,7 +225,7 @@ function saveBundle(baseDir, info, finish) {
 }
 
 module.exports = {
-    loadDependenciesFromLocalSourceFolder: loadDependenciesFromLocalSourceFolder,
+    loadDependencies: loadDependencies,
     saveAssets: saveAssets,
     saveBundle: saveBundle
 };

@@ -4,7 +4,7 @@ var ObjUtils = require('./../../../utilities/object');
 var Component = require('./../component/component');
 var DataStore = require('./../data-store/data-store');
 
-var PathingHelpers = require('./../../../../shared/builder/lib/build-steps/storage-helpers/pathing');
+var PathingHelpers = require('./../../../../shared/builder/lib/storage-helpers/pathing');
 
 var SLASH = '/';
 
@@ -19,10 +19,14 @@ function Deployer() {
 Deployer.DEFAULTS = {
     componentDelimiter: ':',
     bundleAssetPath: '~bundles/bundle.js',
-    codeManagerHost: process.env.CODE_MANAGER_HOST || 'http://localhost:3000',
+    codeManagerAssetReadHost: process.env.BEST_ASSET_READ_HOST,
     codeManagerApiVersion: 'v1',
     codeManagerAssetGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath'
 };
+
+if (!Deployer.DEFAULTS.codeManagerAssetReadHost || Deployer.DEFAULTS.codeManagerAssetReadHost === 'undefined') {
+    throw new Error('To build the runtime, you must specify a `BEST_ASSET_READ_HOST`/`options.codeManagerAssetReadHost`');
+}
 
 Deployer.prototype.getModulePath = function(name) {
     return name.split(this.options.componentDelimiter).join(SLASH);
