@@ -136,9 +136,10 @@ BEST.module('famous:core:ui-element', {
             },
             '$yield': function($state, $payload) {
                 var content = '';
+                var outerHTML;
                 var surrogates = $payload.surrogateRoot ? $payload.surrogateRoot.childNodes : [];
                 for (var i = 0; i < surrogates.length; i++) {
-                    var outerHTML = surrogates[i].outerHTML;
+                    outerHTML = surrogates[i].outerHTML || surrogates[i].textContent;
                     content += (outerHTML) ? outerHTML : '';
                 }
                 $state.set('content', content);

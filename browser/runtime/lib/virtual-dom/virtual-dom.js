@@ -170,12 +170,6 @@ function isTextNode(node) {
     return node.nodeType === TEXT_NODE_TYPE;
 }
 
-function createSpan(text) {
-    var el = create(SPAN_KEY);
-    el.innerText = text;
-    return el;
-}
-
 function stripHTMLElements(domNode) {
     var htmlElements = [];
     var nodesToProcess = domNode.childNodes.length;
@@ -185,11 +179,7 @@ function stripHTMLElements(domNode) {
     var span;
     while (processCount < nodesToProcess) {
         child = domNode.childNodes[childIndex];
-        if (isTextNode(child)) {
-            htmlElements.push(createSpan(child.textContent));
-            domNode.removeChild(child);
-        }
-        else if (isValidHTMLElement(child)) {
+        if (isTextNode(child) || isValidHTMLElement(child)) {
             htmlElements.push(domNode.removeChild(child));
         }
         else {

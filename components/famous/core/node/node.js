@@ -88,7 +88,7 @@ BEST.module('famous:core:node', {
                 var content = '';
                 var outerHTML;
                 for (var i = 0; i < $payload.length; i++) {
-                    outerHTML = $payload[i].outerHTML;
+                    outerHTML = $payload[i].outerHTML || $payload[i].textContent; // Check for text nodes
                     content += (outerHTML) ? outerHTML : '';
                 }
                 $state.set('content', content);

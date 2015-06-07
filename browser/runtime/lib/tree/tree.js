@@ -60,22 +60,8 @@ Tree.setUID = function(node) {
 Tree.assignChildUIDs = function assignChildUIDs(parent) {
     var i;
     var child;
-
-    for (i = 0; i < parent.childNodes.length; i++) {
-        child = parent.childNodes[i];
-
-        if (child.nodeName === '#text') {
-            if (child.nodeValue.trim()) {
-                var spanWrapper = document.createElement('span');
-                spanWrapper.appendChild(child);
-                parent.insertBefore(spanWrapper, parent.firstChild);
-            }
-        }
-    }
-
     for (i = 0; i < parent.children.length; i++) {
         child = parent.children[i];
-
         if (!VirtualDOM.isValidHTMLElement(child)) {
             Tree.setUID(child);
             Tree.assignChildUIDs(parent.children[i]);

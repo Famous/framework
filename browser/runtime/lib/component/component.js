@@ -186,11 +186,11 @@ Component.prototype._handleBehaviorUpdate = function _handleBehaviorUpdate(behav
 
 Component.prototype._initializeControlFlow = function _initializeControlFlow() {
     var blueprint = this.tree.getBlueprint();
-    var htmlElements = VirtualDOM.stripHTMLElements(blueprint);
 
-    if (this.events.getPublicEvent(SET_HTML_KEY)) {
-        this.events.sendMessage(SET_HTML_KEY, htmlElements, this.uid);
-    }
+    // Remove valid HTML that may be included in a component's blueprint.
+    // Those nodes should not be processed via the control flow conduit; they
+    // should be set as content on the Famous Node's DOMElement.
+    var htmlElements = VirtualDOM.stripHTMLElements(blueprint);
 
     var expandedBlueprint = ControlFlow.initializeSelfContainedFlows(
         blueprint, this.uid, this.controlFlowDataMngr
@@ -212,19 +212,36 @@ Component.prototype._initializeControlFlow = function _initializeControlFlow() {
     }
 
     this.getRootNode().removeAttribute(CONTROL_FLOW_ACTION_KEY);
+
+    // Set DOMELement content
+    this._setHTMLContent(htmlElements);
 };
 
+// The children root has a mix of HTML and Framework Components. The HTML needs
+// to be parsed out, and applied as content to the Component's Famous Node's DOMElement;
+// the components need to be initialized.
 Component.prototype._updateChildren = function _updateChildren(childrenRoot) {
     var self = this;
-    this.tree.setChildrenRoot(childrenRoot);
+    var htmlElements = VirtualDOM.stripHTMLElements(childrenRoot);
 
+    this.tree.setChildrenRoot(childrenRoot);
     var baseNode;
+    var childComponent;
     this.tree.eachChild(function(node) {
         baseNode = VirtualDOM.clone(node);
         VirtualDOM.removeChildNodes(baseNode);
         createChild(baseNode, node, self);
     });
+
+    // Set DOMELement content
+    this._setHTMLContent(htmlElements);
 };
+
+Component.prototype._setHTMLContent = function _setHTMLContent(htmlElements) {
+    if (htmlElements.length && this.events.getPublicEvent(SET_HTML_KEY)) {
+        this.events.sendMessage(SET_HTML_KEY, htmlElements, this.uid);
+    }
+}
 
 Component.prototype.processDynamicRepeat = function processDynamicRepeat(behavior) {
     var expandedBlueprint = this.tree.getExpandedBlueprint();
