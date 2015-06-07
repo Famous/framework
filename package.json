@@ -31,7 +31,7 @@
     "test-state-manager": "browserify browser/state-manager/tests/*.spec.js | tap-closer | smokestack | tap-spec",
     "test-utilities": "browserify browser/utilities/tests/*.spec.js | tap-closer | smokestack | tap-spec",
     "test-builder": "tape shared/builder/tests/*.spec.js",
-    "test-esprima-helpers": "tape shared/builder/lib/build-steps/esprima-helpers/tests/*.spec.js",
+    "test-esprima-helpers": "tape shared/builder/lib/esprima-helpers/tests/*.spec.js",
     "lint": "eslint --ignore-path .eslintignore ."
   },
   "dependencies": {

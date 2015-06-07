@@ -1,6 +1,6 @@
 'use strict';
 
-var StorageHelpers = require('./storage-helpers');
+var StorageHelpers = require('./../storage-helpers');
 
 function saveBundle(where, info, cb) {
     StorageHelpers.saveBundle.call(this, where, info, function(localSaveErr, localSaveInfo) {

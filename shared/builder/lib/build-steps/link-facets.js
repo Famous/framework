@@ -2,8 +2,8 @@
 
 var Lodash = require('lodash');
 
-var AssetCompilers = require('./asset-compilers');
-var EsprimaHelpers = require('./esprima-helpers');
+var AssetCompilers = require('./../asset-compilers');
+var EsprimaHelpers = require('./../esprima-helpers');
 
 function linkFacets(info, cb) {
     for (var moduleName in info.moduleDefinitionASTs) {

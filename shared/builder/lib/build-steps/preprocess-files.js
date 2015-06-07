@@ -4,8 +4,8 @@ var Async = require('async');
 var Lodash = require('lodash');
 var Path = require('path');
 
-var AssetCompilers = require('./asset-compilers');
-var BuildHelpers = require('./build-helpers');
+var AssetCompilers = require('./../asset-compilers');
+var BuildHelpers = require('./../build-helpers');
 
 function compileFile(file, cb) {
     if (BuildHelpers.doesFileLookLikeAsset.call(this, file)) {

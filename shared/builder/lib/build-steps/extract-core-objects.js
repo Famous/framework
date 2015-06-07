@@ -3,8 +3,8 @@
 var Lodash = require('lodash');
 var Path = require('path');
 
-var BuildHelpers = require('./build-helpers');
-var EsprimaHelpers = require('./esprima-helpers');
+var BuildHelpers = require('./../build-helpers');
+var EsprimaHelpers = require('./../esprima-helpers');
 
 function extractMethodChain(chain, node, parent) {
     if (EsprimaHelpers.isCallExpression(node)) {

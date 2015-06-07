@@ -3,8 +3,8 @@
 var Jsdom = require('jsdom');
 var Lodash = require('lodash');
 
-var BuildHelpers = require('./build-helpers');
-var EsprimaHelpers = require('./esprima-helpers');
+var BuildHelpers = require('./../build-helpers');
+var EsprimaHelpers = require('./../esprima-helpers');
 
 var QUOTE = '\'';
 var EXTENDS_KEY = 'extends';

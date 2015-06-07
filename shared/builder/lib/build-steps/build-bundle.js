@@ -3,9 +3,9 @@
 var Lodash = require('lodash');
 var Path = require('path');
 
-var BuildHelpers = require('./build-helpers');
-var EsprimaHelpers = require('./esprima-helpers');
-var PathingHelpers = require('./storage-helpers/pathing');
+var BuildHelpers = require('./../build-helpers');
+var EsprimaHelpers = require('./../esprima-helpers');
+var PathingHelpers = require('./../storage-helpers/pathing');
 
 var CLOSE_ARRAY = ']';
 var COMMA = ',';
