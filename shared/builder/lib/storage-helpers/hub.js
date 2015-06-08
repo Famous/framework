@@ -39,7 +39,7 @@ function derefDependency(refTuple, cb) {
         var versionURL = PathingHelpers.buildVersionInfoURL.call(this, depName, depRef);
         Request({
             method: PathingHelpers.getVersionGetMethod.call(this),
-            uri: versionURL,
+            uri: versionURL
         }, function(reqErr, response, body) {
             if (!reqErr && response.statusCode < 300) {
                 var parsedBody = JSON.parse(body);
@@ -91,7 +91,7 @@ function getUserInfoViaAuthToken(authToken, cb) {
                 }, function(userInfoRequestErr, userResponse) {
                     if (!userInfoRequestErr && userResponse && userResponse.body) {
                         var parsedUserResponse = JSON.parse(userResponse.body);
-                        cb(null, parsedUserResponse['user']);
+                        cb(null, parsedUserResponse.user);
                     }
                     else {
                         cb(new Error('Auth service did not return user info'));

@@ -31,7 +31,7 @@ function freezeDependencies(info, cb) {
     if (!dependenciesFile) {
         dependenciesFile = {
             path: this.options.dependenciesFilename
-        }
+        };
         info.files.push(dependenciesFile);
     }
 
@@ -62,7 +62,7 @@ function freezeDependencies(info, cb) {
                     else {
                         cb(fileWriteErr);
                     }
-                }.bind(this));
+                });
             }
             else {
                 cb(mkdirErr);
