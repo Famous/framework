@@ -204,12 +204,13 @@ Component.prototype._initializeControlFlow = function _initializeControlFlow() {
     }
     else {
         var childrenRoot = VirtualDOM.clone(expandedBlueprint);
+        var parentInsertedHTMLElements = this.surrogateRoot ? VirtualDOM.stripHTMLElements(this.surrogateRoot) : [];
+
         ControlFlow.initializeParentDefinedFlows(
             expandedBlueprint, childrenRoot, this.surrogateRoot, this.controlFlowDataMngr
         );
 
         // HTML Content from blueprint is overwritten by HTML content injected by parent.
-        var parentInsertedHTMLElements = VirtualDOM.stripHTMLElements(childrenRoot);
         if (VirtualDOM.doNodesHaveContent(parentInsertedHTMLElements)) {
             htmlElements = parentInsertedHTMLElements;
         }

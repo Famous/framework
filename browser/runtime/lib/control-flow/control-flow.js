@@ -218,7 +218,7 @@ function applyYieldBehaviorToVirtualDOM(yieldBehavior, target, injectablesRoot, 
     var injectables;
     switch (typeof yieldValue) {
         case BOOLEAN_KEY:
-            injectables = yieldValue ? injectablesRoot.childNodes : [];
+            injectables = yieldValue ? injectablesRoot.children : [];
             break;
         case STRING_KEY:
             injectables = VirtualDOM.query(injectablesRoot, yieldValue);
@@ -226,6 +226,7 @@ function applyYieldBehaviorToVirtualDOM(yieldBehavior, target, injectablesRoot, 
         default:
             throw new Error('Unsupported payload type for $yield');
     }
+
     // Only continue processing $yield if injectables have been passed
     // in from parent.
     if (injectables.length === 0) {
@@ -277,48 +278,65 @@ function applyYieldBehaviorToVirtualDOM(yieldBehavior, target, injectablesRoot, 
     var blueprintPort;
     var clonedPort;
     var clonedInjectable;
-    for (var i = 0; i < yieldPorts.length; i++) {
-        yieldPort = yieldPorts[i];
-        blueprintPort = VirtualDOM.removeAttribute(VirtualDOM.clone(yieldPort), UID_KEY); // clone port before children are added
-        parentNode = yieldPort.parentNode || yieldPort;
 
-        // Get parent node from expandedBlueprint in order to update expandedBlueprint with
-        // dynamically created ports
-        parentUID = VirtualDOM.getUID(parentNode);
-        if (VirtualDOM.getUID(expandedBlueprint) === parentUID) {
-            parentNodeFromExpandedBlueprint = expandedBlueprint;
-        }
-        else {
-            parentNodeFromExpandedBlueprint = VirtualDOM.getNodeByUID(expandedBlueprint, parentUID);
-        }
-
-        VirtualDOM.removeChildNodes(yieldPorts);
-        for (var j = 0; j < injectables.length; j++) {
-            clonedInjectable = VirtualDOM.clone(injectables[j]);
+    // When the $yield behavior is applied to the $self selector, yield ports should not be cloned.
+    // Instead, all of the injectables should be added directly to component's children root.
+    if (selector === SELF_KEY) {
+        yieldPort = yieldPorts[0];
+        ControlFlowUtils.addRepeatInfo(yieldPort, 0, {});
+        for (var i = 0; i < injectables.length; i++) {
+            clonedInjectable = VirtualDOM.clone(injectables[i]);
             if (!VirtualDOM.getAttribute(clonedInjectable, REPEAT_INFO_KEY)) {
                 // Add $index to element being repeated unless its already defined
                 ControlFlowUtils.addRepeatInfo(clonedInjectable, j, {});
             }
+            yieldPort.appendChild(clonedInjectable);
+        }
+    }
+    else {
+        for (var i = 0; i < yieldPorts.length; i++) {
+            yieldPort = yieldPorts[i];
+            blueprintPort = VirtualDOM.removeAttribute(VirtualDOM.clone(yieldPort), UID_KEY); // clone port before children are added
+            parentNode = yieldPort.parentNode || yieldPort;
 
-            // yieldPort already attached to parent
-            if (j === 0) {
-                ControlFlowUtils.addRepeatInfo(yieldPort, j, {});
-                yieldPort.appendChild(clonedInjectable);
+            // Get parent node from expandedBlueprint in order to update expandedBlueprint with
+            // dynamically created ports
+            parentUID = VirtualDOM.getUID(parentNode);
+            if (VirtualDOM.getUID(expandedBlueprint) === parentUID) {
+                parentNodeFromExpandedBlueprint = expandedBlueprint;
             }
-            // clone yieldPort & attach to parent
             else {
-                clonedPort = VirtualDOM.clone(blueprintPort);
-                VirtualDOM.setUID(clonedPort);
-                // Add dynamically create port to expandedBlueprint in order
-                // to properly apply behaviors
-                VirtualDOM.addNode(
-                    VirtualDOM.clone(clonedPort),
-                    parentNodeFromExpandedBlueprint
-                );
+                parentNodeFromExpandedBlueprint = VirtualDOM.getNodeByUID(expandedBlueprint, parentUID);
+            }
 
-                ControlFlowUtils.addRepeatInfo(clonedPort, j, {});
-                clonedPort.appendChild(clonedInjectable);
-                parentNode.appendChild(clonedPort);
+            VirtualDOM.removeChildNodes(yieldPorts);
+            for (var j = 0; j < injectables.length; j++) {
+                clonedInjectable = VirtualDOM.clone(injectables[j]);
+                if (!VirtualDOM.getAttribute(clonedInjectable, REPEAT_INFO_KEY)) {
+                    // Add $index to element being repeated unless its already defined
+                    ControlFlowUtils.addRepeatInfo(clonedInjectable, j, {});
+                }
+
+                // yieldPort already attached to parent
+                if (j === 0) {
+                    ControlFlowUtils.addRepeatInfo(yieldPort, j, {});
+                    yieldPort.appendChild(clonedInjectable);
+                }
+                // clone yieldPort & attach to parent
+                else {
+                    clonedPort = VirtualDOM.clone(blueprintPort);
+                    VirtualDOM.setUID(clonedPort);
+                    // Add dynamically create port to expandedBlueprint in order
+                    // to properly apply behaviors
+                    VirtualDOM.addNode(
+                        VirtualDOM.clone(clonedPort),
+                        parentNodeFromExpandedBlueprint
+                    );
+
+                    ControlFlowUtils.addRepeatInfo(clonedPort, j, {});
+                    clonedPort.appendChild(clonedInjectable);
+                    parentNode.appendChild(clonedPort);
+                }
             }
         }
     }
