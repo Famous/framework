@@ -94,10 +94,31 @@ BEST.module('famous:core:node', {
                 $state.set('content', content);
                 $dispatcher.trigger('content', content);
             },
-            size: function($famousNode, $payload) {
-                // `size` defaults to `size-absolute`
-                $famousNode.setSizeMode(1, 1, 1);
-                $famousNode.setAbsoluteSize($payload[0], $payload[1], $payload[2]);
+            'size': function($payload, $dispatcher) {
+                var xSize = $payload[0];
+                var ySize = $payload[1];
+                var zSize = $payload[2];
+
+                if (xSize === true) $dispatcher.trigger('size-true-x');
+                else if (xSize !== undefined) $dispatcher.trigger('size-absolute-x', xSize);
+
+                if (ySize === true) $dispatcher.trigger('size-true-y');
+                else if (ySize !== undefined) $dispatcher.trigger('size-absolute-y', ySize);
+
+                if (zSize === true) $dispatcher.trigger('size-true-z');
+                else if (zSize !== undefined) $dispatcher.trigger('size-absolute-z', zSize);
+            },
+            'size-true': function($famousNode) {
+                $famousNode.setSizeMode(2, 2, 2);
+            },
+            'size-true-x': function($famousNode) {
+                $famousNode.setSizeMode(2, null, null);
+            },
+            'size-true-y': function($famousNode) {
+                $famousNode.setSizeMode(null, 2, null);
+            },
+            'size-true-z': function($famousNode) {
+                $famousNode.setSizeMode(null, null, 2);
             },
             'size-absolute': function($famousNode, $payload) {
                 $famousNode.setSizeMode(1, 1, 1);
@@ -113,7 +134,7 @@ BEST.module('famous:core:node', {
             },
             'size-absolute-z': function($famousNode, $payload) {
                 $famousNode.setSizeMode(null, null, 1);
-                $famousNode.setAbsoluteSize(null, null, $payload[2]);
+                $famousNode.setAbsoluteSize(null, null, $payload);
             },
             'size-differential': function($famousNode, $payload) {
                 $famousNode.setSizeMode(0, 0, 0);
@@ -129,7 +150,7 @@ BEST.module('famous:core:node', {
             },
             'size-differential-z': function($famousNode, $payload) {
                 $famousNode.setSizeMode(null, null, 0);
-                $famousNode.setDifferentialSize(null, null, $payload[2]);
+                $famousNode.setDifferentialSize(null, null, $payload);
             },
             'size-proportional': function($famousNode, $payload) {
                 $famousNode.setSizeMode(0, 0, 0);
@@ -145,7 +166,7 @@ BEST.module('famous:core:node', {
             },
             'size-proportional-z': function($famousNode, $payload) {
                 $famousNode.setSizeMode(null, null, 0);
-                $famousNode.setProportionalSize(null, null, $payload[2]);
+                $famousNode.setProportionalSize(null, null, $payload);
             },
             'style': function($DOMElement, $payload) {
                 for (var styleName in $payload) {
