@@ -1,5 +1,6 @@
 'use strict';
 
+var Chalk = require('chalk');
 var Lodash = require('lodash');
 var Path = require('path');
 
@@ -82,15 +83,25 @@ function findLibraryInvocations(entrypointAST) {
     return libraryInvocations;
 }
 
+function extractModuleDefinitionArg(argsAST) {
+    if (!argsAST) {
+        return EsprimaHelpers.EMPTY_OBJECT_EXPRESSION; // Fallback in case no object is present
+    }
+
+    var moduleDefinition = argsAST[this.options.indexOfModuleDefinitionArgument];
+    if (moduleDefinition.type !== 'ObjectExpression') {
+        console.warn(Chalk.gray('famous'), Chalk.yellow('warn'), 'Incorrect args to `BEST.scene` were given');
+    }
+
+    return moduleDefinition;
+}
+
 function extractModuleDefinitionASTs(entrypointAST) {
     var moduleDefinitions = {};
     var libraryInvocations = findLibraryInvocations.call(this, entrypointAST);
     for (var moduleName in libraryInvocations) {
         var libraryInvocation = libraryInvocations[moduleName];
-        var moduleDefinition = EsprimaHelpers.EMPTY_OBJECT_EXPRESSION; // Fallback in case no object is present
-        if (libraryInvocation.arguments) {
-            moduleDefinition = libraryInvocation.arguments[this.options.indexOfModuleDefinitionArgument];
-        }
+        var moduleDefinition = extractModuleDefinitionArg.call(this, libraryInvocation.arguments);
         moduleDefinitions[moduleName] = moduleDefinition;
     }
     return moduleDefinitions;
