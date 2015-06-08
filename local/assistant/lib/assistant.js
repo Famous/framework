@@ -37,8 +37,8 @@ Assistant.prototype.setOptions = function(options) {
     this.options = Lodash.assign(Lodash.clone(Assistant.DEFAULTS), Lodash.clone(options || {}));
 };
 
-Assistant.prototype.buildModule = function(moduleName, files, cb) {
-    this.builder.buildModule({ name: moduleName, files: files }, cb);
+Assistant.prototype.buildModule = function(moduleName, files, sourceDir, cb) {
+    this.builder.buildModule({ name: moduleName, files: files, sourceDirectory: sourceDir }, cb);
 };
 
 Assistant.prototype.buildAll = function(baseDir, subDir, cb) {
@@ -52,7 +52,7 @@ Assistant.prototype.buildSingle = function(baseDir, subDir, cb) {
     var moduleName = subDir.split(SLASH).join(this.options.componentDelimiter);
     var files = [];
     this.pushFilesToArray(files, baseDir, subDir, BLANK);
-    this.buildModule(moduleName, files, function(err, result) {
+    this.buildModule(moduleName, files, Path.join(baseDir, subDir), function(err, result) {
         if (err) cb(err);
         else cb(null, result);
     });

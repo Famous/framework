@@ -31,6 +31,13 @@ Builder.DEFAULTS = {
     // might occur
     doWriteToCodeManager: false,
 
+    // If you're doing a completely local build, you may want to
+    // disable the dependency dereferencing which will make a roundtrip
+    // to code manager. This essentially means that all the components
+    // you depend on should exist locally and have a HEAD version
+    // available
+    doSkipDependencyDereferencing: true,
+
     codeManagerAssetReadHost: process.env.BEST_ASSET_READ_HOST, // Webservice host from which *assets* can be READ
     codeManagerAssetWriteHost: process.env.BEST_ASSET_WRITE_HOST, // Webservice host to which *assets* can be WRITTEN
     codeManagerVersionInfoHost: process.env.BEST_VERSION_INFO_HOST, // Webservice host that can return JSON data about versions
