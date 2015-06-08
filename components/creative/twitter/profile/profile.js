@@ -3,4 +3,9 @@ BEST.scene('creative:twitter:profile', {
     events: {},
     states: {},
     tree: 'profile.html'
+}).config({
+    includes: [
+        'assets/styles/profile.css'
+    ],
+    imports: {}
 });

@@ -175,7 +175,6 @@ BEST.scene('creative:twitter', {
         '#hf': {
             'header-height' : '[[identity|headerHeight]]',
             'footer-height' : '[[identity|footerHeight]]'
-
         },
         '#body': {
             'overflow': 'hidden'
@@ -359,8 +358,8 @@ BEST.scene('creative:twitter', {
                 $state.set('pageTitle', $payload);
 
                 let transition = {
-                    duration: 1000,
-                    curve: 'inOutBack'
+                    /*duration: 1000,
+                    curve: 'inOutBack'*/
                 };
 
                 let offScreenPos = window.innerWidth;
@@ -428,7 +427,7 @@ BEST.scene('creative:twitter', {
         notificationsIcon: 'assets/images/notifications.png',
         messagesIcon: 'assets/images/messages.png',
         profileIcon: 'assets/images/profile.png',
-        currentView: 'messages',
+        currentView: 'home',
         homeViewPositionX: 0,
         notificationViewPositionX: window.innerWidth,
         messagesViewPositionX: window.innderWidth,
