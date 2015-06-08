@@ -4,12 +4,13 @@ var VirtualDOM = require('./../virtual-dom/virtual-dom');
 var Behaviors = require('./../behaviors/behaviors');
 var ControlFlowUtils = require('./control-flow-utils');
 
-var REPEAT_KEY = ControlFlowUtils.CONSTANTS.REPEAT_KEY;
-var YIELD_KEY = ControlFlowUtils.CONSTANTS.YIELD_KEY;
 var BOOLEAN_KEY = 'boolean';
-var STRING_KEY = 'string';
+var REPEAT_INFO_KEY = ControlFlowUtils.CONSTANTS.REPEAT_INFO_KEY;
+var REPEAT_KEY = ControlFlowUtils.CONSTANTS.REPEAT_KEY;
 var SELF_KEY = '$self';
+var STRING_KEY = 'string';
 var UID_KEY = 'uid';
+var YIELD_KEY = ControlFlowUtils.CONSTANTS.YIELD_KEY;
 
 function initializeSelfContainedFlows(blueprint, uid, controlFlowDataMngr) {
     var expandedBlueprint = VirtualDOM.clone(blueprint);
@@ -139,8 +140,7 @@ function processRepeatBehavior(behavior, expandedBlueprint, uid, controlFlowData
     applyRepeatBehaviorToVirtualDOM(expandedBlueprint, repeatData[selector]);
 }
 
-function initializeParentDefinedFlows(expandedBlueprint, injectablesRoot, controlFlowDataMngr) {
-    var childrenRoot = VirtualDOM.clone(expandedBlueprint);
+function initializeParentDefinedFlows(expandedBlueprint, childrenRoot, injectablesRoot, controlFlowDataMngr) {
     processYield(childrenRoot, injectablesRoot, expandedBlueprint, controlFlowDataMngr);
     return childrenRoot;
 }
@@ -295,6 +295,10 @@ function applyYieldBehaviorToVirtualDOM(yieldBehavior, target, injectablesRoot, 
         VirtualDOM.removeChildNodes(yieldPorts);
         for (var j = 0; j < injectables.length; j++) {
             clonedInjectable = VirtualDOM.clone(injectables[j]);
+            if (!VirtualDOM.getAttribute(clonedInjectable, REPEAT_INFO_KEY)) {
+                // Add $index to element being repeated unless its already defined
+                ControlFlowUtils.addRepeatInfo(clonedInjectable, j, {});
+            }
 
             // yieldPort already attached to parent
             if (j === 0) {

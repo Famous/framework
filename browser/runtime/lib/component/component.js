@@ -108,7 +108,7 @@ Component.prototype._processDOMMessages = function _processDOMMessages() {
         index = messageObj[INDEX_KEY];
         repeatPayload = messageObj[REPEAT_PAYLOAD_KEY];
         this.events.sendMessages(repeatPayload, this.uid);
-        node.removeAttribute(REPEAT_INFO_KEY);
+        VirtualDOM.removeAttribute(node, REPEAT_INFO_KEY);
     }
     else {
         index = 0;
@@ -203,8 +203,9 @@ Component.prototype._initializeControlFlow = function _initializeControlFlow() {
         }, this.uid);
     }
     else {
-        var childrenRoot = ControlFlow.initializeParentDefinedFlows(
-            this.tree.getExpandedBlueprint(), this.surrogateRoot, this.controlFlowDataMngr
+        var childrenRoot = VirtualDOM.clone(expandedBlueprint);
+        ControlFlow.initializeParentDefinedFlows(
+            expandedBlueprint, childrenRoot, this.surrogateRoot, this.controlFlowDataMngr
         );
 
         // HTML Content from blueprint is overwritten by HTML content injected by parent,
@@ -213,7 +214,7 @@ Component.prototype._initializeControlFlow = function _initializeControlFlow() {
         this._updateChildren(childrenRoot);
     }
 
-    this.getRootNode().removeAttribute(CONTROL_FLOW_ACTION_KEY);
+    VirtualDOM.removeAttribute(this.getRootNode(), CONTROL_FLOW_ACTION_KEY);
 
     // Set DOMELement content
     this._setHTMLContent(htmlElements);
@@ -269,7 +270,7 @@ Component.prototype._processControlFlowMessages = function _processControlFlowMe
         if (!newComponentCreated) {
             newComponentCreated = result;
         }
-        nodes[i].removeAttribute(CONTROL_FLOW_ACTION_KEY);
+        VirtualDOM.removeAttribute(nodes[i], CONTROL_FLOW_ACTION_KEY);
     }
 
     // Potentially can be optimized by only running behaviors on the
@@ -292,7 +293,7 @@ Component._processControlFlowMessage = function _processControlFlowMessage(node,
         if (info.message === CREATE_KEY) {
             baseNode = VirtualDOM.clone(node);
             VirtualDOM.removeChildNodes(baseNode);
-            baseNode.removeAttribute(CONTROL_FLOW_ACTION_KEY);
+            VirtualDOM.removeAttribute(baseNode, CONTROL_FLOW_ACTION_KEY);
             return new Component(baseNode, node, DataStore.getComponent(info.parentUID));
         }
         else if (info.message === DELETE_KEY) {

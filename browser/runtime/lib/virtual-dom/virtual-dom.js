@@ -96,12 +96,22 @@ function eachNode(node, selector, cb) {
 }
 
 function attachAttributeFromJSON(node, json, key) {
+    // Attributes cannot be attached to text nodes
+    if (node.nodeType === TEXT_NODE_TYPE) {
+        return;
+    }
+
     var info = JSON.stringify(json);
     node.setAttribute(key, info);
 }
 
 function getAttribute(node, attrName) {
-    return node.getAttribute(attrName);
+    if (node.nodeType === 3) {
+        return null;
+    }
+    else {
+        return node.getAttribute(attrName);
+    }
 }
 
 function queryAttribute(node, attributeName, value) {

@@ -64,7 +64,7 @@ Tree.assignDependencyTags = function assignDependencyTags(node, dependencies) {
 
 Tree.removeAttributes = function removeAttributes(nodes, attrName) {
     for (var i = 0; i < nodes.length; i++) {
-        nodes[i].removeAttribute(attrName);
+        VirtualDOM.removeAttribute(nodes[i], attrName);
     }
 };
 
