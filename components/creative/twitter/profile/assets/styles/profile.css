@@ -1,0 +1,98 @@
+.me {
+
+}
+
+.profile-picture {
+    width: 60px;
+    height: 60px;
+    display: block;
+    border-radius: 5px;
+    border: 3px solid #fff;
+}
+
+.accounts {
+    background: url(images/accounts.png) no-repeat;
+    background-size: 32px;
+    background-position: 8px 3px;
+    width: 50px;
+    height: 30px;
+    display: block;
+}
+
+.settings {
+    border: 0;
+    background: url(images/settings.png) no-repeat;
+    background-size: 22px;
+    width: 30px;
+    height: 30px;
+    display: block;
+}
+
+.edit-profile {
+    width: 96px;
+    height: 30px;
+    display: block;
+}
+
+.edit-profile, .accounts, .settings {
+    border: 1px solid rgb(138, 155, 168);
+    color: rgb(138, 155, 168);
+    border-radius: 5px;
+    background: none;
+    padding: 0;
+    margin: 0;
+    line-height: 30px;
+    font-size: 14px;
+}
+
+.info {
+    padding: 0 13px;
+    box-sizing: border-box;
+}
+
+.info .name {
+    font-size: 20px;
+    display: block;
+    margin: 14px 0 0;
+    padding: 0;
+    color: rgb(41, 47, 51);
+}
+
+.info .username {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgb(102, 117, 128);
+    margin-top: -4px;
+    padding: 0;
+}
+
+.info .description {
+    margin: 11px 0 0;
+    padding: 0;
+    font-size: 16px;
+    color: rgb(41, 47, 51);
+}
+
+.info .location {
+    margin: 14px 0 0;
+    padding: 0;
+    font-size: 13px;
+    color: rgb(41, 47, 51);
+}
+
+.info table {
+    font-weight: 300;
+    width: 100%;
+    margin: 10px 5px;
+    font-size: 13px;
+}
+
+.tab-bar {
+    z-index: 3;
+    background: #fff;
+    width: 100%;
+    margin: 0;
+    text-align: center;
+    padding: 14px 0 7px;
+    border-bottom: 1px solid #E5EBEF;
+}

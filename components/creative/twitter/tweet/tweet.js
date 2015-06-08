@@ -1,7 +1,11 @@
 BEST.scene('creative:twitter:tweet', {
     behaviors: {
         '.tweet': {
-            'size-absolute-y': '[[identity|sizeY]]',
+            'size-absolute-y': (sizeY) => {
+                //'[[identity|sizeY]]',
+                return sizeY;
+            },
+
             'position-y': '[[identity|positionY]]',
             styles: {
                 'padding': '10px 12px 5px 70px',
@@ -38,5 +42,5 @@ BEST.scene('creative:twitter:tweet', {
 }).config({
     includes: [
         'assets/styles/tweet.css'
-    ],
+    ]
 });

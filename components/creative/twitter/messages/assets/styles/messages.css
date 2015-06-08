@@ -1,0 +1,22 @@
+#messages-header {
+    background-color: #55ACEE;
+    color: #fff;
+    padding: 30px;
+}
+
+#messages-header > h1 {
+    font-size: 21px;
+    padding: 0px;
+    line-height: 1.4em;
+    text-align: center;
+    font-weight: lighter;
+}
+
+h2#suggested-header {
+    padding: 15px 15px;
+    color: #8899a6;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+    background-color: #f5f8fa;
+}

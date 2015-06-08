@@ -175,7 +175,6 @@ BEST.scene('creative:twitter', {
         '#hf': {
             'header-height' : '[[identity|headerHeight]]',
             'footer-height' : '[[identity|footerHeight]]'
-
         },
         '#body': {
             'overflow': 'hidden'
@@ -359,8 +358,8 @@ BEST.scene('creative:twitter', {
                 $state.set('pageTitle', $payload);
 
                 let transition = {
-                    duration: 1000,
-                    curve: 'inOutBack'
+                    /*duration: 1000,
+                    curve: 'inOutBack'*/
                 };
 
                 let offScreenPos = window.innerWidth;

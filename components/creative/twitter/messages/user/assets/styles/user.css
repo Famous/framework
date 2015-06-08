@@ -1,0 +1,29 @@
+.suggested-user-container {
+    background-color: white;
+    position: relative;
+    height: 65px;
+    border-top: 1px solid #E5EBEF;
+}
+
+.suggested-user-container > img {
+    border-radius: 5px;
+    position: absolute;
+    top: 13px;
+    left: 15px;
+    width: 40px;
+    height: 40px;
+}
+
+.suggested-user-container > h2 {
+    font-size: 15px;
+    padding-left: 65px;
+    padding-top: 15px;
+    margin-bottom: 0px;
+}
+
+.suggested-user-container > h3 {
+    font-size: 10px;
+    padding-left: 65px;
+    color: #8899a6;
+    font-weight: normal;
+}

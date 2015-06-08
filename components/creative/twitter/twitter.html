@@ -1,39 +1,39 @@
-<view id="container">
+<node id="container">
     <header-footer id="hf">
-        <view id="header">
-            <ui-element class="header-background"></ui-element>
-            <ui-element class="content-left"></ui-element>
-            <ui-element class="content-center"></ui-element>
-            <ui-element class="content-right"></ui-element>
-        </view>
+        <node id="header">
+            <node class="header-background"></node>
+            <node class="content-left"></node>
+            <node class="content-center"></node>
+            <node class="content-right"></node>
+        </node>
 
-        <view id="body">
-            <dom-element class="body-background"></dom-element>
+        <node id="body">
+            <node class="body-background"></node>
 
-            <view class="home-view">
+            <node class="home-view">
                 <tweet class="tweet"></tweet>
-            </view>
+            </node>
 
-            <view class="notifications-view">
+            <node class="notifications-view">
                 <notification class="notification"></notification>
-            </view>
+            </node>
 
-            <view class="messages-view">
-                <message class="message"></message>
-            </view>
+            <node class="messages-view">
+                <messages class="message"></messages>
+            </node>
 
-            <view class="profile-view">
+            <node class="profile-view">
                 <profile class="profile"></profile>
-            </view>
-        </view>
+            </node>
+        </node>
 
-        <view id="footer">
-            <dom-element class="footer-background"></dom-element>
+        <node id="footer">
+            <node class="footer-background"></node>
 
-            <ui-element class="footer-link link-home"></ui-element>
-            <ui-element class="footer-link link-notifications"></ui-element>
-            <ui-element class="footer-link link-message"></ui-element>
-            <ui-element class="footer-link link-profile"></ui-element>
-        </view>
+            <node class="footer-link link-home"></node>
+            <node class="footer-link link-notifications"></node>
+            <node class="footer-link link-message"></node>
+            <node class="footer-link link-profile"></node>
+        </node>
     </header-footer>
-</view>
+</node>
