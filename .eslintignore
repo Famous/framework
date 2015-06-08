@@ -2,10 +2,9 @@
 *.log
 node_modules
 *.bundle.js
-server/ecosystem/public/*
 components/*
 **/test/*
 local/workspace/build/best.bundle.js
-shared/builder/public/*
+local/workspace/build/v1
 shared/builder/lib/esprima-helpers/tests/fixtures
 shared/builder/tests/fixtures

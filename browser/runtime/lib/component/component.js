@@ -241,7 +241,7 @@ Component.prototype._setHTMLContent = function _setHTMLContent(htmlElements) {
     if (htmlElements.length && this.events.getPublicEvent(SET_HTML_KEY)) {
         this.events.sendMessage(SET_HTML_KEY, htmlElements, this.uid);
     }
-}
+};
 
 Component.prototype.processDynamicRepeat = function processDynamicRepeat(behavior) {
     var expandedBlueprint = this.tree.getExpandedBlueprint();

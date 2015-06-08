@@ -18,6 +18,5 @@ var server = Livereload.createServer({
 });
 
 server.watch([
-    Path.join(__dirname, 'build'),
-    Path.join(__dirname, '..', '..', 'shared', 'builder', 'public')
+    Path.join(__dirname, 'build')
 ]);
