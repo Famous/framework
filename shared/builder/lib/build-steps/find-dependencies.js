@@ -66,11 +66,11 @@ function findDependencies(info, cb) {
             }
         }
 
-        // Look for any explicit deps/refs in the config object
-        var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST);
-        var existingDepTable = configObject[this.options.dependenciesKeyName] || {};
-        for (var depName in existingDepTable) {
-            var depRef = existingDepTable[depName];
+        // During the extract core objects phase, we gathered a hash of explicit
+        // dependencies from either the config object (inline) or a
+        // framework-dependencies.json file that is within the .famous folder
+        for (var depName in info.explicitDependencies) {
+            var depRef = info.explicitDependencies[depName];
             // Note that we overwrite dependencies previously loaded in here,
             // meaning only one dependency version per name
             dependencyTable[depName] = depRef;
@@ -78,6 +78,9 @@ function findDependencies(info, cb) {
 
         // Check for `extends` key in config, use default extends if key is missing,
         // push values into dependency list
+        //
+        // TODO: again, use the pre-built config object instead of re-traversing the AST
+        var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST);
         var extensions = configObject.extends || this.options.defaultExtends;
         for (i = 0; i < extensions.length; i++) {
             dependenciesList.push(extensions[i]);

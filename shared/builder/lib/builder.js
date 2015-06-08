@@ -11,6 +11,7 @@ function Builder(options) {
     this.expandImportsShorthand = require('./build-steps/expand-imports-shorthand').bind(this);
     this.expandSyntax = require('./build-steps/expand-syntax').bind(this);
     this.extractCoreObjects = require('./build-steps/extract-core-objects').bind(this);
+    this.freezeDependencies = require('./build-steps/freeze-dependencies').bind(this);
     this.findDependencies = require('./build-steps/find-dependencies').bind(this);
     this.linkFacets = require('./build-steps/link-facets').bind(this);
     this.loadDependencies = require('./build-steps/load-dependencies').bind(this);
@@ -164,6 +165,7 @@ Builder.DEFAULTS = {
             'wheel'
         ]
     },
+    dependenciesFilename: '.famous/framework-dependencies.json',
     dependenciesKeyName: 'dependencies', // e.g. BEST.scene(...).config({dependencies:{...}})
     dependencyBlacklist: { 'localhost': true },
     dependencyRegexp: /([\w-_.]+:)+(([\w-_.]+(?=[\s|>|\/]))|([\w-_.]+(?=:)))/ig,
@@ -200,6 +202,7 @@ Builder.prototype.buildModule = function(info, finish) {
     subRoutines.push(this.expandImportsShorthand);
     subRoutines.push(this.findDependencies);
     subRoutines.push(this.derefDependencies);
+    subRoutines.push(this.freezeDependencies);
     subRoutines.push(this.loadDependencies);
     if (!this.options.doSkipAssetSaveStep) {
         // Note: Skipping this step may assume that already have

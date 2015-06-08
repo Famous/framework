@@ -139,6 +139,50 @@ function extractCodeManagerConfig(files) {
     }
 }
 
+function getExplicitDependencies(info) {
+    var explicitDependencies = {};
+
+    var depName;
+    var depRef;
+
+    // TODO change this to use the plain 'moduleConfigs' object instead of
+    // re-traversing the ASTs
+    for (var moduleName in info.moduleDefinitionASTs) {
+        var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
+        var moduleConfigAST = info.moduleConfigASTs[moduleName] || { properties: [] };
+
+        // Some explicit deps/refs may live in the config object
+        var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST);
+        var inlineDependencyTable = configObject[this.options.dependenciesKeyName] || {};
+        for (depName in inlineDependencyTable) {
+            depRef = inlineDependencyTable[depName];
+            explicitDependencies[depName] = depRef;
+        }
+    }
+
+    var dependenciesFile = Lodash.find(info.files, function(file) {
+        return file.path === this.options.dependenciesFilename;
+    }.bind(this));
+
+    if (dependenciesFile) {
+        var dependenciesFileHash;
+
+        try {
+            dependenciesFileHash = JSON.parse(dependenciesFile.content || '{}');
+        }
+        catch (err) {
+            dependenciesFileHash = {};
+        }
+
+        for (depName in dependenciesFileHash) {
+            depRef = dependenciesFileHash[depName];
+            explicitDependencies[depName] = depRef;
+        }
+    }
+
+    return explicitDependencies;
+}
+
 function extractCoreObjects(info, cb) {
     info.codeManagerConfig = extractCodeManagerConfig.call(this, info.files);
     info.entrypointFile = findEntrypointFile.call(this, info.name, info.files);
@@ -147,6 +191,7 @@ function extractCoreObjects(info, cb) {
     info.moduleDefinitionASTs = extractModuleDefinitionASTs.call(this, info.entrypointAST);
     info.moduleConfigASTs = extractModuleConfigASTs.call(this, info.entrypointAST);
     info.moduleConfigs = getRawConfigObjects(info.moduleConfigASTs);
+    info.explicitDependencies = getExplicitDependencies.call(this, info);
     cb(null, info);
 }
 
