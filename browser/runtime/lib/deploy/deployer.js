@@ -134,10 +134,14 @@ Deployer.prototype.whenIncludesAreReady = function(moduleName, moduleTag, cb) {
         cb(null, this.includesFor(moduleName, moduleTag));
     }
     else {
+        var calledBackAlready = false;
         var includesWatcher = setInterval(function() {
             if (this.areIncludesReady(moduleName, moduleTag)) {
                 clearInterval(includesWatcher);
-                cb(this.includesFor(moduleName, moduleTag));
+                if (!calledBackAlready) {
+                    calledBackAlready = true;
+                    cb(null, this.includesFor(moduleName, moduleTag));
+                }
             }
         }.bind(this), this.awaitInterval);
     }
