@@ -7,79 +7,195 @@ var operator = require('./operator');
  *
  * Manages states and observers to watch for changes in state.
  */
-function StateManager(initialState, Famous, Transitionable) {
+function StateManager (state, FamousEngine, Transitionable) {
     this._state = {};
-    this._observers = {};
-    this._globalObservers = [];
-    this._once = [];
-    this._globalChangeListeners = [];
-    this._latestStateChange = [];
+    this._FamousEngine = FamousEngine;
     this._Transitionable = Transitionable;
 
-    //keep track of Transitionables associated with states
-    //when transitions are specified in `.set`
+    // observers
+    this._observers = {};                       // fires on change to target state
+    this._globalObservers = [];                 // fires on every change to state
+    this._globalObserversThatFireOnce = [];     // fires once on triggerGlobalChange()
+    this._globalObserversThatFireEvery = [];    // fires on every triggerGlobalChange()
+
     this._transitionables = {};
 
-    this._initObservers();
-    this._currentState = '';
+    this._currentID = 0;
+    this._thenSetPool = {};
+
     this._operator = operator;
 
-    // keep track of queue of .thenSet callbacks
-    this._thenQueue = [];
+    this._initObservers(state);
+    this._setInitialState(state);
 
-    this._setInitialState(initialState);
-
-    this._Famous = Famous;
-    this._Famous.requestUpdate(this);
+    // tell engine to call .onUpdate() function
+    this._FamousEngine.requestUpdate(this);
 }
 
-StateManager.prototype._setInitialState = function(initialState) {
-    for (var key in initialState) {
-        this.setState(key, initialState[key]);
-    }
+/**
+ * Initializes observers by creating an array for each state key.
+ */
+StateManager.prototype._initObservers = function _initObservers (state) {
+    for (var key in state) this._observers[key] = [];
+};
+
+StateManager.prototype._setInitialState = function _setInitialState (state) {
+    for (var key in state) this.setState(key, state[key]);
 };
 
 /**
- * Initializes observers by copying over
- * and creating an array for each state key.
+ * State getter function.
  */
-StateManager.prototype._initObservers = function _initObservers() {
-    for (var key in this._state) {
-        this._observers[key] = [];
+StateManager.prototype.getState = function getState (key) {
+    var target = key[key.length - 1];
+    return isArray(key) ? traverse(this._state, key)[target] : this._state[key];
+};
+
+/**
+ * Alias for .getState()
+ */
+StateManager.prototype.get = StateManager.prototype.getState;
+
+/**
+ * Returns entire state object.
+ */
+StateManager.prototype.getStateObject = function getStateObject () {
+    return this._state;
+};
+
+/**
+ * State setter function.
+ * Accepts calls in the format `setState('key', 'value') or
+ * `setState('key', 5, {duration: 1000, curve: 'linear'});
+ * (all numeric values can be treated as Transitionables)
+ */
+StateManager.prototype.setState = function setState (key, value, transition) {
+    this._currentID++;
+
+    var keyType = getType(key);
+    var valueType = getType(value);
+    var previousValue = this.get(key);
+
+    // TODO: add type comparison of previousValue and value for error handling
+
+    if (keyType === 'Object') {
+        var object = key;
+        transition = value;
+        for (var state in object) {
+            this.setState(state, object[state], transition);
+        }
+        return this;
     }
+
+    if (keyType === 'Array') key = JSON.stringify(key);
+
+    switch(valueType) {
+        case 'Array':
+        case 'Number':
+            if (this._state[key]) this._transitionables[key].halt();
+            else this._transitionables[key] = new this._Transitionable(value);
+
+            if (!transition) {
+                this._transitionables[key].set(value, null, this._checkThenSetPool.bind(this, this._currentID));
+                setOnObject(key, value, this._state);
+            }
+            else {
+                this._setTransitionable(this._currentID, key, previousValue, value, transition);
+                setOnObject(key, previousValue, this._state);
+            }
+            break;
+        case 'Function':
+            throw new Error('Cannot set state of type: ' + valueType);
+            break;
+        default:
+            if (transition) throw new Error('Cannot transition state of type: ' + valueType);
+            else setOnObject(key, value, this._state);
+    }
+
+    this._fireObservers(key, value);
+    this._setLatestStateChange(key, value);
+
+    return this;
+};
+
+/**
+ * Alias for .setState()
+ */
+StateManager.prototype.set = StateManager.prototype.setState;
+
+/**
+ * Sugar for setting state in a callback.
+ */
+StateManager.prototype.thenSetState = function thenSetState (key, value, transition) {
+    var id = this._currentID;
+    var pool = this._thenSetPool;
+
+    if (pool[id] && pool[id].length) id++;
+    pool[id] = [key, value, transition];
+
+    return this;
+};
+
+/**
+ * Alias for .thenSetState()
+ */
+StateManager.prototype.thenSet = StateManager.prototype.thenSetState;
+
+/**
+ * Check the thenQueue and call .setState on latest .then call.
+ */
+StateManager.prototype._checkThenSetPool = function _checkThenSetPool (id) {
+    var thenSetArray = this._thenSetPool[id];
+
+    if (thenSetArray && thenSetArray.length) {
+        this.setState(thenSetArray[0], thenSetArray[1], thenSetArray[2]);
+    }
+
+    delete this._thenSetPool[id];
+};
+
+StateManager.prototype._setTransitionable = function _setTransitionable (id, key, previous, current, transition) {
+    transition = transition || {};
+    transition.curve = transition.curve || 'linear';
+    transition.duration = transition.duration || 0;
+
+    this._transitionables[key]
+        .from(previous)
+        .to(current, transition.curve, transition.duration, this._checkThenSetPool.bind(this, id));
+};
+
+/**
+ * Get the key and value associated with the latest change to state.
+ * @return {Object} Latest state change
+ */
+StateManager.prototype.getLatestStateChange = function getLatestStateChange () {
+    return this._latestStateChange;
+};
+
+/**
+ * Resets `_latestStateChange to updated key and value.
+ * Used internally by `setState()`.
+ * @protected
+ */
+StateManager.prototype._setLatestStateChange = function _setLatestStateChange (key, value) {
+    this._latestStateChange = [key, value];
 };
 
 /**
  * Adds an observer to all observables.
  */
-StateManager.prototype.subscribe = function subscribe(observer) {
+StateManager.prototype.subscribe = function subscribe (observer) {
     this._globalObservers.push(observer);
-};
-
-/**
- * Adds an observer that will be fired a single time as soon
- * as triggerGlobalChange is invoked.
- */
-StateManager.prototype.subscribeOnce = function subscribeOnce(observer) {
-    this._once.push(observer);
-};
-
-/**
- * Adds an observer that will be fired every time a global change
- * is triggered.
- */
-StateManager.prototype.subscribeToGlobalChange = function subscribeToGlobalChange(observer) {
-    this._globalChangeListeners.push(observer);
 };
 
 /**
  * Removes an observer from all observables.
  */
-StateManager.prototype.unsubscribe = function unsubscribe(observer) {
+StateManager.prototype.unsubscribe = function unsubscribe (observer) {
     // Remove from global
     var globalKeys = {
         '_globalObservers': true,
-        '_globalChangeListeners': true
+        '_globalObserversThatFireEvery': true
     };
 
     var index;
@@ -102,138 +218,35 @@ StateManager.prototype.unsubscribe = function unsubscribe(observer) {
 /**
  * Adds an observer to a key's list of observables.
  */
-StateManager.prototype.subscribeTo = function subscribeTo(key, observer) {
-    if (!this._observers.hasOwnProperty(key)) {
-        this._observers[key] = [];
-    }
+StateManager.prototype.subscribeTo = function subscribeTo (key, observer) {
+    if (!this._observers.hasOwnProperty(key)) this._observers[key] = [];
     this._observers[key].push(observer);
 };
 
 /**
  * Removes an observer from a key's list of observables.
  */
-StateManager.prototype.unsubscribeFrom = function unsubscribeFrom(key, observer) {
+StateManager.prototype.unsubscribeFrom = function unsubscribeFrom (key, observer) {
     if (this._observers.hasOwnProperty(key)) {
         var index = this._observers[key].indexOf(observer);
-        if (index !== -1) {
-            this._observers[key].splice(index);
-        }
+        if (index !== -1) this._observers[key].splice(index);
     }
 };
 
 /**
- * Convenience callback wrapper.
- * Usage:
- *      state
- *          .set('size', [100, 100], {duration: 1000, curve: 'outBounce'})
- *          .thenSet('position', [50, 50], {duration: 2000, curve: 'easeInOut'})
- *          .thenSet('color', red)
- *
+ * Adds an observer that will be fired a single time as soon
+ * as triggerGlobalChange is invoked.
  */
-StateManager.prototype.thenSet = function thenSet(key, value, transition) {
-    this._thenQueue.push([key, value, transition]);
-    return this;
+StateManager.prototype.subscribeOnce = function subscribeOnce (observer) {
+    this._globalObserversThatFireOnce.push(observer);
 };
 
 /**
- * State setter function.
- * Accepts calls in the format `setState('key', 'value') or
- * `setState('key', 5, {duration: 1000, curve: 'linear'});
- * (all numeric values can be treated as Transitionables)
+ * Adds an observer that will be fired every time a global change
+ * is triggered.
  */
-StateManager.prototype.setState = function setState(key, value, transition) {
-    var keyType = getType(key);
-    var valueType = getType(value);
-    var previousValue = this.get(key);
-
-    // TODO: add type comparison of previousValue and value for error handling
-
-    if (keyType === 'Object') {
-        var object = key;
-        transition = value;
-        for (var state in object) {
-            this.setState(state, object[state], transition);
-        }
-        return this;
-    }
-
-    if (keyType === 'Array') key = JSON.stringify(key);
-
-    switch(valueType) {
-        case 'Array':
-        case 'Number':
-            if (this._state[key]) {
-                this._transitionables[key].halt();
-            }
-            else {
-                this._transitionables[key] = new this._Transitionable(value);
-            }
-
-            if (!transition) {
-                this._transitionables[key].set(value, null, checkThenQueue.bind(this));
-                setObject(key, value, this._state);
-            }
-            else {
-                this._setTransitionable(key, previousValue, value, transition);
-                setObject(key, previousValue, this._state);
-            }
-            break;
-        case 'Function':
-            throw new Error('Cannot set state of type: ' + valueType);
-        default:
-            if (transition) {
-                throw new Error('Cannot transition state of type: ' + valueType);
-            }
-            else {
-                setObject(key, value, this._state);
-            }
-    }
-
-    if (keyType === 'Array') this._notifyObservers(key[0], value);
-    if (keyType === 'String') this._notifyObservers(key, value);
-
-    this._setLatestStateChange(key, value);
-
-    return this;
-};
-
-StateManager.prototype.set = StateManager.prototype.setState;
-
-StateManager.prototype._setTransitionable = function _setTransitionable(key, previous, current, transition) {
-    transition = transition || {};
-    transition.curve = transition.curve || 'linear';
-    transition.duration = transition.duration || 0;
-
-    this._transitionables[key]
-        .from(previous)
-        .to(current, transition.curve, transition.duration, checkThenQueue.bind(this));
-};
-
-/**
- * State getter function.
- */
-StateManager.prototype.getState = function getState(key) {
-    var target = key[key.length - 1];
-    return isArray(key) ? traverse(this._state, key)[target] : this._state[key];
-};
-
-StateManager.prototype.get = StateManager.prototype.getState;
-
-/**
- * Return the full states object.
- */
-StateManager.prototype.getStateObject = function() {
-    return this._state;
-};
-
-/**
- * Convenience function that logs
- * the value of any passed in state.
- */
-StateManager.prototype.log = function(key) {
-    var state = this.get(key);
-    console.log('The state of ' + key + ' is: ', state);
-    return this;
+StateManager.prototype.subscribeToGlobalChange = function subscribeToGlobalChange (observer) {
+    this._globalObserversThatFireEvery.push(observer);
 };
 
 /**
@@ -243,17 +256,13 @@ StateManager.prototype.log = function(key) {
  *                          takes precedence over the blackList.
  * @param {RegEx} blackList RegEx defining which keys state should NOT be triggered on.
  */
-StateManager.prototype.triggerGlobalChange = function triggerGlobalChange(whiteList, blackList) {
+StateManager.prototype.triggerGlobalChange = function triggerGlobalChange (whiteList, blackList) {
     for (var key in this._state) {
         if (whiteList) {
-            if (whiteList.test(key)) {
-                this.setState(key, this.getState(key));
-            }
+            if (whiteList.test(key)) this.setState(key, this.getState(key));
         }
         else if (blackList) {
-            if (!blackList.test(key)) {
-                this.setState(key, this.getState(key));
-            }
+            if (!blackList.test(key)) this.setState(key, this.getState(key));
         }
         else {
             this.setState(key, this.getState(key));
@@ -264,223 +273,21 @@ StateManager.prototype.triggerGlobalChange = function triggerGlobalChange(whiteL
     for (i = 0; i < this._globalObservers.length; i++) {
         this._globalObservers[i]();
     }
-    for (i=0; i < this._globalChangeListeners.length; i++) {
-        this._globalChangeListeners[i]();
+    for (i = 0; i < this._globalObserversThatFireEvery.length; i++) {
+        this._globalObserversThatFireEvery[i]();
     }
 
     var observer;
-    while (this._once.length) {
-        observer = this._once.pop();
+    while (this._globalObserversThatFireOnce.length) {
+        observer = this._globalObserversThatFireOnce.pop();
         observer();
     }
 };
 
-/**
- * Get the key and value associated with the latest change to state.
- * @return {Object} Latest state change
- */
-StateManager.prototype.getLatestStateChange = function getLatestStateChange() {
-    return this._latestStateChange;
-};
+StateManager.prototype._fireObservers = function _fireObservers (key, value) {
+    // if stateName is an array (nested state), use first string
+    if (isArray(parse(key))) key = key[0];
 
-/**
- * Resets `_latestStateChange to updated key and value.
- * Used internally by `setState()`.
- * @protected
- */
-StateManager.prototype._setLatestStateChange = function _setLatestStateChange(key, value) {
-    this._latestStateChange = [key, value];
-};
-
-/**
- * State getter function for chaining.
- */
-StateManager.prototype.chain = function chain(key) {
-    this._currentState = key;
-    return this;
-};
-
-/**
- * Add function
- */
-StateManager.prototype.add = function add(amount, transition) {
-    this.operate(amount, '+', transition);
-    return this;
-};
-
-/**
- * Subtract function
- */
-StateManager.prototype.subtract = function subtract(amount, transition) {
-    this.operate(amount, '-', transition);
-    return this;
-};
-
-/**
- * Multiply function
- */
-StateManager.prototype.multiply = function multiply(amount, transition) {
-    this.operate(amount, '*', transition);
-    return this;
-};
-
-/**
- * Multiply by PI function
- */
-StateManager.prototype.timesPI = function timesPI(transition) {
-    this.multiply(Math.PI, transition);
-    return this;
-};
-
-/**
- * Divide function
- */
-StateManager.prototype.divide = function divide(amount, transition) {
-    this.operate(amount, '/', transition);
-    return this;
-};
-
-/**
- * Power function
- */
-StateManager.prototype.pow = function pow(amount, transition) {
-    this.operate(amount, 'pow', transition);
-    return this;
-};
-
-/**
- * Square root function
- */
-StateManager.prototype.sqrt = function sqrt(transition) {
-    this.operate(null, 'sqrt', transition);
-    return this;
-};
-
-/**
- * Absolute value function
- */
-StateManager.prototype.abs = function abs(transition) {
-    this.operate(null, 'abs', transition);
-    return this;
-};
-
-/**
- * Sine function
- */
-StateManager.prototype.sin = function sin(transition) {
-    this.operate(null, 'sin', transition);
-    return this;
-};
-
-/**
- * Cosine function
- */
-StateManager.prototype.cos = function cos(transition) {
-    this.operate(null, 'cos', transition);
-    return this;
-};
-
-/**
- * Tangent function
- */
-StateManager.prototype.tan = function tan(transition) {
-    this.operate(null, 'tan', transition);
-    return this;
-};
-
-/**
- * Ceiling function
- */
-StateManager.prototype.ceil = function ceil(transition) {
-    this.operate(null, 'ceil', transition);
-    return this;
-};
-
-/**
- * Flooring function
- */
-StateManager.prototype.floor = function floor(transition) {
-    this.operate(null, 'floor', transition);
-    return this;
-};
-
-/**
- * Concat function
- */
-StateManager.prototype.concat = function concat(amount) {
-    this.operate(amount, 'concat');
-    return this;
-};
-
-/**
- * Splice function
- */
-StateManager.prototype.substring = function splice(amount) {
-    this.operate(amount, 'substring');
-    return this;
-};
-
-/**
- * Lowercase function
- */
-StateManager.prototype.toLower = function toLower() {
-    this.operate(null, 'toLower');
-    return this;
-};
-
-/**
- * Uppercase function
- */
-StateManager.prototype.toUpper = function toUpper() {
-    this.operate(null, 'toUpper');
-    return this;
-};
-
-/**
- * Toggle boolean function
- */
-StateManager.prototype.flip = function flip() {
-    this.operate(null, 'flip');
-    return this;
-};
-
-/**
- * Boolean to Integer function
- */
-StateManager.prototype.toInt = function toInt() {
-    this.operate(null, 'toInt');
-    return this;
-};
-
-/**
- * Main operate function to keep code
- * DRY with many operator functions.
- */
-StateManager.prototype.operate = function operate(amount, operation, transition) {
-    var key = this._currentState;
-    var newValue = this._operator.operate(operation, this.getState(key), amount);
-    this.setState(key, newValue, transition);
-};
-
-/**
- * Allows for creation of custom
- * convenience operators.
- */
-StateManager.prototype.addOperator = function setOperator(operationName, func) {
-    this._operator.addOperation(operationName, func);
-
-    StateManager.prototype[operationName] = function(amount, transition) {
-        this.operate(amount, operationName, transition);
-        return this;
-    };
-    return this;
-};
-
-/**
- * Invokes all observers
- * associated with a key.
- */
-StateManager.prototype._notifyObservers = function _notifyObservers(key, value) {
     if (this._observers[key]) {
         for (var i = 0; i < this._observers[key].length; i++) {
             this._observers[key][i](key, value);
@@ -492,38 +299,29 @@ StateManager.prototype._notifyObservers = function _notifyObservers(key, value) 
     }
 };
 
-/**
- * Update all observers that are watching
- * currently transitioning Transitionables.
- *
- * This is called `update` specifically because
- * the Famous.requestUpdate function expects an object with
- * a function member named `onUpdate`
- */
-StateManager.prototype.onUpdate = function onUpdate() {
+StateManager.prototype.onUpdate = function onUpdate () {
+    // keep internal state object in sync with transitionable values
     for (var key in this._transitionables) {
         if (this._transitionables.hasOwnProperty(key)) {
             var t = this._transitionables[key];
             if (t && t.isActive()) {
-                setObject(key, t.get(), this._state);
-                var parsedKey = parse(key);
-                if (isString(parsedKey)) this._notifyObservers(parsedKey, t.get());
-                if (isArray(parsedKey)) this._notifyObservers(parsedKey[0], t.get());
+                setOnObject(key, t.get(), this._state);
+                this._fireObservers(key, t.get());
             }
         }
     }
 
     // Update on each tick
-    this._Famous.requestUpdate(this);
+    this._FamousEngine.requestUpdate(this);
 };
 
-// function isTransitionable(key) {
-//     if (!this._transitionables[key]) return false;
-//     return this._transitionables[key] instanceof this._Transitionable;
-// }
-
-function setObject(key, val, object) {
+/**
+ * Sets properties on an object.
+ * Handles traversing nested object setting.
+ */
+function setOnObject (key, val, object) {
     key = parse(key);
+
     if (isString(key)) {
         object[key] = val;
     }
@@ -535,22 +333,9 @@ function setObject(key, val, object) {
 }
 
 /**
- * Helper function to parse nested object keys.
- * Returns key if not a nested object.
+ * Returns the host object of nested state.
  */
-function parse(key) {
-    if (isString(key) && key.indexOf('[') === 0) {
-        return JSON.parse(key);
-    }
-    else {
-        return key;
-    }
-}
-
-/**
- * Helper function to return the host object of nested state.
- */
-function traverse(object, path) {
+function traverse (object, path) {
     if (object.hasOwnProperty(path[0])) {
         if (path.length === 1) return object;
         else return traverse(object[path.slice(0, 1)], path.slice(1, path.length));
@@ -561,35 +346,36 @@ function traverse(object, path) {
 }
 
 /**
- * Helper function to check the thenQueue
- * and call .setState on latest .then call.
+ * Parses nested state keys.
+ * Returns key if not nested.
  */
-function checkThenQueue() {
-    // check the then queue and pop off arguments
-    if (this._thenQueue.length > 0) {
-        var args = this._thenQueue.shift();
-        this.setState(args[0], args[1], args[2]);
+function parse (key) {
+    if (isString(key) && key.indexOf('[') === 0) {
+        return JSON.parse(key);
+    }
+    else {
+        return key;
     }
 }
 
 /**
- * Helper function to check if value is an array.
+ * Returns a Boolean indication whether the state is an array or not.
  */
-function isArray(value) {
-    return Array.isArray(value);
+function isArray (state) {
+    return getType(state) === 'Array';
 }
 
 /**
- * Helper function to check if value is a string.
+ * Returns a Boolean indication whether the state is a string or not.
  */
-function isString(value) {
-    return typeof value === 'string';
+function isString (state) {
+    return getType(state) === 'String';
 }
 
 /**
- * Helper function to type check states.
+ * Returns a String corresponding to the state's type.
  */
-function getType(state) {
+function getType (state) {
     return Object.prototype.toString.call(state).slice(8, -1);
 }
 
