@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter:messages:message', 'HEAD', {
+BEST.scene('creative:twitter:messages:message', {
     behaviors: {
         '.message': {
 

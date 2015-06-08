@@ -31,7 +31,7 @@ const Users = [
     }
 ];
 
-BEST.scene('creative:twitter:messages', 'HEAD', {
+BEST.scene('creative:twitter:messages', {
     behaviors: {
         '.user': {
             '$repeat': (users) => {
