@@ -440,7 +440,7 @@ BEST.scene('creative:twitter', {
         'assets/styles/twitter.css'
     ],
     imports: {
-        'creative:twitter': ['tweet', 'message', 'notification', 'profile'],
+        'creative:twitter': ['tweet', 'messages', 'notification', 'profile'],
         'famous:layouts': ['header-footer']
     }
 });
