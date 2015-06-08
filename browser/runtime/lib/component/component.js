@@ -208,9 +208,11 @@ Component.prototype._initializeControlFlow = function _initializeControlFlow() {
             expandedBlueprint, childrenRoot, this.surrogateRoot, this.controlFlowDataMngr
         );
 
-        // HTML Content from blueprint is overwritten by HTML content injected by parent,
-        // even if parent's injected HTML content are blank text nodes.
-        htmlElements = VirtualDOM.stripHTMLElements(childrenRoot);
+        // HTML Content from blueprint is overwritten by HTML content injected by parent.
+        var parentInsertedHTMLElements = VirtualDOM.stripHTMLElements(childrenRoot);
+        if (VirtualDOM.doNodesHaveContent(parentInsertedHTMLElements)) {
+            htmlElements = parentInsertedHTMLElements;
+        }
         this._updateChildren(childrenRoot);
     }
 

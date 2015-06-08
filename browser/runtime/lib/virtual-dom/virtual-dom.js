@@ -7,6 +7,7 @@ var COMPONENT_DELIM = ':';
 var DO_CLONE_ATTRIBUTES = true;
 var DOM_PARSER = new DOMParser();
 var ESCAPED_COLON = '\\\:';
+var ELEMENT_NODE_TYPE = 1;
 var NODE_UID_PREFIX = 'node';
 var PARSE_TYPE = 'text/html';
 var SELF_KEY = '$self';
@@ -30,6 +31,7 @@ var VALID_HTML_TAGS = [
     '<summary>', '<sup>', '<table>', '<tbody>', '<td>', '<template>', '<textarea>', '<tfoot>', '<th>',
     '<thead>', '<time>', '<title>', '<tr>', '<track>', '<u>', '<ul>', '<var>', '<video>', '<wbr>'
 ];
+var WHITE_SPACE_REGEX = /^\s*$/g;
 var WRAPPER_NAME = 'wrapper';
 
 function create(str) {
@@ -220,6 +222,27 @@ function removeAttribute(domNode, name) {
     return domNode;
 }
 
+function doNodesHaveContent(nodes) {
+    if (nodes.length === 0) {
+        return false;
+    }
+    else {
+        var node;
+        for (var i = 0; i < nodes.length; i++) {
+            node = nodes[i];
+            if (node.nodeType === ELEMENT_NODE_TYPE) {
+                return true;
+            }
+            else if (node.nodeType === TEXT_NODE_TYPE) {
+                if (node.textContent.match(WHITE_SPACE_REGEX) === null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+
 module.exports = {
     addNode: addNode,
     attachAttributeFromJSON: attachAttributeFromJSON,
@@ -227,6 +250,7 @@ module.exports = {
     clone: clone,
     create: create,
     deleteNode: deleteNode,
+    doNodesHaveContent: doNodesHaveContent,
     eachNode: eachNode,
     getAttribute: getAttribute,
     getBaseNode: getBaseNode,
