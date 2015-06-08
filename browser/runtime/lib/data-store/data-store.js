@@ -23,12 +23,21 @@ var TIMELINES = {};
 // Attachment objects ('raw code' wrappers)
 var ATTACHMENTS = {};
 
-var DEFAULT_TAG = 'HEAD';
 var BEHAVIORS_KEY = 'behaviors';
+var DEFAULT_TAG = 'HEAD';
 var EVENTS_KEY = 'events';
+var EXTENSION_KEYS = 'extensions';
+var NODE_NAME = 'famous:core:node';
+var NORMAL_FACET_NAMES = {
+    'behaviors': true,
+    'events': true,
+    'states': true,
+    'tree': true
+};
+var SELF_KEY = '$self';
 var STATES_KEY = 'states';
 var TREE_KEY = 'tree';
-var EXTENSION_KEYS = 'extensions';
+var YIELD_KEY = '$yield';
 
 function getAttachments(name, tag) {
     if (ATTACHMENTS[name] && ATTACHMENTS[name][tag]) {
@@ -116,24 +125,27 @@ function hasModule(name, tag) {
     return !!getModuleDefinition(name, tag);
 }
 
-var NORMAL_FACET_NAMES = {
-    'behaviors': true,
-    'events': true,
-    'states': true,
-    'tree': true
-};
+function returnFalse() {
+    return false;
+}
 
 function extendDefinition(definition, extensions) {
     var extensionDefinition;
+    var definesSelfYield;
     for (var i = 0; i < extensions.length; i++) {
         extensionDefinition = getModuleDefinition(extensions[i].name, extensions[i].version, false);
-
-        definition[BEHAVIORS_KEY] = definition[BEHAVIORS_KEY] ? definition[BEHAVIORS_KEY] : {};
-        definition[EVENTS_KEY] = definition[EVENTS_KEY] ? definition[EVENTS_KEY] : {};
-        definition[STATES_KEY] = definition[STATES_KEY] ? definition[STATES_KEY] : {};
-
         if (extensionDefinition) {
+            definition[BEHAVIORS_KEY] = definition[BEHAVIORS_KEY] ? definition[BEHAVIORS_KEY] : {};
+            definition[EVENTS_KEY] = definition[EVENTS_KEY] ? definition[EVENTS_KEY] : {};
+            definition[STATES_KEY] = definition[STATES_KEY] ? definition[STATES_KEY] : {};
+
+            definesSelfYield = definition[BEHAVIORS_KEY][SELF_KEY] ? definition[BEHAVIORS_KEY][SELF_KEY][YIELD_KEY] : false;
             ObjUtils.naiveExtends(definition[BEHAVIORS_KEY], extensionDefinition[BEHAVIORS_KEY]);
+            // By default, components behaviors.$self.$yield should be set to `false`, which requires
+            // an overwrite of the mixin created from merging with famous:core:node.
+            if (!definesSelfYield && extensions[i].name === NODE_NAME) {
+                definition[BEHAVIORS_KEY][SELF_KEY][YIELD_KEY] = returnFalse;
+            }
             ObjUtils.naiveExtends(definition[EVENTS_KEY], extensionDefinition[EVENTS_KEY]);
             ObjUtils.naiveExtends(definition[STATES_KEY], extensionDefinition[STATES_KEY]);
 
@@ -156,11 +168,7 @@ function validateModule(name, tag, options, definition) {
 }
 
 function enhanceModule(name, tag, options, definition) {
-    for (var facetName in definition) {
-        if (options[EXTENSION_KEYS]) {
-            extendDefinition(definition, options[EXTENSION_KEYS]);
-        }
-    }
+    extendDefinition(definition, options[EXTENSION_KEYS]);
 }
 
 function registerModule(name, tag, options, definition) {
