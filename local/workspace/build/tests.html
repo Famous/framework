@@ -62,7 +62,7 @@
         <button id="prev-button">
             <span>&larr; Prev</span>
         </button>
-        <div id="current-module-name-box"><span id="current-module-name-span">famous:demos:clickable-square</span></div>
+        <div id="current-module-name-box"><span id="current-module-name-span">famous-demos:clickable-square</span></div>
         <button id="next-button">
             <span>Next &rarr;</span>
         </button>
@@ -70,75 +70,42 @@
     <script type="text/javascript" src="assets/query-string.js"></script>
     <script type="text/javascript">
         var modules = [
-            'arkady.pevzner:control-flow:basic-if',
-            'arkady.pevzner:control-flow:repeat',
-            'arkady.pevzner:control-flow:static-repeat',
-            'arkady.pevzner:timeline-example',
             'creative:carousel',
-            'creative:carousel:carousel-item',
             'creative:sephora',
-            'creative:sephora:mask',
-            'creative:sephora:sprite',
             'creative:twitter',
-            'creative:twitter:message',
-            'creative:twitter:notification',
-            'creative:twitter:profile',
-            'creative:twitter:tweet',
-            'creative:twitter:tweetM',
-            'famous:core:components',
-            'famous:core:context',
-            'famous:core:dom-element',
-            'famous:core:node',
-            'famous:core:ui-element',
-            'famous:core:view',
-            'famous:core:wrapper',
-            'famous:demos:animation-timeline',
-            'famous:demos:attach-webgl',
-            'famous:demos:circle',
-            'famous:demos:click-event',
-            'famous:demos:clickable-square',
-            'famous:demos:flipper-button',
-            'famous:demos:hello-famous',
-            'famous:demos:if-repeat',
-            'famous:demos:layouts:basic-scroll-view',
-            'famous:demos:layouts:footer-bar',
-            'famous:demos:layouts:header-footer',
-            'famous:demos:layouts:header-footer-example',
-            'famous:demos:layouts:scroll-view-item',
-            'famous:demos:layouts:template-scroll-layout',
-            'famous:demos:layouts:three-panel-layout',
-            'famous:demos:layouts:two-panel-layout',
-            'famous:demos:lifecycle',
-            'famous:demos:repeat',
-            'famous:demos:repeat-square',
-            'famous:demos:styling-inner-divs',
-            'famous:demos:templating',
-            'famous:events',
-            'famous:tests:assets-large',
-            'famous:tests:custom-toolchain',
-            'famous:tests:fouc',
-            'famous:tests:misspelled-facets',
-            'famous:tests:mount-point',
-            'famous:tests:opacity',
-            'famous:tests:pass-through',
-            'famous:tests:pass-through:child-component',
-            'famous:tests:platform-a',
-            'famous:tests:scope',
-            'famous:tests:size-change-event',
-            'famous:tests:static-assets',
-            'famous:tests:static-assets:more-assets',
-            'famous:tests:weird-files',
-            'imtiaz.majeed:array-tweening',
-            'imtiaz.majeed:dispatcher-broadcasting:child',
-            'imtiaz.majeed:dispatcher-broadcasting:parent',
-            'imtiaz.majeed:dispatcher-trigger',
-            'imtiaz.majeed:dom-skyscraper:base',
-            'imtiaz.majeed:dom-skyscraper:side',
-            'imtiaz.majeed:polymer-test',
-            'imtiaz.majeed:state-manager-test',
-            'imtiaz.majeed:timeline:example',
-            'imtiaz.majeed:timeline:top-level-function',
-            'imtiaz.majeed:ui-element-content',
+
+            'famous-demos:animation-timeline',
+            'famous-demos:attach-webgl',
+            'famous-demos:clickable-square',
+            'famous-demos:if-repeat',
+            'famous-demos:lifecycle',
+            'famous-demos:repeat',
+            'famous-demos:styling-inner-divs',
+
+            'famous-tests:array-tweening',
+            'famous-tests:assets-large',
+            'famous-tests:control-flow:basic-if',
+            'famous-tests:control-flow:repeat',
+            'famous-tests:control-flow:static-repeat',
+            'famous-tests:custom-toolchain',
+            'famous-tests:dispatcher-broadcasting:parent',
+            'famous-tests:dispatcher-trigger',
+            'famous-tests:fouc',
+            'famous-tests:misspelled-facets',
+            'famous-tests:mount-point',
+            'famous-tests:opacity',
+            'famous-tests:pass-through',
+            'famous-tests:pass-through:child-component',
+            'famous-tests:platform-a',
+            'famous-tests:scope',
+            'famous-tests:size-change-event',
+            'famous-tests:state-manager-test',
+            'famous-tests:static-assets',
+            'famous-tests:static-assets:more-assets',
+            'famous-tests:timeline:example',
+            'famous-tests:timeline:top-level-function',
+            'famous-tests:weird-files',
+
             'jordan.papaleo:flip-card',
             'jordan.papaleo:flipping-cards',
             'jordan.papaleo:hello-famous'
@@ -151,7 +118,7 @@
             window.history.pushState(currentModule, 'Famous Framework (tests page)', 'tests.html?best=' + currentModule);
         }
 
-        var currentModule = QUERY.best || 'famous:demos:clickable-square';
+        var currentModule = QUERY.best || 'famous-demos:clickable-square';
         updateCurrentModule(currentModule);
 
         var nextButtonEl = document.getElementById('next-button');        

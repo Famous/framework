@@ -442,6 +442,6 @@ BEST.scene('creative:twitter', {
     ],
     imports: {
         'creative:twitter': ['tweet', 'message', 'notification', 'profile'],
-        'famous:demos:layouts': ['header-footer']
+        'famous:layouts': ['header-footer']
     }
 });

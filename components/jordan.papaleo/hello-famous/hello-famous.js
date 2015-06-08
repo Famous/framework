@@ -50,9 +50,6 @@ BEST.scene('jordan.papaleo:hello-famous', {
     })
     .config({
         imports: {
-            'famous:demos:layouts' : [
-                'header-footer', 'basic-scroll-view', 'footer-bar',
-                'three-panel-layout', 'template-scroll-layout'
-            ]
+            'famous:layouts': ['header-footer']
         }
     });
