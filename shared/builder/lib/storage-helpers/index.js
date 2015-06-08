@@ -12,7 +12,9 @@ var Hub = require('./hub');
 
 function derefDependencies(depReferenceTable, cb) {
     if (this.options.codeManagerVersionInfoHost) {
-        Hub.derefDependencies.call(this, this.options.codeManagerVersionInfoHost, depReferenceTable, cb);
+        Hub.derefDependencies.call(this, this.options.codeManagerVersionInfoHost, depReferenceTable, function(derefErr, depTable) {
+            cb(null, depTable);
+        });
     }
     else {
         // Just return the normal reference table for now
@@ -24,60 +26,94 @@ function loadDependencies(info, cb) {
     // We're going to accumulate dependencies into this dependency
     // array, recursively loading the dependencies of dependencies, etc.
     var dependenciesWanted = info.dereffedDependencyTable;
-    var dependenciesFound = {};
-    var loadAttemptActions = [];
-    if (this.options.doLoadDependenciesFromBrowser) {
-        loadAttemptActions.push(Browser.loadDependenciesFromBrowser.bind(this));
+
+    if (Object.keys(dependenciesWanted).length < 1) {
+        // Don't bother doing any of the logic below if we don't actually
+        // need to reach out to find dependencies
+        cb(null, {});
     }
     else {
-        if (this.options.localBlocksFolder || this.options.localRawSourceFolder) {
-            loadAttemptActions.push(LocalBlocksFolder.loadDependencies.bind(this,
-                this.options.localBlocksFolder,
-                this.options.localRawSourceFolder
+        var dependenciesFound = {};
+        var loadAttemptActions = [];
+        if (this.options.doLoadDependenciesFromBrowser) {
+            loadAttemptActions.push(Browser.loadDependenciesFromBrowser.bind(this));
+        }
+        else {
+            if (this.options.localBlocksFolder || this.options.localRawSourceFolder) {
+                loadAttemptActions.push(LocalBlocksFolder.loadDependencies.bind(this,
+                    this.options.localBlocksFolder,
+                    this.options.localRawSourceFolder
+                ));
+            }
+            if (this.options.localBlocksCacheFolder) {
+                loadAttemptActions.push(LocalBlocksCacheFolder.loadDependencies.bind(this,
+                    this.options.localBlocksCacheFolder
+                ));
+            }
+        }
+        if (this.options.codeManagerAssetReadHost) {
+            loadAttemptActions.push(Hub.loadDependencies.bind(this,
+                this.options.codeManagerAssetReadHost
             ));
         }
-        if (this.options.localBlocksCacheFolder) {
-            loadAttemptActions.push(LocalBlocksCacheFolder.loadDependencies.bind(this,
-                this.options.localBlocksCacheFolder
-            ));
-        }
+        // After attempting to load the dependencies from all of the
+        // possible sources, check to see if we succeeded overall
+        var composedLoadFn = Async.seq.apply(Async, loadAttemptActions);
+        composedLoadFn(dependenciesWanted, dependenciesFound, function(depLoadErr) {
+            var dependenciesMissing = Extra.getDependenciesMissing(dependenciesWanted, dependenciesFound);
+            if (depLoadErr || Object.keys(dependenciesMissing).length > 0) {
+                console.error('Got error when trying to load dependencies:', depLoadErr);
+                console.error('Unable to load `' + info.name + '`\'s dependencies ' + JSON.stringify(dependenciesMissing));
+            }
+            cb(null, dependenciesFound);
+        });
     }
-    if (this.options.codeManagerAssetReadHost) {
-        loadAttemptActions.push(Hub.loadDependencies.bind(this,
-            this.options.codeManagerAssetReadHost
+}
+
+function saveAssets(info, cb) {
+    var saveAssetsActions = [];
+    if (this.options.codeManagerAssetWriteHost && this.options.doWriteToCodeManager) {
+        saveAssetsActions.push(Hub.saveAssets.bind(this,
+            this.options.codeManagerAssetWriteHost
         ));
     }
-    // After attempting to load the dependencies from all of the
-    // possible sources, check to see if we succeeded overall
-    var composedLoadFn = Async.seq.apply(Async, loadAttemptActions);
-    composedLoadFn(dependenciesWanted, dependenciesFound, function(depLoadErr) {
-        var dependenciesMissing = Extra.getDependenciesMissing(dependenciesWanted, dependenciesFound);
-        if (depLoadErr || Object.keys(dependenciesMissing).length > 0) {
-            console.error('Got error when trying to load dependencies:', depLoadErr);
-            console.error('Unable to load `' + info.name + '`\'s dependencies ' + JSON.stringify(dependenciesMissing));
+    if (this.options.localBlocksFolder) {
+        saveAssetsActions.push(LocalBlocksFolder.saveAssets.bind(this,
+            this.options.localBlocksFolder
+        ));
+    }
+    var composedSaveFn = Async.seq.apply(Async, saveAssetsActions);
+    composedSaveFn(info, function(saveErr, saveInfo) {
+        if (!saveErr) {
+            cb(null, saveInfo);
         }
-        cb(null, dependenciesFound);
+        else {
+            cb(saveErr);
+        }
     });
 }
 
-function saveAssets(where, info, cb) {
-    if (where === 'local') {
-        if (this.options.localBlocksFolder) {
-            LocalBlocksFolder.saveAssets.call(this, this.options.localBlocksFolder, info, function(localSourceSaveErr, localSourceSaveInfo) {
-                cb(null, localSourceSaveInfo);
-            });
-        }
+function saveBundle(info, cb) {
+    var saveBundleActions = [];
+    if (this.options.codeManagerAssetWriteHost && this.options.doWriteToCodeManager) {
+        saveBundleActions.push(Hub.saveBundle.bind(this,
+            this.options.codeManagerAssetWriteHost
+        ));
     }
-}
-
-function saveBundle(where, info, cb) {
-    if (where === 'local') {
-        if (this.options.localBlocksFolder) {
-            LocalBlocksFolder.saveBundle.call(this, this.options.localBlocksFolder, info, function(localSourceSaveErr, localSourceSaveInfo) {
-                cb(null, localSourceSaveInfo);
-            });
-        }
+    if (this.options.localBlocksFolder) {
+        saveBundleActions.push(LocalBlocksFolder.saveBundle.bind(this,
+            this.options.localBlocksFolder
+        ));
     }
+    var composedBundleSaveFn = Async.seq.apply(Async, saveBundleActions);
+    composedBundleSaveFn(info, function(bundleSaveErr, bundleSaveInfo) {
+        if (!bundleSaveErr) {
+            cb(null, bundleSaveInfo);
+        }
+        else {
+            cb(bundleSaveErr);
+        }
+    });
 }
 
 module.exports = {

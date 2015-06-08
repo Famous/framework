@@ -1,6 +1,7 @@
 'use strict';
 
 var Async = require('async');
+var Chalk = require('chalk');
 var Lodash = require('lodash');
 
 function Builder(options) {
@@ -21,36 +22,39 @@ function Builder(options) {
 var IS_IN_BROWSER = (typeof window !== 'undefined');
 
 Builder.DEFAULTS = {
-    // The folder where local components are being actively developed
-    localRawSourceFolder: process.env.BEST_RAW_SOURCE_FOLDER,
+    localRawSourceFolder: process.env.BEST_RAW_SOURCE_FOLDER, // The folder where local components are being actively developed
+    localBlocksFolder: process.env.BEST_BLOCKS_FOLDER, // The folder where block version (and bundles) are stored
+    localBlocksCacheFolder: process.env.BEST_BLOCKS_CACHE_FOLDER, // A cache folder also for block version (and bundles) storage
 
-    // The folder where block version (and bundles) are stored
-    localBlocksFolder: process.env.BEST_BLOCKS_FOLDER,
+    // By default, don't try to persist to code manager, since
+    // that's too heavyweight a step for many local changes that
+    // might occur
+    doWriteToCodeManager: false,
 
-    // A cache folder also for block version (and bundles) storage
-    localBlocksCacheFolder: process.env.BEST_BLOCKS_CACHE_FOLDER,
-
-    // Webservice host from which *assets* can be READ
-    codeManagerAssetReadHost: process.env.BEST_ASSET_READ_HOST,
-
-    // Webservice host to which *assets* can be WRITTEN
-    codeManagerAssetWriteHost: process.env.BEST_ASSET_WRITE_HOST,
-
-    // Webservice host that can return JSON data about versions
-    codeManagerVersionInfoHost: process.env.BEST_VERSION_INFO_HOST,
-
+    codeManagerAssetReadHost: process.env.BEST_ASSET_READ_HOST, // Webservice host from which *assets* can be READ
+    codeManagerAssetWriteHost: process.env.BEST_ASSET_WRITE_HOST, // Webservice host to which *assets* can be WRITTEN
+    codeManagerVersionInfoHost: process.env.BEST_VERSION_INFO_HOST, // Webservice host that can return JSON data about versions
     codeManagerApiVersion: 'v1',
+    codeManagerAssetGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath',
     codeManagerBlockCreateRoute: 'POST|default|/:apiVersion/blocks',
     codeManagerBlockGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName',
     codeManagerVersionCreateRoute: 'POST|multipart/form-data|/:apiVersion/blocks/:blockIdOrName/versions',
     codeManagerVersionUpdateRoute: 'PUT|multipart/form-data|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag',
     codeManagerVersionGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag',
-    codeManagerAssetGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath',
+
+    authHost: process.env.BEST_AUTH_HOST,
+    authApiVersion: 'v1',
+    authConfigFilePath: '.famous/.config',
+    authUserInfoRoute: 'GET|default|/:apiVersion/users',
+    authStatusRoute: 'GET|default|/:apiVersion/status',
+
     doAttemptToBuildDependenciesLocally: true,
     defaultDependencyVersion: 'HEAD',
-    whereToPersistBuildFiles: 'local',
 
     // Persistence miscellany
+    assetBlacklist: {
+        '.famous/.config': true // This file may contain user secrets
+    },
     bundleAssetPath: '~bundles/bundle.js', // Complete file that the client knows how to process
     parcelAssetPath: '~bundles/parcel.json', // Data and dependencies object used for dependency gathering
     defaultDependencyData: undefined,
@@ -175,6 +179,13 @@ Builder.DEFAULTS = {
 };
 
 Builder.prototype.buildModule = function(info, finish) {
+    if (!info.subDependencyCall) {
+        console.log('');
+        console.log(Chalk.underline(Chalk.gray('famous')), Chalk.underline('Building module ' + info.name));
+    }
+    else {
+        console.log(Chalk.gray('famous'), 'Building dependency ' + info.name + '~>' + info.explicitVersion);
+    }
     var subRoutines = [];
     subRoutines.push(this.preprocessFiles);
     subRoutines.push(this.extractCoreObjects);
@@ -187,12 +198,12 @@ Builder.prototype.buildModule = function(info, finish) {
         // Note: Skipping this step may assume that already have
         // an 'explicitVersion' set, since only saving assets
         // can give us the version ref for the component.
-        subRoutines.push(this.saveAssets.bind(this, this.options.whereToPersistBuildFiles));
+        subRoutines.push(this.saveAssets.bind(this));
     }
     subRoutines.push(this.expandSyntax);
     subRoutines.push(this.buildBundle);
     if (!this.options.doSkipBundleSaveStep) {
-        subRoutines.push(this.saveBundle.bind(this, this.options.whereToPersistBuildFiles));
+        subRoutines.push(this.saveBundle.bind(this));
     }
     Async.seq.apply(Async, subRoutines)(info, function(err, result) {
         finish(err, result);

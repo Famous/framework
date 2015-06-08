@@ -22,6 +22,11 @@ function persistencePathTemplate(route, locals, makeRelative) {
     return mainRoute;
 }
 
+function persistencePathMethod(route) {
+    var routeSegments = route.split(PIPE);
+    return routeSegments[0];
+}
+
 function buildVersionPath(moduleName, moduleVersion, makeRelative) {
     return persistencePathTemplate.call(this, this.options.codeManagerVersionGetRoute, {
         apiVersion: this.options.codeManagerApiVersion,
@@ -39,12 +44,6 @@ function buildVersionInfoURL(moduleName, moduleVersion) {
     return this.options.codeManagerVersionInfoHost + SLASH + versionPath;
 }
 
-function buildComponentSourceCodePath(moduleName, moduleVersion, assetPath) {
-    var relPath = moduleName.split(this.options.componentDelimiter).join(Path.sep);
-    var absPath = Path.join(this.options.componentSourceCodeRoute, relPath);
-    return absPath;
-}
-
 function buildAssetPath(moduleName, moduleVersion, assetPath, makeRelative) {
     return persistencePathTemplate.call(this, this.options.codeManagerAssetGetRoute, {
         apiVersion: this.options.codeManagerApiVersion,
@@ -59,10 +58,80 @@ function buildAssetURL(moduleName, moduleVersion, assetPath) {
     return this.options.codeManagerAssetReadHost + SLASH + assetPathRelative;
 }
 
+function getBlockCreateMethod() {
+    return persistencePathMethod.call(this, this.options.codeManagerBlockCreateRoute);
+}
+
+function getVersionCreateMethod() {
+    return persistencePathMethod.call(this, this.options.codeManagerVersionCreateRoute);
+}
+
+function getVersionGetMethod() {
+    return persistencePathMethod.call(this, this.options.codeManagerVersionGetRoute);
+}
+
+function buildBlockCreateURI() {
+    return this.options.codeManagerAssetWriteHost + '/v1/blocks';
+}
+
+function getVersionCreateURI(blockName) {
+    var pathRelative = persistencePathTemplate.call(this, this.options.codeManagerVersionCreateRoute, {
+        apiVersion: this.options.codeManagerApiVersion,
+        blockIdOrName: blockName
+    });
+    return this.options.codeManagerAssetWriteHost + pathRelative;
+}
+
+function getVersionPath(blockName, versionRef) {
+    return buildVersionPath.call(this, blockName, versionRef, true);
+}
+
+function getVersionURL(blockName, versionRef) {
+    var versionPath = getVersionPath.call(this, blockName, versionRef);
+    return this.options.codeManagerAssetReadHost + SLASH + versionPath;
+}
+
+/**
+ * Pathing for auth-related actions
+ */
+function getAuthStatusMethod() {
+    return persistencePathMethod.call(this, this.options.authStatusRoute);
+}
+
+function getUserInfoMethod() {
+    return persistencePathMethod.call(this, this.options.authUserInfoRoute);
+}
+
+function getAuthStatusURI() {
+    var pathRelative = persistencePathTemplate.call(this, this.options.authStatusRoute, {
+        apiVersion: this.options.authApiVersion
+    });
+    return this.options.authHost + pathRelative;
+}
+
+function getUserInfoURI() {
+    var pathRelative = persistencePathTemplate.call(this, this.options.authUserInfoRoute, {
+        apiVersion: this.options.authApiVersion
+    });
+    return this.options.authHost + pathRelative;
+}
+
 module.exports = {
     buildAssetPath: buildAssetPath,
     buildAssetURL: buildAssetURL,
-    buildComponentSourceCodePath: buildComponentSourceCodePath,
+    buildBlockCreateURI: buildBlockCreateURI,
+    buildVersionInfoURL: buildVersionInfoURL,
     buildVersionPath: buildVersionPath,
-    buildVersionInfoURL: buildVersionInfoURL
+    getAuthStatusMethod: getAuthStatusMethod,
+    getAuthStatusURI: getAuthStatusURI,
+    getBlockCreateMethod: getBlockCreateMethod,
+    getUserInfoMethod: getUserInfoMethod,
+    getUserInfoURI: getUserInfoURI,
+    getVersionCreateMethod: getVersionCreateMethod,
+    getVersionCreateURI: getVersionCreateURI,
+    getVersionGetMethod: getVersionGetMethod,
+    getVersionPath: getVersionPath,
+    getVersionURL: getVersionURL,
+    persistencePathMethod: persistencePathMethod,
+    persistencePathTemplate: persistencePathTemplate
 };

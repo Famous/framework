@@ -137,6 +137,10 @@ function buildIncludesArray(info, skipURLExpansion) {
     return Lodash.uniq(includesArray);
 }
 
+function moduleNameToNamespace(moduleName) {
+    return Lodash.first(moduleName.split(this.options.componentDelimiter));
+}
+
 module.exports = {
     buildIncludesArray: buildIncludesArray,
     dependencyStringToModuleName: dependencyStringToModuleName,
@@ -146,6 +150,7 @@ module.exports = {
     eachAssetStringMatchInString: eachAssetStringMatchInString,
     eachDependencyStringInString: eachDependencyStringInString,
     importsObjectToFlatImportsObject: importsObjectToFlatImportsObject,
+    moduleNameToNamespace: moduleNameToNamespace,
     moduleNamespaceAndBasenameToModuleName: moduleNamespaceAndBasenameToModuleName,
     moduleNameToEntrypointBasename: moduleNameToEntrypointBasename,
     moduleNameToModuleNameSegments: moduleNameToModuleNameSegments,

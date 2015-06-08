@@ -121,7 +121,26 @@ function getRawConfigObjects(configASTs) {
     });
 }
 
+function extractCodeManagerConfig(files) {
+    var configFile = Lodash.find(files, function(file) {
+        return file.path === this.options.authConfigFilePath;
+    }.bind(this));
+
+    if (configFile) {
+        try {
+            return JSON.parse(configFile.content);
+        }
+        catch (e) {
+            return {};
+        }
+    }
+    else {
+        return {};
+    }
+}
+
 function extractCoreObjects(info, cb) {
+    info.codeManagerConfig = extractCodeManagerConfig.call(this, info.files);
     info.entrypointFile = findEntrypointFile.call(this, info.name, info.files);
     info.entrypointAST = extractEntrypointAST.call(this, info.entrypointFile);
     info.libraryInvocations = findLibraryInvocations.call(this, info.entrypointAST);

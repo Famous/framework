@@ -1,6 +1,7 @@
 'use strict';
 
 var Async = require('async');
+var Chalk = require('chalk');
 var Fs = require('fs');
 var Lodash = require('lodash');
 var Mkdirp = require('mkdirp');
@@ -11,16 +12,19 @@ var FileHelpers = require('./file-helpers');
 var PathingHelpers = require('./pathing');
 var BuildHelpers = require('./../build-helpers');
 
+var NO_ASSET_PATH = ''; // e.g. if we just want to get the folder where version files are contained
+
 function buildFromBlocksFolder(localBlocksFolder, attemptInfo, cb) {
     if (Extra.looksLikeComponentWasAlreadyBuilt(attemptInfo)) {
         cb(null, attemptInfo);
     }
     else {
-        var versionPathRel = PathingHelpers.buildAssetPath.call(this, attemptInfo.name, attemptInfo.explicitVersion, '', true);
+        var versionPathRel = PathingHelpers.buildAssetPath.call(this, attemptInfo.name, attemptInfo.explicitVersion, NO_ASSET_PATH, true);
         var versionPathAbs = Path.join(localBlocksFolder, versionPathRel);
         FileHelpers.readFilesRecursive(versionPathAbs, function(readFilesErr, versionFilesFound) {
             if (!readFilesErr && versionFilesFound) {
                 this.buildModule({
+                    subDependencyCall: true,
                     name: attemptInfo.name,
                     files: versionFilesFound,
                     explicitVersion: attemptInfo.explicitVersion,
@@ -47,6 +51,7 @@ function buildFromRawSourceFolder(localRawSourceFolder, attemptInfo, cb) {
         FileHelpers.readFilesRecursive(componentPathAbs, function(readFilesErr, versionFilesFound) {
             if (!readFilesErr && versionFilesFound) {
                 this.buildModule({
+                    subDependencyCall: true,
                     name: attemptInfo.name,
                     files: versionFilesFound,
                     explicitVersion: attemptInfo.explicitVersion
@@ -86,6 +91,7 @@ function attemptToBuildDependenciesLocally(localBlocksFolder, localRawSourceFold
 // be missing. ABANDON HOPE ALL YE WHO ENTER HERE
 function maybeAttemptToBootstrapComponentsLocally(localBlocksFolder, localRawSourceFolder, dependencyName, dependencyVersion, cb) {
     if (this.options.doAttemptToBuildDependenciesLocally && (localBlocksFolder || localRawSourceFolder)) {
+        console.log(Chalk.gray('famous'), 'Let\'s try to bootstrap ' + dependencyName + '~>' + dependencyVersion + ' locally...');
         attemptToBuildDependenciesLocally.call(this, localBlocksFolder, localRawSourceFolder, dependencyName, dependencyVersion, function(localBuildErr, localBuildInfo) {
             if (!localBuildErr && localBuildInfo) {
                 cb(null, localBuildInfo.parcelHash);
@@ -161,14 +167,18 @@ function loadDependencies(localBlocksFolder, localRawSourceFolder, dependenciesW
 }
 
 function saveAssets(baseDir, info, finish) {
+    // If a version ref has already been assigned, that's because we
+    // have already saved to Code Manager and we have an 'official'
+    // ref that we want to refer to this build with.
+    //
     // If an explicit version has been passed in, we'll go ahead and
     // attempt to write to that version folder. This can occur in the
     // case that we are recursively building out the dependencies
     // for a given module.
-    var versionRef = info.explicitVersion || this.options.defaultDependencyVersion;
-    var versionRelPath = PathingHelpers.buildAssetPath.call(this, info.name, versionRef, '', true);
+    var versionRef = info.versionRef || info.explicitVersion || this.options.defaultDependencyVersion;
+    var versionRelPath = PathingHelpers.buildAssetPath.call(this, info.name, versionRef, NO_ASSET_PATH, true);
     var versionAbsPath = Path.join(baseDir, versionRelPath);
-    Async.each(info.files, function(file, cb) {
+    Async.each(info.assetSaveableFiles, function(file, cb) {
         var fileData;
         if (BuildHelpers.doesFileLookLikeBinary.call(this, file)) {
             // Ensure that we convert assets like images to binary
@@ -187,16 +197,18 @@ function saveAssets(baseDir, info, finish) {
             });
         }.bind(this));
     }.bind(this), function(versionSaveErr) {
-        finish(null, {
-            versionRef: versionRef,
-            versionPath: versionRelPath,
-            versionURL: PathingHelpers.buildAssetURL.call(this, info.name, versionRef, '')
-        });
+        info.versionRef = versionRef;
+        info.versionPath = versionRelPath;
+        info.versionURL = PathingHelpers.buildAssetURL.call(this, info.name, versionRef, NO_ASSET_PATH);
+        finish(null, info);
     }.bind(this));
 }
 
 function saveBundle(baseDir, info, finish) {
-    var bundleRef = info.explicitVersion || this.options.defaultDependencyVersion;
+    // If a bundle version ref has already been assigned, that's because we
+    // have already saved to Code Manager and we have an 'official'
+    // ref that we want to refer to this build with.
+    var bundleRef = info.bundleVersionRef || info.explicitVersion || this.options.defaultDependencyVersion;
     var bundleAssetPath = this.options.bundleAssetPath;
     var bundleRelPath = PathingHelpers.buildAssetPath.call(this, info.name, bundleRef, bundleAssetPath, true);
     var bundleAbsPath = Path.join(baseDir, bundleRelPath);
@@ -212,13 +224,12 @@ function saveBundle(baseDir, info, finish) {
     Mkdirp(baseDirFull, function(mkdirErr) {
         Fs.writeFile(bundleAbsPath, info.bundleString, fileOptions, function(bundleWriteErr) {
             Fs.writeFile(parcelAbsPath, parcelString, fileOptions, function(parcelWriteErr) {
-                finish(null, {
-                    bundleVersionRef: bundleRef,
-                    bundlePath: bundleRelPath,
-                    bundleURL: PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, bundleAssetPath),
-                    parcelPath: parcelRelPath,
-                    parcelURL: PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, parcelAssetPath)
-                });
+                info.bundleVersionRef = bundleRef;
+                info.bundlePath = bundleRelPath;
+                info.bundleURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, bundleAssetPath);
+                info.parcelPath = parcelRelPath;
+                info.parcelURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, parcelAssetPath);
+                finish(null, info);
             }.bind(this));
         }.bind(this));
     }.bind(this));
