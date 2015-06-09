@@ -124,9 +124,9 @@ Builder.DEFAULTS = {
     },
 
     // Parsing / processing
-    assetRegexp: /\@\{[a-zA-Z0-9\:\/\|\.-]+\}/ig,
-    assetPrefixRegexp: /\}$/,
-    assetSuffixRegexp: /^\@\{/,
+    assetRegexp: /\{\{@[a-zA-Z0-9\:\/\|\.-]+\}\}/ig,
+    assetPrefixRegexp: /\}\}$/,
+    assetSuffixRegexp: /^\{\{@/,
     attachmentIdentifiers: { 'attach': true },
     behaviorsFacetKeyName: 'behaviors',
     behaviorSetterRegex: /^\[\[[\w|\|]+\]\]$/,
@@ -181,7 +181,7 @@ Builder.DEFAULTS = {
         'scene': true // BEST.scene(...)
     },
     libraryMainNamespace: 'BEST',
-    moduleCDNRegexp: /\@\{CDN_PATH(\|)?(([a-zA-Z0-9\:\.-])?)+\}/ig,
+    moduleCDNRegexp: /\{\{@CDN_PATH(\|)?(([a-zA-Z0-9\:\.-])?)+\}\}/ig,
     passThroughKey: '$pass-through',
     reservedEventValues: {},
     treeFacetKeyName: 'tree'
