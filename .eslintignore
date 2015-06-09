@@ -8,3 +8,5 @@ local/workspace/build/best.bundle.js
 local/workspace/build/v1
 shared/builder/lib/esprima-helpers/tests/fixtures
 shared/builder/tests/fixtures
+**/~bundles/**/*
+**/~versions/**/*
