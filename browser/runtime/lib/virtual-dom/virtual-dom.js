@@ -12,7 +12,6 @@ var ELEMENT_NODE_TYPE = 1;
 var NODE_UID_PREFIX = 'node';
 var PARSE_TYPE = 'text/html';
 var SELF_KEY = '$self';
-var SPAN_KEY = 'span';
 var TAG_KEY = 'tag';
 var TEXT_NODE_TYPE = 3;
 var UID_KEY = 'uid';
