@@ -17,16 +17,21 @@ const SPRITE_TYPES = {
 };
 BEST.module('creative:sephora:sprite', {
     behaviors: {
-        '#sprite': {
-            'add-class': currType => { return `sephora-${currType === 'no' ? 'icon' : 'sprite'}-${currType}` },
+        '$self': {
+            'add-class': currType => { return `sephora-${currType === 'no' ? 'icon' : 'sprite'}-${currType}`; },
             'align': '[[identity|align]]',
             'mount-point': [0.5, 0.5, 0.5],
             'opacity': '[[identity|opacity]]',
             'origin': [0.5, 0.5, 0.5],
             'position': '[[identity|position]]',
-            'remove-class': prevType => { return `sephora-${prevType === 'no' ? 'icon' : 'sprite'}-${prevType}` },
+            'remove-class': prevType => { return `sephora-${prevType === 'no' ? 'icon' : 'sprite'}-${prevType}`; },
             'scale': '[[identity|scale]]',
-            'size': '[[identity|currSize]]'
+            'size': '[[identity|currSize]]',
+            'template': function(currType) {
+                return {
+                    foo: 'sprite: ' + currType
+                };
+            }
         }
     },
     events: {
@@ -42,19 +47,16 @@ BEST.module('creative:sephora:sprite', {
                 $state.set('currType', type);
                 $state.set('currSize', size);
             }
-        },
-        '$pass-through' : {
-            '#sprite' : ['align', 'opacity', 'position', 'scale']
         }
     },
     states: {
         align: [0.5, 0.5, 0.5],
         currSize: [200, 240],
         currType: 'bottle',
-        opacity: 0,
+        opacity: 1,
         position: [0, 0, 0],
         prevType: 'bottle',
         scale: [1, 1, 1]
     },
-    tree: 'sprite.html'
+    tree: '<h2>{{foo}}</h2>'
 });

@@ -9,14 +9,14 @@ BEST.module('creative:sephora', {
         '#background': { 'style': { background: '#000' } },
         '#bottle': { 'type': 'bottle' },
         '#bottle-label': { 'type': 'bottle-label' },
-        '#five-black': { 'type': 'five-black', 'opacity': 0 },
-        '#five-color': { 'type': 'five-color', 'opacity': 0 },
+        '#five-black': { 'type': 'five-black', 'opacity': 1 },
+        '#five-color': { 'type': 'five-color', 'opacity': 1 },
         '#five-light': { 'type': 'five-light', 'opacity': 1 },
         '#light': { 'type': 'light' },
         '#container': {
             'align': [0, 0.5, 0.5], 'mount-point': [0, 0.5, 0.5], 'origin': [0.5, 0.5, 0.5],
             'overflow': 'hidden',
-            'size': [320, 568],
+            'size': [320, 568]
         },
         '#container-bottle': {
             'align': [0.5, 0.5, 0.5], 'mount-point': [0.5, 0.5, 0.5], 'origin': [0.5, 0.5, 0.5],
@@ -59,13 +59,12 @@ BEST.module('creative:sephora', {
     events: {
         '$lifecycle': {
             'post-load': function($state) {
+                console.log('hello');
                 // $timelines.get('intro-animation').start({duration: 1800});
             }
         }
     },
     states: {
-        // type: 'letter-a',
-        // ids : ['bottle', 'bottle-label', 'five-black']
     },
     tree: 'sephora.html'
 })
@@ -107,8 +106,8 @@ BEST.module('creative:sephora', {
 //     }
 // })
 .config({
-    // imports: {
-    //     // 'creative:sephora': ['mask', 'sprite']
-    // },
+    imports: {
+        'creative:sephora': ['mask', 'sprite']
+    },
     includes: ['sephora.css']
 });

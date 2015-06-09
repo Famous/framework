@@ -1,6 +1,6 @@
 BEST.module('creative:sephora:mask', {
     behaviors: {
-        '#mask': {
+        '$self': {
             'align': '[[identity|align]]',
             'mount-point': '[[identity|mountPoint]]',
             'opacity': '[[identity|opacity]]',
@@ -8,8 +8,13 @@ BEST.module('creative:sephora:mask', {
             'position': '[[identity|position]]',
             'scale': '[[identity|scale]]',
             'size': '[[identity|size]]',
-            'properties': {
+            'style': {
                 background: '#ff0099'
+            },
+            'template': function(foo) {
+                return {
+                    bar: 'mask:' + foo
+                };
             }
         }
     },
@@ -21,11 +26,12 @@ BEST.module('creative:sephora:mask', {
     states: {
         align: [0.5, 0.5, 0.5],
         mountPoint: [0.5, 0.5, 0.5],
-        opacity: 0,
+        opacity: 1,
         origin: [0.5, 0.5, 0.5],
         position: [0, 0, 0],
         scale: [1, 1, 1],
-        size: [200, 200]
+        size: [200, 200],
+        foo: 22
     },
-    tree: '<dom-element id="mask"></dom-element>'
+    tree: '<div>{{bar}}</div>'
 });
