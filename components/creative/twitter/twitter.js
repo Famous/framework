@@ -192,7 +192,7 @@ BEST.scene('creative:twitter', {
             'size-absolute-x': window.innerWidth / 3,
             'size-absolute-y': 35,
             'content': (headerContentHeight) => {
-                return '<a><img width="' + headerContentHeight + 'px" src="@{assets/images/follow.png}"></a>';
+                return '<a><img width="' + headerContentHeight + 'px" src="{{@assets/images/follow.png}}"></a>';
             },
             'style': (headerContentHeight) => {
                 return {
@@ -225,8 +225,8 @@ BEST.scene('creative:twitter', {
             'size-absolute-y': '[[identity|headerContentHeight]]',
             'content': (headerContentHeight) => {
                 return '' +
-                    '<a><img width="' + headerContentHeight + 'px" src="@{assets/images/search.png}"></a>' +
-                    '<a><img width="' + headerContentHeight + 'px" src="@{assets/images/tweet.png}"></a>';
+                    '<a><img width="' + headerContentHeight + 'px" src="{{@assets/images/search.png}}"></a>' +
+                    '<a><img width="' + headerContentHeight + 'px" src="{{@assets/images/tweet.png}}"></a>';
             },
             'style': (headerContentHeight) => {
                 return {
@@ -273,28 +273,28 @@ BEST.scene('creative:twitter', {
         '.link-home': {
             'align': [0, 0],
             'content': (homeIcon) => {
-                return '<a><img width="25px" height="25px" src="@{CDN_PATH}' + homeIcon + '"><br>Home</a>';
+                return '<a><img width="25px" height="25px" src="{{@CDN_PATH}}' + homeIcon + '"><br>Home</a>';
             },
             'style': {
-                'background-image': '@{assets/images/home.png}'
+                'background-image': '{{@assets/images/home.png}}'
             }
         },
         '.link-notifications': {
             'align': [.25, 0],
             'content': (notificationsIcon) => {
-                return '<a><img width="25px" height="25px" src="@{CDN_PATH}' + notificationsIcon + '"><br>Notifications</a>';
+                return '<a><img width="25px" height="25px" src="{{@CDN_PATH}}' + notificationsIcon + '"><br>Notifications</a>';
             }
         },
         '.link-message': {
             'align': [.5, 0],
             'content': (messagesIcon) => {
-                return '<a><img width="25px" height="25px" src="@{CDN_PATH}' + messagesIcon + '"><br>Messages</a>';
+                return '<a><img width="25px" height="25px" src="{{@CDN_PATH}}' + messagesIcon + '"><br>Messages</a>';
             }
         },
         '.link-profile': {
             'align': [.75, 0],
             'content': (profileIcon) => {
-                return '<a><img width="25px" height="25px" src="@{CDN_PATH}' + profileIcon + '"><br>Me</a>';
+                return '<a><img width="25px" height="25px" src="{{@CDN_PATH}}' + profileIcon + '"><br>Me</a>';
             }
         },
         '.tweet': {

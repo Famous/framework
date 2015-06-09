@@ -13,11 +13,11 @@ BEST.scene('creative:twitter:tweet', {
             },
              'template': (model) => {
                  return {
-                     userImage: '@{CDN_PATH}' + model.imageURL,
+                     userImage: '{{@CDN_PATH}}' + model.imageURL,
                      displayName: model.displayName,
                      userName: model.userName,
                      tweetContent: model.tweetContent,
-                     tweetImage: '@{CDN_PATH}' + model.tweetImage,
+                     tweetImage: '{{@CDN_PATH}}' + model.tweetImage,
                      tweetAge: model.tweetAge,
                      retweets: model.retweets,
                      favorites: model.favorites

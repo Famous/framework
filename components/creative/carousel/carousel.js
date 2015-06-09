@@ -35,7 +35,7 @@ BEST.module('creative:carousel', {
                 return {
                     'background-size': 'cover',
                     'background-position': '50% 50%',
-                    'background-image': 'url(@{CDN_PATH}images/' + $index + '.jpg)'
+                    'background-image': 'url({{@CDN_PATH}}images/' + $index + '.jpg)'
                 }
             }
         },

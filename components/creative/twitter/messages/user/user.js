@@ -5,7 +5,7 @@ BEST.scene('creative:twitter:messages:user', {
             'position-y': '[[identity|positionY]]',
             'template': (model) => {
                 return {
-                    profileImg: '@{CDN_PATH}' + model.profileImg,
+                    profileImg: '{{@CDN_PATH}}' + model.profileImg,
                     displayName: model.displayName,
                     userName: model.userName
                 }
