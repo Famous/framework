@@ -220,7 +220,9 @@ Component.prototype._initializeControlFlow = function _initializeControlFlow() {
     VirtualDOM.removeAttribute(this.getRootNode(), CONTROL_FLOW_ACTION_KEY);
 
     // Set DOMELement content
-    this._setHTMLContent(htmlElements);
+    if (VirtualDOM.doNodesHaveContent(htmlElements)) {
+        this._setHTMLContent(htmlElements);
+    }
 };
 
 // The children root has a mix of HTML and Framework Components. The HTML needs
