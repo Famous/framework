@@ -3,17 +3,17 @@
 var UID = require('./../../../utilities/uid');
 
 var BEST_ROOT = document.createElement('best-root');
-var COMMENT_NODE_TYPE = 8;
 var COMPONENT_DELIM = ':';
 var DO_CLONE_ATTRIBUTES = true;
 var DOM_PARSER = new DOMParser();
 var ESCAPED_COLON = '\\\:';
-var ELEMENT_NODE_TYPE = 1;
+var NODE_TYPE_COMMENT = 8;
+var NODE_TYPE_ELEMENT = 1;
+var NODE_TYPE_TEXT = 3;
 var NODE_UID_PREFIX = 'node';
 var PARSE_TYPE = 'text/html';
 var SELF_KEY = '$self';
 var TAG_KEY = 'tag';
-var TEXT_NODE_TYPE = 3;
 var UID_KEY = 'uid';
 var UNKNOWN_ELEMENT_NAME = 'HTMLUnknownElement';
 var VALID_HTML_TAGS = [
@@ -99,7 +99,7 @@ function eachNode(node, selector, cb) {
 
 function attachAttributeFromJSON(node, json, key) {
     // Attributes cannot be attached to text nodes
-    if (node.nodeType === TEXT_NODE_TYPE) {
+    if (node.nodeType === NODE_TYPE_TEXT) {
         return;
     }
 
@@ -184,7 +184,7 @@ function isDescendant(desendant, progenitor) {
 }
 
 function isValidHTMLElement(domNode) {
-    if (domNode.constructor.name === UNKNOWN_ELEMENT_NAME || domNode.nodeType === COMMENT_NODE_TYPE) {
+    if (domNode.constructor.name === UNKNOWN_ELEMENT_NAME || domNode.nodeType === NODE_TYPE_COMMENT) {
         return false;
     }
     else {
@@ -194,7 +194,7 @@ function isValidHTMLElement(domNode) {
 }
 
 function isTextNode(node) {
-    return node.nodeType === TEXT_NODE_TYPE;
+    return node.nodeType === NODE_TYPE_TEXT;
 }
 
 function stripHTMLElements(domNode) {
@@ -229,10 +229,10 @@ function doNodesHaveContent(nodes) {
         var node;
         for (var i = 0; i < nodes.length; i++) {
             node = nodes[i];
-            if (node.nodeType === ELEMENT_NODE_TYPE) {
+            if (node.nodeType === NODE_TYPE_ELEMENT) {
                 return true;
             }
-            else if (node.nodeType === TEXT_NODE_TYPE) {
+            else if (node.nodeType === NODE_TYPE_TEXT) {
                 if (node.textContent.match(WHITE_SPACE_REGEX) === null) {
                     return true;
                 }
