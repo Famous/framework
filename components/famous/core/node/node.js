@@ -11,6 +11,9 @@ BEST.module('famous:core:node', {
             'align-x': function($famousNode, $payload) { $famousNode.setAlign($payload, null, null); },
             'align-y': function($famousNode, $payload) { $famousNode.setAlign(null, $payload, null); },
             'align-z': function($famousNode, $payload) { $famousNode.setAlign(null, null, $payload); },
+            'attach': function($payload, $famousNode) {
+                $payload($famousNode);
+            },
             'attributes': function($DOMElement, $payload) {
                 for (var attributeName in $payload) {
                     $DOMElement.setAttribute(attributeName, $payload[attributeName]);
