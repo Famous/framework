@@ -54,7 +54,16 @@ function naiveExtends(a, b) {
 
     for (var key in b) {
         if (a[key] === undefined) {
-            a[key] = b[key];
+            if (Array.isArray(b[key])) {
+                a[key] = b[key].slice();
+            }
+            else if (typeof b[key] === 'object') {
+                a[key] = {};
+                naiveExtends(a[key], b[key]);
+            }
+            else {
+                a[key] = b[key];
+            }
         }
         else {
             if (typeof a[key] === OBJ_TYPE && typeof b[key] === OBJ_TYPE) {
