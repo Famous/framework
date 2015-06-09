@@ -3,6 +3,7 @@
 var UID = require('./../../../utilities/uid');
 
 var BEST_ROOT = document.createElement('best-root');
+var COMMENT_NODE_TYPE = 8;
 var COMPONENT_DELIM = ':';
 var DO_CLONE_ATTRIBUTES = true;
 var DOM_PARSER = new DOMParser();
@@ -184,7 +185,7 @@ function isDescendant(desendant, progenitor) {
 }
 
 function isValidHTMLElement(domNode) {
-    if (domNode.constructor.name === UNKNOWN_ELEMENT_NAME) {
+    if (domNode.constructor.name === UNKNOWN_ELEMENT_NAME || domNode.nodeType === COMMENT_NODE_TYPE) {
         return false;
     }
     else {
