@@ -75,6 +75,9 @@ StateManager.prototype.setState = function setState (key, value, transition) {
     var keyType = getType(key);
     var valueType = getType(value);
     var previousValue = this.get(key);
+    var previousValueType = getType(previousValue);
+
+    var typesDoMatch = valueType === previousValueType;
 
     // TODO: add type comparison of previousValue and value for error handling
 
@@ -100,8 +103,13 @@ StateManager.prototype.setState = function setState (key, value, transition) {
                 setOnObject(key, value, this._state);
             }
             else {
-                this._setTransitionable(this._currentID, key, previousValue, value, transition);
-                setOnObject(key, previousValue, this._state);
+                if (typesDoMatch) {
+                    this._setTransitionable(this._currentID, key, previousValue, value, transition);
+                    setOnObject(key, previousValue, this._state);
+                }
+                else {
+                    throw new Error ('Cannot transition from a ' + previousValueType + ' to a ' +  valueType);
+                }
             }
             break;
         case 'Function':
