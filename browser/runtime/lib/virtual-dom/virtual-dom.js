@@ -204,7 +204,6 @@ function stripHTMLElements(domNode) {
     var processCount = 0;
     var childIndex = 0;
     var child;
-    var span;
     while (processCount < nodesToProcess) {
         child = domNode.childNodes[childIndex];
         if (isTextNode(child) || isValidHTMLElement(child)) {
