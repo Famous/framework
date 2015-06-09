@@ -31,8 +31,8 @@ function ControlFlowDataManager(behaviorList) {
         '.selector' : {
             payload: true,
             parentUIDs: {
-                uid1: blueprint1,
-                uid2: blueprint2
+                uid1: [blueprint1],
+                uid2: [blueprint2, blueprint3]
             }
         }
          */
@@ -99,7 +99,10 @@ ControlFlowDataManager.prototype.initializeDataForIfBehavior = function initiali
     for (var i = 0; i < targets.length; i++) {
         target = targets[i];
         parentUID = VirtualDOM.getParentUID(target);
-        data.parentUIDs[parentUID] = VirtualDOM.clone(target);
+        if (!data.parentUIDs[parentUID]) {
+            data.parentUIDs[parentUID] = [];
+        }
+        data.parentUIDs[parentUID].push(VirtualDOM.clone(target));
     }
 };
 

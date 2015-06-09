@@ -168,10 +168,14 @@ function applyIfBehaviorToVirtualDOM(payload, selector, expandedBlueprint, data)
     // Add elements to expandedBlueprint
     if (payload) {
         var parentUID;
+        // Cycle through all parents whose children have $if behavior applied to them
         for (parentUID in data.parentUIDs) {
-            ControlFlowUtils.attachNewNode(
-                data.parentUIDs[parentUID], expandedBlueprint, parentUID
-            );
+            // Cycle through all nodes that should be added to parent port
+            for (var i = 0; i < data.parentUIDs[parentUID].length; i++) {
+                ControlFlowUtils.attachNewNode(
+                    data.parentUIDs[parentUID][i], expandedBlueprint, parentUID
+                );
+            }
         }
     }
     // Remove elements from expandedBlueprint
