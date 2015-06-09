@@ -1,6 +1,6 @@
-BEST.module('famous-demos:styling-inner-divs', {
+BEST.module('famous-demos:styling-inner-content', {
     behaviors: {
-        'ui-element' : {
+        'node' : {
             position: [100, 100],
             size: [200, 200],
             style: {
@@ -27,5 +27,9 @@ BEST.module('famous-demos:styling-inner-divs', {
         color: '#49afeb',
         fontFamily: 'Lato, Helvetica, Arial, sans-serif'
     },
-    tree: 'styling-inner-divs.html',
+    tree: `
+        <node>
+            <a href="http://www.famous.org" style={{link-style}}>Famo.us</a>
+        </node>
+    `,
 });

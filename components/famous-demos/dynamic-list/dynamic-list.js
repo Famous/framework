@@ -9,7 +9,7 @@ function getColorStep(step) {
     return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
-BEST.module('famous-demos:if-repeat', {
+BEST.module('famous-demos:dynamic-list', {
     behaviors: {
         '#container': {
             'align': [0.4, 0.1],
@@ -99,14 +99,14 @@ BEST.module('famous-demos:if-repeat', {
         '#add-button': {
             'click': function($state) {
                 if ($state.get('showState')) {
-                    $state.chain('blockCount').add(1);
+                    $state.set('blockCount', $state.get('blockCount') + 1);
                 }
             }
         },
         '#remove-button': {
             'click': function($state, $index) {
                 if ($state.get('showState') && $state.get('blockCount') > 0) {
-                    $state.chain('blockCount').subtract(1);
+                    $state.set('blockCount', $state.get('blockCount') - 1);
                 }
             }
         },
@@ -130,5 +130,5 @@ BEST.module('famous-demos:if-repeat', {
         selectedIndex: null,
         rotationX: 0
     },
-    tree: 'if-repeat.jade',
+    tree: 'dynamic-list.jade',
 });

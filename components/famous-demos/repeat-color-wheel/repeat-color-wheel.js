@@ -1,4 +1,4 @@
-BEST.scene('famous-demos:repeat', {
+BEST.scene('famous-demos:repeat-color-wheel', {
     /**
      * Behaviors:
      *      Target the line in our tree
@@ -21,7 +21,7 @@ BEST.scene('famous-demos:repeat', {
      *              each line a different color.
      */
     behaviors: {
-        '#line': {
+        '.line': {
             'size': [window.innerWidth/4, 2],
             'align': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
@@ -45,5 +45,7 @@ BEST.scene('famous-demos:repeat', {
     },
     events: {},
     states: {},
-    tree: 'repeat.html'
+    tree: `
+        <node class="line"></node>
+    `
 });
