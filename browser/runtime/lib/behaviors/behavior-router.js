@@ -1,15 +1,17 @@
 'use strict';
 
 var Behaviors = require('./behaviors');
+var Logger = require('./../logger/logger');
 var VirtualDOM = require('../virtual-dom/virtual-dom');
 
-var SELF_KEY = '$self';
-var IF_KEY = '$if';
-var REPEAT_KEY = '$repeat';
-var YIELD_KEY = '$yield';
-var CONTROL_FLOW_KEYS = [IF_KEY, REPEAT_KEY, YIELD_KEY];
-var INVERTED_BEHAVIOR_KEYS = ['$index', '$repeatPayload'];
 var COMPONENT_DELIM = ':';
+var IF_KEY = '$if';
+var INVERTED_BEHAVIOR_KEYS = ['$index', '$repeatPayload'];
+var REPEAT_KEY = '$repeat';
+var SELF_KEY = '$self';
+var YIELD_KEY = '$yield';
+
+var CONTROL_FLOW_KEYS = [IF_KEY, REPEAT_KEY, YIELD_KEY];
 
 function isSelfSelector(selector) {
     return selector === SELF_KEY;
@@ -53,7 +55,7 @@ function route(behavior, component) {
                 component.processDynamicIf(behavior);
             }
             else {
-                console.error('Dynamic $yield behaviors are not yet implemented.');
+                Logger.log('Dynamic $yield behaviors are not yet implemented.', 1);
             }
         }
     }
