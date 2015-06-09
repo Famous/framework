@@ -143,9 +143,9 @@ function extendDefinition(definition, extensions) {
             ObjUtils.naiveExtends(definition[BEHAVIORS_KEY], extensionDefinition[BEHAVIORS_KEY]);
             // By default, components behaviors.$self.$yield should be set to `false`, which requires
             // an overwrite of the mixin created from merging with famous:core:node.
-            if (!definesSelfYield && extensions[i].name === NODE_NAME) {
-                definition[BEHAVIORS_KEY][SELF_KEY][YIELD_KEY] = returnFalse;
-            }
+            // if (!definesSelfYield && extensions[i].name === NODE_NAME) {
+            //     definition[BEHAVIORS_KEY][SELF_KEY][YIELD_KEY] = returnFalse;
+            // }
             ObjUtils.naiveExtends(definition[EVENTS_KEY], extensionDefinition[EVENTS_KEY]);
             ObjUtils.naiveExtends(definition[STATES_KEY], extensionDefinition[STATES_KEY]);
 
