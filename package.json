@@ -60,6 +60,7 @@
     "request": "^2.55.0",
     "stylus": "^0.51.1",
     "traverse": "^0.6.6",
+    "uglify-js": "^2.4.23",
     "xhr": "^2.0.1"
   },
   "devDependencies": {
