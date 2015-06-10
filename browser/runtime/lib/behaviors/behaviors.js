@@ -68,7 +68,7 @@ Behaviors.getPayload = function getPayload(behavior, component) {
     }
 };
 
-Behaviors.getPayloadFromUID = function getPayload(behavior, uid) {
+Behaviors.getPayloadFromUID = function getPayloadFromUID(behavior, uid) {
     return Behaviors.getPayload(behavior, DataStore.getComponent(uid));
 };
 
