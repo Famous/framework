@@ -21,18 +21,10 @@
     "Jordan Papaleo <jordan@famo.us>"
   ],
   "scripts": {
-    "serve-build": "serve local/workspace/build -p 1618",
-    "watch-components": "BEST_AUTH_HOST=https://api-te.famo.us/auth BEST_VERSION_INFO_HOST=https://api-te.famo.us/codemanager BEST_ASSET_WRITE_HOST=https://api-te.famo.us/codemanager BEST_ASSET_READ_HOST=http://localhost:1618 BEST_BLOCKS_FOLDER=$PWD/local/workspace/build BEST_RAW_SOURCE_FOLDER=$PWD/components local/assistant/bin/index.js watch --baseDir=$PWD/components/",
-    "build-components": "BEST_AUTH_HOST=https://api-te.famo.us/auth BEST_VERSION_INFO_HOST=https://api-te.famo.us/codemanager BEST_ASSET_WRITE_HOST=https://api-te.famo.us/codemanager BEST_ASSET_READ_HOST=http://localhost:1618 BEST_BLOCKS_FOLDER=$PWD/local/workspace/build BEST_RAW_SOURCE_FOLDER=$PWD/components local/assistant/bin/index.js build-all --baseDir=$PWD/components/",
+    "dev": "npm run watch-runtime & npm run bootstrap",
+    "bootstrap": "rm -rf $PWD/local/workspace/build/v1 && node local/scripts/dev.js local-only-bootstrap --sourceDirectory=$PWD/components --blocksDirectory=$PWD/local/workspace/build --port=1618",
     "watch-runtime": "watchify browser/runtime/lib/index.js --standalone BEST -t [ envify --BEST_ASSET_READ_HOST http://localhost:1618 ] -o local/workspace/build/best.bundle.js --debug --verbose",
-    "dev": "npm run build-components && (node local/workspace/livereload.js & npm run watch-components & npm run watch-runtime & npm run serve-build)",
-    "test-runtime": "browserify browser/runtime/tests/**/*.spec.js -t [ envify ] -d | tap-closer | smokestack | tap-spec",
-    "test-state-manager": "browserify browser/state-manager/tests/*.spec.js | tap-closer | smokestack | tap-spec",
-    "test-utilities": "browserify browser/utilities/tests/*.spec.js | tap-closer | smokestack | tap-spec",
-    "test-builder": "tape shared/builder/tests/*.spec.js",
-    "test-builder-pathing": "tape shared/builder/tests/pathing.spec.js",
-    "test-builder-dep-dereffing": "tape shared/builder/tests/hub-deref-dependency.spec.js",
-    "test-esprima-helpers": "tape shared/builder/lib/esprima-helpers/tests/*.spec.js",
+    "test": "node local/scripts/test.js",
     "lint": "eslint --ignore-path .eslintignore ."
   },
   "dependencies": {
@@ -49,7 +41,7 @@
     "escodegen": "^1.6.1",
     "esprima": "^2.2.0",
     "estraverse": "^4.1.0",
-    "express": "^4.12.3",
+    "express": "https://registry.npmjs.org/express/-/express-4.12.4.tgz",
     "famous": "Famous/engine",
     "fs-walk": "0.0.1",
     "jade": "^1.9.2",

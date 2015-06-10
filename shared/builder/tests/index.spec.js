@@ -4,10 +4,6 @@ var Test = require('tape');
 var Path = require('path');
 var Fs = require('fs');
 
-process.env.BEST_ASSET_READ_HOST = 'http://localhost:1618';
-process.env.BEST_BLOCKS_FOLDER = Path.join(__dirname, '..', 'public');
-process.env.BEST_VERSION_INFO_HOST = 'https://api-te.famo.us/codemanager';
-
 var Builder = require('./../lib/builder');
 var Assistant = require('./../../../local/assistant/lib/assistant');
 
@@ -22,6 +18,7 @@ Test('builder', function(t) {
 
     var assistant = new Assistant({
         builderOptions: {
+            codeManagerAssetReadHost: 'http://localhost:1618',
             doSkipAssetSaveStep: true,
             doSkipBundleSaveStep: true,
             localRawSourceFolder: baseDir

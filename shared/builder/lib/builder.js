@@ -20,12 +20,20 @@ function Builder(options) {
     this.saveBundle = require('./build-steps/save-bundle').bind(this);
 }
 
+// Although this builder isn't completely isomorphic yet, at some point
+// soon we are going to support running the build process in the browser
+// too, which this checks for.
 var IS_IN_BROWSER = (typeof window !== 'undefined');
 
 Builder.DEFAULTS = {
-    localRawSourceFolder: process.env.BEST_RAW_SOURCE_FOLDER, // The folder where local components are being actively developed
-    localBlocksFolder: process.env.BEST_BLOCKS_FOLDER, // The folder where block version (and bundles) are stored
-    localBlocksCacheFolder: process.env.BEST_BLOCKS_CACHE_FOLDER, // A cache folder also for block version (and bundles) storage
+    // Persistence and stateful service references
+    localRawSourceFolder: null, // The folder where local components are being actively developed
+    localBlocksFolder: null, // The folder where block version (and bundles) are stored
+    localBlocksCacheFolder: null, // A cache folder also for block version (and bundles) storage
+    codeManagerAssetReadHost: null, // Webservice host from which *assets* can be READ
+    codeManagerAssetWriteHost: null, // Webservice host to which *assets* can be WRITTEN
+    codeManagerVersionInfoHost: null, // Webservice host that can return JSON data about versions
+    authHost: null, // Webservice host for Hub authentication/authorization/user info
 
     // By default, don't try to persist to code manager, since
     // that's too heavyweight a step for many local changes that
@@ -39,9 +47,21 @@ Builder.DEFAULTS = {
     // available
     doSkipDependencyDereferencing: true,
 
-    codeManagerAssetReadHost: process.env.BEST_ASSET_READ_HOST, // Webservice host from which *assets* can be READ
-    codeManagerAssetWriteHost: process.env.BEST_ASSET_WRITE_HOST, // Webservice host to which *assets* can be WRITTEN
-    codeManagerVersionInfoHost: process.env.BEST_VERSION_INFO_HOST, // Webservice host that can return JSON data about versions
+    // If true, this will enable a recursive search for dependencies
+    // that may also be located in either the local blocks folder or
+    // the local raw source folder. Each dependency found will be built as-is,
+    // assigned whatever version was requested, and then added to the
+    // bundle of the original component requesting it.
+    doAttemptToBuildDependenciesLocally: true,
+
+    // If no dependency for a given component can be found, fallback to
+    // 'HEAD' which in code-manager world essentially means "the latest"
+    // and which in local-raw-source world essentially means "whatever is"
+    // found in the raw source folder for that component. Note that there is
+    // some inherent danger in falling back to 'HEAD' since it is a pointer
+    // to a potentially changing component
+    defaultDependencyVersion: 'HEAD',
+
     codeManagerApiVersion: 'v1',
     codeManagerAssetGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath',
     codeManagerBlockCreateRoute: 'POST|default|/:apiVersion/blocks',
@@ -50,16 +70,12 @@ Builder.DEFAULTS = {
     codeManagerVersionUpdateRoute: 'PUT|multipart/form-data|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag',
     codeManagerVersionGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag',
 
-    authHost: process.env.BEST_AUTH_HOST,
     authApiVersion: 'v1',
     authConfigFilePath: '.famous/.config',
     authUserInfoRoute: 'GET|default|/:apiVersion/users',
     authStatusRoute: 'GET|default|/:apiVersion/status',
 
-    doAttemptToBuildDependenciesLocally: true,
-    defaultDependencyVersion: 'HEAD',
-
-    // Persistence miscellany
+    // Other persistence miscellany
     assetBlacklist: {
         '.famous/.config': true // This file may contain user secrets
     },
@@ -188,13 +204,16 @@ Builder.DEFAULTS = {
 };
 
 Builder.prototype.buildModule = function(info, finish) {
+    // If we are building this module as part of the dependency resolution
+    // process of another module, then this is considered a 'subDependencyCall'
     if (!info.subDependencyCall) {
         console.log('');
         console.log(Chalk.underline(Chalk.gray('famous')), Chalk.underline('Building module ' + info.name));
     }
     else {
-        console.log(Chalk.gray('famous'), 'Building dependency ' + info.name + '~>' + info.explicitVersion);
+        console.log(Chalk.gray('famous'), 'Building dependency ' + info.name + ' ~> ' + info.explicitVersion);
     }
+
     var subRoutines = [];
     subRoutines.push(this.preprocessFiles);
     subRoutines.push(this.extractCoreObjects);
