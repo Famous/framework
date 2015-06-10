@@ -177,22 +177,27 @@ function getExplicitDependencies(info) {
         }
     }
 
-    var dependenciesFile = Lodash.find(info.files, function(file) {
-        return file.path === this.options.dependenciesFilename;
+    var frameworkFile = Lodash.find(info.files, function(file) {
+        return file.path === this.options.frameworkFilename;
     }.bind(this));
 
-    if (dependenciesFile) {
-        var dependenciesFileHash;
+    if (frameworkFile) {
+        var frameworkFileHash;
 
         try {
-            dependenciesFileHash = JSON.parse(dependenciesFile.content || '{}');
+            frameworkFileHash = JSON.parse(frameworkFile.content || '{}');
         }
         catch (err) {
-            dependenciesFileHash = {};
+            frameworkFileHash = {};
         }
 
-        for (depName in dependenciesFileHash) {
-            depRef = dependenciesFileHash[depName];
+        var dependenciesHash = frameworkFileHash.dependencies;
+        if (!dependenciesHash) {
+            dependenciesHash = {};
+        }
+
+        for (depName in dependenciesHash) {
+            depRef = dependenciesHash[depName];
             explicitDependencies[depName] = depRef;
         }
     }

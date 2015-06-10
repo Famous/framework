@@ -15,30 +15,31 @@ function logFormattedDeps(depTable) {
 }
 
 function freezeDependencies(info, cb) {
-    var dependenciesFile;
+    var frameworkFile;
 
     console.log(Chalk.gray('famous'), 'Freezing dependencies for ' + info.name + '...');
     if (Object.keys(info.dereffedDependencyTable).length > 0) {
         logFormattedDeps(info.dereffedDependencyTable);
     }
 
-    dependenciesFile = Lodash.find(info.files, function(file) {
-        return file.path === this.options.dependenciesFilename;
+    frameworkFile = Lodash.find(info.files, function(file) {
+        return file.path === this.options.frameworkFilename;
     }.bind(this));
 
     // If no dependencies file exists, add it to the collection so it
     // gets saved along with everything else during persistence
-    if (!dependenciesFile) {
-        dependenciesFile = {
-            path: this.options.dependenciesFilename
+    if (!frameworkFile) {
+        frameworkFile = {
+            path: this.options.frameworkFilename
         };
-        info.files.push(dependenciesFile);
+        info.files.push(frameworkFile);
     }
 
     // And set the file's content to the JSON of the dependencies
     // that we've resolved in a previous step
-    dependenciesFile.content = JSON.stringify(info.dereffedDependencyTable, null, 4);
-
+    frameworkFile.content = JSON.stringify({
+        dependencies: info.dereffedDependencyTable
+    }, null, 4);
 
     // If we're building a component from a local source folder, we
     // need to write the dependencies back to that folder so that subsequent
@@ -48,14 +49,14 @@ function freezeDependencies(info, cb) {
     // which we got the files data in the first place, probably passed to
     // us via the framework 'assistant' watcher
     if (info.sourceDirectory) {
-        var dependenciesFilePath = Path.join(info.sourceDirectory, dependenciesFile.path);
-        var baseDirectory = Path.dirname(dependenciesFilePath);
+        var frameworkFilePath = Path.join(info.sourceDirectory, frameworkFile.path);
+        var baseDirectory = Path.dirname(frameworkFilePath);
 
         // Minor point: we need to ensure that the .famous directory actually exists
         // before attempting to write to it
         Mkdirp(baseDirectory, function(mkdirErr) {
             if (!mkdirErr) {
-                Fs.writeFile(dependenciesFilePath, dependenciesFile.content, this.options.fileOptions, function(fileWriteErr) {
+                Fs.writeFile(frameworkFilePath, frameworkFile.content, this.options.fileOptions, function(fileWriteErr) {
                     if (!fileWriteErr) {
                         cb(null, info);
                     }

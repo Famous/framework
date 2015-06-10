@@ -184,7 +184,7 @@ Builder.DEFAULTS = {
             'wheel'
         ]
     },
-    dependenciesFilename: '.famous/framework-dependencies.json',
+    frameworkFilename: '.famous/framework.json',
     dependenciesKeyName: 'dependencies', // e.g. BEST.scene(...).config({dependencies:{...}})
     dependencyBlacklist: { 'localhost': true },
     dependencyRegexp: /([\w-_.]+:)+(([\w-_.]+(?=[\s|>|\/]))|([\w-_.]+(?=:)))/ig,

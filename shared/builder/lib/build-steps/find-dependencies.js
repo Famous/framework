@@ -67,7 +67,7 @@ function findDependencies(info, cb) {
 
         // During the extract core objects phase, we gathered a hash of explicit
         // dependencies from either the config object (inline) or a
-        // framework-dependencies.json file that is within the .famous folder
+        // framework.json file that is within the .famous folder
         for (var depName in info.explicitDependencies) {
             var depRef = info.explicitDependencies[depName];
             // Note that we overwrite dependencies previously loaded in here,
