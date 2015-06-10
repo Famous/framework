@@ -26,11 +26,16 @@
             window.location.search = '?best=' + event.currentTarget.textContent;
         });
     });
-    searchInput.value = QUERY.best || 'clickable-square';
 
-    if (QUERY.best) {
-        if (QUERY.best.split(':').length < 2) QUERY.best = 'famous-demos:' + QUERY.best;
-        BEST.deploy(QUERY.best, 'HEAD', '#best-stage');
+    var query = QUERY.best;
+
+    searchInput.value = query || 'clickable-square';
+
+    if (query) {
+        query = query.split('/')[0];
+        console.log('query: ', query);
+        if (query.split(':').length < 2) query = 'famous-demos:' + query;
+        BEST.deploy(query, 'HEAD', '#best-stage');
     }
     else {
         BEST.deploy('famous-demos:clickable-square', 'HEAD', '#best-stage');
