@@ -26,6 +26,7 @@ var REPEAT_INFO_KEY = 'repeat-info';
 var REPEAT_PAYLOAD_KEY = '$repeatPayload';
 var SET_HTML_KEY = 'set-html';
 var YIELD_KEY = '$yield';
+var ROUTE_KEY = '$route';
 
 function Component(domNode, surrogateRoot, parent) {
     this.name = domNode.tagName.toLowerCase();
@@ -69,6 +70,7 @@ Component.prototype._initialize = function _initialize() {
     this.events.triggerLifecycleEvent(PRELOAD_KEY, this.uid);
     this._initializeControlFlow();
     this._processDOMMessages();
+    this._processRoute();
     this._runBehaviors();
     this._executeAttachments();
     this.events.initializeDescendantEvents(this.tree.getExpandedBlueprint(), this.uid);
@@ -104,6 +106,7 @@ Component.prototype._createExpandedBlueprintObserver = function _createExpandedB
     this._observer.observe(expandedBlueprint, {childList: true, subtree: true});
 };
 
+
 Component.prototype._processDOMMessages = function _processDOMMessages() {
     var node = this.getRootNode();
     var messageStr = VirtualDOM.getAttribute(node, REPEAT_INFO_KEY);
@@ -125,6 +128,11 @@ Component.prototype._processDOMMessages = function _processDOMMessages() {
     this.states.set(REPEAT_PAYLOAD_KEY, repeatPayload);
 
     this.tree.stripExpandedBlueprintMessages();
+};
+
+Component.prototype._processRoute = function _processRoute() {
+    // turns http://localhost:1618/?best=famous-tests%3Arouter-test/home/page1 -> /home/page1
+    this.states.set(ROUTE_KEY, '/' + window.location.href.split('/').slice(4).join('/'));
 };
 
 Component.prototype._runBehaviors = function _runBehaviors(runControlFlow, blackList) {
@@ -167,6 +175,7 @@ Component.prototype._executeAttachments = function _executeAttachments() {
         });
     }
 };
+
 
 /*-----------------------------------------------------------------------------------------*/
 // Events & EventHandlers

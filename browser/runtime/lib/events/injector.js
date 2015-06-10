@@ -16,6 +16,7 @@ var MESH_KEY = '$mesh';
 var MUSTACHE_KEY = '$mustache';
 var INDEX_KEY = '$index';
 var REPEAT_PAYLOAD_KEY = '$repeatPayload';
+var ROUTE_KEY = '$route';
 
 function getArgs(paramNames, payload, uid) {
     var component = DataStore.getComponent(uid);
@@ -32,6 +33,7 @@ function getArgs(paramNames, payload, uid) {
             case DISPATCHER_KEY: args.push(component.events.dispatcher); break;
             case INDEX_KEY: args.push(component.states.get(INDEX_KEY)); break;
             case REPEAT_PAYLOAD_KEY: args.push(component.states.get(REPEAT_PAYLOAD_KEY)); break;
+            case ROUTE_KEY: args.push(component.states.get(ROUTE_KEY)); break;
             case DOM_ELEMENT_KEY: args.push(FamousConnector.decorateComponent(component, 'DOMElement')); break;
             case MESH_KEY: args.push(FamousConnector.decorateComponent(component, 'Mesh')); break;
             default:
