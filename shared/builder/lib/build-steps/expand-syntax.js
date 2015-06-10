@@ -8,6 +8,11 @@ var PathingHelpers = require('./../storage-helpers/pathing');
 
 var PIPE = '|';
 
+var BEHAVIOR_STR = 'behavior';
+var EVENT_STR = 'event';
+var SETTER_STR = 'setter';
+var IDENTITY_STR = 'identity';
+
 function interpolateAssetStrings(moduleName, moduleVersionRef, moduleDefinitionAST) {
     EsprimaHelpers.eachStringLiteral(moduleDefinitionAST, function(stringValue, node) {
         var fullPath;
@@ -35,7 +40,7 @@ function expandBehaviorsObject(behaviorsAST) {
     EsprimaHelpers.eachObjectProperty(behaviorsAST, function(_0, _1, _2, valueObj) {
         EsprimaHelpers.eachObjectProperty(valueObj, function(keyName, _1, subValueVal, subValueObj, eventProp) {
             if (EsprimaHelpers.isStringLiteral(subValueObj) && subValueVal.match(this.options.behaviorSetterRegex)) {
-                eventProp.value = buildFunctionAST(keyName, subValueVal, behaviorFnStringTemplate);
+                eventProp.value = buildFunctionAST(keyName, subValueVal, behaviorFnStringTemplate, errorFnTemplate, BEHAVIOR_STR);
             }
         }.bind(this));
     }.bind(this));
@@ -47,6 +52,10 @@ function behaviorFnStringTemplate(stateName) {
 
 function eventFnStringTemplate(stateName) {
     return '(function($state,$payload){$state.set(\'' + stateName + '\',$payload);})';
+}
+
+function errorFnTemplate(type, wrongShorthand, rightShorthand) {
+    return '(function(){console.warn(\'Cannot use ' + wrongShorthand + ' shorthand in ' + type + 's. Use ' + rightShorthand + ' instead.\');})';
 }
 
 var FUNCTION_FILTERS = {};
@@ -69,7 +78,7 @@ function allEventFunctionFilters(key, filters) {
     return key;
 }
 
-function buildFunctionAST(key, value, fnStringTemplate) {
+function buildFunctionAST(key, value, fnStringTemplate, errorFnTemplate, type) {
     if (value[0] !== '[' && value[1] !== '[') {
         // Warn developer and correct syntax for backward compatibility
         console.warn('Please use the correct shorthand syntax for ' + key + ' denoted by double brackets. [[' + value + ']] rather than ' + value);
@@ -86,12 +95,19 @@ function buildFunctionAST(key, value, fnStringTemplate) {
     var body;
 
     switch (functionKey) {
-        case 'setter':
+        case SETTER_STR:
             stateName = allEventFunctionFilters(key, filters);
-            fnString = fnStringTemplate(stateName);
+
+            if (type === BEHAVIOR_STR) {
+                fnString = errorFnTemplate(type, SETTER_STR, IDENTITY_STR);
+            }
+            else {
+                fnString = fnStringTemplate(stateName);
+            }
+
             body = EsprimaHelpers.parse(fnString).body[0];
             return body.expression;
-        case 'identity':
+        case IDENTITY_STR:
             // 'identity'
             if (filters.length === 0) {
                 stateName = key;
@@ -101,7 +117,14 @@ function buildFunctionAST(key, value, fnStringTemplate) {
                 stateName = filters.splice(-1);
                 stateName = allEventFunctionFilters(stateName, filters);
             }
-            fnString = behaviorFnStringTemplate(stateName);
+
+            if (type === EVENT_STR) {
+                fnString = errorFnTemplate(type, IDENTITY_STR, SETTER_STR);
+            }
+            else {
+                fnString = behaviorFnStringTemplate(stateName);
+            }
+
             body = EsprimaHelpers.parse(fnString).body[0];
             return body.expression;
         default:
@@ -114,7 +137,7 @@ function expandEventsObject(eventsAST) {
         if (EsprimaHelpers.isLiteral(valueObj)) {
             // Whitelist of event string values are processed on client
             if (!(valueVal in this.options.reservedEventValues)) {
-                eventProp.value = buildFunctionAST(keyName, valueVal, eventFnStringTemplate);
+                eventProp.value = buildFunctionAST(keyName, valueVal, eventFnStringTemplate, errorFnTemplate, EVENT_STR);
             }
         }
         else if (EsprimaHelpers.isObjectExpression(valueObj)) {
