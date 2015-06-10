@@ -494,6 +494,75 @@ test('StateManager', function(t) {
         t.end();
     });
 
+    t.test('setting state #16 - state batching set(transition).thenSet(value).thenSet(value).thenSet(value)', function(t) {
+        var time = 0;
+        var _now = Date.now();
+
+        Transitionable.Clock = {
+            now: function() {
+                return time;
+            }
+        };
+
+        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+
+        SM.set({
+            'x': 0,
+            'y': 0,
+            'z': 0
+        });
+
+        SM.set({
+            'a': 0,
+            'b': 0,
+            'c': 0
+        })
+
+        t.equal(SM.get('x'), 0);
+        t.equal(SM.get('y'), 0);
+        t.equal(SM.get('z'), 0);
+
+        t.equal(SM.get('a'), 0);
+        t.equal(SM.get('b'), 0);
+        t.equal(SM.get('c'), 0);
+
+        time = 0;
+        SM.set({
+            'x': 1,
+            'y': 1,
+            'z': 1
+        }, { duration: 1000 })
+        .thenSet('a', 1, { duration: 1000 })
+        .thenSet('a', 2, { duration: 1000 })
+        .thenSet('a', 3, { duration: 1000 });
+
+        time = 500;
+        SM.onUpdate();
+        t.equal(SM.get('x'), 0.5, 'should tween x');
+        t.equal(SM.get('y'), 0.5, 'should tween y');
+        t.equal(SM.get('z'), 0.5, 'should tween z');
+
+        time = 1000;
+        SM.onUpdate();
+        t.equal(SM.get('x'), 1, 'should tween x');
+        t.equal(SM.get('y'), 1, 'should tween y');
+        t.equal(SM.get('z'), 1, 'should tween z');
+
+        time = 2000;
+        SM.onUpdate();
+        t.equal(SM.get('a'), 1, 'should tween a');
+
+        time = 3000;
+        SM.onUpdate();
+        t.equal(SM.get('a'), 2, 'should chain tween a');
+
+        time = 4000;
+        SM.onUpdate();
+        t.equal(SM.get('a'), 3, 'should chain tween a again');
+
+        t.end();
+    });
+
     t.test('subscribing to state #1 - subscribeTo', function(t) {
         var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
 
