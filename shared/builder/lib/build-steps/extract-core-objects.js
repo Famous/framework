@@ -107,8 +107,14 @@ function extractModuleDefinitionASTs(entrypointAST) {
     return moduleDefinitions;
 }
 
-function extractEntrypointAST(entrypointFile) {
-    return EsprimaHelpers.parse(entrypointFile.content);
+function extractEntrypointAST(info) {
+    try {
+        return EsprimaHelpers.parse(info.entrypointFile.content);
+    }
+    catch(e) {
+        console.warn(Chalk.gray('famous'), Chalk.red('err'), 'Could not find entrypoint file for ', info.name);
+        throw (e);
+    }
 }
 
 function findEntrypointFile(moduleName, files) {
@@ -197,7 +203,7 @@ function getExplicitDependencies(info) {
 function extractCoreObjects(info, cb) {
     info.codeManagerConfig = extractCodeManagerConfig.call(this, info.files);
     info.entrypointFile = findEntrypointFile.call(this, info.name, info.files);
-    info.entrypointAST = extractEntrypointAST.call(this, info.entrypointFile);
+    info.entrypointAST = extractEntrypointAST.call(this, info);
     info.libraryInvocations = findLibraryInvocations.call(this, info.entrypointAST);
     info.moduleDefinitionASTs = extractModuleDefinitionASTs.call(this, info.entrypointAST);
     info.moduleConfigASTs = extractModuleConfigASTs.call(this, info.entrypointAST);

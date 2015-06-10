@@ -1,12 +1,10 @@
 BEST.scene('famous:layouts:scroll-view', {
     behaviors: {
         '$self': {
-            '$yield' : false, // overwrite <node>'s default $yield
-            position: [50, 50],
-            size: [400, 800],
+            position: '[[identity|scrollViewPosition]]', 
+            size: '[[identity|scrollViewSize]]',
             style: {
-                'overflow' : 'scroll',
-                'border' : '1px solid white'
+                'overflow' : 'scroll'
             }
         },
         '.item' : {
@@ -18,11 +16,15 @@ BEST.scene('famous:layouts:scroll-view', {
     },
     events: {
         $public: {
-            'item-height' : '[[setter|camel]]'
+            'item-height' : '[[setter|camel]]',
+            'scroll-view-position' : '[[setter|camel]]',
+            'scroll-view-size' : '[[setter|camel]]',
         }
     },
     states: {
-        itemHeight: 100
+        itemHeight: 100,
+        scrollViewSize: [400, 800],
+        scrollViewPosition: [0, 0]
     }, 
     tree: `
         <node class='item'></node>
