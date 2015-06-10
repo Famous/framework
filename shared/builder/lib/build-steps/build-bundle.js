@@ -1,5 +1,6 @@
 'use strict';
 
+var Fs = require('fs');
 var Lodash = require('lodash');
 var Path = require('path');
 
@@ -83,6 +84,10 @@ function buildRegistrationBlocks(parcelHash) {
     return flatEntrypoints.join(NEWLINE);
 }
 
+function buildExecuteBlock(info) {
+    return 'window.onload = function() { BEST.execute("' + info.name + '", "' + info.versionRef + '", "body"); };';
+}
+
 function buildIncludesSuffix() {
     return '});';
 }
@@ -93,6 +98,18 @@ function buildBundleString(info) {
         '\'use strict\';',
         buildIncludesPrefix(info),
         indent(buildRegistrationBlocks(info.parcelHash)),
+        buildIncludesSuffix(),
+        copyright()
+    ].join(NEWLINE);
+}
+
+function buildBundleExecutableString(info) {
+     return [
+        copyright(),
+        '\'use strict\';',
+        buildIncludesPrefix(info),
+        indent(buildRegistrationBlocks(info.parcelHash)),
+        indent(buildExecuteBlock(info)),
         buildIncludesSuffix(),
         copyright()
     ].join(NEWLINE);
@@ -143,6 +160,24 @@ function buildParcelHash(info) {
     };
 }
 
+var PROJECT_DIR = Path.join(__dirname, '..', '..', '..', '..');
+
+// TODO we need to make sure we lock this content to whatever version of
+// the framework was used at the given time. Even more ideal, rather than
+// writing this to every bundle folder, we could just template out the
+// 'executable-bundle.html' to point to a version of the library that had
+// been previously CDN'd
+var FRAMEWORK_LIB_STRING = Fs.readFileSync(Path.join(PROJECT_DIR, 'local', 'workspace', 'build', 'best.bundle.js'));
+var FRAMEWORK_EXECUTABLE_PAGE_STRING = Fs.readFileSync(Path.join(__dirname, 'templates', 'executable-bundle.html'));
+
+function getFrameworkLibraryString() {
+    return FRAMEWORK_LIB_STRING;
+}
+
+function getFrameworkExecutablePageString() {
+    return FRAMEWORK_EXECUTABLE_PAGE_STRING;
+}
+
 function buildBundle(info, cb) {
     // When building bundles in memory only (no persistence, say, when testing),
     // we might not have either a version ref or an explicit version set; in that
@@ -154,6 +189,9 @@ function buildBundle(info, cb) {
 
     info.parcelHash = buildParcelHash.call(this, info);
     info.bundleString = buildBundleString.call(this, info);
+    info.bundleExecutableString = buildBundleExecutableString.call(this, info);
+    info.frameworkLibraryString = getFrameworkLibraryString.call(this, info);
+    info.frameworkExecutablePageString = getFrameworkExecutablePageString.call(this, info);
     cb(null, info);
 }
 

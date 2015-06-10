@@ -44,11 +44,11 @@ function derefDependency(refTuple, cb) {
             if (!reqErr && response.statusCode < 300) {
                 var parsedBody = JSON.parse(body);
                 var versionRefFound = parsedBody.version.ref;
-                console.log(Chalk.gray('famous'), Chalk.green('ok'), 'Resolved ' + depName + '~>' + refTuple[1] + ' to ' + depName + '~>' + versionRefFound);
+                console.log(Chalk.gray('famous'), Chalk.green('ok'), 'Resolved ' + depName + ' ~> ' + refTuple[1] + ' to ' + depName + ' ~> ' + versionRefFound);
                 cb(null, [depName, versionRefFound]);
             }
             else {
-                console.warn(Chalk.gray('famous'), Chalk.yellow('warn'), 'Couldn\'t resolve ' + depName + '~>' + refTuple[1]);
+                console.warn(Chalk.gray('famous'), Chalk.yellow('warn'), 'Couldn\'t resolve ' + depName + ' ~> ' + refTuple[1]);
                 cb(new Error('Error resolving dependency for `' + depName + '` (' + refTuple[1] + '); contining...'), refTuple);
             }
         });
@@ -222,6 +222,18 @@ function saveBundle(versionWriteHost, info, cb) {
                 path: this.options.parcelAssetPath,
                 content: JSON.stringify(info.parcelHash, null, 4)
             });
+            bundleFiles.push({
+                path: this.options.bundleExecutableAssetPath,
+                content: info.bundleExecutableString
+            });
+            bundleFiles.push({
+                path: this.options.frameworkLibraryAssetPath,
+                content: info.frameworkLibraryString
+            });
+            bundleFiles.push({
+                path: this.options.frameworkExecutablePageAssetPath,
+                content: info.frameworkExecutablePageString
+            });
 
             // Since code manager is essentially a wrapper service over git, there's no way
             // to append files to an existing version, which means that after we've
@@ -235,6 +247,7 @@ function saveBundle(versionWriteHost, info, cb) {
                     info.bundleVersionRef = bundleVersionRef;
                     info.bundlePath = PathingHelpers.buildAssetPath.call(this, info.name, bundleVersionRef, this.options.bundleAssetPath, true);
                     info.bundleURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleVersionRef, this.options.bundleAssetPath);
+                    // info.bundleExecutablePageURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleVersionRef, this.options.frameworkExecutablePageAssetPath);
                     info.parcelPath = PathingHelpers.buildAssetPath.call(this, info.name, bundleVersionRef, this.options.parcelAssetPath, true);
                     info.parcelURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleVersionRef, this.options.parcelAssetPath);
                     cb(null, info);

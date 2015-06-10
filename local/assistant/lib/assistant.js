@@ -30,7 +30,8 @@ Assistant.DEFAULTS = {
     folderBlacklist: {
         'node_modules': true,
         '.git': true
-    }
+    },
+    moduleNameRegexp: /BEST.(scene|module|register|component)\(\'(\S+)\'/gi
 };
 
 Assistant.prototype.setOptions = function(options) {
@@ -49,12 +50,45 @@ Assistant.prototype.buildAll = function(baseDir, subDir, cb) {
 };
 
 Assistant.prototype.buildSingle = function(baseDir, subDir, cb) {
-    var moduleName = subDir.split(SLASH).join(this.options.componentDelimiter);
+    var moduleName;
+    if (subDir.length > 0) {
+         moduleName = subDir.split(SLASH).join(this.options.componentDelimiter);
+    }
+    else {
+        // If the subdir string was empty, we should assume that the baseDir
+        // is the home for the single component. This means we need to do some
+        // additional work to find the module name. We'll look for an entry point
+        // file, and then try to locate the module name. This is a bit brittle
+        // and warrants some re-thinking. TODO
+        var dirParts = baseDir.split(Path.sep);
+        var lastPart = dirParts[dirParts.length - 1];
+        var entrypointNameToLookFor = lastPart + '.js';
+        var entrypointPath = Path.join(baseDir, entrypointNameToLookFor);
+        var entrypointData = Fs.readFileSync(entrypointPath, this.options.fileOptions);
+        var regexpMatches = this.options.moduleNameRegexp.exec(entrypointData);
+
+        // We need to reset the lastindex so this regex will run properly
+        // on subsequent runs.
+        this.options.moduleNameRegexp.lastIndex = 0;
+
+        var moduleNameMatch = regexpMatches[2];
+        if (!moduleNameMatch || moduleNameMatch.indexOf(this.options.componentDelimiter) === -1) {
+            return cb(new Error('Unable to find the name of the module in the given directory; is your syntax correct?'));
+        }
+        else {
+            moduleName = moduleNameMatch;
+        }
+    }
+
     var files = [];
     this.pushFilesToArray(files, baseDir, subDir, BLANK);
     this.buildModule(moduleName, files, Path.join(baseDir, subDir), function(err, result) {
-        if (err) cb(err);
-        else cb(null, result);
+        if (err) {
+            cb(err);
+        }
+        else {
+            cb(null, result);
+        }
     });
 };
 
@@ -167,13 +201,29 @@ Assistant.prototype.watchDirectory = function(baseDir, subDir) {
         ignoreInitial: true
     });
     var handler = Lodash.debounce(function(event, filename) {
+        this.buildSingle(baseDir, subDir, function(err, result) {
+            if (err) {
+                console.error('assistant:', err);
+            }
+        });
+    }.bind(this), 500);
+    watcher.on('all', handler);
+}
+
+Assistant.prototype.watchDirectoryRecursive = function(baseDir, subDir) {
+    var watchDir = Path.join(baseDir, subDir);
+    var watcher = Chokidar.watch(watchDir, {
+        ignored: this.options.chokidarIgnored,
+        ignoreInitial: true
+    });
+    var handler = Lodash.debounce(function(event, filename) {
         var fileChangedDir = Path.dirname(filename);
         var moduleFullDir = this.getModuleDir(baseDir, fileChangedDir);
         if (moduleFullDir) {
             var moduleRelativeDir = moduleFullDir.replace(baseDir, BLANK).replace(/^\//, '');
             this.buildSingle(baseDir, moduleRelativeDir, function(err, result) {
                 if (err) {
-                    console.error('best-assistant:', err);
+                    console.error('assistant:', err);
                 }
             });
         }

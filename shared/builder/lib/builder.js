@@ -80,7 +80,10 @@ Builder.DEFAULTS = {
         '.famous/.config': true // This file may contain user secrets
     },
     bundleAssetPath: '~bundles/bundle.js', // Complete file that the client knows how to process
+    bundleExecutableAssetPath: '~bundles/bundle-executable.js', // File that includes an 'execute' block (will not work with `deploy`!)
     parcelAssetPath: '~bundles/parcel.json', // Data and dependencies object used for dependency gathering
+    frameworkLibraryAssetPath: '~bundles/famous-framework.js',
+    frameworkExecutablePageAssetPath: '~bundles/bundle-executable.html',
     defaultDependencyData: undefined,
     doLoadDependenciesFromBrowser: IS_IN_BROWSER,
     doSkipAssetSaveStep: false,

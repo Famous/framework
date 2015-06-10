@@ -91,7 +91,7 @@ function attemptToBuildDependenciesLocally(localBlocksFolder, localRawSourceFold
 // be missing. ABANDON HOPE ALL YE WHO ENTER HERE
 function maybeAttemptToBootstrapComponentsLocally(localBlocksFolder, localRawSourceFolder, dependencyName, dependencyVersion, cb) {
     if (this.options.doAttemptToBuildDependenciesLocally && (localBlocksFolder || localRawSourceFolder)) {
-        console.log(Chalk.gray('famous'), 'Let\'s try to bootstrap ' + dependencyName + '~>' + dependencyVersion + ' locally...');
+        console.log(Chalk.gray('famous'), 'Let\'s try to bootstrap ' + dependencyName + ' ~> ' + dependencyVersion + ' locally...');
         attemptToBuildDependenciesLocally.call(this, localBlocksFolder, localRawSourceFolder, dependencyName, dependencyVersion, function(localBuildErr, localBuildInfo) {
             if (!localBuildErr && localBuildInfo) {
                 cb(null, localBuildInfo.parcelHash);
@@ -205,33 +205,54 @@ function saveAssets(baseDir, info, finish) {
 }
 
 function saveBundle(baseDir, info, finish) {
+    var bundleFiles = [];
+
     // If a bundle version ref has already been assigned, that's because we
     // have already saved to Code Manager and we have an 'official'
     // ref that we want to refer to this build with.
     var bundleRef = info.bundleVersionRef || info.explicitVersion || this.options.defaultDependencyVersion;
-    var bundleAssetPath = this.options.bundleAssetPath;
-    var bundleRelPath = PathingHelpers.buildAssetPath.call(this, info.name, bundleRef, bundleAssetPath, true);
-    var bundleAbsPath = Path.join(baseDir, bundleRelPath);
+    var bundleRelPath = PathingHelpers.buildAssetPath.call(this, info.name, bundleRef, this.options.bundleAssetPath, true);
+    var parcelRelPath = PathingHelpers.buildAssetPath.call(this, info.name, bundleRef, this.options.parcelAssetPath, true);
 
-    var parcelAssetPath = this.options.parcelAssetPath;
-    var parcelRelPath = PathingHelpers.buildAssetPath.call(this, info.name, bundleRef, parcelAssetPath, true);
-    var parcelAbsPath = Path.join(baseDir, parcelRelPath);
-    var parcelString = JSON.stringify(info.parcelHash, null, 4); // <~ JSON prettify controls
+    bundleFiles.push({
+        path: this.options.bundleAssetPath,
+        content: info.bundleString
+    });
+    bundleFiles.push({
+        path: this.options.parcelAssetPath,
+        content: JSON.stringify(info.parcelHash, null, 4)
+    });
+    bundleFiles.push({
+        path: this.options.bundleExecutableAssetPath,
+        content: info.bundleExecutableString
+    });
+    bundleFiles.push({
+        path: this.options.frameworkLibraryAssetPath,
+        content: info.frameworkLibraryString
+    });
+    bundleFiles.push({
+        path: this.options.frameworkExecutablePageAssetPath,
+        content: info.frameworkExecutablePageString
+    });
 
-    var fileOptions = this.options.fileOptions;
-    var baseDirFull = Path.dirname(bundleAbsPath);
+    Async.each(bundleFiles, function(file, cb) {
 
-    Mkdirp(baseDirFull, function(mkdirErr) {
-        Fs.writeFile(bundleAbsPath, info.bundleString, fileOptions, function(bundleWriteErr) {
-            Fs.writeFile(parcelAbsPath, parcelString, fileOptions, function(parcelWriteErr) {
-                info.bundleVersionRef = bundleRef;
-                info.bundlePath = bundleRelPath;
-                info.bundleURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, bundleAssetPath);
-                info.parcelPath = parcelRelPath;
-                info.parcelURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, parcelAssetPath);
-                finish(null, info);
-            }.bind(this));
+        var relPath = PathingHelpers.buildAssetPath.call(this, info.name, bundleRef, file.path, true);
+        var absPath = Path.join(baseDir, relPath);
+        var baseDirFull = Path.dirname(absPath);
+
+        Mkdirp(baseDirFull, function(mkdirErr) {
+            Fs.writeFile(absPath, file.content, this.options.fileOptions, cb);
         }.bind(this));
+
+    }.bind(this), function(bundleSaveErr) {
+        info.bundleVersionRef = bundleRef;
+        info.bundlePath = bundleRelPath;
+        info.bundleURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, this.options.bundleAssetPath);
+        // info.bundleExecutablePageURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, this.options.frameworkExecutablePageAssetPath);
+        info.parcelPath = parcelRelPath;
+        info.parcelURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, this.options.parcelAssetPath);
+        finish(null, info);
     }.bind(this));
 }
 
