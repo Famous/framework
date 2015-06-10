@@ -2,10 +2,8 @@ BEST.module('famous-tests:size-change-event', {
     behaviors: {
         '#container' : {
             'size-proportional': [0.5, 0.5],
-            'position' : [0, 50]
-        },
-        '#block' : {
-            style: {
+            'position' : [0, 50],
+            'style': {
                 'background-color' : 'gray',
                 'padding' : '20px',
                 'font-size' : '20px'
@@ -14,7 +12,7 @@ BEST.module('famous-tests:size-change-event', {
         }
     },
     events: {
-        '#block' : {
+        '#container' : {
             'parent-size-change' : function($payload) {
                 // Currently does not log due to bug with 'onParentSizeChange' event implementation in platform.
                 console.log('Block parent size change: ', $payload);

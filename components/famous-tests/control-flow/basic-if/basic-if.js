@@ -1,10 +1,11 @@
 BEST.module('famous-tests:control-flow:basic-if', {
     behaviors: {
         '#button' : {
-            position: [200, 200],
+            position: [200, 50],
             size: [200, 50],
             style: {
                 'border': '2px solid black',
+                'background' : 'white',
                 'border-radius': '7px',
                 'text-align': 'center',
                 'line-height' : '50px',
@@ -17,18 +18,21 @@ BEST.module('famous-tests:control-flow:basic-if', {
                 'background-color' : 'blue',
                 'border-radius': '50%'
             },
-            position: [200, 275],
+            position: [200, 125],
         },
         '#square' : {
             style: {
                 'background-color' : 'red'
             },
-            position: [200, 500],
+            position: [200, 350],
         },
         '.block' : {
             $if: function(toggle) {
                 console.log('`$if`: ', toggle);
                 return toggle;
+            },
+            style: {
+                'border': '3px solid white'
             },
             size: [200, 200]
         }
@@ -43,5 +47,5 @@ BEST.module('famous-tests:control-flow:basic-if', {
     states: {
         toggle: true
     },
-    tree: 'basic-if.jade',
+    tree: 'basic-if.jade'
 });

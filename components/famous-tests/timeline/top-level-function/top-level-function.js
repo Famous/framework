@@ -1,9 +1,7 @@
 BEST.scene('famous-tests:timeline:top-level-function', {
     behaviors: {
-        '#wrapper': {
-            'align': [0.5, 0.5]
-        },
         '#square': {
+            'align': [0.5, 0.5],
             'origin': [0.5, 0.5],
             'mount-point': [0.5, 0.5],
             'style': function() {
@@ -16,7 +14,7 @@ BEST.scene('famous-tests:timeline:top-level-function', {
     events: {
         '$lifecycle': {
             'post-load': function($timelines) {
-                $timelines.get('intro').start({ duration: 1000 });
+                $timelines.get('intro').start({ duration: 3000 });
             }
         },
         '#square': {
@@ -26,7 +24,9 @@ BEST.scene('famous-tests:timeline:top-level-function', {
         }
     },
     states: {},
-    tree: 'top-level-function.html'
+    tree: `
+        <node id="square">Click here!</node>
+    `
 })
 .timelines({
     'intro': {

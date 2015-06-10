@@ -1,12 +1,17 @@
 BEST.module('famous-tests:opacity', {
     behaviors: {
-        '#ui2' : {
-            position: [0, 250],
+        '#node1' : {
+            position: [0, 50]
+        },
+        '#node2' : {
+            position: [0, 300],
             opacity: 0.5
         },
-        '.ui' : {
+        'node' : {
             style: function(myStyle) {
+                console.log('weafkwejkfajwkf');
                 return myStyle
+
             },
             size: [200, 200]
         }
@@ -22,10 +27,23 @@ BEST.module('famous-tests:opacity', {
             'cursor' : 'pointer'
         }
     },
-    tree: 'opacity.html',
-})
-.config({
-    imports: {
-        'famous:core': ['ui-element']
-    }
+    tree: `
+        <h1 style="color:white;">You should see two squares, one opaque, and the other semi-transparent</h1>
+
+        <node id='node1'>
+            <node>
+                <node>
+                    <div>Opacity: 100%</div>
+                </node>
+            </node>
+        </node>
+
+        <node id='node2'>
+            <node>
+                <node>
+                    <div>Opacity: 50%</div>
+                </node>
+            </node>
+        </node>
+    `,
 });

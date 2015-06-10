@@ -39,19 +39,14 @@ BEST.scene('famous-tests:static-assets', {
         imageFourPath: '{{@assets/excite2.png}}'
     },
     tree: `
-        <ui-element id="one-a">
-        </ui-element>
-
-        <ui-element id="one-b">
+        <node id="one-a"></node>
+        <node id="one-b">
             <img src="{{@assets/excite.png}}">
-        </ui-element>
-
-        <ui-element id="two"></ui-element>
-
-        <ui-element id="three"></ui-element>
-
-        <ui-element id="four">
+        </node>
+        <node id="two"></node>
+        <node id="three"></node>
+        <node id="four">
             <img src="{{imageFourPath}}">
-        </ui-element>
+        </node>
     `,
 });

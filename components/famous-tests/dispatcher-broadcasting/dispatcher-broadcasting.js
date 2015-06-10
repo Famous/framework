@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:dispatcher-broadcasting:parent', {
+BEST.scene('famous-tests:dispatcher-broadcasting', {
     behaviors: {
         '#parent': {
             'size': [window.innerWidth, window.innerHeight]
@@ -12,7 +12,11 @@ BEST.scene('famous-tests:dispatcher-broadcasting:parent', {
         }
     },
     states: {},
-    tree: 'parent.html'
+    tree: `
+        <node id="parent">
+            <child id="child"></child>
+        </node>
+    `
 })
 .config({
     imports: {

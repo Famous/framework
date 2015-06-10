@@ -9,11 +9,6 @@ BEST.module('famous-tests:pass-through:child-component', {
         }
     },
     events: {
-        // '$public' : {
-        //     'position' : function($state) {
-        //         console.log('position');
-        //     }
-        // },
         '$pass-through' : {
             '#view' : ['position'],
             '#el' : ['content']

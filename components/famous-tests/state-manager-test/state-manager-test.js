@@ -29,5 +29,5 @@ BEST.scene('famous-tests:state-manager-test', {
         size: [250, 250],
         position: [0, 0]
     },
-    tree: '<ui-element id="element"></ui-element>'
+    tree: '<node id="element">Click Here</node>'
 });

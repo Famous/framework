@@ -1,5 +1,4 @@
 BEST.module('famous-tests:control-flow:repeat', {
-    tree: 'repeat.html',
     behaviors: {
         '.row' : {
             size: [200, 200],
@@ -55,5 +54,6 @@ BEST.module('famous-tests:control-flow:repeat', {
         rowCount: 5,
         colCount: 3,
         horizontalOffset: 50,
-    }
+    },
+    tree: 'repeat.jade',
 });

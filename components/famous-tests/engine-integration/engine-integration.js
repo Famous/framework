@@ -1,10 +1,10 @@
-BEST.scene('famous-tests:platform-a', {
+BEST.scene('famous-tests:engine-integration', {
     tree: `
         <h1 style="color:white;">You should see a red box. That box is controlled by raw platform code.</h1>
-        <view id="view"><context id="ctx"></context></view>
+        <node id="ctx"></node>
     `,
     behaviors: {
-        '#view': {
+        '#ctx': {
             'position': [100, 100]
         }
     }

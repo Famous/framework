@@ -1,5 +1,4 @@
 BEST.module('famous-tests:pass-through', {
-    tree: 'pass-through.html',
     behaviors: {
         '#container' : {
             position: [50, 50]
@@ -44,8 +43,7 @@ BEST.module('famous-tests:pass-through', {
             '#three' : {'block-size' : 'size'}
         }
     },
-    states: {
-    }
+    tree: 'pass-through.html',
 })
 .config({
     imports: {

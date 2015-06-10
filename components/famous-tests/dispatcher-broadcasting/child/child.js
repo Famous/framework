@@ -9,7 +9,8 @@ BEST.scene('famous-tests:dispatcher-broadcasting:child', {
             },
             'style': {
                 'background': '#222',
-                'border': '1px solid whitesmoke'
+                'border': '1px solid whitesmoke',
+                'color': 'whitesmoke'
             }
         }
     },
@@ -23,5 +24,5 @@ BEST.scene('famous-tests:dispatcher-broadcasting:child', {
     states: {
         childSize: [200, 200]
     },
-    tree: `<ui-element id="child"></ui-element>`
+    tree: `<node id="child">Click here!</node>`
 });

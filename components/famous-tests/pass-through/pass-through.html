@@ -1,24 +1,24 @@
-<view id='container'>
-    <ui-element id='label'>
+<node id='container'>
+    <node id='label'>
         <h4>Pass through example</h4>
         <div>Public Messages are being directly passed through to child components without having to set up an indirect events --> behaviors pipeline.</div>
         <br>
         <div>Send messages to the subcomponents via: <br> BEST.message('[[root selector]]', '$root', '[[event-name]]', '[[value]]');</div>
-    </ui-element>
+    </node>
 
-    <view id='block-view'>
-        <ui-element id='one' class='block'>
+    <node id='block-view'>
+        <node id='one' class='block'>
             <div>Passthrough: <br> '*'</div>
-        </ui-element>
+        </node>
         
-        <ui-element id='two' class='block'>
+        <node id='two' class='block'>
             <div>Passthrough: <br> ['content', 'scale', 'style']</div>
-        </ui-element>
+        </node>
 
-        <ui-element id='three' class='block'>
+        <node id='three' class='block'>
             <div>Passthrough: <br> {'block-size' : 'size'}</div>
-        </ui-element>
-    </view>
+        </node>
+    </node>
 
     <child-component id='child'></child-component>
-</view>
+</node>

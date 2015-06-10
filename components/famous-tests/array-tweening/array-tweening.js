@@ -4,22 +4,36 @@ BEST.scene('famous-tests:array-tweening', {
             'position': '[[identity|position]]',
             'size': [200, 200],
             'style': {
-                'background': 'red'
+                'background': 'red',
+                'color': 'white',
+                'font-family': 'Lato'
             }
         }
     },
     events: {
         '#square': {
             'click': function($state) {
-                $state.set('position', [400, 400], {
-                    duration: 500,
-                    curve: 'outBack'
-                });
+                if ($state.get('position')[0] > 200) {
+                    $state.set('position', [0, 0], {
+                        duration: 500,
+                        curve: 'outBack'
+                    });
+                }
+                else {
+                    $state.set('position', [400, 400], {
+                        duration: 500,
+                        curve: 'outBack'
+                    });
+                }
             }
         }
     },
     states: {
         position: [0, 0]
     },
-    tree: 'array-tweening.html'
+    tree: `
+        <node id="square">
+            Click here to see example of tweening array values!
+        </node>
+    `
 });

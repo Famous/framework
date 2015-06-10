@@ -3,9 +3,7 @@ BEST.scene('famous-tests:fouc', {
         '#view': {
             'size': [200, 200],
             'align': [0.5, 0.5],
-            'mount-point': [0.5, 0.5]
-        },
-        '#dom-el': {
+            'mount-point': [0.5, 0.5],
             'style': {
                 'background-color': '#d3d3d3',
                 'border': '5px solid #666'
@@ -14,5 +12,7 @@ BEST.scene('famous-tests:fouc', {
     },
     events: {},
     states: {},
-    tree: 'fouc.html'
+    tree: `
+        <node id="view"></node>
+    `
 });

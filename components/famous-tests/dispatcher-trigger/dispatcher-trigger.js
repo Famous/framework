@@ -27,5 +27,7 @@ BEST.scene('famous-tests:dispatcher-trigger', {
     states: {
         elementSize: [200, 200]
     },
-    tree: 'dispatcher-trigger.html'
+    tree: `
+        <node id="element">Click here!</node>
+    `
 });

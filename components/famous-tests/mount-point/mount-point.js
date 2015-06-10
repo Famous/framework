@@ -88,10 +88,5 @@ BEST.module('famous-tests:mount-point', {
         origin: [0, 0],
         rotateZ: 0
     },
-    tree: 'mount-point.html',
-})
-.config({
-    imports: {
-        'famous:core': ['ui-element', 'view', 'dom-element']
-    }
+    tree: 'mount-point.jade',
 });

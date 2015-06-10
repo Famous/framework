@@ -14,10 +14,5 @@ BEST.module('famous-tests:control-flow:static-repeat', {
             }
         }
     },
-    tree: 'static-repeat.html',
+    tree: '<node id="repeat"></node>',
 })
-.config({
-    imports: {
-        'famous:core': ['ui-element', 'view', 'dom-element']
-    }
-});
