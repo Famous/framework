@@ -1,22 +1,20 @@
-<node class="tweet-view">
-    <node class="tweet">
-        <img class="user-image" src={{userImage}}>
+<node class="tweet">
+    <img class="user-image" src={{imageURL}}>
 
-        <div class="tweet-body">
-            <h1 class="display-name">{{displayName}}</h1>
-            <h3 class="user-name">{{userName}}</h3>
-            <span class="tweet-age">{{tweetAge}}</span>
-            <p class="tweet-content">{{{tweetContent}}}</p>
-            <!--<img class="tweet-image" src={{tweetImage}}>-->
-        </div>
+    <div class="tweet-body">
+        <h1 class="display-name">{{displayName}}</h1>
+        <h3 class="user-name">{{userName}}</h3>
+        <span class="tweet-age">{{tweetAge}}</span>
+        <p class="tweet-content">{{{tweetContent}}}</p>
+        <img class="tweet-image" src={{tweetImage}}>
+    </div>
 
-        <div class="tweet-respond-container">
-            <img class="respond" src="{{@assets/images/respond.png}}">
-            <img src="{{@assets/images/retweet.png}}">
-            <span class="retweet">{{retweets}}</span>
-            <img src="{{@assets/images/favorite.png}}">
-            <span class="favorite">{{favorites}}</span>
-            <img class="follow" src="{{assets/images/follow.png}}">
-        </div>
-    </node>
+    <div class="tweet-respond-container">
+        <img class="respond" src="{{@assets/images/respond.png}}">
+        <img src="{{@assets/images/retweet.png}}">
+        <span class="retweet">{{retweets}}</span>
+        <img src="{{@assets/images/favorite.png}}">
+        <span class="favorite">{{favorites}}</span>
+        <img class="follow" src="{{assets/images/follow.png}}">
+    </div>
 </node>
