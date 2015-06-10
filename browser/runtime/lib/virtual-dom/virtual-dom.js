@@ -1,5 +1,10 @@
 'use strict';
 
+/*
+ * We aren't actually using true virtual DOM yet, but we plan to incorporate it
+ * in the near future. For now we are simply using a detached DOM tree. TODO
+ */
+
 var UID = require('./../../../utilities/uid');
 
 var BEST_ROOT = document.createElement('best-root');
