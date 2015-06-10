@@ -256,29 +256,22 @@ BEST.scene('creative:twitter', {
                 'z-index': 2
             }
         },
-        '.tweet': {
+        'tweet': {
             '$repeat': (tweetsData) => {
                 let tweets = [];
 
                 for(let i = 0, j = tweetsData.length; i < j; i++) {
-                    let model = tweetsData[i];
-
-                    if(model.hasOwnProperty('imageURL')) {
-                        model.imageURL = '{{@' + model.imageURL + '}}';
-                    }
-
-                    if(model.hasOwnProperty('tweetImage')) {
-                        model.tweetImage = '{{@' + model.tweetImage + '}}';
-                    }
+                    console.log('tweetsData', tweetsData[i].imageURL);
 
                     tweets.push({
-                        model: model,
-                        index: i,
+                        model: tweetsData[i],
                         positionY: i * 150,
                         positionZ: 3,
                         sizeY: 150
                     });
                 }
+
+                console.log('tweets length',tweets.length);
 
                 return tweets;
             }
@@ -351,9 +344,9 @@ BEST.scene('creative:twitter', {
             height: 58,
             contentHeight: 35,
             icons: {
-                tweet: '{{@assets/images/tweet.png}}',
-                follow: '{{@assets/images/follow.png}}',
-                search: '{{@assets/images/search.png}}'
+                tweet: '{{@CDN_PATH}}assets/images/tweet.png',
+                follow: '{{@CDN_PATH}}assets/images/follow.png',
+                search: '{{@CDN_PATH}}assets/images/search.png'
             }
         },
         //BODY
@@ -363,10 +356,10 @@ BEST.scene('creative:twitter', {
             height: 45,
             iconSize: '25px',
             icons: {
-                home: '{{@assets/images/home.png}}',
-                notifications: '{{@assets/images/notifications.png}}',
-                messages: '{{@assets/images/messages.png}}',
-                profile: '{{@assets/images/profile.png}}'
+                home: '{{@CDN_PATH}}assets/images/home.png',
+                notifications: '{{@CDN_PATH}}assets/images/notifications.png',
+                messages: '{{@CDN_PATH}}assets/images/messages.png',
+                profile: '{{@CDN_PATH}}assets/images/profile.png'
             }
         }
     },

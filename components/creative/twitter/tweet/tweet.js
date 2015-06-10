@@ -5,7 +5,6 @@ BEST.scene('creative:twitter:tweet', {
             'position-z': '[[identity|positionZ]]',
             'position-y': '[[identity|positionY]]',
             style: (positionZ) => {
-                console.log('positionZ',positionZ);
                 return {
                     'padding': '10px 12px 5px 70px',
                     'border-bottom': '1px solid rgb(229, 235, 239)',
@@ -13,17 +12,27 @@ BEST.scene('creative:twitter:tweet', {
                 }
             },
             'template': (model) => {
-                 //console.log('model',model);
-                 /*{
-                      imageURL:
-                      displayName:
-                      userName:
-                      tweetContent:
-                      tweetImage:
-                      tweetAge:
-                      retweets:
-                      favorites:
-                  }*/
+                /*{
+                     imageURL:
+                     displayName:
+                     userName:
+                     tweetContent:
+                     tweetImage:
+                     tweetAge:
+                     retweets:
+                     favorites:
+                 }*/
+
+                console.log('template pre',model.imageURL);
+
+                if(model.hasOwnProperty('imageURL')) {
+                    model.tempImageURL = '{{@CDN_PATH}}' + model.imageURL;
+                }//TODO: bug
+
+                if(model.hasOwnProperty('tweetImage')) {
+                    model.tempTweetImage = '{{@CDN_PATH}}' + model.tweetImage;
+                }//TODO: bug
+
                 return model;
             }
         }
@@ -33,7 +42,10 @@ BEST.scene('creative:twitter:tweet', {
             'sizeY':     '[[setter]]',
             'positionY': '[[setter]]',
             'positionZ': '[[setter]]',
-            'model':     '[[setter]]'
+            'model': function($state, $payload) {
+                console.log('EVENT IN PUBLIC CB');
+                $state.set('model', $payload);
+            }
         }
     },
     states: {},
