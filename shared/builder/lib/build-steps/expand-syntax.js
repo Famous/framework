@@ -125,7 +125,7 @@ function expandEventsObject(eventsAST) {
     }.bind(this));
 }
 
-function processSyntacticalSugar(moduleName, moduleDefinitionAST, moduleConfigAST) {
+function processSyntacticSugar(moduleName, moduleDefinitionAST, moduleConfigAST) {
     EsprimaHelpers.eachObjectProperty(moduleDefinitionAST, function(facetName, _1, _2, valueObj) {
         if (facetName === this.options.behaviorsFacetKeyName) {
             expandBehaviorsObject.call(this, valueObj);
@@ -230,7 +230,7 @@ function expandSyntax(info, cb) {
         var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
         var moduleConfigAST = info.moduleConfigASTs[moduleName];
         interpolateAssetStrings.call(this, moduleName, ((info.versionRef || info.explicitVersion) || this.options.defaultDependencyVersion), moduleDefinitionAST);
-        processSyntacticalSugar.call(this, moduleName, moduleDefinitionAST, moduleConfigAST);
+        processSyntacticSugar.call(this, moduleName, moduleDefinitionAST, moduleConfigAST);
     }
     for (moduleName in info.libraryInvocations) {
         var libraryInvocation = info.libraryInvocations[moduleName];
