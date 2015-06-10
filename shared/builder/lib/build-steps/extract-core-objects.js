@@ -177,32 +177,40 @@ function getExplicitDependencies(info) {
         }
     }
 
+    // Look for any dependencies that may already be defined inside of the
+    // framework.json file
+    var dependenciesHash = info.frameworkInfo.dependencies;
+    if (!dependenciesHash) {
+        dependenciesHash = {};
+    }
+    for (depName in dependenciesHash) {
+        depRef = dependenciesHash[depName];
+        explicitDependencies[depName] = depRef;
+    }
+
+    return explicitDependencies;
+}
+
+function getFrameworkInfo(info) {
     var frameworkFile = Lodash.find(info.files, function(file) {
         return file.path === this.options.frameworkFilename;
     }.bind(this));
 
-    if (frameworkFile) {
-        var frameworkFileHash;
+    var frameworkFileHash;
 
+    if (frameworkFile) {
         try {
             frameworkFileHash = JSON.parse(frameworkFile.content || '{}');
         }
         catch (err) {
             frameworkFileHash = {};
         }
-
-        var dependenciesHash = frameworkFileHash.dependencies;
-        if (!dependenciesHash) {
-            dependenciesHash = {};
-        }
-
-        for (depName in dependenciesHash) {
-            depRef = dependenciesHash[depName];
-            explicitDependencies[depName] = depRef;
-        }
+    }
+    else {
+        frameworkFileHash = {};
     }
 
-    return explicitDependencies;
+    return frameworkFileHash;
 }
 
 function extractCoreObjects(info, cb) {
@@ -213,6 +221,7 @@ function extractCoreObjects(info, cb) {
     info.moduleDefinitionASTs = extractModuleDefinitionASTs.call(this, info.entrypointAST);
     info.moduleConfigASTs = extractModuleConfigASTs.call(this, info.entrypointAST);
     info.moduleConfigs = getRawConfigObjects(info.moduleConfigASTs);
+    info.frameworkInfo = getFrameworkInfo.call(this, info);
     info.explicitDependencies = getExplicitDependencies.call(this, info);
     cb(null, info);
 }
