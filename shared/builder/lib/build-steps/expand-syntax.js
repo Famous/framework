@@ -92,8 +92,15 @@ function buildFunctionAST(key, value, fnStringTemplate) {
             body = EsprimaHelpers.parse(fnString).body[0];
             return body.expression;
         case 'identity':
-            stateName = filters.splice(-1); // 'identity|myContent'
-            stateName = allEventFunctionFilters(stateName, filters);
+            // 'identity'
+            if (filters.length === 0) {
+                stateName = key;
+            }
+            //'identity|myContent'
+            else {
+                stateName = filters.splice(-1);
+                stateName = allEventFunctionFilters(stateName, filters);
+            }
             fnString = behaviorFnStringTemplate(stateName);
             body = EsprimaHelpers.parse(fnString).body[0];
             return body.expression;
