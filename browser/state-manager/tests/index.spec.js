@@ -516,7 +516,7 @@ test('StateManager', function(t) {
             'a': 0,
             'b': 0,
             'c': 0
-        })
+        });
 
         t.equal(SM.get('x'), 0);
         t.equal(SM.get('y'), 0);

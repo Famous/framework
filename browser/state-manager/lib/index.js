@@ -108,13 +108,12 @@ StateManager.prototype.setState = function setState (key, value, transition) {
                     setOnObject(key, previousValue, this._state);
                 }
                 else {
-                    throw new Error ('Cannot transition from a ' + previousValueType + ' to a ' +  valueType);
+                    throw new Error('Cannot transition from a ' + previousValueType + ' to a ' + valueType);
                 }
             }
             break;
         case 'Function':
             throw new Error('Cannot set state of type: ' + valueType);
-            break;
         default:
             if (transition) throw new Error('Cannot transition state of type: ' + valueType);
             else setOnObject(key, value, this._state);

@@ -1,8 +1,6 @@
 'use strict';
 
 var Async = require('async');
-var Lodash = require('lodash');
-var Request = require('request');
 
 var Browser = require('./browser');
 var Extra = require('./extra');

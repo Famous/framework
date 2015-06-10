@@ -283,12 +283,14 @@ function applyYieldBehaviorToVirtualDOM(yieldBehavior, target, injectablesRoot, 
     var clonedPort;
     var clonedInjectable;
 
+    var i;
+
     // When the $yield behavior is applied to the $self selector, yield ports should not be cloned.
     // Instead, all of the injectables should be added directly to component's children root.
     if (selector === SELF_KEY) {
         yieldPort = yieldPorts[0];
         ControlFlowUtils.addRepeatInfo(yieldPort, 0, {});
-        for (var i = 0; i < injectables.length; i++) {
+        for (i = 0; i < injectables.length; i++) {
             clonedInjectable = VirtualDOM.clone(injectables[i]);
             if (!VirtualDOM.getAttribute(clonedInjectable, REPEAT_INFO_KEY)) {
                 // Add $index to element being repeated unless its already defined
@@ -298,7 +300,7 @@ function applyYieldBehaviorToVirtualDOM(yieldBehavior, target, injectablesRoot, 
         }
     }
     else {
-        for (var i = 0; i < yieldPorts.length; i++) {
+        for (i = 0; i < yieldPorts.length; i++) {
             yieldPort = yieldPorts[i];
             blueprintPort = VirtualDOM.removeAttribute(VirtualDOM.clone(yieldPort), UID_KEY); // clone port before children are added
             parentNode = yieldPort.parentNode || yieldPort;

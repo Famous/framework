@@ -5,7 +5,6 @@ var Path = require('path');
 
 var BLANK = '';
 var PIPE = '|';
-var QUOTE = '\'';
 var FSLASH = '/';
 var STRING_TYPE = 'string';
 

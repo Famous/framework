@@ -165,7 +165,7 @@ function getExplicitDependencies(info) {
     // TODO change this to use the plain 'moduleConfigs' object instead of
     // re-traversing the ASTs
     for (var moduleName in info.moduleDefinitionASTs) {
-        var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
+        // var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
         var moduleConfigAST = info.moduleConfigASTs[moduleName] || { properties: [] };
 
         // Some explicit deps/refs may live in the config object

@@ -4,7 +4,6 @@
 
 var Express = require('express');
 var Livereload = require('livereload');
-var Path = require('path');
 var Program = require('commander');
 
 var Assistant = require('./../assistant/lib/assistant');

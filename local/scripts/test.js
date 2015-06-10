@@ -10,6 +10,9 @@ var PROJECT_DIR = Path.join(__dirname, "..", "..");
 
 function execAndLog(cmd) {
     exec(cmd, function(err, stdout, stderr) {
+        if (err) {
+            console.error(err);
+        }
         console.log(stdout);
         console.log(stderr);
     });

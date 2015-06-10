@@ -208,7 +208,7 @@ Assistant.prototype.watchDirectory = function(baseDir, subDir) {
         });
     }.bind(this), 500);
     watcher.on('all', handler);
-}
+};
 
 Assistant.prototype.watchDirectoryRecursive = function(baseDir, subDir) {
     var watchDir = Path.join(baseDir, subDir);

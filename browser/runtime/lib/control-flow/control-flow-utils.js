@@ -1,7 +1,6 @@
 'use strict';
 
 var VirtualDOM = require('./../virtual-dom/virtual-dom');
-var Tree = require('./../tree/tree');
 
 var IF_KEY = '$if';
 var REPEAT_KEY = '$repeat';

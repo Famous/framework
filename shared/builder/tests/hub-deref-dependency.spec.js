@@ -1,8 +1,6 @@
 'use strict';
 
 var Test = require('tape');
-var Path = require('path');
-var Fs = require('fs');
 
 var Hub = require('./../lib/storage-helpers/hub');
 

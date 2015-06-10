@@ -1,7 +1,5 @@
 'use strict';
 
-var Path = require('path');
-
 var PIPE = '|';
 var SLASH = '/';
 var ROUTE_VAR_PREFIX = ':'; // Follows the Rails convention

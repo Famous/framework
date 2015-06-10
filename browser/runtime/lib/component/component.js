@@ -238,7 +238,6 @@ Component.prototype._updateChildren = function _updateChildren(childrenRoot) {
     var self = this;
     this.tree.setChildrenRoot(childrenRoot);
     var baseNode;
-    var childComponent;
     this.tree.eachChild(function(node) {
         baseNode = VirtualDOM.clone(node);
         VirtualDOM.removeChildNodes(baseNode);

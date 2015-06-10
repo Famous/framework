@@ -1,8 +1,6 @@
 'use strict';
 
 var Test = require('tape');
-var Path = require('path');
-var Fs = require('fs');
 
 var PathingHelpers = require('./../lib/storage-helpers/pathing');
 

@@ -158,7 +158,6 @@ function loadDependencies(localBlocksFolder, localRawSourceFolder, dependenciesW
         else {
             for (var i = 0; i < parcelsLoaded.length; i++) {
                 var loadedDependencyName = dependencyKeys[i];
-                var loadedDependencyVersion = dependenciesMissing[loadedDependencyName];
                 dependenciesFound[loadedDependencyName] = parcelsLoaded[i];
             }
             finish(null, dependenciesWanted, dependenciesFound);

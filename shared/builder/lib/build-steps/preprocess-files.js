@@ -2,7 +2,6 @@
 
 var Async = require('async');
 var Lodash = require('lodash');
-var Path = require('path');
 
 var AssetCompilers = require('./../asset-compilers');
 var BuildHelpers = require('./../build-helpers');
@@ -22,7 +21,6 @@ function compileFile(file, cb) {
 function mergeCompiledFiles(rawFiles, compiledFiles) {
     for (var i = 0; i < compiledFiles.length; i++) {
         var compiledFile = compiledFiles[i];
-        var compiledPath = compiledFile.path;
         var existingFile = Lodash.find(rawFiles, { path: compiledFile.path });
         if (existingFile) {
             // Overwrite the existing file with compiled content
