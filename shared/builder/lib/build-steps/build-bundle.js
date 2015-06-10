@@ -162,12 +162,12 @@ var PROJECT_DIR = Path.join(__dirname, '..', '..', '..', '..');
 // writing this to every bundle folder, we could just template out the
 // 'executable-bundle.html' to point to a version of the library that had
 // been previously CDN'd
-var FRAMEWORK_LIB_STRING = Fs.readFileSync(Path.join(PROJECT_DIR, 'local', 'workspace', 'build', 'best.bundle.js'));
+// var FRAMEWORK_LIB_STRING = Fs.readFileSync(Path.join(PROJECT_DIR, 'local', 'workspace', 'build', 'best.bundle.js'));
 var FRAMEWORK_EXECUTABLE_PAGE_STRING = Fs.readFileSync(Path.join(__dirname, 'templates', 'executable-bundle.html'));
 
-function getFrameworkLibraryString() {
-    return FRAMEWORK_LIB_STRING;
-}
+// function getFrameworkLibraryString() {
+//     return FRAMEWORK_LIB_STRING;
+// }
 
 function getFrameworkExecutablePageString() {
     return FRAMEWORK_EXECUTABLE_PAGE_STRING;
@@ -185,7 +185,7 @@ function buildBundle(info, cb) {
     info.parcelHash = buildParcelHash.call(this, info);
     info.bundleString = buildBundleString.call(this, info);
     info.bundleExecutableString = buildBundleExecutableString.call(this, info);
-    info.frameworkLibraryString = getFrameworkLibraryString.call(this, info);
+    info.frameworkLibraryString = '';//getFrameworkLibraryString.call(this, info);
     info.frameworkExecutablePageString = getFrameworkExecutablePageString.call(this, info);
     cb(null, info);
 }
