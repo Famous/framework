@@ -2,6 +2,7 @@
 
 var Async = require('async');
 var Chalk = require('chalk');
+var FormData = require('form-data'); // Hacked version of this lib that doesn't 'basename' the filepath
 var Lodash = require('lodash');
 var Path = require('path');
 var Request = require('request');
@@ -136,7 +137,7 @@ function getBlockNameWithoutUsername(name) {
     return nameTail.join(this.options.componentDelimiter);
 }
 
-function createVersionWithFiles(moduleName, config, files, cb) {
+function createVersionWithFiles(blockId, config, files, cb) {
     // Example of this request in curl:
     // -X POST
     // -F files[]="@./path/to/file_1;filename=relative/path/for/remote/storage/file_1;type=content/type"
@@ -144,7 +145,7 @@ function createVersionWithFiles(moduleName, config, files, cb) {
     // -H 'X-FAMOUS-USER-ID: :user_id'
     var versionPostRequest = Request({
         method: PathingHelpers.getVersionCreateMethod.call(this),
-        uri: PathingHelpers.getVersionCreateURI.call(this, moduleName),
+        uri: PathingHelpers.getVersionCreateURI.call(this, blockId),
         headers: buildRequestHeaders(config)
     }, function(versionCreateErr, versionResp) {
         if (!versionCreateErr && versionResp.statusCode < 300) {
@@ -157,7 +158,17 @@ function createVersionWithFiles(moduleName, config, files, cb) {
 
     // The code manager service expects the files to be uploaded via multipart/form-data,
     // so we have to do this setup so that the request is in the correct format
-    var versionPostForm = versionPostRequest.form();
+    var versionPostForm = new FormData();
+    versionPostForm.on('error', function(err) {
+        err.message = 'form-data: ' + err.message;
+        self.emit('error', err);
+        self.abort();
+    });
+
+    // Hack to associate the special FormData lib we've created to the form instance
+    // we already created above
+    versionPostRequest._form = versionPostForm;
+
     Lodash.each(files, function(file) {
         versionPostForm.append('files[]', file.content, {
             filename: file.path,
@@ -166,21 +177,51 @@ function createVersionWithFiles(moduleName, config, files, cb) {
     }.bind(this));
 }
 
+function createBlockIfNeeded(name, info, cb) {
+    var config = info.codeManagerConfig;
+    var block = info.frameworkInfo.block;
+    if (block && block.id) {
+        cb(null, {
+            block: {
+                id: block.id,
+                name: block.name
+            }
+        });
+    }
+    else {
+        Request({
+            json: true,
+            method: PathingHelpers.getBlockCreateMethod.call(this),
+            uri: PathingHelpers.buildBlockCreateURI.call(this),
+            body: { block: { name: name, 'public': ARE_BLOCKS_PUBLIC } },
+            headers: buildRequestHeaders(config)
+        }, function(blockCreateReqErr, blockInfo) {
+            if (!blockCreateReqErr) {
+                cb(null, blockInfo.body);
+            }
+            else {
+                cb(blockCreateReqErr);
+            }
+        });
+    }
+}
+
 function saveAssets(versionWriteHost, info, cb) {
     var config = info.codeManagerConfig;
     authenticateAsWriteable.call(this, info, config, function(authErr, isWriteable, userInfo) {
         if (isWriteable) {
             var blockNameWithUsername = info.name;
             var blockNameWithoutUsername = getBlockNameWithoutUsername.call(this, info.name);
-            Request({
-                json: true,
-                method: PathingHelpers.getBlockCreateMethod.call(this),
-                uri: PathingHelpers.buildBlockCreateURI.call(this),
-                body: { block: { name: blockNameWithoutUsername, 'public': ARE_BLOCKS_PUBLIC } },
-                headers: buildRequestHeaders(config)
-            }, function(blockCreateErr, blockInfo) {
+            createBlockIfNeeded.call(this, blockNameWithoutUsername, info, function(blockCreateErr, blockInfo) {
+
+                // We need to store the block ID so that we can save it with the
+                // rest of the user's dependencies
+                info.frameworkInfo.block = {
+                    id: blockInfo.block.id
+                };
+
                 if (!blockCreateErr) {
-                    createVersionWithFiles.call(this, blockNameWithUsername, config, info.assetSaveableFiles, function(versionCreateErr, versionCreateResponse) {
+                    createVersionWithFiles.call(this, blockInfo.block.id, config, info.assetSaveableFiles, function(versionCreateErr, versionCreateResponse) {
 
                         if (!versionCreateErr) {
                             var parsedVersionBody = JSON.parse(versionCreateResponse.body);
@@ -199,6 +240,7 @@ function saveAssets(versionWriteHost, info, cb) {
                 else {
                     cb(blockCreateErr);
                 }
+
             }.bind(this));
         }
         else {

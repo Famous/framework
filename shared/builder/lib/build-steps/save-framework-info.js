@@ -1,33 +1,18 @@
 'use strict';
 
+var Chalk = require('chalk');
 var Fs = require('fs');
 var Lodash = require('lodash');
 var Mkdirp = require('mkdirp');
 var Path = require('path');
 
-var Chalk = require('chalk');
-
-function logFormattedDeps(depTable) {
-    for (var depName in depTable) {
-        var depRef = depTable[depName];
-        console.log(Chalk.gray('famous'), '  ', depName, '~>', depRef);
-    }
-}
-
-function freezeDependencies(info, cb) {
+function saveFrameworkInfo(info, cb) {
     var frameworkFile;
-
-    console.log(Chalk.gray('famous'), 'Freezing dependencies for ' + info.name + '...');
-    if (Object.keys(info.dereffedDependencyTable).length > 0) {
-        logFormattedDeps(info.dereffedDependencyTable);
-    }
 
     frameworkFile = Lodash.find(info.files, function(file) {
         return file.path === this.options.frameworkFilename;
     }.bind(this));
 
-    // If no dependencies file exists, add it to the collection so it
-    // gets saved along with everything else during persistence
     if (!frameworkFile) {
         frameworkFile = {
             path: this.options.frameworkFilename
@@ -35,15 +20,19 @@ function freezeDependencies(info, cb) {
         info.files.push(frameworkFile);
     }
 
-    // And set the file's content to the JSON of the dependencies
-    // that we've resolved in a previous step
-    frameworkFile.content = JSON.stringify({
-        // It's kind of hacky to put this in here, but we need to store
-        // the block info for future requests.
-        block: info.frameworkInfo.block,
+    var frameworkHash;
+    if (frameworkFile.content) {
+        frameworkHash = JSON.parse(frameworkFile.content || '{}');
+    }
+    else {
+        frameworkHash = {};
+    }
 
-        dependencies: info.dereffedDependencyTable
-    }, null, 4);
+    if (info.frameworkInfo.block) {
+        frameworkHash.block = info.frameworkInfo.block;
+    }
+
+    frameworkFile.content = JSON.stringify(frameworkHash, null, 4);
 
     // If we're building a component from a local source folder, we
     // need to write the dependencies back to that folder so that subsequent
@@ -79,4 +68,4 @@ function freezeDependencies(info, cb) {
     }
 }
 
-module.exports = freezeDependencies;
+module.exports = saveFrameworkInfo;

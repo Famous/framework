@@ -17,6 +17,7 @@ function Builder(options) {
     this.loadDependencies = require('./build-steps/load-dependencies').bind(this);
     this.preprocessFiles = require('./build-steps/preprocess-files').bind(this);
     this.saveAssets = require('./build-steps/save-assets').bind(this);
+    this.saveFrameworkInfo = require('./build-steps/save-framework-info').bind(this);
     this.saveBundle = require('./build-steps/save-bundle').bind(this);
 }
 
@@ -231,6 +232,7 @@ Builder.prototype.buildModule = function(info, finish) {
         // an 'explicitVersion' set, since only saving assets
         // can give us the version ref for the component.
         subRoutines.push(this.saveAssets.bind(this));
+        subRoutines.push(this.saveFrameworkInfo.bind(this));
     }
     subRoutines.push(this.expandSyntax);
     subRoutines.push(this.buildBundle);
