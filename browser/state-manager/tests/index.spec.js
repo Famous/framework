@@ -87,7 +87,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #2 - set(transition)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -145,7 +144,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #4 - set(transition).set(transition).set(transition)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -171,7 +169,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #5 - set(value).set(transition).set(value)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -197,7 +194,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #6 - set(transition).thenSet(transition).thenSet(transition)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -233,7 +229,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #7 - set(transition).set(transition).thenSet(transition)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -265,7 +260,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #8 - set(value).set(transition).thenSet(transition)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -296,7 +290,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #9 - set(value).thenSet(transition).thenSet(transition)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -327,7 +320,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #10 - set(value).thenSet(transition).thenSet(value)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -370,7 +362,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #12 - same state set(transition).set(transition).set(transition)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -400,7 +391,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #13 - simultaneous set(transition).thenSet(transition)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -459,7 +449,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #15 - state batching set(transition)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
@@ -496,7 +485,6 @@ test('StateManager', function(t) {
 
     t.test('setting state #16 - state batching set(transition).thenSet(value).thenSet(value).thenSet(value)', function(t) {
         var time = 0;
-        var _now = Date.now();
 
         Transitionable.Clock = {
             now: function() {
