@@ -23,6 +23,13 @@ var TIMELINES = {};
 // Attachment objects ('raw code' wrappers)
 var ATTACHMENTS = {};
 
+// Options passed in when registered a Framework Component
+var MODULE_OPTIONS = {};
+
+// Custom Famous Node constructors that can be passed to
+// `addChild` when adding nodes to the scene graph
+var FAMOUS_NODE_CONSTRUCTORS = {};
+
 var BEHAVIORS_KEY = 'behaviors';
 var DEFAULT_TAG = 'HEAD';
 var EVENTS_KEY = 'events';
@@ -167,10 +174,29 @@ function enhanceModule(name, tag, options, definition) {
     extendDefinition(definition, options[EXTENSION_KEYS]);
 }
 
+function saveModuleOptions(name, tag, options) {
+    if (!MODULE_OPTIONS[name]) {
+        MODULE_OPTIONS[name] = [];
+    }
+    MODULE_OPTIONS[name][tag] = options;
+}
+
+function getModuleOptions(name, tag) {
+    var options = MODULE_OPTIONS[name][tag];
+    if (!options) {
+        console.warn('`' + name + ' (' + tag + ')` ' + 'has not been registered.');
+        return {};
+    }
+    else {
+        return options;
+    }
+}
+
 function registerModule(name, tag, options, definition) {
     if (!hasModule(name, tag)) {
         validateModule(name, tag, options, definition);
         enhanceModule(name, tag, options, definition);
+        saveModuleOptions(name, tag, options);
         return wrapModule(name, tag, saveModule(name, tag, options, definition));
     }
     else {
@@ -230,15 +256,34 @@ function getDependencies(name, tag) {
     }
 }
 
+function registerCustomFamousNodeConstructors(constructors) {
+    for (var name in constructors) {
+        FAMOUS_NODE_CONSTRUCTORS[name] = constructors[name];
+    }
+}
+
+function getCustomFamousNodeConstructor(constuctorName) {
+    var Constructor = FAMOUS_NODE_CONSTRUCTORS[constuctorName];
+    if (Constructor) {
+        return Constructor;
+    }
+    else {
+        throw new Error('Famous Node Constructor named `' + name + '` has not been registered');
+    }
+}
+
 module.exports = {
     getAttachments: getAttachments,
     getComponent: getComponent,
     getConfig: getConfig,
     getDependencies: getDependencies,
     getExecutedComponent: getExecutedComponent,
+    getCustomFamousNodeConstructor: getCustomFamousNodeConstructor,
     getModuleDefinition: getModuleDefinition,
+    getModuleOptions: getModuleOptions,
     getTimelines: getTimelines,
     registerComponent: registerComponent,
+    registerCustomFamousNodeConstructors: registerCustomFamousNodeConstructors,
     registerModule: registerModule,
     saveDependencies: saveDependencies,
     saveExecutedComponent: saveExecutedComponent,

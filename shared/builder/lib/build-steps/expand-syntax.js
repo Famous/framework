@@ -136,8 +136,7 @@ function processSyntacticalSugar(moduleName, moduleDefinitionAST, moduleConfigAS
     }.bind(this));
 }
 
-function buildExtensionsArray(info, moduleName) {
-    var configObject = EsprimaHelpers.getObjectValue(info.moduleConfigASTs[moduleName] || { properties: [] });
+function buildExtensionsArray(info, moduleName, configObject) {
     var extensions = configObject.extends || this.options.defaultExtends;
     var result = [];
     for (var i = 0; i < extensions.length; i++) {
@@ -151,8 +150,10 @@ function buildExtensionsArray(info, moduleName) {
 
 function buildOptionsArgAST(info, moduleName) {
     var optionsObject = {};
+    var configObject = EsprimaHelpers.getObjectValue(info.moduleConfigASTs[moduleName] || { properties: [] });
     optionsObject.dependencies = info.dependencyTable;
-    optionsObject.extensions = buildExtensionsArray.call(this, info, moduleName);
+    optionsObject.famousNodeConstructorName = configObject.famousNodeConstructorName || '';
+    optionsObject.extensions = buildExtensionsArray.call(this, info, moduleName, configObject);
 
     var optionsJSON = JSON.stringify(optionsObject);
     var optionsString = '(' + optionsJSON + ')';

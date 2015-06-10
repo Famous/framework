@@ -12,8 +12,13 @@ var RENDERING_COMPONENTS = {
     'Mesh': require('famous/webgl-renderables/Mesh')
 };
 
-function addChild(famousNode) {
-    return famousNode.addChild();
+function addChild(famousNode, Constructor) {
+    if (Constructor) {
+        return famousNode.addChild(new Constructor());
+    }
+    else {
+        return famousNode.addChild();
+    }
 }
 
 function createRoot(selector) {

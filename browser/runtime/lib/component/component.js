@@ -41,7 +41,13 @@ function Component(domNode, surrogateRoot, parent) {
     }
     this.surrogateRoot = surrogateRoot;
     this.tree = new Tree(domNode, this.definition.tree, this.dependencies, parent.tree.rootNode);
-    this.famousNode = FamousConnector.addChild(parent.famousNode);
+
+    var famousNodeConstructorName = DataStore.getModuleOptions(this.name, this.tag).famousNodeConstructorName;
+    var famousNodeConstructor = famousNodeConstructorName ?
+                                    DataStore.getCustomFamousNodeConstructor(famousNodeConstructorName) :
+                                    null;
+    this.famousNode = FamousConnector.addChild(parent.famousNode, famousNodeConstructor);
+
     this.states = new States(this.definition.states);
     this.timelines = new Timelines(this.timelineSpec, this.states);
     this.behaviors = new Behaviors(this.definition.behaviors);
