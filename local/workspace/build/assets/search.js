@@ -11,6 +11,8 @@
     searchBtn.addEventListener('click', function() {
         if (searchContainer.className === '') {
             searchContainer.className = 'active';
+            searchInput.focus();
+            searchInput.select();
         }
         else {
             searchContainer.className = '';
