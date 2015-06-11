@@ -35,11 +35,7 @@ FamousFramework.module('famous-demos:dynamic-list', {
             'position': [220, 0]
         },
         '#toggle-button': {
-            'position': [0, 0],
-            'template': function(showState) {
-                var text = showState ? 'Hide' : 'Show';
-                return { toggleText: text };
-            }
+            'position': [0, 0]
         },
         '#blocks-view': {
             'position': [25, 100],
@@ -84,6 +80,11 @@ FamousFramework.module('famous-demos:dynamic-list', {
                 else {
                     return 0;
                 }
+            }
+        },
+        'div#toggle-text' : {
+            'text-content' : function(showState) {
+                return showState ? 'Hide' : 'Show';
             }
         }
     },

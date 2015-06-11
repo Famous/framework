@@ -1,4 +1,4 @@
-FamousFramework.scene('famous-demos:clickable-square', {
+FamousFramework.scene('famous-demos:clickable-square-with-logo', {
     /**
      * Behaviors:
      *      Target the square in our tree
@@ -47,6 +47,17 @@ FamousFramework.scene('famous-demos:clickable-square', {
         },
         'div' : {
             'text-content': '[[identity|numberOfClicks]]'
+        },
+        '#img-node' : {
+            size: [75, 75],
+            position: [10, 10],
+            origin: [0.5, 0.5],
+            'rotation-z' : function(logoRotation) {
+                return logoRotation;
+            }
+        },
+        'img' : {
+            src: '{{@CDN_PATH}}/assets/famous_logo.svg'
         }
     },
     /**
@@ -68,6 +79,9 @@ FamousFramework.scene('famous-demos:clickable-square', {
                 $state.set('angle', $state.get('angle') + Math.PI/2, {
                     duration: 500,
                     curve: 'outBounce'
+                })
+                .thenSet('logoRotation', $state.get('logoRotation') + Math.PI * 2, {
+                    duration: 500, curve: 'outExpo'
                 });
             }
         }
@@ -83,6 +97,10 @@ FamousFramework.scene('famous-demos:clickable-square', {
     },
     tree: `
         <div></div>
+
+        <node id='img-node'>
+            <img>
+        </node>
     `
 });
 

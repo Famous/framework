@@ -10,7 +10,7 @@ FamousFramework.module('famous-tests:pass-through:child-component', {
     },
     events: {
         '$pass-through' : {
-            '#view' : ['position'],
+            '#view' : {'position-view-node' : 'position'},
             '#el' : ['content']
         }
     },

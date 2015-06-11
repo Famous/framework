@@ -25,12 +25,10 @@ FamousFramework.scene('famous-tests:static-assets', {
             'position': [0, 600]
         },
         '#four': {
-            'template': function(imageFourPath) {
-                return {
-                    imageFourPath: imageFourPath
-                }
-            },
             'position': [400, 300]
+        },
+        '#img-four' : {
+            src: '[[identity|imageFourPath]]'
         }
     },
     states: {
@@ -46,7 +44,7 @@ FamousFramework.scene('famous-tests:static-assets', {
         <node id="two"></node>
         <node id="three"></node>
         <node id="four">
-            <img src="{{imageFourPath}}">
+            <img id='img-four'>
         </node>
     `,
 });

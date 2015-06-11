@@ -30,22 +30,22 @@ FamousFramework.scene('famous-demos:scroll-view-example', {
     }, 
     tree: `
         <scroll-view>
-            <node class="scroll-view-item">Item 0</node>
-            <node class="scroll-view-item">Item 1</node>
-            <node class="scroll-view-item">Item 2</node>
-            <node class="scroll-view-item">Item 3</node>
-            <node class="scroll-view-item">Item 4</node>
-            <node class="scroll-view-item">Item 5</node>
-            <node class="scroll-view-item">Item 6</node>
-            <node class="scroll-view-item">Item 7</node>
-            <node class="scroll-view-item">Item 8</node>
-            <node class="scroll-view-item">Item 9</node>
-            <node class="scroll-view-item">Item 10</node>
-            <node class="scroll-view-item">Item 11</node>
-            <node class="scroll-view-item">Item 12</node>
-            <node class="scroll-view-item">Item 13</node>
-            <node class="scroll-view-item">Item 14</node>
-            <node class="scroll-view-item">Item 15</node>
+            <node class="scroll-view-item"><div>Item 0</div></node>
+            <node class="scroll-view-item"><div>Item 1</div></node>
+            <node class="scroll-view-item"><div>Item 2</div></node>
+            <node class="scroll-view-item"><div>Item 3</div></node>
+            <node class="scroll-view-item"><div>Item 4</div></node>
+            <node class="scroll-view-item"><div>Item 5</div></node>
+            <node class="scroll-view-item"><div>Item 6</div></node>
+            <node class="scroll-view-item"><div>Item 7</div></node>
+            <node class="scroll-view-item"><div>Item 8</div></node>
+            <node class="scroll-view-item"><div>Item 9</div></node>
+            <node class="scroll-view-item"><div>Item 10</div></node>
+            <node class="scroll-view-item"><div>Item 11</div></node>
+            <node class="scroll-view-item"><div>Item 12</div></node>
+            <node class="scroll-view-item"><div>Item 13</div></node>
+            <node class="scroll-view-item"><div>Item 14</div></node>
+            <node class="scroll-view-item"><div>Item 15</div></node>
         </scroll-view>
     `
 })

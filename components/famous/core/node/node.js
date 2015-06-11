@@ -176,17 +176,8 @@ FamousFramework.module('famous:core:node', {
                     $DOMElement.setProperty(styleName, $payload[styleName]);
                 }
             },
-            'template': function($mustache, $state, $payload, $dispatcher) {
-                if ($state.get('didTemplate')) {
-                    var initialContent = $state.get('initialContent');
-                }
-                else {
-                    var initialContent = $state.get('content');
-                    $state.set('initialContent', initialContent);
-                    $state.set('didTemplate', true);
-                }
-                var templatedContent = $mustache(initialContent+'', $payload);
-                $dispatcher.trigger('content', templatedContent);
+            'template': function() {
+                console.warn('`template` behavior is deprecated!');
             },
             'unselectable': function($state, $payload, $dispatcher) {
                 if ($payload) {

@@ -33,7 +33,7 @@ FamousFramework.scene('famous-tests:array-tweening', {
     },
     tree: `
         <node id="square">
-            Click here to see example of tweening array values!
+            <div>Click here to see example of tweening array values!</div>
         </node>
     `
 });

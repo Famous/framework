@@ -28,6 +28,6 @@ FamousFramework.scene('famous-tests:dispatcher-trigger', {
         elementSize: [200, 200]
     },
     tree: `
-        <node id="element">Click here!</node>
+        <node id="element"><div>Click here!</div></node>
     `
 });

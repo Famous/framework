@@ -26,9 +26,9 @@ FamousFramework.module('famous-tests:pass-through', {
             position: [500, 0]
         },
         // <child-component> exposes 'pass-through' event for `position` that
-        // allows the parent to directly interface with its <view>
+        // allows the parent to directly interface with its <node>
         '#child' : {
-            position: [0, 500],
+            'position-view-node': [0, 500],
             content: `
                 This child component's view is positioned directly by its
                 parent because the child exposes a pass-through event for
