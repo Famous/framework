@@ -130,7 +130,6 @@ Behaviors.targetMessagingBehavior = function targetMessagingBehavior(behavior, c
 };
 
 Behaviors.processDOMBehavior = function(behavior, domEl, payload) {
-    var behaviorActionType = typeof domEl[behavior.name];
     if (behavior.name === 'inner-html') {
         domEl.innerHTML = payload;
     }
@@ -161,7 +160,7 @@ Behaviors.processDOMBehavior = function(behavior, domEl, payload) {
     // handles all rendering
     var domWrapper = DataStore.getDOMWrapper(VirtualDOM.getUID(parentNode));
     domWrapper.setContent(updatedContent);
-}
+};
 
 Behaviors.invertedBehavior = function invertedBehavior(behavior, component, targets) {
     var args = component.states.getValues(behavior.params);

@@ -1,6 +1,5 @@
 'use strict';
 
-var Chalk = require('chalk');
 var Fs = require('fs');
 var Lodash = require('lodash');
 var Mkdirp = require('mkdirp');

@@ -12,13 +12,11 @@ var States = require('./../states/states');
 var Timelines = require('./../timelines/timelines');
 var Tree = require('./../tree/tree');
 var Utilities = require('./../utilities/utilities');
-var UID = require('./../../../utilities/uid');
 var VirtualDOM = require('./../virtual-dom/virtual-dom');
 
 var CONTROL_FLOW_ACTION_KEY = 'control-flow-action';
 var CREATE_KEY = 'create';
 var DELETE_KEY = 'delete';
-var DOM_ELEMENT_UID_PREFIX = 'dom-el';
 var INDEX_KEY = '$index';
 var POSTLOAD_KEY = 'post-load';
 var POSTUNLOAD_KEY = 'post-unload';
@@ -233,7 +231,6 @@ Component.prototype._updateChildren = function _updateChildren(childrenRoot) {
     var self = this;
     this.tree.setChildrenRoot(childrenRoot);
     var baseNode;
-    var childComponent;
     var domElements = [];
     this.tree.eachChild(function(node) {
         if (VirtualDOM.isValidHTMLElement(node)) {
@@ -260,7 +257,7 @@ Component.prototype._attachDOMWrapper = function _attachDOMWrapper(domNodes) {
     }
     var famousDomElement = FamousConnector.attachDOMElement(wrapperNode, content);
     DataStore.registerDOMWrapper(this.uid, famousDomElement);
-}
+};
 
 Component.prototype._setHTMLContent = function _setHTMLContent(htmlElements) {
     if (htmlElements.length && this.events.getPublicEvent(SET_HTML_KEY)) {

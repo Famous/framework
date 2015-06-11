@@ -176,8 +176,9 @@ function buildParcelHash(info) {
         entrypoint: buildEntrypointString(info)
     };
 }
-
+/*eslint-disable */
 var PROJECT_DIR = Path.join(__dirname, '..', '..', '..', '..');
+/*eslint-enable */
 
 // TODO we need to make sure we lock this content to whatever version of
 // the framework was used at the given time. Even more ideal, rather than

@@ -40,7 +40,7 @@ function attachAttributes(famousFrameworkComponent, domComponent) {
 }
 
 function attachDOMElement(famousNode, content) {
-    var domElement = new RENDERING_COMPONENTS['DOMElement'](famousNode);
+    var domElement = new RENDERING_COMPONENTS.DOMElement(famousNode);
     domElement.setContent(content);
     return domElement;
 }
