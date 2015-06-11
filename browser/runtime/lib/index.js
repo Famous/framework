@@ -11,7 +11,7 @@ function register(name, tag, options, definition) {
     return DataStore.registerModule(name, tag, options, definition);
 }
 
-global.FamousFramework = {
+module.exports = global.FamousFramework = {
     attach: deployer.attach.bind(deployer),
     component: register, // alias for 'register'
     deploy: deployer.deploy.bind(deployer),
