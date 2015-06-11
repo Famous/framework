@@ -10,14 +10,22 @@ var Stylus = require('stylus');
 var COMPILERS = {};
 
 COMPILERS['.js'] = function(source, cb) {
-    var result = Babel.transform(source, {
-        // Don't give a name to anonymous functions because then naming collisions
-        // may occur which will trigger Babel to modify the function parameter names
-        // which then breaks dependency injection
-        blacklist: ['spec.functionName'],
-        nonStandard: false
-    }).code;
-    cb(null, result);
+    var result;
+    try {
+        result = Babel.transform(source, {
+            // Don't give a name to anonymous functions because then naming collisions
+            // may occur which will trigger Babel to modify the function parameter names
+            // which then breaks dependency injection
+            blacklist: ['spec.functionName'],
+            nonStandard: false
+        });
+    }
+    catch (err) {
+        console.error('\n' + err.name + ':', err.message);
+        cb(err.codeFrame);
+        return;
+    }
+    cb(null, result.code);
 };
 
 COMPILERS['.less'] = function(source, cb) {
@@ -109,13 +117,15 @@ function compileSource(source, path, cb) {
     var extname = Path.extname(path);
     if (hasCompilerFor(extname)) {
         COMPILERS[extname](source, function(err, result) {
-            if (err) { 
-                throw (err);
+            if (err) {
+                console.error(err);
             }
-            cb(null, {
-                path: compiledPath(path),
-                content: result
-            });    
+            else {
+                cb(null, {
+                    path: compiledPath(path),
+                    content: result
+                });
+            }
         });
     }
     else {
