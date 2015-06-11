@@ -1,4 +1,4 @@
-# Famous Framework
+# Famous Framework (BETA)
 
 The Famous Framework is a JavaScript framework for creating expressive, high-performance UIs.
 
