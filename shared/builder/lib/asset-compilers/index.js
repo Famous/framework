@@ -21,9 +21,7 @@ COMPILERS['.js'] = function(source, cb) {
         });
     }
     catch (err) {
-        console.error('\n' + err.name + ':', err.message);
-        cb(err.codeFrame);
-        return;
+        return cb(err);
     }
     cb(null, result.code);
 };
@@ -118,14 +116,17 @@ function compileSource(source, path, cb) {
     if (hasCompilerFor(extname)) {
         COMPILERS[extname](source, function(err, result) {
             if (err) {
-                console.error(err);
+                console.error('\n' + err.name + ':', err.message);
+                console.log(err.codeframe);
+                result = 'console.log("error in file: ' + path + '");';
+                result += 'console.log("' + err.name + ':' + err.message + '")';
+                console.log(result);
             }
-            else {
-                cb(null, {
-                    path: compiledPath(path),
-                    content: result
-                });
-            }
+
+            return cb(null, {
+                path: compiledPath(path),
+                content: result
+            });
         });
     }
     else {
