@@ -85,8 +85,17 @@ function buildRegistrationBlocks(info) {
             var origEntrypoint = regObj.entrypoint;
             var versionRefTheyHave = regObj.version;
             var versionRefWeHave = info.dereffedDependencyTable[regObj.name];
-            var newEntrypoint = origEntrypoint.split(versionRefTheyHave).join(versionRefWeHave);
-            return newEntrypoint;
+
+            // HACK If for some reason we don't have a verion ref for this item, we pretty
+            // much have no choice but to fall back to the original without the swap we
+            // would normally do above
+            if (versionRefWeHave) {
+                var newEntrypoint = origEntrypoint.split(versionRefTheyHave).join(versionRefWeHave);
+                return newEntrypoint;
+            }
+            else {
+                return origEntrypoint;
+            }
         }
     });
     return flatEntrypoints.join(NEWLINE);
