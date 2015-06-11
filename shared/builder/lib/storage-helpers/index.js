@@ -49,9 +49,10 @@ function loadDependencies(info, cb) {
                 ));
             }
         }
-        if (this.options.codeManagerAssetReadHost) {
+        if (this.options.codeManagerAssetReadHost || this.options.codeManagerVersionInfoHost) {
             loadAttemptActions.push(Hub.loadDependencies.bind(this,
-                this.options.codeManagerAssetReadHost
+                this.options.codeManagerAssetReadHost,
+                this.options.codeManagerVersionInfoHost
             ));
         }
         // After attempting to load the dependencies from all of the

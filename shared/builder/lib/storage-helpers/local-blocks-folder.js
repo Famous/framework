@@ -102,7 +102,8 @@ function maybeAttemptToBootstrapComponentsLocally(localBlocksFolder, localRawSou
         });
     }
     else {
-        cb(new Error('No such local dependency `' + dependencyName + '` (' + dependencyVersion + ')'));
+        // new Error('No such local dependency `' + dependencyName + '` (' + dependencyVersion + ')')
+        cb(null);
     }
 }
 

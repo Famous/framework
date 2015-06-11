@@ -17,9 +17,44 @@ var AUTH_TOKEN_HEADER_NAME = 'X-AUTHENTICATION-TOKEN';
 var AUTH_STATUS_IS_SIGNED_IN_CODE = 204;
 var FAMOUS_USER_ID_HEADER_NAME = 'x-famous-user-id';
 
-function loadDependencies(assetReadHost, dependenciesWanted, dependenciesFound, cb) {
-    // TODO
-    cb(null, dependenciesWanted, dependenciesFound);
+function loadDependency(assetReadHost, versionInfoHost, dependencyTuple, cb) {
+    var dependencyName = dependencyTuple[0];
+    var dependencyVersion = dependencyTuple[1];
+    if (versionInfoHost) {
+        var dependencyParcelBaseURL = PathingHelpers.buildVersionInfoURL.call(this, dependencyName, dependencyVersion);
+        var dependencyParcelURL = dependencyParcelBaseURL + '/assets/' + this.options.parcelAssetPath;
+        Request({
+            method: 'GET',
+            uri: dependencyParcelURL
+        }, function(parcelLoadErr, parcelResp, parcelBody) {
+            if (!parcelLoadErr) {
+                var parcelHash = JSON.parse(parcelBody);
+                cb(null, parcelHash);
+            }
+            else {
+                cb(parcelLoadErr);
+            }
+        });
+    }
+    else {
+        cb(new Error('No such dependency'));
+    }
+}
+
+function loadDependencies(assetReadHost, versionInfoHost, dependenciesWanted, dependenciesFound, cb) {
+    var refTuples = Lodash.pairs(dependenciesWanted);
+    Async.map(refTuples, loadDependency.bind(this, assetReadHost, versionInfoHost), function(depLoadErr, parcelsLoaded) {
+        if (!depLoadErr) {
+            for (var i = 0; i < parcelsLoaded.length; i++) {
+                var loadedDependencyName = refTuples[i][0];
+                dependenciesFound[loadedDependencyName] = parcelsLoaded[i];
+            }
+            cb(null, dependenciesWanted, dependenciesFound);
+        }
+        else {
+            cb(null, dependenciesWanted, dependenciesFound);
+        }
+    });
 }
 
 function derefDependency(refTuple, cb) {
