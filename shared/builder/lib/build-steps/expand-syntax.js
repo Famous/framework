@@ -96,7 +96,22 @@ function buildFunctionAST(key, value, fnStringTemplate, errorFnTemplate, type) {
 
     switch (functionKey) {
         case SETTER_STR:
-            stateName = allEventFunctionFilters(key, filters);
+            // 'setter'
+            if (filters.length === 0) {
+                stateName = key;
+            }
+            // 'setter|something'
+            else {
+                // 'setter|camel'
+                if (filters[0] === 'camel') {
+                    stateName = allEventFunctionFilters(key, filters);
+                }
+                // 'setter|state'
+                else {
+                    stateName = filters.splice(-1);
+                    stateName = allEventFunctionFilters(stateName, filters);
+                }
+            }
 
             if (type === BEHAVIOR_STR) {
                 fnString = errorFnTemplate(type, SETTER_STR, IDENTITY_STR);
@@ -112,10 +127,17 @@ function buildFunctionAST(key, value, fnStringTemplate, errorFnTemplate, type) {
             if (filters.length === 0) {
                 stateName = key;
             }
-            //'identity|myContent'
+            //'identity|something'
             else {
-                stateName = filters.splice(-1);
-                stateName = allEventFunctionFilters(stateName, filters);
+                // 'identity|camel'
+                if (filters[0] === 'camel') {
+                    stateName = allEventFunctionFilters(key, filters);
+                }
+                // 'identity|state'
+                else {
+                    stateName = filters.splice(-1);
+                    stateName = allEventFunctionFilters(stateName, filters);
+                }
             }
 
             if (type === EVENT_STR) {
