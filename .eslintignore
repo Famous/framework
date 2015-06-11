@@ -9,3 +9,4 @@ shared/builder/lib/esprima-helpers/tests/fixtures
 shared/builder/tests/fixtures
 **/~bundles/**/*
 **/~versions/**/*
+local/workspace/build/*.bundle.js
