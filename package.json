@@ -24,6 +24,8 @@
     "dev": "npm run watch-runtime & npm run bootstrap",
     "bootstrap": "rm -rf $PWD/local/workspace/build/v1 && node local/scripts/dev.js local-only-bootstrap --sourceDirectory=$PWD/components --blocksDirectory=$PWD/local/workspace/build --port=1618",
     "watch-runtime": "watchify browser/runtime/lib/index.js --standalone BEST -t [ envify --BEST_ASSET_READ_HOST http://localhost:1618 ] -o local/workspace/build/best.bundle.js --debug --verbose",
+    "build-development-runtime": "browserify browser/runtime/lib/index.js --standalone BEST -t [ envify --BEST_ASSET_READ_HOST http://localhost:1618 ] -o local/workspace/build/best.development.bundle.js",
+    "build-staging-runtime": "browserify browser/runtime/lib/index.js --standalone BEST -t [ envify --BEST_ASSET_READ_HOST http://api-te.famo.us/codemanager ] -o local/workspace/build/best.staging.bundle.js",
     "develop-component": "node local/scripts/dev.js develop-component --blocksDirectory=$PWD/local/workspace/build --port=1618",
     "publish-component": "node local/scripts/dev.js publish-component --blocksDirectory=$PWD/local/workspace/build",
     "test": "node local/scripts/test.js",
