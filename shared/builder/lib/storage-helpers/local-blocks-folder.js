@@ -234,6 +234,7 @@ function saveBundle(baseDir, info, finish) {
         path: this.options.frameworkExecutablePageAssetPath,
         content: info.frameworkExecutablePageString
     });
+    bundleFiles = bundleFiles.concat(info.assetSaveableFiles);
 
     Async.each(bundleFiles, function(file, cb) {
 

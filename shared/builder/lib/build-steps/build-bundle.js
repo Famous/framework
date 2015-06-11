@@ -59,7 +59,8 @@ function getFlatRegistrations(flatRegistrations, alreadyRegistered, parcelHash) 
     return flatRegistrations;
 }
 
-function buildRegistrationBlocks(parcelHash) {
+function buildRegistrationBlocks(info) {
+    var parcelHash = info.parcelHash;
     var flatRegistrations = getFlatRegistrations([], {}, parcelHash);
     // Remove duplicates from the registration blocks we got.
     // No point in registering them multiple times!
@@ -74,7 +75,19 @@ function buildRegistrationBlocks(parcelHash) {
         }
     }
     var flatEntrypoints = Lodash.map(uniqRegistrations, function(regObj) {
-        return regObj.entrypoint;
+        if (regObj.name === info.name) {
+            return regObj.entrypoint;
+        }
+        else {
+            // This AWFUL HACK is to correct a sort of 'off-by-one' error wherein the BUNDLE
+            // contents we want to load actually point to a previously established VERSION
+            // that we previously saved in code manager
+            var origEntrypoint = regObj.entrypoint;
+            var versionRefTheyHave = regObj.version;
+            var versionRefWeHave = info.dereffedDependencyTable[regObj.name];
+            var newEntrypoint = origEntrypoint.split(versionRefTheyHave).join(versionRefWeHave);
+            return newEntrypoint;
+        }
     });
     return flatEntrypoints.join(NEWLINE);
 }
@@ -92,7 +105,7 @@ function buildBundleString(info) {
         copyright(),
         '\'use strict\';',
         buildIncludesPrefix(info),
-        indent(buildRegistrationBlocks(info.parcelHash)),
+        indent(buildRegistrationBlocks(info)),
         buildIncludesSuffix(),
         copyright()
     ].join(NEWLINE);
@@ -103,7 +116,7 @@ function buildBundleExecutableString(info) {
         copyright(),
         '\'use strict\';',
         buildIncludesPrefix(info),
-        indent(buildRegistrationBlocks(info.parcelHash)),
+        indent(buildRegistrationBlocks(info)),
         indent(buildExecuteBlock(info)),
         buildIncludesSuffix(),
         copyright()

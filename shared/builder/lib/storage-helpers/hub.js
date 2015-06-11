@@ -311,6 +311,7 @@ function saveBundle(versionWriteHost, info, cb) {
                 path: this.options.frameworkExecutablePageAssetPath,
                 content: info.frameworkExecutablePageString
             });
+            bundleFiles = bundleFiles.concat(info.assetSaveableFiles);
 
             // Since code manager is essentially a wrapper service over git, there's no way
             // to append files to an existing version, which means that after we've
