@@ -176,7 +176,15 @@ BEST.scene('creative:twitter', {
             },
             'footer-height' : (footer) => {
                 return footer.height;
+            },
+            style: {
+                'width': '100%',
+                'height': '100%',
+                'overflow': 'hidden'
             }
+        },
+        '$self': {
+            'currentView': '[[identity|currentView]]'
         },
         //HEADER
         '.app-header': {
@@ -246,7 +254,7 @@ BEST.scene('creative:twitter', {
         },
         //BODY
         '.app-body': {
-            'overflow': 'hidden'
+            'overflow': 'scroll'
         },
         '.body-background': {
             'position-z': 2,
@@ -261,17 +269,13 @@ BEST.scene('creative:twitter', {
                 let tweets = [];
 
                 for(let i = 0, j = tweetsData.length; i < j; i++) {
-                    console.log('tweetsData', tweetsData[i].imageURL);
-
                     tweets.push({
                         model: tweetsData[i],
-                        positionY: i * 150,
+                        positionY: i * 250,
                         positionZ: 3,
-                        sizeY: 150
+                        sizeY: 250
                     });
                 }
-
-                console.log('tweets length',tweets.length);
 
                 return tweets;
             }
@@ -280,10 +284,12 @@ BEST.scene('creative:twitter', {
         '.app-footer': {
             'size-absolute-y': 45,
             'size-proportional-x': 1,
+            'position-z': 5,
             style: () => {
                 return {
                     'font-family': 'Helvetica, Arial, \'Lucida Grande\', sans-serif',
-                    'background-color': 'white'
+                    'background-color': 'white',
+                    'z-index': 5
                 };
             }
         },
@@ -331,7 +337,67 @@ BEST.scene('creative:twitter', {
             }
         }
     },
-    events: {},
+    events: {
+        '$private': {
+            'currentView': ($state, $payload) => {
+                $state.set('homeIcon', 'assets/images/home.png');
+                $state.set('notificationsIcon', 'assets/images/notifications.png');
+                $state.set('messagesIcon', 'assets/images/messages.png');
+                $state.set('profileIcon', 'assets/images/profile.png');
+                $state.set('pageTitle', $payload);
+
+                let offScreenPos = window.innerWidth;
+                let transition = {
+                    /*duration: 1000,
+                     curve: 'inOutBack'*/
+                };
+
+                if ($payload === 'home') {
+                    $state.set('homeViewPositionX', 0, transition);
+                    $state.set('notificationsViewPositionX', offScreenPos, transition);
+                    $state.set('messagesViewPositionX', offScreenPos, transition);
+                    $state.set('profileViewPositionX', offScreenPos, transition);
+                } else if($payload === 'notifications') {
+                    $state.set('homeViewPositionX', offScreenPos, transition);
+                    $state.set('notificationsViewPositionX', 0, transition);
+                    $state.set('messagesViewPositionX', offScreenPos, transition);
+                    $state.set('profileViewPositionX', offScreenPos, transition);
+                } else if($payload === 'messages') {
+                    $state.set('homeViewPositionX', offScreenPos, transition);
+                    $state.set('notificationsViewPositionX', offScreenPos, transition);
+                    $state.set('messagesViewPositionX', 0, transition);
+                    $state.set('profileViewPositionX', offScreenPos, transition);
+                } else if($payload === 'profile') {
+                    $state.set('homeViewPositionX', offScreenPos, transition);
+                    $state.set('notificationsViewPositionX', offScreenPos, transition);
+                    $state.set('messagesViewPositionX', offScreenPos, transition);
+                    $state.set('profileViewPositionX', 0, transition);
+                }
+
+                $state.set($payload + 'Icon', 'assets/images/' + $payload + '-active.png');
+            }
+        },
+        '.link-home': {
+            'click': ($state) => {
+                $state.set('currentView', 'home');
+            }
+        },
+        '.link-notifications': {
+            'click': ($state) => {
+                $state.set('currentView', 'notifications');
+            }
+        },
+        '.link-message': {
+            'click': ($state) => {
+                $state.set('currentView', 'messages');
+            }
+        },
+        '.link-profile': {
+            'click': ($state) => {
+                $state.set('currentView', 'profile');
+            }
+        }
+    },
     states: {
         currentView: 'home',
         homeViewPositionX: 0,
@@ -357,9 +423,13 @@ BEST.scene('creative:twitter', {
             iconSize: '25px',
             icons: {
                 home: '{{@CDN_PATH}}assets/images/home.png',
+                homeActive: '{{@CDN_PATH}}assets/images/home-active.png',
                 notifications: '{{@CDN_PATH}}assets/images/notifications.png',
+                notificationsActive: '{{@CDN_PATH}}assets/images/notifications-active.png',
                 messages: '{{@CDN_PATH}}assets/images/messages.png',
-                profile: '{{@CDN_PATH}}assets/images/profile.png'
+                messagesActive: '{{@CDN_PATH}}assets/images/messages-active.png',
+                profile: '{{@CDN_PATH}}assets/images/profile.png',
+                profileActive: '{{@CDN_PATH}}assets/images/profile-active.png'
             }
         }
     },
