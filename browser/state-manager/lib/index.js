@@ -101,6 +101,7 @@ StateManager.prototype.setState = function setState (key, value, transition) {
             if (!transition) {
                 this._transitionables[key].set(value, null, this._checkThenSetPool.bind(this, this._currentID));
                 setOnObject(key, value, this._state);
+                this._fireObservers(key, value);
             }
             else {
                 if (typesDoMatch) {
@@ -115,11 +116,15 @@ StateManager.prototype.setState = function setState (key, value, transition) {
         case 'Function':
             throw new Error('Cannot set state of type: ' + valueType);
         default:
-            if (transition) throw new Error('Cannot transition state of type: ' + valueType);
-            else setOnObject(key, value, this._state);
+            if (transition) {
+                throw new Error('Cannot transition state of type: ' + valueType);
+            }
+            else {
+                setOnObject(key, value, this._state);
+                this._fireObservers(key, value);
+            }
     }
 
-    this._fireObservers(key, value);
     this._setLatestStateChange(key, value);
 
     return this;
