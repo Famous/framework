@@ -1,9 +1,9 @@
 'use strict';
 
-var Utilities = require('./../utilities/utilities');
 var DataStore = require('./../data-store/data-store');
-var VirtualDOM = require('./../virtual-dom/virtual-dom');
 var Logger = require('./../logger/logger');
+var Utilities = require('./../utilities/utilities');
+var VirtualDOM = require('./../virtual-dom/virtual-dom');
 
 var FUNC = 'function';
 var REPEAT_INDEX_KEY = '$index';
@@ -109,20 +109,59 @@ Behaviors.targetMessagingBehavior = function targetMessagingBehavior(behavior, c
     var uid;
     var targetComponent;
     for (var i = 0; i < targets.length; i++) {
-        uid = VirtualDOM.getUID(targets[i]);
-        targetComponent = DataStore.getComponent(uid);
-        if (!targetComponent) {
-            var errorMsg = '' +
-                'Target messaging behavior `' + behavior.name + '` on `' + component.name + '` did not execute because ' +
-                'Component with UID ' + uid + ' does not exist. That component may have not ' +
-                'been created due to it being replaced via a `$yield` behavior applied on its parent.';
-            Logger.log(errorMsg, 1);
+        if (VirtualDOM.isValidHTMLElement(targets[i])) {
+            Behaviors.processDOMBehavior(behavior, targets[i], payload);
         }
         else {
-            targetComponent.events.sendMessage(behavior.name, payload, uid);
+            uid = VirtualDOM.getUID(targets[i]);
+            targetComponent = DataStore.getComponent(uid);
+            if (!targetComponent) {
+                var errorMsg = '' +
+                    'Target messaging behavior `' + behavior.name + '` on `' + component.name + '` did not execute because ' +
+                    'Component with UID ' + uid + ' does not exist. That component may have not ' +
+                    'been created due to it being replaced via a `$yield` behavior applied on its parent.';
+                Logger.log(errorMsg, 1);
+            }
+            else {
+                targetComponent.events.sendMessage(behavior.name, payload, uid);
+            }
         }
     }
 };
+
+Behaviors.processDOMBehavior = function(behavior, domEl, payload) {
+    var behaviorActionType = typeof domEl[behavior.name];
+    if (behavior.name === 'inner-html') {
+        domEl.innerHTML = payload;
+    }
+    else if (behavior.name === 'text-content') {
+        domEl[Utilities.camelCase(behavior.name)] = payload;
+    }
+    else {
+        domEl.setAttribute(behavior.name, payload);
+    }
+
+    // find parent component node
+    var parentNode = domEl.parentNode;
+    while (VirtualDOM.isValidHTMLElement(parentNode)) {
+        parentNode = parentNode.parentNode;
+    }
+
+    // update content by traversing children
+    var updatedContent = '';
+    var child;
+    for (var i = 0; i < parentNode.children.length; i++) {
+        child = parentNode.children[i];
+        if (VirtualDOM.isValidHTMLElement(child)) {
+            updatedContent += child.outerHTML;
+        }
+    }
+
+    // assign updated content to associated Famous DOM Element that
+    // handles all rendering
+    var domWrapper = DataStore.getDOMWrapper(VirtualDOM.getUID(parentNode));
+    domWrapper.setContent(updatedContent);
+}
 
 Behaviors.invertedBehavior = function invertedBehavior(behavior, component, targets) {
     var args = component.states.getValues(behavior.params);
