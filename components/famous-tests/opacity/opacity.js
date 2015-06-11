@@ -1,4 +1,4 @@
-BEST.module('famous-tests:opacity', {
+FamousFramework.module('famous-tests:opacity', {
     behaviors: {
         '#node1' : {
             position: [0, 50]

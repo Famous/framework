@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:engine-integration', {
+FamousFramework.scene('famous-tests:engine-integration', {
     tree: `
         <h1 style="color:white;">You should see a red box. That box is controlled by raw platform code.</h1>
         <node id="ctx"></node>

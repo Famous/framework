@@ -2,7 +2,7 @@ function foo() {
     return 1;
 }
 
-BEST.module('a', {
+FamousFramework.module('a', {
     behaviors: {
         '$self': {
             'foobar': '[[identity|fooBar]]'
@@ -16,7 +16,7 @@ BEST.module('a', {
     tree: `
         <h1>Hi</h1>
         <node><p>Foo</p></node>
-        <img src="@{CDN_PATH}foo.jpg">
+        <img src="{{@CDN_PATH}}foo.jpg">
     `
 })
 .config({

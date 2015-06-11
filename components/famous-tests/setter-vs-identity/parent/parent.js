@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:setter-vs-identity:parent', {
+FamousFramework.scene('famous-tests:setter-vs-identity:parent', {
     behaviors: {
         '#child': {
             'childSize': [300, 300]

@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:timeline:top-level-function', {
+FamousFramework.scene('famous-tests:timeline:top-level-function', {
     behaviors: {
         '#square': {
             'align': [0.5, 0.5],

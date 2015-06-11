@@ -22,7 +22,7 @@ function extractMethodChain(chain, node, parent) {
     return chain;
 }
 
-// BEST.module('a:b:c', {})
+// FamousFramework.module('a:b:c', {})
 // .lala()
 // .config({}) <~ The AST of that object is what we want
 // .other()
@@ -90,7 +90,7 @@ function extractModuleDefinitionArg(argsAST) {
 
     var moduleDefinition = argsAST[this.options.indexOfModuleDefinitionArgument];
     if (moduleDefinition.type !== 'ObjectExpression') {
-        console.warn(Chalk.gray('famous'), Chalk.yellow('warn'), 'Incorrect args to `BEST.scene` were given');
+        console.warn(Chalk.gray('famous'), Chalk.yellow('warn'), 'Incorrect args to `FamousFramework.scene` were given');
     }
 
     return moduleDefinition;

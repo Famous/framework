@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter:messages:message', {
+FamousFramework.scene('creative:twitter:messages:message', {
     behaviors: {
         '.message': {
 

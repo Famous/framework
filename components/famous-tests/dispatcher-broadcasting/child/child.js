@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:dispatcher-broadcasting:child', {
+FamousFramework.scene('famous-tests:dispatcher-broadcasting:child', {
     behaviors: {
         '#child': {
             'align': [0.5, 0.5],

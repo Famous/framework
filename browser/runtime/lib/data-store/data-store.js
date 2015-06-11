@@ -2,16 +2,16 @@
 
 var ObjUtils = require('./../../../utilities/object');
 
-// A BEST Application with a Famo.us Context
+// A FamousFramework Application with a Famo.us Context
 var EXECUTED_COMPONENTS = {};
 
-// A component is an instantiated BEST module.
+// A component is an instantiated FamousFramework module.
 var COMPONENTS = {};
 
 // List of the tagged dependencies of every tagged module.
 var DEPENDENCIES = {};
 
-// A module is a BEST definition.
+// A module is a FamousFramework definition.
 var MODULES = {};
 
 // Config objects

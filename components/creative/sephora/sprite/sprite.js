@@ -15,7 +15,7 @@ const SPRITE_TYPES = {
     'light': [15, 15],
     'no': [280, 280]
 };
-BEST.module('creative:sephora:sprite', {
+FamousFramework.module('creative:sephora:sprite', {
     behaviors: {
         '$self': {
             'add-class': currType => { return `sephora-${currType === 'no' ? 'icon' : 'sprite'}-${currType}`; },

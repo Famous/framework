@@ -1,4 +1,4 @@
-BEST.module('famous-demos:styling-inner-content', {
+FamousFramework.module('famous-demos:styling-inner-content', {
     behaviors: {
         'node' : {
             position: [100, 100],
@@ -11,7 +11,7 @@ BEST.module('famous-demos:styling-inner-content', {
             },
             template: function(color, fontFamily) {
                 return {
-                    'link-style' : BEST.helpers.formatStyle({
+                    'link-style' : FamousFramework.helpers.formatStyle({
                         'color': color,
                         'font-family': fontFamily,
                         'font-size' : '30px',

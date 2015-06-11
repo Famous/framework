@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:custom-famous-node', {
+FamousFramework.scene('famous-tests:custom-famous-node', {
     behaviors: {
         '$self' : {
             'set-top-padding' : '[[identity|topPadding]]',

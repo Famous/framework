@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:router-test', {
+FamousFramework.scene('famous-tests:router-test', {
     behaviors: {
         '#home': {
             '$if': function($route) { return $route === '/home'  }

@@ -95,13 +95,11 @@
             'famous-tests:opacity',
             'famous-tests:pass-through',
             'famous-tests:pass-through:child-component',
-            'famous-tests:platform-a',
             'famous-tests:scope',
             'famous-tests:size-change-event',
             'famous-tests:state-manager-test',
             'famous-tests:static-assets',
             'famous-tests:static-assets:more-assets',
-            'famous-tests:timeline:example',
             'famous-tests:timeline:top-level-function',
             'famous-tests:weird-files',
 
@@ -112,12 +110,12 @@
         var iframeEl = document.getElementById('iframe');
         var modSpan  = document.getElementById('current-module-name-span');
         function updateCurrentModule(name) {
-            iframeEl.setAttribute('src', 'index.html?best=' + currentModule);
+            iframeEl.setAttribute('src', 'index.html?ff=' + currentModule);
             modSpan.innerText = currentModule;
-            window.history.pushState(currentModule, 'Famous Framework (tests page)', 'tests.html?best=' + currentModule);
+            window.history.pushState(currentModule, 'Famous Framework (tests page)', 'tests.html?ff=' + currentModule);
         }
 
-        var currentModule = QUERY.best || 'famous-demos:clickable-square';
+        var currentModule = QUERY.ff || 'famous-demos:clickable-square';
         updateCurrentModule(currentModule);
 
         var nextButtonEl = document.getElementById('next-button');        

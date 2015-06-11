@@ -1,4 +1,4 @@
-BEST.scene('famous-demos:animation-timeline', {
+FamousFramework.scene('famous-demos:animation-timeline', {
     /**
      * Behaviors:
      *      Target each circle in our tree

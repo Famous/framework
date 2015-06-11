@@ -1,4 +1,4 @@
-BEST.module('famous:core:ui-element', {
+FamousFramework.module('famous:core:ui-element', {
     behaviors: {
         '$self' : {
             '$yield': true,

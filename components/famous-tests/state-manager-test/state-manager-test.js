@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:state-manager-test', {
+FamousFramework.scene('famous-tests:state-manager-test', {
     behaviors: {
         '#element': {
             'position': function(position) {

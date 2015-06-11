@@ -1,3 +1,3 @@
 # workspace
 
-Local development workspace for core BEST framework engineers
+Local development workspace for core Famous Framework engineers

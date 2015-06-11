@@ -5,9 +5,9 @@ var b = 1;
 var c = [[2,'3',(function(){return 1;})]];
 var d = 1+3*654;
 var f = Math.pow(23, 2);
-BEST.component('foo', { a: 1 });
-BEST.component('foo:bar', { a: function(b,c,d){return {};} });
-BEST.component('foo', {
+FamousFramework.component('foo', { a: 1 });
+FamousFramework.component('foo:bar', { a: function(b,c,d){return {};} });
+FamousFramework.component('foo', {
 }).config({
     imports: ['woo']
 })

@@ -97,6 +97,6 @@ PaddedNode.prototype.getLeftPadding = function getLeftPadding(leftPadding) {
 window.famousNode = new Node();
 window.paddedNode = new PaddedNode();
 
-BEST.registerCustomFamousNodeConstructors({
+FamousFramework.registerCustomFamousNodeConstructors({
     'PaddedNode' : PaddedNode
 });

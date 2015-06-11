@@ -2,17 +2,17 @@
 
 window.Famous = require('famous');
 var test = require('tape');
-var BEST = require('../../lib/index');
+var FamousFramework = require('../../lib/index');
 var DataStore = require('../../lib/data-store/data-store');
 
-test('----- BEST', function(t) {
+test('----- FamousFramework', function(t) {
     t.plan(1);
 
     t.test('exports', function(st) {
         st.plan(4);
-        st.ok(BEST, 'BEST exports');
+        st.ok(FamousFramework, 'FamousFramework exports');
         st.ok(DataStore, 'DataStore exports');
-        st.ok(BEST.register && BEST.execute && BEST.message && BEST.deploy, 'BEST exports register/execture/message/deploy');
-        st.ok(BEST.register === BEST.scene && BEST.register === BEST.module && BEST.register === BEST.component, 'BEST aliases `scene`/`module`/`component` to `register`.');
+        st.ok(FamousFramework.register && FamousFramework.execute && FamousFramework.message && FamousFramework.deploy, 'FamousFramework exports register/execture/message/deploy');
+        st.ok(FamousFramework.register === FamousFramework.scene && FamousFramework.register === FamousFramework.module && FamousFramework.register === FamousFramework.component, 'FamousFramework aliases `scene`/`module`/`component` to `register`.');
     });
 });

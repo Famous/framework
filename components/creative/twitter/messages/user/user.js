@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter:messages:user', {
+FamousFramework.scene('creative:twitter:messages:user', {
     behaviors: {
         '.user': {
             'size-absolute-y': '[[identity|sizeY]]',

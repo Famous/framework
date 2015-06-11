@@ -1,4 +1,4 @@
-BEST.module('famous-tests:pass-through', {
+FamousFramework.module('famous-tests:pass-through', {
     behaviors: {
         '#container' : {
             position: [50, 50]

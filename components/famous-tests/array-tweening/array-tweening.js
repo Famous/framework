@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:array-tweening', {
+FamousFramework.scene('famous-tests:array-tweening', {
     behaviors: {
         '#square': {
             'position': '[[identity|position]]',

@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:setter-vs-identity:child', {
+FamousFramework.scene('famous-tests:setter-vs-identity:child', {
     behaviors: {
         '#square': {
             'size': '[[identity|squareSize]]', // try changing this to '[[setter|squareSize]]'

@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:dispatcher-broadcasting', {
+FamousFramework.scene('famous-tests:dispatcher-broadcasting', {
     behaviors: {
         '#parent': {
             'size': [window.innerWidth, window.innerHeight]

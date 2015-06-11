@@ -31,7 +31,7 @@ Assistant.DEFAULTS = {
         'node_modules': true,
         '.git': true
     },
-    moduleNameRegexp: /BEST.(scene|module|register|component)\(\'(\S+)\'/gi
+    moduleNameRegexp: /FamousFramework.(scene|module|register|component)\(\'(\S+)\'/gi
 };
 
 Assistant.prototype.setOptions = function(options) {

@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:static-assets', {
+FamousFramework.scene('famous-tests:static-assets', {
     behaviors: {
         '#one-a': {
             'content': '<img src="{{@assets/excite.png}}"><p style="color:white;">You should see several images on this page, showing that assets can be loaded/referenced in a variety of ways</p>'

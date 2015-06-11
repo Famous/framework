@@ -1,4 +1,4 @@
-BEST.module('famous-tests:scope', {
+FamousFramework.module('famous-tests:scope', {
     behaviors: {
         '#node' : {
             'content' : 'This square should be blue. \n\n The other square should be gray.',

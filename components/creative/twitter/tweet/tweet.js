@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter:tweet', {
+FamousFramework.scene('creative:twitter:tweet', {
     behaviors: {
         '.tweet': {
             'size-absolute-y': '[[identity|sizeY]]',

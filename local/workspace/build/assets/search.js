@@ -1,13 +1,13 @@
 'use strict';
 
 (function() {
-    var searchContainer = document.getElementById('best-components-search');
-    var searchBtn = searchContainer.querySelector('.best-components-search-btn');
-    var searchDropdown = searchContainer.querySelector('.best-components-search-dropdown');
+    var searchContainer = document.getElementById('famous-framework-components-search');
+    var searchBtn = searchContainer.querySelector('.famous-framework-components-search-btn');
+    var searchDropdown = searchContainer.querySelector('.famous-framework-components-search-dropdown');
     var searchInput = searchContainer.querySelector('input');
     var searchScenes = searchContainer.querySelector('ul');
     var searchScenesOptions = searchScenes.querySelectorAll('li');
-    var stage = document.getElementById('best-stage');
+    var stage = document.getElementById('famous-framework-stage');
     searchBtn.addEventListener('click', function() {
         if (searchContainer.className === '') {
             searchContainer.className = 'active';
@@ -23,11 +23,11 @@
     [].forEach.call(searchScenesOptions, function(li) {
         li.addEventListener('click', function(event) {
             searchInput.value = event.currentTarget.textContent;
-            window.location.search = '?best=' + event.currentTarget.textContent;
+            window.location.search = '?ff=' + event.currentTarget.textContent;
         });
     });
 
-    var query = QUERY.best;
+    var query = QUERY.ff;
 
     searchInput.value = query || 'clickable-square';
 
@@ -35,10 +35,10 @@
         query = query.split('/')[0];
         console.log('query: ', query);
         if (query.split(':').length < 2) query = 'famous-demos:' + query;
-        BEST.deploy(query, 'HEAD', '#best-stage');
+        FamousFramework.deploy(query, 'HEAD', '#famous-framework-stage');
     }
     else {
-        BEST.deploy('famous-demos:clickable-square', 'HEAD', '#best-stage');
+        FamousFramework.deploy('famous-demos:clickable-square', 'HEAD', '#famous-framework-stage');
     }
 
     // Hack to mask FOUC when using align

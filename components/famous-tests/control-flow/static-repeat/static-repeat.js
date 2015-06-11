@@ -1,4 +1,4 @@
-BEST.module('famous-tests:control-flow:static-repeat', {
+FamousFramework.module('famous-tests:control-flow:static-repeat', {
     behaviors: {
         '#repeat': {
             size: [100, 100],

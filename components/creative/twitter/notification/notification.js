@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter:notification', {
+FamousFramework.scene('creative:twitter:notification', {
     behaviors: {},
     events: {},
     states: {},

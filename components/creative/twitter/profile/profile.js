@@ -1,4 +1,4 @@
-BEST.scene('creative:twitter:profile', {
+FamousFramework.scene('creative:twitter:profile', {
     behaviors: {},
     events: {},
     states: {},

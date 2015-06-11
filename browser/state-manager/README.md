@@ -1,3 +1,3 @@
 # state-manager
 
-Manages state values for individual BEST modules
+Manages state values for individual Famous Framework modules

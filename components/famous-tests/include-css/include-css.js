@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:include-css', {
+FamousFramework.scene('famous-tests:include-css', {
     tree: `
         <h1 id="my-h1">Testing that CSS is included via includes correctly</h1>
         <h2>You should see a blug background, white large header text, and three orange underlined ahoys.</h2>

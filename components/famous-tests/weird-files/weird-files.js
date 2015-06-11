@@ -1,5 +1,5 @@
 function foo(){}
-BEST.scene('famous-tests:weird-files', {
+FamousFramework.scene('famous-tests:weird-files', {
     tree: `
         <h1 style="color:white">
             Nothing visible should be on this page (except this message).

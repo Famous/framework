@@ -166,7 +166,7 @@ const Tweets = [
     }
 ];
 
-BEST.scene('creative:twitter', {
+FamousFramework.scene('creative:twitter', {
     behaviors: {
         '#container': {
             'align': [0.5, 0],

@@ -1,4 +1,4 @@
-BEST.scene('famous-demos:repeat-color-wheel', {
+FamousFramework.scene('famous-demos:repeat-color-wheel', {
     /**
      * Behaviors:
      *      Target the line in our tree

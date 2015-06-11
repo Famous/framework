@@ -19,13 +19,13 @@ function Deployer() {
 Deployer.DEFAULTS = {
     componentDelimiter: ':',
     bundleAssetPath: '~bundles/bundle.js',
-    codeManagerAssetReadHost: process.env.BEST_ASSET_READ_HOST,
+    codeManagerAssetReadHost: process.env.FF_ASSET_READ_HOST,
     codeManagerApiVersion: 'v1',
     codeManagerAssetGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath'
 };
 
 if (!Deployer.DEFAULTS.codeManagerAssetReadHost || Deployer.DEFAULTS.codeManagerAssetReadHost === 'undefined') {
-    throw new Error('To build the runtime, you must specify a `BEST_ASSET_READ_HOST`/`options.codeManagerAssetReadHost`');
+    throw new Error('To build the runtime, you must specify a `FF_ASSET_READ_HOST`/`options.codeManagerAssetReadHost`');
 }
 
 Deployer.prototype.getModulePath = function(name) {

@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:component-composition', {
+FamousFramework.scene('famous-tests:component-composition', {
     behaviors: {
         '#box1': {
             'size': [200, 200],

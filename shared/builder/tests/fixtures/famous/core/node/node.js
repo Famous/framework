@@ -1,4 +1,4 @@
-BEST.module('famous:core:node', {
+FamousFramework.module('famous:core:node', {
 
 }).
 config({

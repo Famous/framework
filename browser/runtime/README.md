@@ -1,3 +1,3 @@
 # runtime
 
-Browser runtime for the BEST framework.
+Browser runtime for the Famous Framework.

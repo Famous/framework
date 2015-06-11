@@ -1,4 +1,4 @@
-BEST.scene('famous-demos:lifecycle', {
+FamousFramework.scene('famous-demos:lifecycle', {
     /**
      * Behaviors:
      *      Target the ball and ground in our tree

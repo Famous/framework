@@ -5,7 +5,7 @@ var FamousEngine = window.FamousEngine = require('famous/core/FamousEngine');
 
 FamousEngine.init();
 
-var COMPONENT_PREFIX = '__best-';
+var COMPONENT_PREFIX = '__famousFramework-';
 
 var RENDERING_COMPONENTS = {
     'DOMElement': require('famous/dom-renderables/DOMElement'),
@@ -26,8 +26,8 @@ function createRoot(selector) {
     return context.addChild();
 }
 
-function attachAttributes(bestComponent, domComponent) {
-    var domNode = bestComponent.getRootNode();
+function attachAttributes(famousFrameworkComponent, domComponent) {
+    var domNode = famousFrameworkComponent.getRootNode();
     var id = domNode.id;
     if (id) {
         domComponent.setId(id);
@@ -39,8 +39,8 @@ function attachAttributes(bestComponent, domComponent) {
     }
 }
 
-function decorateComponent(bestComponent, decoratorType) {
-    var renderNode = bestComponent.famousNode;
+function decorateComponent(famousFrameworkComponent, decoratorType) {
+    var renderNode = famousFrameworkComponent.famousNode;
     var componentName = COMPONENT_PREFIX + decoratorType;
     if (!renderNode[componentName]) {
         var Ctor = RENDERING_COMPONENTS[decoratorType];
@@ -52,7 +52,7 @@ function decorateComponent(bestComponent, decoratorType) {
         }
 
         if (decoratorType === 'DOMElement') {
-            attachAttributes(bestComponent, renderNode[componentName]);
+            attachAttributes(famousFrameworkComponent, renderNode[componentName]);
         }
     }
     return renderNode[componentName];

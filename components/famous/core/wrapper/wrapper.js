@@ -1,4 +1,4 @@
-BEST.module('famous:core:wrapper', {
+FamousFramework.module('famous:core:wrapper', {
     behaviors: {
         '$self': {
             '$yield': true

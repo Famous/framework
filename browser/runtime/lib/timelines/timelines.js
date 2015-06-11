@@ -1,6 +1,6 @@
 'use strict';
 
-/*global BEST*/
+/*global FamousFramework*/
 
 var EventHandler = require('./../utilities/event-handler');
 
@@ -44,7 +44,7 @@ Timelines.prototype._createBehaviors = function _createBehaviors(timelineDeclara
 
             this._states.subscribeTo(time, function(definition, timeline) {
                 var time = this._states.get(definition.timeName);
-                var value = BEST.helpers.piecewise(timeline)(time);
+                var value = FamousFramework.helpers.piecewise(timeline)(time);
                 definition.action = value;
                 this._states.emit('behavior-update', definition);
             }.bind(this, definition, timeline));

@@ -1,15 +1,15 @@
-#best-components-search {
+#famous-framework-components-search {
     left: 0;
     top: 0;
     width: 100%;
     z-index: 99999;
 }
 
-#best-components-search > button,
-#best-components-search > form,
-#best-components-search > form > input,
-#best-components-search > form > ul,
-#best-components-search > form > ul > li {
+#famous-framework-components-search > button,
+#famous-framework-components-search > form,
+#famous-framework-components-search > form > input,
+#famous-framework-components-search > form > ul,
+#famous-framework-components-search > form > ul > li {
     border: 0;
     border-radius: 0;
     color: rgba(212, 233, 249, 1);
@@ -19,37 +19,37 @@
     font-family: 'Lato', Helvetica, sans-serif;
 }
 
-#best-components-search > form,
-#best-components-search > form > input,
-#best-components-search > form > ul > li {
+#famous-framework-components-search > form,
+#famous-framework-components-search > form > input,
+#famous-framework-components-search > form > ul > li {
     position: relative;
 }
 
-#best-components-search,
-#best-components-search > button,
-#best-components-search > form > ul,
-#best-components-search.active > button.best-components-search-dropdown:before {
+#famous-framework-components-search,
+#famous-framework-components-search > button,
+#famous-framework-components-search > form > ul,
+#famous-framework-components-search.active > button.famous-framework-components-search-dropdown:before {
     position: absolute;
 }
 
-#best-components-search > form,
-#best-components-search > form > input,
-#best-components-search > form > ul,
-#best-components-search > form > ul > li {
+#famous-framework-components-search > form,
+#famous-framework-components-search > form > input,
+#famous-framework-components-search > form > ul,
+#famous-framework-components-search > form > ul > li {
     width: 100%;
 }
 
-#best-components-search > button,
-#best-components-search > form > input {
+#famous-framework-components-search > button,
+#famous-framework-components-search > form > input {
     height: 52px;
     line-height: 50px;
 }
-#best-components-search > form > input,
-#best-components-search > form > ul > li {
+#famous-framework-components-search > form > input,
+#famous-framework-components-search > form > ul > li {
     text-indent: 60px;
 }
 
-#best-components-search > button {
+#famous-framework-components-search > button {
     opacity: .2;
     top: 0;
     -webkit-transition: opacity ease-out 200ms, -webkit-transform ease-out 200ms;
@@ -58,43 +58,43 @@
     z-index: 2;
 }
 
-#best-components-search > form {
+#famous-framework-components-search > form {
     z-index: 1;
 }
 
-#best-components-search.active > button {
+#famous-framework-components-search.active > button {
     opacity: 0.4;
 }
 
-#best-components-search > button:active,
-#best-components-search > button:hover {
+#famous-framework-components-search > button:active,
+#famous-framework-components-search > button:hover {
     opacity: 0.7;
 }
 
-#best-components-search > button:active,
-#best-components-search > button:focus,
-#best-components-search > form > input:active,
-#best-components-search > form > input:focus {
+#famous-framework-components-search > button:active,
+#famous-framework-components-search > button:focus,
+#famous-framework-components-search > form > input:active,
+#famous-framework-components-search > form > input:focus {
     outline: none;
 }
-#best-components-search > button,
-#best-components-search > form > ul {
+#famous-framework-components-search > button,
+#famous-framework-components-search > form > ul {
     cursor: pointer;
 }
 
 /* button styles */
-#best-components-search > button.best-components-search-btn {
+#famous-framework-components-search > button.famous-framework-components-search-btn {
     left: 0;
     background: url(search-icon.svg) no-repeat top left;
     background-size: 50px 50px;
 }
-#best-components-search > button.best-components-search-dropdown {
+#famous-framework-components-search > button.famous-framework-components-search-dropdown {
     background: transparent;
     right: 0;
     -webkit-transform: translateY(-100px);
     transform: translateY(-100px);
 }
-#best-components-search > button.best-components-search-dropdown:before {
+#famous-framework-components-search > button.famous-framework-components-search-dropdown:before {
     background: none;
     border-left: 20px solid transparent;
     border-right: 20px solid transparent;
@@ -107,17 +107,17 @@
     transition: transform ease-out 200ms;
     width: 0;
 }
-#best-components-search.expanded > button.best-components-search-dropdown:before {
+#famous-framework-components-search.expanded > button.famous-framework-components-search-dropdown:before {
     -webkit-transform: rotate(180deg);
     transform: rotate(180deg);
 }
-#best-components-search.active > button.best-components-search-dropdown {
+#famous-framework-components-search.active > button.famous-framework-components-search-dropdown {
     -webkit-transform: translateY(0px);
     transform: translateY(0px);
 }
 
 /* input styles */
-#best-components-search > form > input {
+#famous-framework-components-search > form > input {
     background: rgba(28, 48, 68, 0.7);
     border-color: #7099ee;
     border-style: solid;
@@ -129,32 +129,32 @@
     z-index: 2;
 }
 
-#best-components-search.active > form > input {
+#famous-framework-components-search.active > form > input {
     -webkit-transform: translateY(0px);
     transform: translateY(0px);
 }
 
 /* list styles */
-#best-components-search > form > ul {
+#famous-framework-components-search > form > ul {
     -webkit-transform: translateY(-800px);
     transform: translateY(-800px);
     -webkit-transition: -webkit-transform ease-out 400ms;
     transition: transform ease-out 400ms;
     z-index: 1;
 }
-#best-components-search.expanded > form > ul {
+#famous-framework-components-search.expanded > form > ul {
     -webkit-transform: translateY(0px);
     transform: translateY(0px);
 }
-#best-components-search > form > ul > li {
+#famous-framework-components-search > form > ul > li {
     background: rgba(28, 48, 68, 0.7);
     color: rgba(212, 233, 249, 0.7);
     padding: 4px;
 }
-#best-components-search > form > ul > li:last-child {
+#famous-framework-components-search > form > ul > li:last-child {
     padding-bottom: 14px;
 }
-#best-components-search > form > ul > li:hover {
+#famous-framework-components-search > form > ul > li:hover {
     color: rgba(212, 233, 249, 1);
 }
 

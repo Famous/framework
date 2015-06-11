@@ -1,4 +1,4 @@
-BEST.scene('famous-tests:dispatcher-trigger', {
+FamousFramework.scene('famous-tests:dispatcher-trigger', {
     behaviors: {
         '#element': {
             'align': [0.5, 0.5],

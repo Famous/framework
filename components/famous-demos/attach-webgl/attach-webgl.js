@@ -1,4 +1,4 @@
-BEST.scene('famous-demos:attach-webgl', {
+FamousFramework.scene('famous-demos:attach-webgl', {
     /**
      * Behaviors:
      *      Target the view in our tree

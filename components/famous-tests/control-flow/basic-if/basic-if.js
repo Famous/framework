@@ -1,4 +1,4 @@
-BEST.module('famous-tests:control-flow:basic-if', {
+FamousFramework.module('famous-tests:control-flow:basic-if', {
     behaviors: {
         '#button' : {
             position: [200, 50],

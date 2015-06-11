@@ -1,4 +1,4 @@
-BEST.scene('famous-demos:clickable-square', {
+FamousFramework.scene('famous-demos:clickable-square', {
     /**
      * Behaviors:
      *      Target the square in our tree

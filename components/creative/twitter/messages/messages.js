@@ -31,7 +31,7 @@ const Users = [
     }
 ];
 
-BEST.scene('creative:twitter:messages', {
+FamousFramework.scene('creative:twitter:messages', {
     behaviors: {
         '.user': {
             '$repeat': (users) => {

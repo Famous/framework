@@ -1,4 +1,4 @@
-BEST.module('famous:core:components', {
+FamousFramework.module('famous:core:components', {
     events: {
         '$public': {
             'align': function($famousNode, $payload) { $famousNode.setAlign($payload[0], $payload[1], $payload[2]); },

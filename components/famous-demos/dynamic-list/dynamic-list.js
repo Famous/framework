@@ -9,7 +9,7 @@ function getColorStep(step) {
     return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
-BEST.module('famous-demos:dynamic-list', {
+FamousFramework.module('famous-demos:dynamic-list', {
     behaviors: {
         '#container': {
             'align': [0.4, 0.1],

@@ -1,4 +1,4 @@
-# Contributing to BEST
+# Contributing to Famous Framework
 
 ## Workflow
 

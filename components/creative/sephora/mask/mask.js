@@ -1,4 +1,4 @@
-BEST.module('creative:sephora:mask', {
+FamousFramework.module('creative:sephora:mask', {
     behaviors: {
         '$self': {
             'align': '[[identity|align]]',

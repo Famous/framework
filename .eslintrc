@@ -28,7 +28,8 @@
         "node": true
     },
     "globals": {
-        "BEST": true,
+        "FF": true,
+        "FamousFramework": true,
         "QUERY": true
     },
     "parser": "babel-eslint",
@@ -36,7 +37,7 @@
         // Possible Errors
         "comma-dangle": 1,
         "valid-jsdoc": 0, //Moved to a separate script check-jsdoc
-        // Best Practices
+        // Better Practices
         "block-scoped-var": 0,
         "curly": [0, "multi"],
         "dot-location": [0, "object"], //Too much noise for now, might consider to enable it as a warning later

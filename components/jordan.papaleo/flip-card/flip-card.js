@@ -1,4 +1,4 @@
-BEST.scene('jordan.papaleo:flip-card', {
+FamousFramework.scene('jordan.papaleo:flip-card', {
     behaviors: {
         '.flip-card': {
             'align': [.5, 0],

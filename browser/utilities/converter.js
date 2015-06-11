@@ -3,13 +3,13 @@
 /**
  * Converter
  *
- * Converts between 'sweet' (BEST timeline)
+ * Converts between 'sweet' (FamousFramework timeline)
  * and 'salty' (piecewise timeline) representations
  * for easier interfacing of the two timelines.
  */
 
 /**
- * Converts BEST timeline
+ * Converts FamousFramework timeline
  * to piecewise timeline representation.
  */
 function sweetToSalty(sweetTimeline, options) {
@@ -44,7 +44,7 @@ function sweetToSalty(sweetTimeline, options) {
 
 /**
  * Converts piecewise timeline
- * to BEST timeline representation.
+ * to FamousFramework timeline representation.
  */
 function saltyToSweet(saltyTimeline, options) {
     var sweetTimeline = {};

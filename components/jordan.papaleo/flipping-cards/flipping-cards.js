@@ -57,7 +57,7 @@ var blar = [
     }
 ];
 
-BEST.scene('jordan.papaleo:flipping-cards', {
+FamousFramework.scene('jordan.papaleo:flipping-cards', {
     behaviors: {
         '.flip-card': {
             '$repeat': (cards) => {

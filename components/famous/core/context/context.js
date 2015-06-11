@@ -1,4 +1,4 @@
-BEST.module('famous:core:context', {
+FamousFramework.module('famous:core:context', {
     events: {
         '$public': {
             'attach': function($payload, $famousNode) {

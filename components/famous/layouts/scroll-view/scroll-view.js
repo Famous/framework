@@ -1,4 +1,4 @@
-BEST.scene('famous:layouts:scroll-view', {
+FamousFramework.scene('famous:layouts:scroll-view', {
     behaviors: {
         '$self': {
             position: '[[identity|scrollViewPosition]]', 

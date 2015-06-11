@@ -131,7 +131,7 @@ Component.prototype._processDOMMessages = function _processDOMMessages() {
 };
 
 Component.prototype._processRoute = function _processRoute() {
-    // turns http://localhost:1618/?best=famous-tests%3Arouter-test/home/page1 -> /home/page1
+    // turns http://localhost:1618/?ff=famous-tests%3Arouter-test/home/page1 -> /home/page1
     this.states.set(ROUTE_KEY, '/' + window.location.href.split('/').slice(4).join('/'));
 };
 

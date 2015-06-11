@@ -1,4 +1,4 @@
-BEST.scene('famous-demos:scroll-view-example', {
+FamousFramework.scene('famous-demos:scroll-view-example', {
     behaviors: {
         '$self': {
         },

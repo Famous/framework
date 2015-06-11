@@ -2,8 +2,8 @@
 
 #### *June 3, 2015*
 
-* Removed need for explicit refs when attaching (`BEST.attach('foobar', 'HEAD', ...)`)
-* Removed need for explicit version/tag (`BEST.scene(..., 'HEAD', ...)`)
+* Removed need for explicit refs when attaching (`FamousFramework.attach('foobar', 'HEAD', ...)`)
+* Removed need for explicit version/tag (`FamousFramework.scene(..., 'HEAD', ...)`)
 * Refactored build process for Famous Hub support
 * Refactored `ecosystem` into modules; removed API server
 * Added `$dispatcher.trigger()` for targeting oneself
@@ -34,7 +34,7 @@
 
 #### *May 27, 2015*
 
-- Allowed HTML files to be included: `BEST.scene(...).config({ includes: ['foo.html'] });`
+- Allowed HTML files to be included: `FamousFramework.scene(...).config({ includes: ['foo.html'] });`
 - Added linting
 
 #### *May 26, 2015*

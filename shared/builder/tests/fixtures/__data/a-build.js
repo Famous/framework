@@ -1,9 +1,10 @@
 // Copyright 2015 (c) Famous Industries, Inc.
 'use strict';
-BEST.includes("a","HEAD",["a.css","other.js","yaya.css"],function(){
+FamousFramework.includes("a","HEAD",["a.css","other.js","yaya.css"],function(){
     'use strict';
-    BEST.module('famous:core:node', 'HEAD', {
+    FamousFramework.module('famous:core:node', 'HEAD', {
         'dependencies': {},
+        'famousNodeConstructorName': '',
         'extensions': []
     }, {}).config({
         'extends': [],
@@ -11,15 +12,16 @@ BEST.includes("a","HEAD",["a.css","other.js","yaya.css"],function(){
     });
     function fromOther() {
     }
-    BEST.attach('a', 'HEAD', '#ctx', function (node) {
+    FamousFramework.attach('a', 'HEAD', '#ctx', function (node) {
         console.log(node);
     });
     'use strict';
     function foo() {
         return 1;
     }
-    BEST.module('a', 'HEAD', {
+    FamousFramework.module('a', 'HEAD', {
         'dependencies': { 'famous:core:node': 'HEAD' },
+        'famousNodeConstructorName': '',
         'extensions': [{
                 'name': 'famous:core:node',
                 'version': 'HEAD'

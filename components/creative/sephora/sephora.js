@@ -4,7 +4,7 @@ function getLetterPosition(val) {
     return ~~(LETTER_SPACING * val * 100) / 100;
 }
 
-BEST.module('creative:sephora', {
+FamousFramework.module('creative:sephora', {
     behaviors: {
         '#background': { 'style': { background: '#000' } },
         '#bottle': { 'type': 'bottle' },

@@ -1,10 +1,10 @@
-BEST.module('famous:layouts:header-footer', {
+FamousFramework.module('famous:layouts:header-footer', {
     tree: 'header-footer.html',
     behaviors: {
         '#header' : {
             /*
             $yield is a special type of "control-flow behavior". It is at the core of
-            what enables components in the BEST framework to be composable. Setting $yield
+            what enables components in the Famous Framework to be composable. Setting $yield
             on a component tells the system that it is ok for a parent component to inject
             components inside of a child component. Values for $yield are either a boolean,
             which signifies that the parent component can add any component into the child,

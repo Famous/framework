@@ -1,4 +1,4 @@
-BEST.module('famous-tests:scope:child', {
+FamousFramework.module('famous-tests:scope:child', {
     behaviors: {
         "#node" : {
             style: {

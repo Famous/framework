@@ -152,7 +152,7 @@ Builder.DEFAULTS = {
     behaviorSetterRegex: /^\[\[[\w|\|]+\]\]$/,
     componentDelimiter: ':', // e.g. my:great:module
     componentDelimiterRegexp: /:/g,
-    configMethodIdentifier: 'config', // e.g. BEST.scene(...).config({...})
+    configMethodIdentifier: 'config', // e.g. FamousFramework.scene(...).config({...})
     defaultExtends: ['famous:core:node'],
     defaultImports: {
         'famous:core': [
@@ -186,21 +186,21 @@ Builder.DEFAULTS = {
         ]
     },
     frameworkFilename: '.famous/framework.json',
-    dependenciesKeyName: 'dependencies', // e.g. BEST.scene(...).config({dependencies:{...}})
+    dependenciesKeyName: 'dependencies', // e.g. FamousFramework.scene(...).config({dependencies:{...}})
     dependencyBlacklist: { 'localhost': true },
     dependencyRegexp: /([\w-_.]+:)+(([\w-_.]+(?=[\s|>|\/]))|([\w-_.]+(?=:)))/ig,
     entrypointExtnames: { '.js': true },
     eventsFacetKeyName: 'events',
-    importsKeyName: 'imports', // e.g. BEST.scene(...).config({imports:{...}})
-    indexOfModuleNameArgument: 0, // e.g. BEST.scene('THIS STRING', {...})
-    indexOfModuleDefinitionArgument: 1, // e.g. BEST.scene('foo'. {THIS OBJECT})
-    indexOfModuleConfigArgument: 0, // e.g. BEST.scene(...).config({THIS OBJECT})
+    importsKeyName: 'imports', // e.g. FamousFramework.scene(...).config({imports:{...}})
+    indexOfModuleNameArgument: 0, // e.g. FamousFramework.scene('THIS STRING', {...})
+    indexOfModuleDefinitionArgument: 1, // e.g. FamousFramework.scene('foo'. {THIS OBJECT})
+    indexOfModuleConfigArgument: 0, // e.g. FamousFramework.scene(...).config({THIS OBJECT})
     libraryInvocationIdentifiers: {
-        'module': true, // BEST.module(...) // All these are equivalent on the client
-        'component': true, // BEST.component(...)
-        'scene': true // BEST.scene(...)
+        'module': true, // FamousFramework.module(...) // All these are equivalent on the client
+        'component': true, // FamousFramework.component(...)
+        'scene': true // FamousFramework.scene(...)
     },
-    libraryMainNamespace: 'BEST',
+    libraryMainNamespace: 'FamousFramework',
     moduleCDNRegexp: /\{\{@CDN_PATH(\|)?(([a-zA-Z0-9\:\.-])?)+\}\}/ig,
     passThroughKey: '$pass-through',
     reservedEventValues: {},

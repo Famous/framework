@@ -189,7 +189,7 @@ function expandLibraryInvocation(info, moduleName, libraryInvocation) {
     if (!libraryInvocation.arguments) {
         libraryInvocation.arguments = [];
     }
-    // Make the version ref the second argument to BEST.scene(...)
+    // Make the version ref the second argument to FamousFramework.scene(...)
     // since the client-side uses the ref internally for managing objects
     var moduleNameArgAST = EsprimaHelpers.buildStringLiteralAST(moduleName);
     var versionRefArgAST = EsprimaHelpers.buildStringLiteralAST(info.versionRef || this.options.defaultDependencyVersion);

@@ -40,7 +40,7 @@ function getFlatIncludes(flatIncludes, parcelHash) {
 function buildIncludesPrefix(info) {
     var parcelHash = info.parcelHash;
     var flatIncludes = getFlatIncludes([], parcelHash);
-    return 'BEST.includes("' + info.name + '","' + (info.explicitVersion || info.versionRef) + '",' + JSON.stringify(flatIncludes) + ',function(){';
+    return 'FamousFramework.includes("' + info.name + '","' + (info.explicitVersion || info.versionRef) + '",' + JSON.stringify(flatIncludes) + ',function(){';
 }
 
 function getFlatRegistrations(flatRegistrations, alreadyRegistered, parcelHash) {
@@ -93,7 +93,7 @@ function buildRegistrationBlocks(info) {
 }
 
 function buildExecuteBlock(info) {
-    return 'window.onload = function() { BEST.execute("' + info.name + '", "' + info.versionRef + '", "body"); };';
+    return 'window.onload = function() { FamousFramework.execute("' + info.name + '", "' + info.versionRef + '", "body"); };';
 }
 
 function buildIncludesSuffix() {
@@ -175,7 +175,7 @@ var PROJECT_DIR = Path.join(__dirname, '..', '..', '..', '..');
 // writing this to every bundle folder, we could just template out the
 // 'executable-bundle.html' to point to a version of the library that had
 // been previously CDN'd
-// var FRAMEWORK_LIB_STRING = Fs.readFileSync(Path.join(PROJECT_DIR, 'local', 'workspace', 'build', 'best.bundle.js'));
+// var FRAMEWORK_LIB_STRING = Fs.readFileSync(Path.join(PROJECT_DIR, 'local', 'workspace', 'build', 'famous-framework.bundle.js'));
 var FRAMEWORK_EXECUTABLE_PAGE_STRING = Fs.readFileSync(Path.join(__dirname, 'templates', 'executable-bundle.html'));
 
 // function getFrameworkLibraryString() {
