@@ -39,6 +39,12 @@ function attachAttributes(famousFrameworkComponent, domComponent) {
     }
 }
 
+function attachDOMElement(famousNode, content) {
+    var domElement = new RENDERING_COMPONENTS['DOMElement'](famousNode);
+    domElement.setContent(content);
+    return domElement;
+}
+
 function decorateComponent(famousFrameworkComponent, decoratorType) {
     var renderNode = famousFrameworkComponent.famousNode;
     var componentName = COMPONENT_PREFIX + decoratorType;
@@ -60,6 +66,7 @@ function decorateComponent(famousFrameworkComponent, decoratorType) {
 
 module.exports = {
     addChild: addChild,
+    attachDOMElement: attachDOMElement,
     createRoot: createRoot,
     decorateComponent: decorateComponent,
     FamousEngine: FamousEngine,

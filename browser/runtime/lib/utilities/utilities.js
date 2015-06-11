@@ -1,7 +1,7 @@
 'use strict';
 
-var FunctionParser = require('./../../../utilities/function-parser');
 var DataStore = require('../data-store/data-store');
+var FunctionParser = require('./../../../utilities/function-parser');
 var VirtualDOM = require('../virtual-dom/virtual-dom');
 
 var FUNC_TYPE = 'function';
@@ -27,8 +27,15 @@ function getParentComponent(node) {
     return DataStore.getComponent(VirtualDOM.getParentUID(node));
 }
 
+function camelCase(input) {
+    return input.toLowerCase().replace(/-(.)/g, function(match, group1) {
+        return group1.toUpperCase();
+    });
+}
+
 module.exports = {
-    getParameterNames: getParameterNames,
+    camelCase: camelCase,
     getComponent: getComponent,
+    getParameterNames: getParameterNames,
     getParentComponent: getParentComponent
 };

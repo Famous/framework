@@ -12,11 +12,13 @@ var States = require('./../states/states');
 var Timelines = require('./../timelines/timelines');
 var Tree = require('./../tree/tree');
 var Utilities = require('./../utilities/utilities');
+var UID = require('./../../../utilities/uid');
 var VirtualDOM = require('./../virtual-dom/virtual-dom');
 
 var CONTROL_FLOW_ACTION_KEY = 'control-flow-action';
 var CREATE_KEY = 'create';
 var DELETE_KEY = 'delete';
+var DOM_ELEMENT_UID_PREFIX = 'dom-el';
 var INDEX_KEY = '$index';
 var POSTLOAD_KEY = 'post-load';
 var POSTUNLOAD_KEY = 'post-unload';
@@ -92,7 +94,9 @@ Component.prototype._createExpandedBlueprintObserver = function _createExpandedB
             // Record newly added node UIDs
             if (mutation.addedNodes.length > 0) {
                 for (var j = 0; j < mutation.addedNodes.length; j++) {
-                    addedNodesUIDs.push(VirtualDOM.getUID(mutation.addedNodes[j]));
+                    if (VirtualDOM.isValidHTMLElement(mutation.addedNodes[j])) {
+                        addedNodesUIDs.push(VirtualDOM.getUID(mutation.addedNodes[j]));
+                    }
                 }
             }
         }
@@ -199,12 +203,6 @@ Component.prototype._handleBehaviorUpdate = function _handleBehaviorUpdate(behav
 
 Component.prototype._initializeControlFlow = function _initializeControlFlow() {
     var blueprint = this.tree.getBlueprint();
-
-    // Remove valid HTML that may be included in a component's blueprint.
-    // Those nodes should not be processed via the control flow conduit; they
-    // should be set as content on the Famous Node's DOMElement.
-    var htmlElements = VirtualDOM.stripHTMLElements(blueprint);
-
     var expandedBlueprint = ControlFlow.initializeSelfContainedFlows(
         blueprint, this.uid, this.controlFlowDataMngr
     );
@@ -219,25 +217,13 @@ Component.prototype._initializeControlFlow = function _initializeControlFlow() {
     }
     else {
         var childrenRoot = VirtualDOM.clone(expandedBlueprint);
-        var parentInsertedHTMLElements = this.surrogateRoot ? VirtualDOM.stripHTMLElements(this.surrogateRoot) : [];
-
         ControlFlow.initializeParentDefinedFlows(
             expandedBlueprint, childrenRoot, this.surrogateRoot, this.controlFlowDataMngr
         );
-
-        // HTML Content from blueprint is overwritten by HTML content injected by parent.
-        if (VirtualDOM.doNodesHaveContent(parentInsertedHTMLElements)) {
-            htmlElements = parentInsertedHTMLElements;
-        }
         this._updateChildren(childrenRoot);
     }
 
     VirtualDOM.removeAttribute(this.getRootNode(), CONTROL_FLOW_ACTION_KEY);
-
-    // Set DOMELement content
-    if (VirtualDOM.doNodesHaveContent(htmlElements)) {
-        this._setHTMLContent(htmlElements);
-    }
 };
 
 // The children root has a mix of HTML and Framework Components. The HTML needs
@@ -247,12 +233,34 @@ Component.prototype._updateChildren = function _updateChildren(childrenRoot) {
     var self = this;
     this.tree.setChildrenRoot(childrenRoot);
     var baseNode;
+    var childComponent;
+    var domElements = [];
     this.tree.eachChild(function(node) {
-        baseNode = VirtualDOM.clone(node);
-        VirtualDOM.removeChildNodes(baseNode);
-        createChild(baseNode, node, self);
+        if (VirtualDOM.isValidHTMLElement(node)) {
+            domElements.push(node);
+        }
+        else {
+            // process Framework component
+            baseNode = VirtualDOM.clone(node);
+            VirtualDOM.removeChildNodes(baseNode);
+            return new Component(baseNode, node, self);
+        }
     });
+
+    if (domElements.length) {
+        self._attachDOMWrapper(domElements);
+    }
 };
+
+Component.prototype._attachDOMWrapper = function _attachDOMWrapper(domNodes) {
+    var wrapperNode = FamousConnector.addChild(this.famousNode);
+    var content = '';
+    for (var i = 0; i < domNodes.length; i++) {
+        content += domNodes[i].outerHTML;
+    }
+    var famousDomElement = FamousConnector.attachDOMElement(wrapperNode, content);
+    DataStore.registerDOMWrapper(this.uid, famousDomElement);
+}
 
 Component.prototype._setHTMLContent = function _setHTMLContent(htmlElements) {
     if (htmlElements.length && this.events.getPublicEvent(SET_HTML_KEY)) {
@@ -331,10 +339,6 @@ Component._processControlFlowMessage = function _processControlFlowMessage(node,
 /*-----------------------------------------------------------------------------------------*/
 // Public methods
 /*-----------------------------------------------------------------------------------------*/
-
-function createChild(domNode, surrogateRoot, parent) {
-    return new Component(domNode, surrogateRoot, parent);
-}
 
 Component.prototype.sendMessage = function sendMessage(key, message) {
     this.events.sendMessage(key, message, this.uid);

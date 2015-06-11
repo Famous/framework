@@ -151,7 +151,7 @@ function assignChildUIDs(parentNode) {
         child = parentNode.children[i];
         if (!isValidHTMLElement(child)) {
             setUID(child);
-            assignChildUIDs(parentNode.children[i]);
+            assignChildUIDs(child);
         }
     }
 }
@@ -189,7 +189,7 @@ function isDescendant(desendant, progenitor) {
 }
 
 function isValidHTMLElement(domNode) {
-    if (domNode.constructor.name === UNKNOWN_ELEMENT_NAME || domNode.nodeType === NODE_TYPE_COMMENT) {
+    if (domNode.constructor.name === UNKNOWN_ELEMENT_NAME || isTextNode(domNode) || domNode.nodeType === NODE_TYPE_COMMENT) {
         return false;
     }
     else {

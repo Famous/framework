@@ -19,6 +19,9 @@ function log(msg, level) {
         if (level === 0) {
             console.error(msg);
         }
+        else if (level === 1) {
+            console.warn(msg);
+        }
         else {
             console.log(msg);
         }

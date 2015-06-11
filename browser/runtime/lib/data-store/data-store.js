@@ -30,6 +30,10 @@ var MODULE_OPTIONS = {};
 // `addChild` when adding nodes to the scene graph
 var FAMOUS_NODE_CONSTRUCTORS = {};
 
+// Famous Node with DOMElement attached, used to render
+// DOM content from the tree on to the page.
+var DOM_WRAPPER = {};
+
 var BEHAVIORS_KEY = 'behaviors';
 var DEFAULT_TAG = 'HEAD';
 var EVENTS_KEY = 'events';
@@ -225,6 +229,19 @@ function registerComponent(uid, component) {
     }
 }
 
+function registerDOMWrapper(uid, wrapper) {
+    if (DOM_WRAPPER[uid]) {
+        throw new Error('DOM Wrapper with UID `' + uid + '` already exists!');
+    }
+    else {
+        DOM_WRAPPER[uid] = wrapper;
+    }
+}
+
+function getDOMWrapper(uid) {
+    return DOM_WRAPPER[uid];
+}
+
 function saveExecutedComponent(selector, component) {
     EXECUTED_COMPONENTS[selector] = component;
 }
@@ -279,11 +296,13 @@ module.exports = {
     getDependencies: getDependencies,
     getExecutedComponent: getExecutedComponent,
     getCustomFamousNodeConstructor: getCustomFamousNodeConstructor,
+    getDOMWrapper: getDOMWrapper,
     getModuleDefinition: getModuleDefinition,
     getModuleOptions: getModuleOptions,
     getTimelines: getTimelines,
     registerComponent: registerComponent,
     registerCustomFamousNodeConstructors: registerCustomFamousNodeConstructors,
+    registerDOMWrapper: registerDOMWrapper,
     registerModule: registerModule,
     saveDependencies: saveDependencies,
     saveExecutedComponent: saveExecutedComponent,
