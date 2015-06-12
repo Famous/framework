@@ -1832,11 +1832,6 @@
       "from": "clone@>=1.0.2 <2.0.0",
       "resolved": "https://registry.npmjs.org/clone/-/clone-1.0.2.tgz"
     },
-    "coffee-script": {
-      "version": "1.9.3",
-      "from": "coffee-script@>=1.9.2 <2.0.0",
-      "resolved": "https://registry.npmjs.org/coffee-script/-/coffee-script-1.9.3.tgz"
-    },
     "commander": {
       "version": "2.8.1",
       "from": "commander@>=2.8.1 <3.0.0",

@@ -1,7 +1,6 @@
 'use strict';
 
 var Babel = require('babel');
-var Coffee = require('coffee-script');
 var Less = require('less');
 var Path = require('path');
 var Stylus = require('stylus');
