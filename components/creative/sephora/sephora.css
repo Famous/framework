@@ -30,12 +30,6 @@
 .sephora-icon-06:before { content: '\e602'; }
 .sephora-icon-07:before { content: '\e603'; }
 
-.sephora-container {
-    overflow: hidden;
-    border: 1px solid #FFF;
-    background: #000;
-}
-
 /* sprite sheet */
 [class*='sephora-sprite'] { background-size: cover; background-repeat: no-repeat; display: block; overflow: hidden; }
 .sephora-sprite-bottle { background-image: url(img/bottle.jpg); }

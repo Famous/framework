@@ -6,17 +6,23 @@ function getLetterPosition(val) {
 
 FamousFramework.module('creative:sephora', {
     behaviors: {
-        '#background': { 'style': { background: '#000' } },
+        '#background': { 'style': { background: '#000', 'z-index': 1 } },
         '#bottle': { 'type': 'bottle' },
         '#bottle-label': { 'type': 'bottle-label' },
-        '#five-black': { 'type': 'five-black', 'opacity': 1 },
-        '#five-color': { 'type': 'five-color', 'opacity': 1 },
+        '#five-black': { 'type': 'five-black', 'opacity': 0 },
+        '#five-color': { 'type': 'five-color', 'opacity': 0 },
         '#five-light': { 'type': 'five-light', 'opacity': 1 },
         '#light': { 'type': 'light' },
-        '#container': {
-            'align': [0, 0.5, 0.5], 'mount-point': [0, 0.5, 0.5], 'origin': [0.5, 0.5, 0.5],
+        '#sephora-container': {
+            'align': [0.5, 0.5, 0.5], 'mount-point': [0.5, 0.5, 0.5], 'origin': [0.5, 0.5, 0.5],
             'overflow': 'hidden',
-            'size': [320, 568]
+            'size': [320, 568],
+            'style': {
+                'background': '#000',
+                'border': '1px solid #FFFFFF',
+                'overflow': 'hidden',
+                'z-index': 2
+            }
         },
         '#container-bottle': {
             'align': [0.5, 0.5, 0.5], 'mount-point': [0.5, 0.5, 0.5], 'origin': [0.5, 0.5, 0.5],
@@ -58,9 +64,15 @@ FamousFramework.module('creative:sephora', {
     },
     events: {
         '$lifecycle': {
-            'post-load': function($state) {
-                console.log('hello');
-                // $timelines.get('intro-animation').start({duration: 1800});
+            'post-load': function($timelines) {
+                setTimeout(function() {
+                    $timelines.cue([
+                        ['intro-animation', {duration: 1800}, ()=>{ console.log('done 1'); }],
+                        ['intro-animation2', {duration: 1800}, ()=>{ console.log('done 2'); }]
+                    ], function() {
+                        console.log('complete!');
+                    }).startCue();
+                }, 1000);
             }
         }
     },
@@ -68,43 +80,50 @@ FamousFramework.module('creative:sephora', {
     },
     tree: 'sephora.html'
 })
-// .timelines({
-//     'intro-animation': {
-//         '#intro1': {
-//             'position': {
-//                 '0%': { value: [95, -116] },
-//                 '33%': { value: [95, -70] }
-//             }
-//         },
-//         '#intro2': {
-//             'position': {
-//                 '0%': { value: [0, 46] },
-//                 '83%': { value: [220, 46] }
-//             }
-//         },
-//         '#intro3': {
-//             'position': {
-//                 '0%': { value: [11, -95] },
-//                 '33%': { value: [11, -95] },
-//                 '61%': { value: [-126, -95] }
-//             }
-//         },
-//         '#intro4': {
-//             'position': {
-//                 '0%': { value: [-48, -78] },
-//                 '56%': { value: [-48, -78] },
-//                 '78%': { value: [-48, -14] }
-//             }
-//         },
-//         '#intro5': {
-//             'position': {
-//                 '0%': { value: [-20, -3] },
-//                 '58%': { value: [-20, -3] },
-//                 '100%': { value: [-175, -3] }
-//             }
-//         }
-//     }
-// })
+.timelines({
+    'intro-animation': {
+        '#intro1': {
+            'position': {
+                '0%': { value: [95, -116] },
+                '33%': { value: [95, -70] }
+            }
+        },
+        '#intro2': {
+            'position': {
+                '0%': { value: [0, 46] },
+                '83%': { value: [220, 46] }
+            }
+        }
+    },
+    'intro-animation2': {
+        '#intro3': {
+            'position': {
+                '0%': { value: [11, -95] },
+                '33%': { value: [11, -95] },
+                '61%': { value: [-126, -95] }
+            }
+        },
+        '#intro4': {
+            'position': {
+                '0%': { value: [-48, -78] },
+                '56%': { value: [-48, -78] },
+                '78%': { value: [-48, -14] }
+            },
+            'size': {
+                '0%': { value: [16, 60] },
+                '56%': { value: [16, 60] },
+                '78%': { value: [16, 1] }
+            }
+        },
+        '#intro5': {
+            'position': {
+                '0%': { value: [-20, -3] },
+                '58%': { value: [-20, -3] },
+                '100%': { value: [-175, -3] }
+            }
+        }
+    }
+})
 .config({
     imports: {
         'creative:sephora': ['mask', 'sprite']

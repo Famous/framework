@@ -18,20 +18,19 @@ const SPRITE_TYPES = {
 FamousFramework.module('creative:sephora:sprite', {
     behaviors: {
         '$self': {
-            'add-class': currType => { return `sephora-${currType === 'no' ? 'icon' : 'sprite'}-${currType}`; },
+            'add-class': currType => {
+                return `sephora-${currType === 'no' ? 'icon' : 'sprite'}-${currType}`;
+            },
             'align': '[[identity|align]]',
             'mount-point': [0.5, 0.5, 0.5],
             'opacity': '[[identity|opacity]]',
             'origin': [0.5, 0.5, 0.5],
             'position': '[[identity|position]]',
-            'remove-class': prevType => { return `sephora-${prevType === 'no' ? 'icon' : 'sprite'}-${prevType}`; },
+            'remove-class': prevType => {
+                return `sephora-${prevType === 'no' ? 'icon' : 'sprite'}-${prevType}`;
+            },
             'scale': '[[identity|scale]]',
-            'size': '[[identity|currSize]]',
-            'template': function(currType) {
-                return {
-                    foo: 'sprite: ' + currType
-                };
-            }
+            'size': '[[identity|currSize]]'
         }
     },
     events: {
@@ -53,10 +52,10 @@ FamousFramework.module('creative:sephora:sprite', {
         align: [0.5, 0.5, 0.5],
         currSize: [200, 240],
         currType: 'bottle',
-        opacity: 1,
+        opacity: 0.7,
         position: [0, 0, 0],
         prevType: 'bottle',
         scale: [1, 1, 1]
     },
-    tree: '<h2>{{foo}}</h2>'
+    tree: ''
 });

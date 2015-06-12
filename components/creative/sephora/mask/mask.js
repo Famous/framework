@@ -9,12 +9,7 @@ FamousFramework.module('creative:sephora:mask', {
             'scale': '[[identity|scale]]',
             'size': '[[identity|size]]',
             'style': {
-                background: '#ff0099'
-            },
-            'template': function(foo) {
-                return {
-                    bar: 'mask:' + foo
-                };
+                background: '#000000'
             }
         }
     },
@@ -33,5 +28,5 @@ FamousFramework.module('creative:sephora:mask', {
         size: [200, 200],
         foo: 22
     },
-    tree: '<div>{{bar}}</div>'
+    tree: ''
 });
