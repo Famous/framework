@@ -78,6 +78,6 @@ FamousFramework.scene('famous-demos:animation-timeline', {
                 '75%':  { value: [1.5, 1.5], curve: 'outBack' },
                 '100%': { value: [1.0, 1.0] }
             }
-        },
+        }
     }
 });
