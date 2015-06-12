@@ -298,7 +298,8 @@ StateManager.prototype.triggerGlobalChange = function triggerGlobalChange (white
 
 StateManager.prototype._fireObservers = function _fireObservers (key, value) {
     // if stateName is an array (nested state), use first string
-    if (isArray(parse(key))) key = key[0];
+    var parsedKey = parse(key);
+    if (isArray(parsedKey)) key = parsedKey[0];
 
     if (this._observers[key]) {
         for (var i = 0; i < this._observers[key].length; i++) {
