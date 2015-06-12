@@ -16,6 +16,7 @@ function Timelines(timelineGroups, states) {
     this._currName = null;
     this._currTimeline = null;
 
+    this._cue = { index: null, timelines: null };
     this._pausedTimelines = {};
 }
 
@@ -26,28 +27,35 @@ Timelines.prototype._createBehaviors = function _createBehaviors(timelineDeclara
     for (var timelineName in this._timelineGroups) {
         var behaviorGroup = this._timelineGroups[timelineName];
 
-        var time = '__' + timelineName + 'Time';
-        var saltyTimeline = toSalty(behaviorGroup, {duration: duration});
+        if (this._currName === timelineName) {
+            var time = '__' + timelineName + 'Time';
+            var saltyTimeline = toSalty(behaviorGroup, {duration: duration});
+            var durationEnded = false;
 
-        for (var selectorBehavior in saltyTimeline) {
-            var timeline = saltyTimeline[selectorBehavior];
+            for (var selectorBehavior in saltyTimeline) {
+                var timeline = saltyTimeline[selectorBehavior];
 
-            var selectorName = selectorBehavior.split('|')[0];
-            var behaviorName = selectorBehavior.split('|')[1];
+                var selectorName = selectorBehavior.split('|')[0];
+                var behaviorName = selectorBehavior.split('|')[1];
 
-            var definition = {
-                timeName: time,
-                selector: selectorName,
-                name: behaviorName,
-                params: []
-            };
+                var definition = {
+                    timeName: time,
+                    selector: selectorName,
+                    name: behaviorName,
+                    params: []
+                };
 
-            this._states.subscribeTo(time, function(definition, timeline) {
-                var time = this._states.get(definition.timeName);
-                var value = FamousFramework.helpers.piecewise(timeline)(time);
-                definition.action = value;
-                this._states.emit('behavior-update', definition);
-            }.bind(this, definition, timeline));
+                this._states.subscribeTo(time, function(definition, timeline) {
+                    var time = this._states.get(definition.timeName);
+                    var value = FamousFramework.helpers.piecewise(timeline)(time);
+                    definition.action = value;
+                    this._states.emit('behavior-update', definition);
+                    if (this._currCallback && !durationEnded && time === duration) {
+                        durationEnded = true;
+                        this._currCallback();
+                    }
+                }.bind(this, definition, timeline));
+            }
         }
     }
 };
@@ -56,6 +64,12 @@ Timelines.prototype.getBehaviors = function getBehaviors() {
     return this._behaviorList || {};
 };
 
+/**
+ * Retrieve a Timeline and prepare it for playing.
+ * @method  get
+ * @param   {String}  timelineName  The name of the Timeline to get.
+ * @return  {Timelines}  An instance of this Timelines object.
+ */
 Timelines.prototype.get = function get(timelineName) {
     this._currTimeline = this._timelineGroups[timelineName];
 
@@ -65,11 +79,88 @@ Timelines.prototype.get = function get(timelineName) {
     return this;
 };
 
-Timelines.prototype.start = function start(options) {
+/**
+ * Cue up an array of Timelines that will play in sequence.
+ *
+ * Each element in the array is a new Array that represents
+ * the arguments to be passed to Timelines.start() function.
+ *
+ * @example
+ *     $timelines.cue([
+ *         [ 'animation-1', {duration: 1800}, function timelineCallback() { console.log('animation-1 complete'); } ],
+ *         [ 'animation-2', {duration: 2800} ]
+ *     ], function cueCallback() {
+ *         console.log('All animations complete!');
+ *     }).startCue();
+ *
+ * @method  cue
+ * @param   {Array}      timelines  An array of Timelines that will play one after another.
+ * @param   {Function}   callback   Callback function to call when all timelines have completed.
+ * @return  {Timelines}  An instance of this Timelines object.
+ */
+Timelines.prototype.cue = function cue(timelines, callback) {
+    this._cue = {
+        index: -1,
+        timelines: timelines,
+        callback: callback
+    };
+    return this;
+};
+
+/**
+ * Starts the cue of Timelines from the beginning.
+ * @method  startCue
+ * @return  {Timelines}  An instance of this Timelines object.
+ */
+Timelines.prototype.startCue = function startCue() {
+    this._cue.index = -1;
+    this.halt();
+    this.nextInCue();
+};
+
+/**
+ * Play the next Timeline in the cue.
+ *
+ * Once the end of the cue has been reached call the optional callback
+ * if it exists.
+ *
+ * @method  nextInCue
+ * @return  {Timelines}  An instance of this Timelines object.
+ */
+Timelines.prototype.nextInCue = function nextInCue() {
+    this._cue.index++;
+    if (this._cue.index >= this._cue.timelines.length) {
+        if (this._cue.callback) this._cue.callback();
+        this._cue.index = -1;
+        this._cue.timelines = null;
+        this._cue.callback = null;
+    }
+    else {
+        var currTimeline = this._cue.timelines[this._cue.index];
+        this.get(currTimeline[0]);
+        this.start(currTimeline[1], function() {
+            if (typeof currTimeline[2] === 'function') currTimeline[2]();
+            this.nextInCue();
+        }.bind(this));
+    }
+    return this;
+};
+
+/**
+ * Start a the currently selected Timelines animation.
+ * @method  start
+ * @param   {Number}     options.speed     The speed of the animation which the duration is divided by.
+ * @param   {Number}     options.duration  The duration of the animation.
+ * @param   {Function}   callback          Callback function to call when the Timeline has completed.
+ * @return  {Timelines}  An instance of this Timelines object.
+ */
+Timelines.prototype.start = function start(options, callback) {
     options = options || {};
     var speed = options.speed || 1;
     var duration = options.duration || 0;
     var transition = {duration: duration / speed};
+
+    this._currCallback = callback;
 
     // TODO: consider unsubscribing state from the previous active timeline
     this._createBehaviors(this._currTimeline, duration);
@@ -83,11 +174,13 @@ Timelines.prototype.start = function start(options) {
 };
 
 Timelines.prototype.halt = function halt() {
-    var timeElapsed = this._states.get(this._currStateName);
+    if (this._currStateName) {
+        var timeElapsed = this._states.get(this._currStateName);
 
-    // duration is needed until all states are stored in Transitionables
-    this._states.set(this._currStateName, timeElapsed, {duration: 0});
-    this._setPaused(this._currName, true);
+        // duration is needed until all states are stored in Transitionables
+        this._states.set(this._currStateName, timeElapsed, {duration: 0});
+        this._setPaused(this._currName, true);
+    }
 
     return this;
 };
