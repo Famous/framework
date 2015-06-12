@@ -47,5 +47,5 @@ FamousFramework.module('famous-tests:control-flow:basic-if', {
     states: {
         toggle: true
     },
-    tree: 'basic-if.jade'
+    tree: 'basic-if.html'
 });

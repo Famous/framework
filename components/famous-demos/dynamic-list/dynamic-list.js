@@ -131,5 +131,5 @@ FamousFramework.module('famous-demos:dynamic-list', {
         selectedIndex: null,
         rotationX: 0
     },
-    tree: 'dynamic-list.jade',
+    tree: 'dynamic-list.html',
 });

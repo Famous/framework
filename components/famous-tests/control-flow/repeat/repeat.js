@@ -55,5 +55,5 @@ FamousFramework.module('famous-tests:control-flow:repeat', {
         colCount: 3,
         horizontalOffset: 50,
     },
-    tree: 'repeat.jade',
+    tree: 'repeat.html',
 });

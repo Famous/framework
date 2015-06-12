@@ -24,5 +24,5 @@ FamousFramework.module('famous-tests:size-change-event', {
         }
     },
     states: {},
-    tree: 'size-change-event.jade'
+    tree: 'size-change-event.html'
 });

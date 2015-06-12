@@ -88,5 +88,5 @@ FamousFramework.module('famous-tests:mount-point', {
         origin: [0, 0],
         rotateZ: 0
     },
-    tree: 'mount-point.jade',
+    tree: 'mount-point.html',
 });
