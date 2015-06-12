@@ -160,6 +160,7 @@ Builder.DEFAULTS = {
         ],
         'famous:events': [
             'click',
+            'change',
             'dblclick',
             'keydown',
             'keypress',
@@ -176,6 +177,7 @@ Builder.DEFAULTS = {
             'touchstart',
             'touchmove',
             'touchend',
+            'value',
             'wheel'
         ]
     },

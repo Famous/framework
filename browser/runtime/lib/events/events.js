@@ -85,7 +85,16 @@ Events.prototype.setupProxyEvent = function setupProxyEvent(event, targets, uid)
     var $indexIndex;
     var $repeatPayloadIndex;
     for (var i = 0; i < targets.length; i++) {
-        targetUID = VirtualDOM.getUID(targets[i]);
+        var target = targets[i];
+
+        targetUID = VirtualDOM.getUID(target);
+
+        if (targetUID === null) {
+            while(VirtualDOM.getUID(target) === null) {
+                target = target.parentNode;
+            }
+            targetUID = VirtualDOM.getUID(target);
+        }
 
         // If $index is injected into an event handler, the value of $index should
         // correspond to the $index associated with the item that is capturing the event.

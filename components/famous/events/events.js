@@ -23,6 +23,15 @@ FamousFramework.module('famous:events', {
                         $payload.listener(size);
                     }
                 })
+            },
+            'value': function($DOMElement, $famousNode, $payload) {
+                var eventName = 'input';
+                var listener = $payload.listener;
+
+                $famousNode.addUIEvent(eventName);
+                $DOMElement.on(eventName, function(event) {
+                    listener(event);
+                });
             }
         }
     }
