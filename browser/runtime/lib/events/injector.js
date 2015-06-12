@@ -1,7 +1,6 @@
 'use strict';
 
 var FamousConnector = require('../famous-connector/famous-connector');
-var Mustache = require('mustache');
 var DataStore = require('../data-store/data-store');
 
 var PAYLOAD_KEY = '$payload';
@@ -13,7 +12,6 @@ var FRAMEWORK_DOM_NODE_KEY = '$domNode';
 var DISPATCHER_KEY = '$dispatcher';
 var DOM_ELEMENT_KEY = '$DOMElement';
 var MESH_KEY = '$mesh';
-var MUSTACHE_KEY = '$mustache';
 var INDEX_KEY = '$index';
 var REPEAT_PAYLOAD_KEY = '$repeatPayload';
 var ROUTE_KEY = '$route';
@@ -24,7 +22,6 @@ function getArgs(paramNames, payload, uid) {
     for (var i = 0; i < paramNames.length; i++) {
         switch (paramNames[i]) {
             case PAYLOAD_KEY: args.push(payload); break;
-            case MUSTACHE_KEY: args.push(Mustache.render); break;
             case FRAMEWORK_COMPONENT_KEY: args.push(component); break;
             case FAMOUS_NODE_KEY: args.push(component.famousNode); break;
             case FRAMEWORK_DOM_NODE_KEY: args.push(component.tree.getRootNode()); break;

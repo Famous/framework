@@ -52,7 +52,6 @@
     "merge-defaults": "^0.2.1",
     "mkdirp": "^0.5.0",
     "morgan": "^1.5.2",
-    "mustache": "^1.1.0",
     "recursive-readdir": "^1.2.1",
     "request": "^2.55.0",
     "stylus": "^0.51.1",

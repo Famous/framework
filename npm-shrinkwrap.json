@@ -3192,11 +3192,6 @@
         }
       }
     },
-    "mustache": {
-      "version": "1.2.0",
-      "from": "mustache@>=1.1.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/mustache/-/mustache-1.2.0.tgz"
-    },
     "node-watch": {
       "version": "0.3.4",
       "from": "node-watch@>=0.3.4 <0.4.0",
