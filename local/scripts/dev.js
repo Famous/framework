@@ -21,7 +21,7 @@ var livereloadOptions = {
 Program.command('local-only-bootstrap')
     .description('Bootstrap local development, recursively building _only local_ components')
     .option('-s, --sourceDirectory [sourceDirectory]')
-    .option('-b, --blocksDirectory [blocksDirectory')
+    .option('-b, --blocksDirectory [blocksDirectory]')
     .option('-p, --port [port]')
     .action(function(info) {
         var assistant = new Assistant({
@@ -55,7 +55,7 @@ Program.command('local-only-bootstrap')
 Program.command('develop-component')
     .description('Develop the component in the given directory, using Code Manager for dependency resolution')
     .option('-s, --sourceDirectory [sourceDirectory]')
-    .option('-b, --blocksDirectory [blocksDirectory')
+    .option('-b, --blocksDirectory [blocksDirectory]')
     .option('-p, --port [port]')
     .action(function(info) {
         var assistant = new Assistant({
@@ -91,7 +91,7 @@ Program.command('develop-component')
 Program.command('publish-component')
     .description('Publish the component in the given directory to Famous Hub')
     .option('-s, --sourceDirectory [sourceDirectory]')
-    .option('-b, --blocksDirectory [blocksDirectory')
+    .option('-b, --blocksDirectory [blocksDirectory]')
     .action(function(info) {
         var assistant = new Assistant({
             builderOptions: {
