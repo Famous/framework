@@ -43,11 +43,11 @@ FamousFramework.scene('famous-demos:animation-timeline-cue', {
         '.circle': {
             'click': function($timelines) {
                 $timelines.cue([
-                    [ 'animation-1', { duration: 1600 }, ()=> console.log('animation-1 complete!') ],
-                    [ 'animation-2', { duration: 1600 }, ()=> console.log('animation-2 complete!') ],
-                    [ 'animation-3', { duration: 1600 }, ()=> console.log('animation-3 complete!') ]
+                    [ 'animation-1', { duration: 800 }, ()=> console.log('--> animation-1 complete!') ],
+                    [ 'animation-2', { duration: 800 }, ()=> console.log('--> animation-2 complete!') ],
+                    [ 'animation-3', { duration: 800 }, ()=> console.log('--> animation-3 complete!') ]
                 ], function() {
-                    console.log('all animations complete!');
+                    console.log('----> all animations complete!');
                 }).startCue();
             }
         }
@@ -66,8 +66,8 @@ FamousFramework.scene('famous-demos:animation-timeline-cue', {
     'animation-1': {
         '.little-circle': {
             'scale': {
-                '0%':   { value: [1.0, 1.0], curve: 'inOutSine' },
-                '25%':  { value: [1.5, 1.5], curve: 'inOutSine' },
+                '0%':   { value: [1.0, 1.0], curve: 'linear' },
+                '25%':  { value: [1.5, 1.5], curve: 'linear' },
                 '50%':  { value: [1.0, 1.0] }
             }
         }
@@ -75,8 +75,8 @@ FamousFramework.scene('famous-demos:animation-timeline-cue', {
     'animation-2': {
         '.medium-circle': {
             'scale': {
-                '0%':   { value: [1.0, 1.0], curve: 'inOutSine' },
-                '50%':  { value: [1.5, 1.5], curve: 'inOutSine' },
+                '0%':   { value: [1.0, 1.0], curve: 'linear' },
+                '50%':  { value: [1.5, 1.5], curve: 'linear' },
                 '75%':  { value: [1.0, 1.0] }
             }
         }
@@ -84,8 +84,8 @@ FamousFramework.scene('famous-demos:animation-timeline-cue', {
     'animation-3': {
         '.large-circle': {
             'scale': {
-                '0%':   { value: [1.0, 1.0], curve: 'inOutSine' },
-                '75%':  { value: [1.5, 1.5], curve: 'inOutSine' },
+                '0%':   { value: [1.0, 1.0], curve: 'linear' },
+                '75%':  { value: [1.5, 1.5], curve: 'linear' },
                 '100%': { value: [1.0, 1.0] }
             }
         }
