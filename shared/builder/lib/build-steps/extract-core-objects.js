@@ -112,8 +112,8 @@ function extractEntrypointAST(info) {
         return EsprimaHelpers.parse(info.entrypointFile.content);
     }
     catch(e) {
-        console.warn(Chalk.gray('famous'), Chalk.red('err'), 'Could not find entrypoint file for ', info.name);
-        throw (e);
+        console.error(Chalk.gray('famous'), Chalk.red('err'), 'Could not find entrypoint file for ', info.name);
+        return EsprimaHelpers.parse('console.error("No entrypoint found for this module!");');
     }
 }
 

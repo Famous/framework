@@ -27,6 +27,8 @@ function saveFrameworkInfo(info, cb) {
         frameworkHash = {};
     }
 
+    frameworkHash.dependencies = info.dereffedDependencyTable;
+
     if (info.frameworkInfo.block) {
         frameworkHash.block = info.frameworkInfo.block;
     }

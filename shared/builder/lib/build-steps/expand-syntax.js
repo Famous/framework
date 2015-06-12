@@ -196,7 +196,7 @@ function buildExtensionsArray(info, moduleName, configObject) {
 function buildOptionsArgAST(info, moduleName) {
     var optionsObject = {};
     var configObject = EsprimaHelpers.getObjectValue(info.moduleConfigASTs[moduleName] || { properties: [] });
-    optionsObject.dependencies = info.dependencyTable;
+    optionsObject.dependencies = info.dereffedDependencyTable;
     optionsObject.famousNodeConstructorName = configObject.famousNodeConstructorName || '';
     optionsObject.extensions = buildExtensionsArray.call(this, info, moduleName, configObject);
 
