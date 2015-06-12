@@ -46,9 +46,6 @@ COMPILERS['.stylus'] = function(source, cb) {
     });
 };
 
-COMPILERS['.coffee'] = function(source, cb) {
-    cb(null, Coffee.compile(source, {}));
-};
 COMPILERS['.html'] = function(source, cb) {
     cb(null, source);
 };
