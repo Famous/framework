@@ -15,7 +15,8 @@
     "Matthew Trost <matthew@famo.us>",
     "Arkady Pevzner <arkady@famo.us>",
     "Imtiaz Majeed <imtiaz@famo.us>",
-    "Jordan Papaleo <jordan@famo.us>"
+    "Jordan Papaleo <jordan@famo.us>",
+    "Larry Gordon <lg@famo.us>"
   ],
   "scripts": {
     "dev": "npm run watch-runtime & npm run bootstrap",
