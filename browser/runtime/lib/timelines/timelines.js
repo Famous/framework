@@ -159,15 +159,7 @@ Timelines.prototype.resetCue = function resetCue() {
 
         this._states.set(this._currStateName, 0);
         this._setPaused(this._currName, true);
-
-        var behaviorGroup = this._timelineGroups[this._currName];
-        var timelineId = getTimelineId(this._currName);
-        var saltyTimeline = toSalty(behaviorGroup, {duration: 0});
-
-        for (var selectorBehavior in saltyTimeline) {
-            var selectorName = selectorBehavior.split('|')[0];
-            this._detachBehaviors(this._currName);
-        }
+        this._detachBehaviors(this._currName);
     }
     this._cue.index = -1;
 };
