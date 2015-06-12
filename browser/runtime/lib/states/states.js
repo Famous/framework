@@ -6,11 +6,10 @@ var StateManager = require('./../../../state-manager/lib');
 
 var STATE_AUTOTRIGGER_RE = /^[a-zA-Z0-9$].*/i;
 
-function States(initialState) {
+function States(famousNode, initialState) {
     EventHandler.apply(this);
-    var FamousEngine = FamousConnector.FamousEngine;
     var Transitionable = FamousConnector.Transitionable;
-    this.stateManager = new StateManager(initialState, FamousEngine, Transitionable);
+    this.stateManager = new StateManager(initialState, famousNode, Transitionable);
 }
 
 States.prototype = Object.create(EventHandler.prototype);

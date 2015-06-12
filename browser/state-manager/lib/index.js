@@ -7,9 +7,10 @@ var operator = require('./operator');
  *
  * Manages states and observers to watch for changes in state.
  */
-function StateManager (state, FamousEngine, Transitionable) {
+function StateManager (state, famousNode, Transitionable) {
     this._state = {};
-    this._FamousEngine = FamousEngine;
+    this._famousNode = famousNode;
+    this._famousNodeId = this._famousNode.addComponent(this);
     this._Transitionable = Transitionable;
 
     // observers
@@ -29,7 +30,7 @@ function StateManager (state, FamousEngine, Transitionable) {
     this._setInitialState(state);
 
     // tell engine to call .onUpdate() function
-    this._FamousEngine.requestUpdate(this);
+    this._famousNode.requestUpdate(this._famousNodeId);
 }
 
 /**
@@ -329,7 +330,7 @@ StateManager.prototype.onUpdate = function onUpdate () {
     }
 
     // Update on each tick
-    this._FamousEngine.requestUpdate(this);
+    this._famousNode.requestUpdateOnNextTick(this._famousNodeId);
 };
 
 /**

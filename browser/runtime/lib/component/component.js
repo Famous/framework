@@ -49,7 +49,7 @@ function Component(domNode, surrogateRoot, parent) {
                                     null;
     this.famousNode = FamousConnector.addChild(parent.famousNode, famousNodeConstructor);
 
-    this.states = new States(this.definition.states);
+    this.states = new States(this.famousNode, this.definition.states);
     this.timelines = new Timelines(this.timelineSpec, this.states);
     this.behaviors = new Behaviors(this.definition.behaviors);
     this.controlFlowDataMngr = new ControlFlowDataManager(this.behaviors.getBehaviorList());
