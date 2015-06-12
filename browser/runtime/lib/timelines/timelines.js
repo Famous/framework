@@ -7,6 +7,14 @@ var EventHandler = require('./../utilities/event-handler');
 var converter = require('./../../../utilities/converter');
 var toSalty = converter.sweetToSalty;
 
+function getTimelineId(timelineName) {
+    return '__' + timelineName + 'Time';
+}
+
+function getObserverId(timelineId, selector) {
+    return timelineId + selector;
+}
+
 function Timelines(timelineGroups, states) {
     EventHandler.apply(this);
 
@@ -15,48 +23,71 @@ function Timelines(timelineGroups, states) {
 
     this._currName = null;
     this._currTimeline = null;
+    this._currDuration = null;
 
     this._cue = { index: null, timelines: null };
     this._pausedTimelines = {};
+    this._observers = {};
 }
 
 Timelines.prototype = Object.create(EventHandler.prototype);
 Timelines.prototype.constructor = Timelines;
 
 Timelines.prototype._createBehaviors = function _createBehaviors(timelineDeclaration, duration) {
-    for (var timelineName in this._timelineGroups) {
-        var behaviorGroup = this._timelineGroups[timelineName];
+    if (this._timelineGroups.hasOwnProperty(this._currName)) {
+        var behaviorGroup = this._timelineGroups[this._currName];
 
-        if (this._currName === timelineName) {
-            var time = '__' + timelineName + 'Time';
-            var saltyTimeline = toSalty(behaviorGroup, {duration: duration});
-            var durationEnded = false;
+        this._currDuration = duration;
+        var timelineId = getTimelineId(this._currName);
+        var saltyTimeline = toSalty(behaviorGroup, {duration: duration});
+        var durationEnded = false;
 
-            for (var selectorBehavior in saltyTimeline) {
-                var timeline = saltyTimeline[selectorBehavior];
+        for (var selectorBehavior in saltyTimeline) {
+            var timeline = saltyTimeline[selectorBehavior];
 
-                var selectorName = selectorBehavior.split('|')[0];
-                var behaviorName = selectorBehavior.split('|')[1];
+            var selectorName = selectorBehavior.split('|')[0];
+            var behaviorName = selectorBehavior.split('|')[1];
 
-                var definition = {
-                    timeName: time,
-                    selector: selectorName,
-                    name: behaviorName,
-                    params: []
-                };
+            var definition = {
+                observerId: getObserverId(timelineId, selectorName),
+                timelineName: this._currName,
+                timelineId: timelineId,
+                selector: selectorName,
+                name: behaviorName,
+                params: []
+            };
 
-                this._states.subscribeTo(time, function(definition, timeline) {
-                    var time = this._states.get(definition.timeName);
-                    var value = FamousFramework.helpers.piecewise(timeline)(time);
-                    definition.action = value;
-                    this._states.emit('behavior-update', definition);
-                    if (this._currCallback && !durationEnded && time === duration) {
-                        durationEnded = true;
-                        this._currCallback();
-                    }
-                }.bind(this, definition, timeline));
-            }
+            this._detachBehaviors(definition.timelineName, getObserverId(timelineId, selectorName));
+
+            // Cache the observer function so that we can correctly detach it later
+            this._observers[definition.observerId] = function observer(definition, timeline) {
+                var time = this._states.get(definition.timelineId);
+                var value = FamousFramework.helpers.piecewise(timeline)(time);
+                definition.action = value;
+                this._states.emit('behavior-update', definition);
+                if (!durationEnded && time === duration) {
+                    durationEnded = true;
+                    // Detach previously attached behaviors
+                    this._detachBehaviors(definition.observerId);
+                    if (this._currCallback) this._currCallback();
+                }
+            }.bind(this, definition, timeline);
+
+            this._states.subscribeTo(timelineId, this._observers[definition.observerId]);
         }
+    }
+};
+
+/**
+ * Detach the behaviors for a given timeline.
+ * @method  _detachBehaviors
+ * @param   {String}          timelineName  The name of the timeline.
+ * @param   {String}          observerId    The unique id for the observer that was used to subscribe to the timeline.
+ */
+Timelines.prototype._detachBehaviors = function _detachBehaviors(timelineName, observerId) {
+    if (this._timelineGroups.hasOwnProperty(timelineName) && this._observers[observerId]) {
+        this._states.unsubscribeFrom(getTimelineId(timelineName), this._observers[observerId]);
+        this._observers[observerId] = null;
     }
 };
 
@@ -99,6 +130,7 @@ Timelines.prototype.get = function get(timelineName) {
  * @return  {Timelines}  An instance of this Timelines object.
  */
 Timelines.prototype.cue = function cue(timelines, callback) {
+    this.clearCue();
     this._cue = {
         index: -1,
         timelines: timelines,
@@ -113,9 +145,42 @@ Timelines.prototype.cue = function cue(timelines, callback) {
  * @return  {Timelines}  An instance of this Timelines object.
  */
 Timelines.prototype.startCue = function startCue() {
-    this._cue.index = -1;
-    this.halt();
+    this.resetCue();
     this.nextInCue();
+    return this;
+};
+
+Timelines.prototype.resetCue = function resetCue() {
+    for (var i = 0, len = this._cue.timelines.length; i < len; i++) {
+        this._currName = this._cue.timelines[i][0];
+        this.halt();
+        this.get(this._currName);
+
+        this._states.set(this._currStateName, 0);
+        this._setPaused(this._currName, true);
+
+        var behaviorGroup = this._timelineGroups[this._currName];
+        var timelineId = getTimelineId(this._currName);
+        var saltyTimeline = toSalty(behaviorGroup, {duration: 0});
+
+        for (var selectorBehavior in saltyTimeline) {
+            var selectorName = selectorBehavior.split('|')[0];
+            this._detachBehaviors(this._currName, getObserverId(timelineId, selectorName));
+        }
+    }
+    this._cue.index = -1;
+};
+
+/**
+ * Clean up the cue when animations are complete.
+ * @method  clearCue
+ * @return  {Timelines}  An instance of this Timelines object.
+ */
+Timelines.prototype.clearCue = function clearCue() {
+    this._cue.index = -1;
+    this._cue.timelines = null;
+    this._cue.callback = null;
+    return this;
 };
 
 /**
@@ -128,20 +193,20 @@ Timelines.prototype.startCue = function startCue() {
  * @return  {Timelines}  An instance of this Timelines object.
  */
 Timelines.prototype.nextInCue = function nextInCue() {
-    this._cue.index++;
-    if (this._cue.index >= this._cue.timelines.length) {
-        if (this._cue.callback) this._cue.callback();
-        this._cue.index = -1;
-        this._cue.timelines = null;
-        this._cue.callback = null;
-    }
-    else {
-        var currTimeline = this._cue.timelines[this._cue.index];
-        this.get(currTimeline[0]);
-        this.start(currTimeline[1], function() {
-            if (typeof currTimeline[2] === 'function') currTimeline[2]();
-            this.nextInCue();
-        }.bind(this));
+    if (this._cue.timelines) {
+        this._cue.index++;
+        if (this._cue.index >= this._cue.timelines.length) {
+            if (this._cue.callback) this._cue.callback();
+            this.resetCue();
+        }
+        else {
+            var currTimeline = this._cue.timelines[this._cue.index];
+            this.get(currTimeline[0]);
+            this.start(currTimeline[1], function() {
+                if (typeof currTimeline[2] === 'function') currTimeline[2]();
+                this.nextInCue();
+            }.bind(this));
+        }
     }
     return this;
 };
