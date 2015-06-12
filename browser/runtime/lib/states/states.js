@@ -57,6 +57,10 @@ States.prototype.unsubscribeFrom = function unsubscribeFrom (key, observer) {
     this.stateManager.unsubscribeFrom(key, observer);
 };
 
+States.prototype.unsubscribeAllFromKey = function unsubscribeAllFromKey (key) {
+    this.stateManager._unsubscribeAllFromKey(key);
+};
+
 States.prototype.triggerGlobalChange = function triggerGlobalChange(whiteList, blackList) {
     whiteList = whiteList || STATE_AUTOTRIGGER_RE;
     this.stateManager.triggerGlobalChange(whiteList, blackList);

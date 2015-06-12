@@ -37,6 +37,9 @@ Timelines.prototype._createBehaviors = function _createBehaviors(timelineDeclara
     if (this._timelineGroups.hasOwnProperty(this._currName)) {
         var behaviorGroup = this._timelineGroups[this._currName];
 
+        // detach previously attached behaviors
+        this._detachBehaviors(this._currName);
+
         this._currDuration = duration;
         var timelineId = getTimelineId(this._currName);
         var saltyTimeline = toSalty(behaviorGroup, {duration: duration});
@@ -57,14 +60,14 @@ Timelines.prototype._createBehaviors = function _createBehaviors(timelineDeclara
                 params: []
             };
 
-            this._detachBehaviors(definition.timelineName, getObserverId(timelineId, selectorName));
-
             // Cache the observer function so that we can correctly detach it later
             this._observers[definition.observerId] = function observer(definition, timeline) {
                 var time = this._states.get(definition.timelineId);
                 var value = FamousFramework.helpers.piecewise(timeline)(time);
+
                 definition.action = value;
                 this._states.emit('behavior-update', definition);
+
                 if (!durationEnded && time === duration) {
                     durationEnded = true;
                     // Detach previously attached behaviors
@@ -82,12 +85,10 @@ Timelines.prototype._createBehaviors = function _createBehaviors(timelineDeclara
  * Detach the behaviors for a given timeline.
  * @method  _detachBehaviors
  * @param   {String}          timelineName  The name of the timeline.
- * @param   {String}          observerId    The unique id for the observer that was used to subscribe to the timeline.
  */
-Timelines.prototype._detachBehaviors = function _detachBehaviors(timelineName, observerId) {
-    if (this._timelineGroups.hasOwnProperty(timelineName) && this._observers[observerId]) {
-        this._states.unsubscribeFrom(getTimelineId(timelineName), this._observers[observerId]);
-        this._observers[observerId] = null;
+Timelines.prototype._detachBehaviors = function _detachBehaviors(timelineName) {
+    if (this._timelineGroups.hasOwnProperty(timelineName)) {
+        this._states.unsubscribeAllFromKey(getTimelineId(timelineName));
     }
 };
 
@@ -165,7 +166,7 @@ Timelines.prototype.resetCue = function resetCue() {
 
         for (var selectorBehavior in saltyTimeline) {
             var selectorName = selectorBehavior.split('|')[0];
-            this._detachBehaviors(this._currName, getObserverId(timelineId, selectorName));
+            this._detachBehaviors(this._currName);
         }
     }
     this._cue.index = -1;
@@ -226,6 +227,9 @@ Timelines.prototype.start = function start(options, callback) {
     var transition = {duration: duration / speed};
 
     this._currCallback = callback;
+
+    this._currSpeed = speed;
+    this._currDuration = duration;
 
     // TODO: consider unsubscribing state from the previous active timeline
     this._createBehaviors(this._currTimeline, duration);

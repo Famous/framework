@@ -245,6 +245,10 @@ StateManager.prototype.unsubscribeFrom = function unsubscribeFrom (key, observer
     }
 };
 
+StateManager.prototype._unsubscribeAllFromKey = function _unsubscribeAllFromKey (key) {
+    if (this._observers.hasOwnProperty(key)) this._observers[key] = [];
+};
+
 /**
  * Adds an observer that will be fired a single time as soon
  * as triggerGlobalChange is invoked.
