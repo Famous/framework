@@ -2,7 +2,6 @@
 
 var Babel = require('babel');
 var Coffee = require('coffee-script');
-var Jade = require('jade');
 var Less = require('less');
 var Path = require('path');
 var Stylus = require('stylus');
@@ -51,9 +50,6 @@ COMPILERS['.stylus'] = function(source, cb) {
 COMPILERS['.coffee'] = function(source, cb) {
     cb(null, Coffee.compile(source, {}));
 };
-COMPILERS['.jade'] = function(source, cb) {
-    cb(null, Jade.compile(source)());
-};
 COMPILERS['.html'] = function(source, cb) {
     cb(null, source);
 };
@@ -78,7 +74,6 @@ var COMPILATION_EXTNAME_MAPPING = {
     '.es': '.js',
     '.es6': '.js',
     '.es7': '.js',
-    '.jade': '.html',
     '.less': '.css',
     '.styl': '.css',
     '.stylus': '.css'

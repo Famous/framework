@@ -44,7 +44,6 @@
     "famous": "Famous/engine",
     "form-data": "matthewtoast/node-form-data#master",
     "fs-walk": "0.0.1",
-    "jade": "^1.9.2",
     "jsdom": "^3.1.2",
     "less": "^2.5.0",
     "livereload": "^0.3.7",

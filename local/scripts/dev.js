@@ -10,7 +10,7 @@ var Assistant = require('./../assistant/lib/assistant');
 
 var livereloadOptions = {
     port: 35729,
-    exts: ['html','css','js','png','gif','jpg','coffee','jade','less','json'],
+    exts: ['html','css','js','png','gif','jpg','coffee','less','json'],
     applyJSLive: false,
     applyCSSLive: false,
     exclusions: [/\\node_modules\//,/\\.git\//,/\\.svn\//,/\\.hg\//],

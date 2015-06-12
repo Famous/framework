@@ -16,5 +16,5 @@ FamousFramework.module('famous-tests:pass-through:child-component', {
     },
     states: {
     },
-    tree: 'child-component.jade'
+    tree: 'child-component.html'
 });
