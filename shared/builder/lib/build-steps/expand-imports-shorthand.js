@@ -28,19 +28,25 @@ function fixTree(tree, imports, doc) {
     return tree.innerHTML;
 }
 
-function expandObjectKeyShorthands(facetObj, imports) {
+function expandObjectKeyShorthands(facetName, facetObj, imports, depth) {
     EsprimaHelpers.eachObjectProperty(facetObj, function(keyName, _2, _3, valueObj, property) {
         if (EsprimaHelpers.isObjectExpression(valueObj)) {
-            expandObjectKeyShorthands.call(this, valueObj, imports);
+            expandObjectKeyShorthands.call(this, facetName, valueObj, imports, depth + 1);
         }
-        for (var importNamespace in imports) {
-            var importItems = imports[importNamespace];
-            for (var i = 0; i < importItems.length; i++) {
-                var importItem = importItems[i];
-                if (keyName === importItem) {
-                    var newKey = BuildHelpers.moduleNamespaceAndBasenameToModuleName.call(this, importNamespace, importItem);
-                    property.key.value = newKey;
-                    property.key.raw = QUOTE + newKey + QUOTE;
+        // Since so-called "direct targeted behaviors" aren't currently supported --
+        // i.e. behaviors that bypass the normal eventing conduit via a syntax such
+        // as 'famous:foo:bar:behavior-blah' -- we don't do the imports conversion
+        // here since it will raise an error on the client anyway.
+        if (facetName !== this.options.behaviorsFacetKeyName || depth < 2) {
+            for (var importNamespace in imports) {
+                var importItems = imports[importNamespace];
+                for (var i = 0; i < importItems.length; i++) {
+                    var importItem = importItems[i];
+                    if (keyName === importItem) {
+                        var newKey = BuildHelpers.moduleNamespaceAndBasenameToModuleName.call(this, importNamespace, importItem);
+                        property.key.value = newKey;
+                        property.key.raw = QUOTE + newKey + QUOTE;
+                    }
                 }
             }
         }
@@ -78,7 +84,11 @@ function expandImportsShorthand(info, cb) {
                 treeNode = valueObj;
             }
             else if (EsprimaHelpers.isObjectExpression(valueObj)) {
-                expandObjectKeyShorthands.call(this, valueObj, imports);
+                // The last argument here is the depth, i.e. the depth within the object
+                // behaviors: <~ depth 0
+                //   selector: <~ depth 1
+                //     behaviorName: <~ depth 2
+                expandObjectKeyShorthands.call(this, facetName, valueObj, imports, 1); // <~ Recursive
             }
         }.bind(this));
 
