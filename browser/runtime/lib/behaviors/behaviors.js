@@ -143,6 +143,16 @@ Behaviors.processDOMBehavior = function(behavior, domEl, payload) {
         case 'value':
             domEl.value = payload;
             domEl.setAttribute('value', payload);
+            // This is a terrible HACK, but because the Famous Engine diffs
+            // content before requesting an update, we don't necessarily get
+            // the desired update rendered if the HTML we are sending in now
+            // is exactly the same before. That doesn't seem like a big deal...
+            // but consider the case where some text has been entered into an
+            // input, which we want to make empty again after 'change'. If we set
+            // the 'value' to empty string after the change, there is no
+            // difference from the engine's POV, so the render update never
+            // occurs. This just creates that difference to force the update.
+            domEl.setAttribute('data-value-changed-at', Date.now());
             break;
         default:
             domEl.setAttribute(behavior.name, payload);
