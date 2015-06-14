@@ -4,6 +4,9 @@ FamousFramework.scene('famous-tests:input-field-data', {
             'size': [200, 200],
             'align': [0.5, 0.5],
             'mount-point': [0.5, 0.5]
+        },
+        '#input-field': {
+            'value': 'HELLO'
         }
     },
     events: {

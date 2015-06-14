@@ -130,14 +130,22 @@ Behaviors.targetMessagingBehavior = function targetMessagingBehavior(behavior, c
 };
 
 Behaviors.processDOMBehavior = function(behavior, domEl, payload) {
-    if (behavior.name === 'inner-html') {
-        domEl.innerHTML = payload;
-    }
-    else if (behavior.name === 'text-content') {
-        domEl[Utilities.camelCase(behavior.name)] = payload;
-    }
-    else {
-        domEl.setAttribute(behavior.name, payload);
+    switch (behavior.name) {
+        case 'inner-html':
+            domEl.innerHTML = payload;
+            break;
+        case 'text-content':
+            domEl.textContent = payload;
+            break;
+        case 'inner-text':
+            domEl.innerText = payload;
+            break;
+        case 'value':
+            domEl.value = payload;
+            domEl.setAttribute('value', payload);
+            break;
+        default:
+            domEl.setAttribute(behavior.name, payload);
     }
 
     // find parent component node
