@@ -92,8 +92,17 @@ Component.prototype._createExpandedBlueprintObserver = function _createExpandedB
             // Record newly added node UIDs
             if (mutation.addedNodes.length > 0) {
                 for (var j = 0; j < mutation.addedNodes.length; j++) {
-                    if (VirtualDOM.isValidHTMLElement(mutation.addedNodes[j])) {
-                        addedNodesUIDs.push(VirtualDOM.getUID(mutation.addedNodes[j]));
+                    var addedNode = mutation.addedNodes[j];
+                    if (VirtualDOM.isValidHTMLElement(addedNode)) {
+                        var addedNodeUID = VirtualDOM.getUID(addedNode);
+
+                        // In cases where we're setting the content of bare DOM elements in the
+                        // tree, those mutation nodes don't have a UID, and there's no point
+                        // to adding them to this list, because that results in the same events
+                        // being added over and over again
+                        if (addedNodeUID !== null && addedNodeUID !== undefined) {
+                            addedNodesUIDs.push(addedNodeUID);
+                        }
                     }
                 }
             }
