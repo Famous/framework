@@ -16,6 +16,7 @@ module.exports = global.FamousFramework = {
     component: register, // alias for 'register'
     deploy: deployer.deploy.bind(deployer),
     execute: deployer.execute.bind(deployer),
+    FamousEngine: require('./famous-connector/famous-connector').FamousEngine,
     helpers: helpers,
     includes: deployer.includes.bind(deployer),
     message: Messenger.message,

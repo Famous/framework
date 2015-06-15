@@ -1,4 +1,4 @@
-var Node = Famous.core.Node;
+var Node = FamousFramework.FamousEngine.core.Node;
 
 function PaddedNode(options) {
     this.options = Object.create(PaddedNode.DEFAULT_PROPERTIES);

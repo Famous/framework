@@ -1,17 +1,17 @@
-var Size = Famous.components.Size;
-var Position = Famous.components.Position;
-var Rotation = Famous.components.Rotation;
-var Origin = Famous.components.Origin;
-var Align = Famous.components.Align;
-var MountPoint = Famous.components.MountPoint;
+var Size = FamousFramework.FamousEngine.components.Size;
+var Position = FamousFramework.FamousEngine.components.Position;
+var Rotation = FamousFramework.FamousEngine.components.Rotation;
+var Origin = FamousFramework.FamousEngine.components.Origin;
+var Align = FamousFramework.FamousEngine.components.Align;
+var MountPoint = FamousFramework.FamousEngine.components.MountPoint;
 
-var Mesh = Famous.webglRenderables.Mesh;
-var PointLight = Famous.webglRenderables.PointLight;
-var AmbientLight = Famous.webglRenderables.AmbientLight;
-var Sphere = Famous.webglGeometries.Sphere;
-var DynamicGeometry = Famous.webglGeometries.DynamicGeometry;
-var Material = Famous.webglMaterials.Material;
-var Color = Famous.utilities.Color;
+var Mesh = FamousFramework.FamousEngine.webglRenderables.Mesh;
+var PointLight = FamousFramework.FamousEngine.webglRenderables.PointLight;
+var AmbientLight = FamousFramework.FamousEngine.webglRenderables.AmbientLight;
+var Sphere = FamousFramework.FamousEngine.webglGeometries.Sphere;
+var DynamicGeometry = FamousFramework.FamousEngine.webglGeometries.DynamicGeometry;
+var Material = FamousFramework.FamousEngine.webglMaterials.Material;
+var Color = FamousFramework.FamousEngine.utilities.Color;
 
 /**
  * Attach:

@@ -1,9 +1,10 @@
 'use strict';
 
-window.Famous = require('famous');
-var FamousEngine = window.FamousEngine = require('famous/core/FamousEngine');
+// This beautiful variable name differentiates the Famous Engine library
+// from the Famous Engine module that the Famous Engine library contains.
+var FamousEngineCoreFamousEngine = require('famous/core/FamousEngine');
 
-FamousEngine.init();
+FamousEngineCoreFamousEngine.init();
 
 var COMPONENT_PREFIX = '__famousFramework-';
 
@@ -22,7 +23,7 @@ function addChild(famousNode, Constructor) {
 }
 
 function createRoot(selector) {
-    var context = FamousEngine.createScene(selector);
+    var context = FamousEngineCoreFamousEngine.createScene(selector);
     return context.addChild();
 }
 
@@ -69,7 +70,8 @@ module.exports = {
     attachDOMElement: attachDOMElement,
     createRoot: createRoot,
     decorateComponent: decorateComponent,
-    FamousEngine: FamousEngine,
+    FamousEngine: require('famous'), // The root of the Famous Engine library
+    FamousEngineCoreFamousEngine: FamousEngineCoreFamousEngine,
     Transitionable: require('famous/transitions/Transitionable'),
     Curves: require('famous/transitions/Curves')
 };

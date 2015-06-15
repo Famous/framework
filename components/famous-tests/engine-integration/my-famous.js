@@ -1,6 +1,6 @@
-var DOMElement = Famous.domRenderables.DOMElement;
+var DOMElement = FamousFramework.FamousEngine.domRenderables.DOMElement;
 
-var Size = Famous.components.Size;
+var Size = FamousFramework.FamousEngine.components.Size;
 
 FamousFramework.attach('#ctx', function(renderNode) {
     var domEl = new DOMElement(renderNode);
