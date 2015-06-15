@@ -8,6 +8,19 @@ var EsprimaHelpers = require('./../esprima-helpers');
 
 var ALL_SELECTOR = '*';
 
+function getValidDependenciesOnly(dependencies) {
+    var validDependencies = [];
+    for (var i = 0; i < dependencies.length; i++) {
+        var depName = dependencies[i];
+        // Anything that doesn't have at least one ':' in it can be assumed to not
+        // be a dependency, since we should have expanded these in a previous step
+        if (depName.indexOf(this.options.componentDelimiter) !== -1) {
+            validDependencies.push(depName);
+        }
+    }
+    return validDependencies;
+}
+
 /*
  behaviors
     selector
@@ -88,8 +101,11 @@ function findDependencies(info, cb) {
 
     // Finally, push any gathered dependencies into the table object
     var uniqDependencies = Lodash.uniq(dependenciesList);
-    for (i = 0; i < uniqDependencies.length; i++) {
-        var dependencyName = uniqDependencies[i];
+
+    var validDependencies = getValidDependenciesOnly.call(this, uniqDependencies);
+
+    for (i = 0; i < validDependencies.length; i++) {
+        var dependencyName = validDependencies[i];
         if (!dependencyTable[dependencyName]) {
             dependencyTable[dependencyName] = this.options.defaultDependencyVersion;
         }
