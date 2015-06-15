@@ -4,7 +4,7 @@ The Famous Framework is a new JavaScript framework for creating reusable, compos
 
 - - - -
 
-**IMPORTANT:** This project is in an early phase and under active development; expect bugs and breaking changes to occur. To submit a bug report, please use [GitHub Issues](https://github.com/Famous/framework/issues). For questions and general support, join our [Slack channel](https://famous-community.slack.com/messages/framework/). **We strongly recommend that you read this README before starting. Also see [famous.github.io/framework/](http://famous.github.io/framework/ for a general intro.**
+**IMPORTANT:** This project is in an early phase and under active development; expect bugs and breaking changes to occur. To submit a bug report, please use [GitHub Issues](https://github.com/Famous/framework/issues). For questions and general support, join our [Slack channel](https://famous-community.slack.com/messages/framework/). **We strongly recommend that you read this README before starting. Also see http://famous.github.io/framework/ for a general intro.**
 
 - - - -
 
