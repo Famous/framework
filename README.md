@@ -54,9 +54,11 @@ Below is an example of what a Famous Framework component looks like. This code l
 
 The easiest way to get started is the Famous CLI (via its `framework` branch). Scaffolding is provided because the Famous Framework includes a set of custom local development tools which, while not required to use the framework, make creating components more straightforward. (We'll soon be documenting how to use the framework without any build tools.)
 
-First, create a new directory to put code for your Famous Framework project, and `cd` into it. Then:
+To get started, simply follow these instructions:
 
-    $ npm install -g git://github.com/Famous/famous-cli.git#framework # You may need to 'sudo' this
+    $ mkdir my-new-folder  # create a new folder to hold your code
+    $ cd my-new-folder
+    $ npm install -g git://github.com/Famous/famous-cli.git#framework # Install the CLI.  You may need to 'sudo' this
     $ famous framework-scaffold
     ? Enter a username: bobette-smith
     ? Enter your component's name: todos
