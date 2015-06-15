@@ -10,7 +10,7 @@ The Famous Framework is a new JavaScript framework for creating reusable, compos
 
 ## Why?
 
-With so many world-class JavaScript frameworks out there, why has Famous decided to release its own? In nutshell:
+With so many world-class JavaScript frameworks out there, why has Famous decided to release its own? In a nutshell:
 
 * **Reusability / interchangability.** The Famous Framework is built around powerful constraints and a declarative syntax that make it possible for components to be reused and interchanged.
 
