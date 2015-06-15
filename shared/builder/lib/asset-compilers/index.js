@@ -108,10 +108,8 @@ function compileSource(source, path, cb) {
         COMPILERS[extname](source, function(err, result) {
             if (err) {
                 console.error('\n' + err.name + ':', err.message);
-                console.log(err.codeframe);
-                result = 'console.log("error in file: ' + path + '");';
-                result += 'console.log("' + err.name + ':' + err.message + '")';
-                console.log(result);
+                result = 'console.error("Build process found a syntax error in file: ' + path + '");\n';
+                result += 'console.error("' + err.name + ':' + err.message + '")';
             }
 
             return cb(null, {
