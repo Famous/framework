@@ -5,7 +5,7 @@ FamousFramework.module('famous-tests:opacity', {
         },
         '#node2' : {
             position: [0, 300],
-            opacity: 0.5
+            opacity: 0.2
         },
         'node' : {
             style: function(myStyle) {
@@ -20,10 +20,10 @@ FamousFramework.module('famous-tests:opacity', {
     },
     states: {
         myStyle : {
-            'background-color' : 'black',
+            'background-color' : 'white',
             'text-align' : 'center',
             'line-height' : '200px',
-            'color' : 'white',
+            'color' : 'black',
             'cursor' : 'pointer'
         }
     },
@@ -41,7 +41,7 @@ FamousFramework.module('famous-tests:opacity', {
         <node id='node2'>
             <node>
                 <node>
-                    <div>Opacity: 50%</div>
+                    <div>Opacity: 20%</div>
                 </node>
             </node>
         </node>
