@@ -9,11 +9,11 @@ var RPAREN = ')';
 var REGEXP = /([^\s,]+)/g;
 
 function getParameterNames(fn) {
-  var fnString = fn.toString();
-  var matches = fnString.slice(fnString.indexOf(LPAREN) + 1, fnString.indexOf(RPAREN)).match(REGEXP);
-  return matches || [];
+    var fnString = fn.toString();
+    var matches = fnString.slice(fnString.indexOf(LPAREN) + 1, fnString.indexOf(RPAREN)).match(REGEXP);
+    return matches || [];
 }
 
 module.exports = {
-  getParameterNames: getParameterNames
+    getParameterNames: getParameterNames
 };
