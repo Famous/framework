@@ -162,6 +162,7 @@ Builder.DEFAULTS = {
             'click',
             'change',
             'dblclick',
+            'input',
             'keydown',
             'keypress',
             'keyup',
@@ -177,7 +178,6 @@ Builder.DEFAULTS = {
             'touchstart',
             'touchmove',
             'touchend',
-            'value',
             'wheel'
         ]
     },

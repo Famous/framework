@@ -4,9 +4,6 @@ FamousFramework.scene('famous-tests:input-field-data', {
             'size': [200, 200],
             'align': [0.5, 0.5],
             'mount-point': [0.5, 0.5]
-        },
-        '#input-field': {
-            'value': 'HELLO'
         }
     },
     events: {
@@ -14,7 +11,7 @@ FamousFramework.scene('famous-tests:input-field-data', {
             'change': function($state, $payload) {
                 alert($payload.value);
             },
-            'value': function($state, $payload) {
+            'input': function($state, $payload) {
                 console.log('$payload.value: ', $payload.value);
             }
         }
