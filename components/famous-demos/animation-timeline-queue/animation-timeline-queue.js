@@ -1,4 +1,4 @@
-FamousFramework.scene('famous-demos:animation-timeline-cue', {
+FamousFramework.scene('famous-demos:animation-timeline-queue', {
     /**
      * Behaviors:
      *      Target each circle in our tree
@@ -42,18 +42,18 @@ FamousFramework.scene('famous-demos:animation-timeline-cue', {
     events: {
         '.circle': {
             'click': function($timelines) {
-                $timelines.cue([
+                $timelines.queue([
                     [ 'animation-1', { duration: 800 }, ()=> console.log('--> animation-1 complete!') ],
                     [ 'animation-2', { duration: 800 }, ()=> console.log('--> animation-2 complete!') ],
                     [ 'animation-3', { duration: 800 }, ()=> console.log('--> animation-3 complete!') ]
                 ], function() {
                     console.log('----> all animations complete!');
-                }).startCue();
+                }).startQueue();
             }
         }
     },
     states: {},
-    tree: 'animation-timeline-cue.html'
+    tree: 'animation-timeline-queue.html'
 })
 /**
  * Timelines:

@@ -25,7 +25,7 @@ function Timelines(timelineGroups, states) {
     this._currTimeline = null;
     this._currDuration = null;
 
-    this._cue = { index: null, timelines: null };
+    this._queue = { index: null, timelines: null };
     this._pausedTimelines = {};
     this._observers = {};
 }
@@ -112,27 +112,27 @@ Timelines.prototype.get = function get(timelineName) {
 };
 
 /**
- * Cue up an array of Timelines that will play in sequence.
+ * Queue up an array of Timelines that will play in sequence.
  *
  * Each element in the array is a new Array that represents
  * the arguments to be passed to Timelines.start() function.
  *
  * @example
- *     $timelines.cue([
+ *     $timelines.queue([
  *         [ 'animation-1', {duration: 1800}, function timelineCallback() { console.log('animation-1 complete'); } ],
  *         [ 'animation-2', {duration: 2800} ]
- *     ], function cueCallback() {
+ *     ], function queueCallback() {
  *         console.log('All animations complete!');
- *     }).startCue();
+ *     }).startQueue();
  *
- * @method  cue
+ * @method  queue
  * @param   {Array}      timelines  An array of Timelines that will play one after another.
  * @param   {Function}   callback   Callback function to call when all timelines have completed.
  * @return  {Timelines}  An instance of this Timelines object.
  */
-Timelines.prototype.cue = function cue(timelines, callback) {
-    this.clearCue();
-    this._cue = {
+Timelines.prototype.queue = function queue(timelines, callback) {
+    this.clearQueue();
+    this._queue = {
         index: -1,
         timelines: timelines,
         callback: callback
@@ -141,19 +141,19 @@ Timelines.prototype.cue = function cue(timelines, callback) {
 };
 
 /**
- * Starts the cue of Timelines from the beginning.
- * @method  startCue
+ * Starts the queue of Timelines from the beginning.
+ * @method  startQueue
  * @return  {Timelines}  An instance of this Timelines object.
  */
-Timelines.prototype.startCue = function startCue() {
-    this.resetCue();
-    this.nextInCue();
+Timelines.prototype.startQueue = function startQueue() {
+    this.resetQueue();
+    this.nextInQueue();
     return this;
 };
 
-Timelines.prototype.resetCue = function resetCue() {
-    for (var i = 0, len = this._cue.timelines.length; i < len; i++) {
-        this._currName = this._cue.timelines[i][0];
+Timelines.prototype.resetQueue = function resetQueue() {
+    for (var i = 0, len = this._queue.timelines.length; i < len; i++) {
+        this._currName = this._queue.timelines[i][0];
         this.halt();
         this.get(this._currName);
 
@@ -161,43 +161,43 @@ Timelines.prototype.resetCue = function resetCue() {
         this._setPaused(this._currName, true);
         this._detachBehaviors(this._currName);
     }
-    this._cue.index = -1;
+    this._queue.index = -1;
 };
 
 /**
- * Clean up the cue when animations are complete.
- * @method  clearCue
+ * Clean up the queue when animations are complete.
+ * @method  clearQueue
  * @return  {Timelines}  An instance of this Timelines object.
  */
-Timelines.prototype.clearCue = function clearCue() {
-    this._cue.index = -1;
-    this._cue.timelines = null;
-    this._cue.callback = null;
+Timelines.prototype.clearQueue = function clearQueue() {
+    this._queue.index = -1;
+    this._queue.timelines = null;
+    this._queue.callback = null;
     return this;
 };
 
 /**
- * Play the next Timeline in the cue.
+ * Play the next Timeline in the queue.
  *
- * Once the end of the cue has been reached call the optional callback
+ * Once the end of the queue has been reached call the optional callback
  * if it exists.
  *
- * @method  nextInCue
+ * @method  nextInQueue
  * @return  {Timelines}  An instance of this Timelines object.
  */
-Timelines.prototype.nextInCue = function nextInCue() {
-    if (this._cue.timelines) {
-        this._cue.index++;
-        if (this._cue.index >= this._cue.timelines.length) {
-            if (this._cue.callback) this._cue.callback();
-            this.resetCue();
+Timelines.prototype.nextInQueue = function nextInQueue() {
+    if (this._queue.timelines) {
+        this._queue.index++;
+        if (this._queue.index >= this._queue.timelines.length) {
+            if (this._queue.callback) this._queue.callback();
+            this.resetQueue();
         }
         else {
-            var currTimeline = this._cue.timelines[this._cue.index];
+            var currTimeline = this._queue.timelines[this._queue.index];
             this.get(currTimeline[0]);
             this.start(currTimeline[1], function() {
                 if (typeof currTimeline[2] === 'function') currTimeline[2]();
-                this.nextInCue();
+                this.nextInQueue();
             }.bind(this));
         }
     }
