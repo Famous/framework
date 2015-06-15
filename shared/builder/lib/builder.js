@@ -55,6 +55,12 @@ Builder.DEFAULTS = {
     // bundle of the original component requesting it.
     doAttemptToBuildDependenciesLocally: true,
 
+    // If true, we will write a .famous/framework.json file with locked
+    // versions of the dependencies we have just resolved. This can be useful
+    // if you want to guarantee that your component has the same dependencies
+    // on every change. (As opposed to doing constant re-resolution.)
+    doFreezeDependencies: false,
+
     // If no dependency for a given component can be found, fallback to
     // 'HEAD' which in code-manager world essentially means "the latest"
     // and which in local-raw-source world essentially means "whatever is"

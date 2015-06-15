@@ -27,7 +27,12 @@ function saveFrameworkInfo(info, cb) {
         frameworkHash = {};
     }
 
-    frameworkHash.dependencies = info.dereffedDependencyTable;
+    if (this.options.doFreezeDependencies) {
+        frameworkHash.dependencies = info.dereffedDependencyTable;
+    }
+    else {
+        frameworkHash.dependencies = {};
+    }
 
     if (info.frameworkInfo.block) {
         frameworkHash.block = info.frameworkInfo.block;

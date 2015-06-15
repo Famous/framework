@@ -35,15 +35,23 @@ function freezeDependencies(info, cb) {
         info.files.push(frameworkFile);
     }
 
-    // And set the file's content to the JSON of the dependencies
-    // that we've resolved in a previous step
-    frameworkFile.content = JSON.stringify({
-        // It's kind of hacky to put this in here, but we need to store
-        // the block info for future requests.
-        block: info.frameworkInfo.block,
+    if (this.options.doFreezeDependencies) {
+        // And set the file's content to the JSON of the dependencies
+        // that we've resolved in a previous step
+        frameworkFile.content = JSON.stringify({
+            // It's kind of hacky to put this in here, but we need to store
+            // the block info for future requests.
+            block: info.frameworkInfo.block,
 
-        dependencies: info.dereffedDependencyTable
-    }, null, 4);
+            dependencies: info.dereffedDependencyTable
+        }, null, 4);
+    }
+    else {
+        frameworkFile.content = JSON.stringify({
+            block: info.frameworkInfo.block,
+            dependencies: {}
+        }, null, 4);
+    }
 
     // If we're building a component from a local source folder, we
     // need to write the dependencies back to that folder so that subsequent
@@ -65,6 +73,7 @@ function freezeDependencies(info, cb) {
                         cb(null, info);
                     }
                     else {
+
                         cb(fileWriteErr);
                     }
                 });
