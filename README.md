@@ -1,31 +1,77 @@
-# Famous Framework (BETA)
+# Famous Framework (beta)
 
-The Famous Framework is a JavaScript framework for creating expressive, high-performance UIs.
+The Famous Framework is a new JavaScript framework for creating reusable, composable, and interchangeable UI widgets and applications. It's declarative, functional, and built on the [Famous Engine](https://github.com/Famous/engine). We are excited to make it available as open source under an MIT license for the first time as part of an early public beta.
 
-* **Reusable:** The Famous Framework is built around powerful constraints and a declarative syntax that make it easy to reuse components and seamlessly interchange them.
+- - - -
 
-* **Connected:** Components built with the Famous Framework will be able to integrate with Famous realtime analytics, visual editing tools, and more, without writing any additional code. _(Coming soon!)_
+**IMPORTANT:** This project is in an early phase and under active development; expect bugs and breaking changes to occur. To submit a bug report, please use [GitHub Issues](https://github.com/Famous/framework/issues). For questions and general support, join our [Slack channel](https://famous-community.slack.com/messages/framework/). **We strongly recommend that you read this README before starting. Also see [famous.github.io/framework/](http://famous.github.io/framework/ for a general intro.**
 
-* **Built on the Famous Engine:** The Famous Framework is built on the [Famous Engine](https://github.com/Famous/engine) to harness its high-performance rendering capabilities in DOM and WebGL.
+- - - -
 
-## Setup
+## Why?
 
-After cloning the repo:
+With so many world-class JavaScript frameworks out there, why has Famous decided to release its own? In nutshell:
 
+* **Integration with Famous visual editing tools:** Components built using the Famous Framework will be able to integrate with soon-to-be-announced Famous visual authoring/editing tools, as well as forthcoming Famous services such as instant deployment, realtime analytics, A/B testing, and more &mdash; without needing to write any additional code.
+
+* **Reusability / interchangability:** The Famous Framework is built around powerful constraints and a declarative syntax that make it possible for any component to be reused and interchanged. Although Famous Framework syntax may feel very different at first, it ultimately supports our long-term goal of an ecosystem of components that can be plugged in _anywhere_.
+
+- - - -
+
+## Example
+
+Below is an example of what a Famous Framework component looks like. This code lives in a file `bobette-smith/nifty-demo/nifty-demo.js`. (The convention of only lowercase letters and hyphens is important to stick to.)
+
+    FamousFramework.component('bobette-smith:nifty-demo', {
+        behaviors: {
+            '#box': {
+                'size': [100, 100],
+                'style': { 'background-color': '#40b2e8' },
+                'rotation-z': function(rotation) { return rotation; }
+            }
+        },
+        events: {
+            '#box': {
+                'click': function($state) {
+                    $state.set('rotation', $state.get('rotation') + 10, {
+                        duration: 1000,
+                        curve: 'easeOut'
+                    });
+                }
+            }
+        },
+        states: { rotation: 0 },
+        tree: `<node id="box"></node>`
+    });
+
+- - - -
+
+## Setup &amp; installation
+
+The easiest way to get started is the Famous CLI (via its `framework` branch). Scaffolding is provided because the Famous Framework includes a set of custom local development tools which, while not required to use the framework, make creating components more straightforward. (We'll soon be documenting how to use the framework without any build tools.)
+
+    $ npm install -g git://github.com/Famous/famous-cli.git#framework # You may need to 'sudo' this
+    $ famous framework-scaffold
+    ? Enter a username: bobette-smith
+    ? Enter your component's name: todos
+    ? Does the project name "bobette-smith:todos" look ok? Yes
+    Created framework scaffold in current working directory!
     $ npm install
     $ npm run dev
 
-And browse to [localhost:1618/](http://localhost:1618/).
+Once the local server and watchers are running, surf to [localhost:1618/](http://localhost:1618/). Changes you make to files within the `components/` folder will trigger automatic reload. 
 
-Changes you make will trigger automatic reload.
+- - - -
 
-## Authors
+## How to make the most of the framework:
 
-* Zack Brown <zack@famo.us>
-* Matthew Trost <matthew@famo.us>
-* Arkady Pevzner <arkady@famo.us>
-* Imtiaz Majeed <imtiaz@famo.us>
-* Jordan Papaleo <jordan@famo.us>
+1.) Color inside the lines: Although we've taken care to ensure you can break out of our guidelines and syntax when you need to, we think you'll have a better experience if you stick with them. In some cases, this means you'll have to approach familiar problems in a new way.
+
+2.) Remember the microchip: In Famous Framework, every component is a black box. Sharing state between components is not provided for; you must build your app so that the inputs and outputs of each component connect and synchronize in the right way.
+
+3.) Join the Slack channel: The best way to get help and troubleshoot is via the [Famous Framework Slack channel](https://famous-community.slack.com/messages/framework/). Our engineers visit regularly and will do their best to answer questions you may have, from the conceptual to technical.
+
+- - - -
 
 ## License
 
