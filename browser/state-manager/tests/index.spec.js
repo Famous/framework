@@ -1,8 +1,9 @@
 'use strict';
 
 var test = require('tape');
-var FamousEngine = require('famous').core.FamousEngine;
-var Transitionable = require('famous').transitions.Transitionable;
+var famous = require('famous');
+var Node = famous.core.Node;
+var Transitionable = famous.transitions.Transitionable;
 
 var StateManager = require('./../lib');
 
@@ -11,13 +12,15 @@ var clone = fixtures.clone;
 var _state = fixtures.state;
 var _observerState = fixtures.observerState;
 
+var FamousNode = new Node();
+
 test('StateManager', function(t) {
 
     t.test('constructor', function(t) {
         t.equal(typeof StateManager, 'function', 'should be a function');
 
         t.doesNotThrow(function() {
-            new StateManager(clone(_state), FamousEngine, Transitionable);
+            new StateManager(clone(_state), FamousNode, Transitionable);
         });
 
         t.ok(StateManager, 'should export');
@@ -26,7 +29,7 @@ test('StateManager', function(t) {
     });
 
     t.test('getting state #1 - get', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         t.equal(SM.get('number'), 1, 'should get number state');
         t.equal(SM.get('string'), 'two', 'should get string state');
@@ -45,7 +48,7 @@ test('StateManager', function(t) {
     });
 
     t.test('getting state #2 - getStateObject', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         t.deepEqual(SM.getStateObject(), _state, 'should get entire state object');
 
@@ -53,7 +56,7 @@ test('StateManager', function(t) {
     });
 
     t.test('getting state #3 - latestStateChange', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         SM.set('number', 2);
         t.deepEqual(SM.getLatestStateChange(), ['number', 2], 'should get last state that was set and value');
@@ -62,7 +65,7 @@ test('StateManager', function(t) {
     });
 
     t.test('setting state #1 - set(value)', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         SM.set('number', 2);
         SM.set('string', 'three');
@@ -94,7 +97,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         time = 0;
         SM.set('number', 0, { duration: 1000 });
@@ -118,7 +121,7 @@ test('StateManager', function(t) {
     });
 
     t.test('setting state #3 - set(value).set(value).set(value)', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         SM
             .set('number', 2)
@@ -151,7 +154,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         time = 0;
         SM
@@ -176,7 +179,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         time = 0;
         SM
@@ -201,7 +204,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         time = 0;
         SM
@@ -236,7 +239,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         time = 0;
         SM
@@ -267,7 +270,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         time = 0;
         SM
@@ -297,7 +300,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         time = 0;
         SM
@@ -327,7 +330,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         time = 0;
         SM
@@ -347,7 +350,7 @@ test('StateManager', function(t) {
     });
 
     t.test('setting state #11 - same state set(value).set(value).set(value)', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         SM
             .set('number', 0)
@@ -369,7 +372,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         time = 0;
         SM
@@ -398,7 +401,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         SM
             .set('w', 0)
@@ -432,7 +435,7 @@ test('StateManager', function(t) {
     });
 
     t.test('setting state #14 - state batching set(value)', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         SM.set({
             'x': 0,
@@ -456,7 +459,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         SM.set({
             'x': 0,
@@ -492,7 +495,7 @@ test('StateManager', function(t) {
             }
         };
 
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         SM.set({
             'x': 0,
@@ -552,7 +555,7 @@ test('StateManager', function(t) {
     });
 
     t.test('subscribing to state #1 - subscribeTo', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         var observerState = clone(_observerState);
         var observerFunc = function(key, value) {
@@ -572,7 +575,7 @@ test('StateManager', function(t) {
     });
 
     t.test('subscribing to state #2 - subscribe', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         var observerState = clone(_observerState);
         var globalObserverFunc = function(key, value) {
@@ -593,7 +596,7 @@ test('StateManager', function(t) {
     });
 
     t.test('subscribing to state #3 - subscribeOnce + triggerGlobalChange', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         var observerState = clone(_observerState);
         var observerFunc = function(key, value) {
@@ -615,7 +618,7 @@ test('StateManager', function(t) {
     });
 
     t.test('unsubscribing from state #1 - unsubscribeFrom', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         var observerState = clone(_observerState);
         var observerFunc = function(key, value) {
@@ -638,7 +641,7 @@ test('StateManager', function(t) {
     });
 
     t.test('unsubscribing from state #2 - unsubscribe', function(t) {
-        var SM = new StateManager(clone(_state), FamousEngine, Transitionable);
+        var SM = new StateManager(clone(_state), FamousNode, Transitionable);
 
         var observerState = clone(_observerState);
         var observerFunc = function(key, value) {
