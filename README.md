@@ -60,7 +60,7 @@ Then, to get started, simply follow these instructions:
 
     $ mkdir my-new-folder  # create a new folder to hold your code
     $ cd my-new-folder
-    $ npm install -g git://github.com/Famous/famous-cli.git#framework # Install the CLI.  You may need to 'sudo' this
+    $ npm install -g 'git://github.com/Famous/famous-cli.git#framework' # Install the CLI.  You may need to 'sudo' this
     $ famous framework-scaffold
     ? Enter a username: bobette-smith
     ? Enter your component's name: todos
