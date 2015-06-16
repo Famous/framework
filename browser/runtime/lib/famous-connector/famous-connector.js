@@ -1,5 +1,6 @@
 'use strict';
 
+var Camera = FamousEngine.components.Camera;
 // This beautiful variable name differentiates the Famous Engine library
 // from the Famous Engine module that the Famous Engine library contains.
 var FamousEngineCoreFamousEngine = require('famous/core/FamousEngine');
