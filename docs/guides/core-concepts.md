@@ -18,10 +18,10 @@ Data in BEST modules flows in one direction. User actions (e.g. button `'clicks'
 
 Behaviors describe how the elements in the tree should be displayed. More precisely, behaviors are _pure functions triggered by changes in state_. They can control anything from size, position and rotation, to [control flow](control-flow.md), content and CSS styling. 
 
-Behavior functions get called every time a state value they are observing gets modified. For example, the following behavior function responds to changes in `clickCount` ( an internal state value ), reflecting a new `position` back to a `view` element in its scene ( tree ):
+Behavior functions get called every time a state value they are observing gets modified. For example, the following behavior function responds to changes in `clickCount` ( an internal state value ), reflecting a new `position` back to a `#foo` element in its scene ( tree ):
 
     behaviors:{	
-        view: {
+        "#foo": {
             position: function(clickCount) {
                 return Math.sin(clickCount / 1000);
             }
@@ -29,7 +29,7 @@ Behavior functions get called every time a state value they are observing gets m
     }
  
 
-In other words, whenever `clickCount` changes, the view's position function will fire. 
+In other words, whenever `clickCount` changes, `#foo`'s position function will fire. 
 
 For a deeper look at behaviors, see the [behaviors section](behaviors.md). 
 
@@ -64,14 +64,15 @@ Check out the [states section](states) for more detail.
 
 ### Tree
 
-Trees structure an application's elements in an ordered heirarchy. They are a _declarative representation of the [Famous Scene Graph](http://famous.org/learn/scene-graph.html)_. Each module has only one tree, which can be represented by any language that can adequately describe a [tree structure](http://en.wikipedia.org/wiki/Tree_%28graph_theory%29), for example, XML:
+Trees structure an application's elements in an ordered heirarchy. They are a _declarative representation of the [Famous Scene Graph](http://famous.org/learn/scene-graph.html)_. Each module has only one tree, which is represented by XML. 
 
     tree: `    
     <!-- or subsitute with your structure language of choice -->
-    <view>
-        <surface></surface>
-    </view>
+    <node id="foo">
+        <node>Hi There</node>
+    </node>
     `
+Unlike the other modules facets (behaviors, events, states), the tree is not provided as an object, but instead as a string. Above we use ES6 [multi-line strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/template_strings) with the accent grave (`&#96;`) to define our tree (we can also do this by file reference or through a simple string). 
 
 Visit the [trees section](trees.md) for a deeper look. 
 

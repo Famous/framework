@@ -1,3 +1,5 @@
+## Introduction
+
 The [Famous Framework](https://github.com/Famous/framework), built by engineers at Famous, provides an easy-to-use API for harnessing the Famous Engine. It's also designed to integrate seamlessly with (forthcoming) Famous studio tools and Famous cloud services.
 
 ## Setup &amp; installation

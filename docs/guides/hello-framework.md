@@ -6,13 +6,13 @@ The [Famous Framework](https://github.com/Famous/framework), built by engineers 
 
 All Framework projects are created using the following syntax:
  
-    FamousFramework.scene('module name',  { module defintion } ) 
+    FamousFramework.component('module name',  { module defintion } ) 
 
 The bulk of a project lives within the `'module definition'` where we list our behaviors, events, states, and tree as members of an object ( see [Core Concepts](core-concepts.md) for an intro to the BEST pattern ). The `module name` points to the directory where your project files are located. Let's see it in action. 
 
 ## A simple project
 
-Check out the 'Hello World' example below ( Let's assume it is located in the `components/my.components.name/hello-framework` directory of an existing [seed project](#) ). When reading through the code, think of the _tree_ ( imported from the `hello-framework.html` file ) as custom HTML and the _behaviors_ as CSS styles on steroids. 
+Check out the 'Hello World' example below ( Let's assume it is located in the `components/my.components.name/hello-framework` directory of an existing [seed project](getting-started.md) ). When reading through the code, think of the _tree_ ( imported from the `hello-framework.html` file ) as custom HTML and the _behaviors_ as CSS styles on steroids. 
 
     /**
     *  hello-framework.js
