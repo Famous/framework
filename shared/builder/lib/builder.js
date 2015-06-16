@@ -69,6 +69,11 @@ Builder.DEFAULTS = {
     // to a potentially changing component
     defaultDependencyVersion: 'HEAD',
 
+    // If true, skips the part where we build the 'executable' files, i.e.
+    // the standalone builds that can be just loaded into the browser and
+    // executed
+    doSkipExecutableBuild: true,
+
     codeManagerApiVersion: 'v1',
     codeManagerAssetGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath',
     codeManagerBlockCreateRoute: 'POST|default|/:apiVersion/blocks',
@@ -87,10 +92,12 @@ Builder.DEFAULTS = {
         '.famous/.config': true // This file may contain user secrets
     },
     bundleAssetPath: '~bundles/bundle.js', // Complete file that the client knows how to process
-    bundleExecutableAssetPath: '~bundles/bundle-executable.js', // File that includes an 'execute' block (will not work with `deploy`!)
+    // bundleExecutableAssetPath: '~bundles/bundle-executable.js', // File that includes an 'execute' block (will not work with `deploy`!)
     parcelAssetPath: '~bundles/parcel.json', // Data and dependencies object used for dependency gathering
-    frameworkLibraryAssetPath: '~bundles/famous-framework.js',
-    frameworkExecutablePageAssetPath: '~bundles/bundle-executable.html',
+    // frameworkLibraryAssetPath: '~bundles/famous-framework.js',
+    // frameworkExecutablePageAssetPath: '~bundles/bundle-executable.html',
+    bundleIndexPath: '~bundles/index.html',
+    bundleExecutablePath: '~bundles/build.js',
     defaultDependencyData: undefined,
     doLoadDependenciesFromBrowser: IS_IN_BROWSER,
     doSkipAssetSaveStep: false,

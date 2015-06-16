@@ -1,8 +1,11 @@
 'use strict';
 
+var Browserify = require('browserify');
+var Envify = require('envify/custom');
 var Fs = require('fs');
 var Lodash = require('lodash');
 var Path = require('path');
+var Temp = require('temp');
 
 var BuildHelpers = require('./../build-helpers');
 var EsprimaHelpers = require('./../esprima-helpers');
@@ -120,16 +123,36 @@ function buildBundleString(info) {
     ].join(NEWLINE);
 }
 
-function buildBundleExecutableString(info) {
-     return [
-        copyright(),
-        '\'use strict\';',
-        buildIncludesPrefix(info),
-        indent(buildRegistrationBlocks(info)),
-        indent(buildExecuteBlock(info)),
-        buildIncludesSuffix(),
-        copyright()
-    ].join(NEWLINE);
+var PROJECT_DIR = Path.join(__dirname, '..', '..', '..', '..');
+
+function browserifyFrameworkLibrary(info, cb) {
+    var inputFile = Path.join(PROJECT_DIR, 'browser', 'runtime', 'lib', 'index.js');
+    var b = Browserify(inputFile);
+    b.transform(Envify({ FF_ASSET_READ_HOST: this.options.codeManagerAssetReadHost }));
+    b.bundle(function(err, buf) {
+        cb(null, buf.toString());
+    });
+}
+
+function buildBundleExecutableString(info, cb) {
+    browserifyFrameworkLibrary.call(this, info, function(err, browserifiedLibrary) {
+        cb(null, [   
+            browserifiedLibrary, '\n',
+            copyright(),
+            '\'use strict\';',
+            buildIncludesPrefix(info),
+            indent(buildRegistrationBlocks(info)),
+            indent(buildExecuteBlock(info)),
+            buildIncludesSuffix(),
+            copyright()
+        ].join(NEWLINE));
+    });
+}
+
+var INDEX_FILE_STR = Fs.readFileSync(Path.join(__dirname, 'templates', 'index.html'));
+
+function buildBundleIndexString(info) {
+    return INDEX_FILE_STR;
 }
 
 function normalizeDependenciesFound(dependenciesFound) {
@@ -176,25 +199,6 @@ function buildParcelHash(info) {
         entrypoint: buildEntrypointString(info)
     };
 }
-/*eslint-disable */
-var PROJECT_DIR = Path.join(__dirname, '..', '..', '..', '..');
-/*eslint-enable */
-
-// TODO we need to make sure we lock this content to whatever version of
-// the framework was used at the given time. Even more ideal, rather than
-// writing this to every bundle folder, we could just template out the
-// 'executable-bundle.html' to point to a version of the library that had
-// been previously CDN'd
-// var FRAMEWORK_LIB_STRING = Fs.readFileSync(Path.join(PROJECT_DIR, 'local', 'workspace', 'build', 'famous-framework.bundle.js'));
-var FRAMEWORK_EXECUTABLE_PAGE_STRING = Fs.readFileSync(Path.join(__dirname, 'templates', 'executable-bundle.html'));
-
-// function getFrameworkLibraryString() {
-//     return FRAMEWORK_LIB_STRING;
-// }
-
-function getFrameworkExecutablePageString() {
-    return FRAMEWORK_EXECUTABLE_PAGE_STRING;
-}
 
 function buildBundle(info, cb) {
     // When building bundles in memory only (no persistence, say, when testing),
@@ -207,10 +211,20 @@ function buildBundle(info, cb) {
 
     info.parcelHash = buildParcelHash.call(this, info);
     info.bundleString = buildBundleString.call(this, info);
-    info.bundleExecutableString = buildBundleExecutableString.call(this, info);
-    info.frameworkLibraryString = '';//getFrameworkLibraryString.call(this, info);
-    info.frameworkExecutablePageString = getFrameworkExecutablePageString.call(this, info);
-    cb(null, info);
+
+    if (!this.options.doSkipExecutableBuild) {
+        info.bundleIndexString = buildBundleIndexString.call(this, info);    
+        buildBundleExecutableString.call(this, info, function(err, bundleExecutableString) {
+            if (err) {
+                return cb(err);
+            }
+            info.bundleExecutableString = bundleExecutableString;
+            cb(null, info);
+        });
+    }
+    else {
+        cb(null, info);
+    }
 }
 
 module.exports = buildBundle;

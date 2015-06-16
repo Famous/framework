@@ -100,10 +100,12 @@ Program.command('publish-component')
                 authHost: 'https://api-te.famo.us/auth',
                 codeManagerAssetReadHost: 'https://api-te.famo.us/codemanager',
                 codeManagerAssetWriteHost: 'https://api-te.famo.us/codemanager',
-                codeManagerVersionInfoHost: 'https://api-te.famo.us/codemanager',
+                // codeManagerVersionInfoHost: 'https://api-te.famo.us/codemanager',
                 doWriteToCodeManager: true,
-                doSkipDependencyDereferencing: false,
-                doAttemptToBuildDependenciesLocally: false
+                doSkipDependencyDereferencing: true,
+                doSkipAssetSaveStep: false,
+                doSkipExecutableBuild: false,
+                doAttemptToBuildDependenciesLocally: true
             }
         });
 

@@ -222,18 +222,16 @@ function saveBundle(baseDir, info, finish) {
         path: this.options.parcelAssetPath,
         content: JSON.stringify(info.parcelHash, null, 4)
     });
-    bundleFiles.push({
-        path: this.options.bundleExecutableAssetPath,
-        content: info.bundleExecutableString
-    });
-    bundleFiles.push({
-        path: this.options.frameworkLibraryAssetPath,
-        content: info.frameworkLibraryString
-    });
-    bundleFiles.push({
-        path: this.options.frameworkExecutablePageAssetPath,
-        content: info.frameworkExecutablePageString
-    });
+    if (!this.options.doSkipExecutableBuild) {
+        bundleFiles.push({
+            path: this.options.bundleIndexPath,
+            content: info.bundleIndexString
+        });
+        bundleFiles.push({
+            path: this.options.bundleExecutablePath,
+            content: info.bundleExecutableString
+        });
+    }
     bundleFiles = bundleFiles.concat(info.assetSaveableFiles);
 
     Async.each(bundleFiles, function(file, cb) {
