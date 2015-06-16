@@ -1,6 +1,7 @@
 'use strict';
 
 var DataStore = require('./../data-store/data-store');
+var FamousConnector = require('./../famous-connector/famous-connector');
 var Logger = require('./../logger/logger');
 var Utilities = require('./../utilities/utilities');
 var VirtualDOM = require('./../virtual-dom/virtual-dom');
@@ -70,6 +71,47 @@ Behaviors.getPayload = function getPayload(behavior, component) {
 
 Behaviors.getPayloadFromUID = function getPayloadFromUID(behavior, uid) {
     return Behaviors.getPayload(behavior, DataStore.getComponent(uid));
+};
+
+/*
+example:
+famous:core:dom-element
+    behaviors
+        $camera
+            depth: 2000
+ */
+Behaviors.cameraBehavior = function cameraBehavior(behavior, component) {
+    var camera = FamousConnector.getCamera();
+    var payload = Behaviors.getPayload(behavior, component);
+    if (!Array.isArray(payload)) {
+        payload = [payload];
+    }
+    switch(behavior.name) {
+        // TODO: need to figure out how to pass getters along to a component
+        // case 'getValue':
+        // case 'get-value':
+        //     camera.getValue();
+        //     break;
+        case 'set':
+            camera.set(payload[0], payload[1], payload[2], payload[3]);
+            break;
+        case 'setDepth':
+        case 'set-depth':
+            camera.setDepth(payload[0]);
+            break;
+        case 'setFlat':
+        case 'set-flat':
+            camera.setFlat();
+            break;
+        case 'setFrustum':
+        case 'set-frustum':
+            camera.setFrustum(payload[0], payload[1]);
+            break;
+        case 'setValue':
+        case 'set-value':
+            camera.setValue(payload[0]);
+            break;
+    }
 };
 
 /*

@@ -398,7 +398,7 @@ Component.executeComponent = function executeComponent(name, tag, selector) {
     VirtualDOM.setUID(baseNode);
     return new Component(baseNode, null, {
         tree: topLevelTree,
-        famousNode: FamousConnector.createRoot(selector)
+        famousNode: FamousConnector.createRoot(selector).addChild()
     });
 };
 

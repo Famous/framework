@@ -290,6 +290,7 @@ function getCustomFamousNodeConstructor(constuctorName) {
 }
 
 module.exports = {
+    hasComponent: hasComponent,
     getAttachments: getAttachments,
     getComponent: getComponent,
     getConfig: getConfig,
