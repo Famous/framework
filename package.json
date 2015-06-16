@@ -20,12 +20,12 @@
   ],
   "scripts": {
     "dev": "npm run watch-runtime & npm run bootstrap",
-    "bootstrap": "rm -rf $PWD/local/workspace/build/v1 && node local/scripts/dev.js local-only-bootstrap --sourceDirectory=$PWD/components --blocksDirectory=$PWD/local/workspace/build --port=1618",
-    "build-runtime": "node local/scripts/build-runtime.js build-runtime",
-    "watch-runtime": "watchify browser/runtime/lib/index.js -t [ envify --FF_ASSET_READ_HOST http://localhost:1618 ] -o local/workspace/build/famous-framework.bundle.js --debug --verbose",
-    "develop-component": "node local/scripts/dev.js develop-component --blocksDirectory=$PWD/local/workspace/build --port=1618",
-    "publish-component": "node local/scripts/dev.js publish-component --blocksDirectory=$PWD/local/workspace/build",
-    "test": "node local/scripts/test.js",
+    "bootstrap": "rm -rf $PWD/dev/workspace/v1 && node dev/dev.js local-only-bootstrap --sourceDirectory=$PWD/lib/core-components --blocksDirectory=$PWD/dev/workspace --port=1618",
+    "build-runtime": "node dev/build-runtime.js build-runtime",
+    "watch-runtime": "watchify lib/index.js -t [ envify --FF_ASSET_READ_HOST http://localhost:1618 ] -o dev/workspace/famous-framework.bundle.js --debug --verbose",
+    "develop-component": "node dev/dev.js develop-component --blocksDirectory=$PWD/Dev/workspace --port=1618",
+    "publish-component": "node dev/dev.js publish-component --blocksDirectory=$PWD/Dev/workspace",
+    "test": "node dev/test.js",
     "lint": "eslint --ignore-path .eslintignore ."
   },
   "dependencies": {

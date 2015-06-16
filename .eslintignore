@@ -1,12 +1,11 @@
 .DS_Store
-*.log
 node_modules
+*.log
 *.bundle.js
-components/*
+**/core-components/*
 **/test/*
-local/workspace/build/v1
-shared/builder/lib/esprima-helpers/tests/fixtures
-shared/builder/tests/fixtures
+**/v1/*
+**/fixtures/*
 **/~bundles/**/*
 **/~versions/**/*
-local/workspace/build/*.bundle.js
+**/*.bundle.js
