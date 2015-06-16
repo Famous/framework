@@ -16,13 +16,14 @@ First, make sure you have [Node.js](http://nodejs.org) installed, at least versi
 
 Then, to get started, first create a new folder for your project:
 
-    $ mkdir my-new-folder  # create a new folder to hold your code
+    $ mkdir my-new-folder # Create a new folder to hold your code
     $ cd my-new-folder
 
 Next, install a special version of the Famous CLI:
 
     $ npm cache clean
-    $ npm install -g 'git://github.com/Famous/famous-cli.git#framework' # Install the CLI.  You may need to 'sudo' this
+    $ npm install -g 'git://github.com/Famous/famous-cli.git#framework'
+    # ^ This install the Famous CLI. You may need to 'sudo' this
 
 Then, with the install of the special Famous CLI version complete, run a command to scaffold a new framework project in the directory you created above:
 
