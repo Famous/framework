@@ -10,6 +10,7 @@ var FamousEngineCoreFamousEngine = FamousEngine.core.FamousEngine;
 FamousEngineCoreFamousEngine.init();
 
 var COMPONENT_PREFIX = '__famousFramework-';
+var ROOT_NODE_KEY = COMPONENT_PREFIX + 'root-node__';
 
 var RENDERING_COMPONENTS = {
     'DOMElement': require('famous/dom-renderables/DOMElement'),
@@ -25,9 +26,17 @@ function addChild(famousNode, Constructor) {
     }
 }
 
+/**
+ * Creates the root node for a context.
+ * @method  createRoot
+ * @param   {String}    selector  The query selector used to create the root Scene.
+ */
 function createRoot(selector) {
-    var context = FamousEngineCoreFamousEngine.createScene(selector);
-    return context.addChild();
+    if (!DataStore.hasComponent(ROOT_NODE_KEY)) {
+        DataStore.registerComponent(ROOT_NODE_KEY, FamousEngineCoreFamousEngine.createScene(selector));
+    }
+    return DataStore.getComponent(ROOT_NODE_KEY);
+}
 }
 
 function attachAttributes(famousFrameworkComponent, domComponent) {
