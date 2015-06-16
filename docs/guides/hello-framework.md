@@ -1,31 +1,31 @@
-## Hello Framework
+# Hello Framework
 
-The [Famous Framework](https://github.com/Famous/framework), built by engineers at Famous, provides an easy-to-use API for harnessing the Famous Engine. It's also designed to integrate seamlessly with (forthcoming) Famous studio tools and Famous cloud services.
+The [Famous Framework](https://github.com/Famous/framework) provides a structured API for controlling UI elements with the Famous Engine. As a framework, its goals are to bring composability, extensibility, and consistency fo UI applications.
 
 ## The basics
 
-All Framework projects are created using the following syntax:
+All FAmous Framework projects begin with the following syntax:
  
-    FamousFramework.component('module name',  { module defintion } ) 
+    FamousFramework.component('module-name',  { /* module defintion /* });
 
-The bulk of a project lives within the `'module definition'` where we list our behaviors, events, states, and tree as members of an object ( see [Core Concepts](core-concepts.md) for an intro to the BEST pattern ). The `module name` points to the directory where your project files are located. Let's see it in action. 
+The bulk of a project lives within the _module definition_, where we list our behaviors, events, states, and tree as members of an object (see [Core Concepts](core-concepts.md) for an intro to the BEST architectural pattern).
 
 ## A simple project
 
-Check out the 'Hello World' example below ( Let's assume it is located in the `components/my.components.name/hello-framework` directory of an existing [seed project](getting-started.md) ). When reading through the code, think of the _tree_ ( imported from the `hello-framework.html` file ) as custom HTML and the _behaviors_ as CSS styles on steroids. 
+Check out the 'Hello World' example below. When reading through the code, think of the _tree_ as Famous-enhanced HTML and the _behaviors_ as CSS styles on steroids.
 
     /**
     *  hello-framework.js
     **/
     
-    FamousFramework.component('my.component.name:hello-framework',  {
+    FamousFramework.component('my-name:hello-framework',  {
         behaviors: {
             '#background': {
                 'style': {
                     'background': 'linear-gradient(to right, #00B9D7, #9783F2)'
                 }
             },
-           '#text': {
+            '#text': {
                'size': [400, 80],
                'align': [0.5, 0.5],
                'mount-point': [0.5, 0.5],
@@ -35,36 +35,27 @@ Check out the 'Hello World' example below ( Let's assume it is located in the `c
                    'font-size': '60px',
                    'text-align': 'center'
                }
-           }
+            }
         },
         events: {},
         states: {},
-        tree: 'hello-framework.html'
-        });
-    
-Note how we use CSS selectors (`#background`, `#text` ) in `hello-framework.js` above for referencing the elements in `hello-framework.html` below.
+        tree: `
+            <node id='background'>
+            <node id='text'> 
+                <div> Hello Framework! </div>
+            </node>
+            </node>
+        `
+    });
 
-``` html
-  <!-- hello-framework.html -->
-    
-<node id='background'>
-<node id='text'> 
-    <div> Hello Framework! </div>
-</node>
-</node>
-```
+Note how we use CSS selectors (`#background`, `#text`) to target behaviors to elements that are declared in the `tree`.
 
-While the _tree_ ( in `hello-framework.html` ) sets up the structure of our app, the _behaviors_ ( in `hello-framework.js`) tells the module how each element should be displayed. The result: a 'Hello Framework!' message centered and styled in front of  a CSS gradient background. 
+While the _tree_ sets up the structure of our app, the _behaviors_ tell the module how each element should be displayed. The result: a 'Hello Framework!' message centered and styled in front of a CSS gradient background.
 
-## Rendering to actual HTML 
+## Rendering the component
 
-It's important to note that the `hello-framework.html` code above isn't actually HTML at all, but instead just a representation of the app's structure. In order to render the project above to HTML, it needs to be deployed to an HTML document with the Framework [boilerplate]() code included. 
+It's important to note that the _tree_ declaration above isn't really HTML, but just a representation of the app's structure (the scene graph). In order to render the project, the component needs to be deployed to an HTML document. 
 
-Once the [boilerplate]() code is set up, we use the following command within the HTML document to initialize a project:
+    FamousFramework.deploy('my-name:hello-world', 'HEAD', 'body');
 
-    FamousFramework.deploy('module name', 'module version', 'target element');
-
-The `'module name'`  locates your project files and the `'target element'` tells the Framework where in the HTML document it should append your Framework code. It's that simple!
-
-
-        
+You'll find code similar to the line above in the `public/index.html` of the project you created when you ran `famous framework-scaffold`. That line tells the framework library how to locate the component code (served on `localhost:1618`) and where to render it on the page.

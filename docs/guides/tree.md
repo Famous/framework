@@ -1,12 +1,7 @@
-##Trees
+# Tree
 
-Trees structure an application’s elements in an ordered heirarchy. They are a declarative representation of the Famous Scene Graph. Each module has only one tree, which can be represented by XML:
+The `tree` defines the structure of an application’s elements in an ordered heirarchy. Ultimately, it represents the structure of the scene graph that will be created by the Famous Engine. Each component has only one tree, which can be represented using HTML syntax:
 
-	<!-- or subsitute with your structure language of choice -->
 	<node>
 	    <node></node>
 	</node>
-
-- no logic in trees, departure from other frameworks. Control flow is done in [behaviors](behaviors.md)
-- representation of scene graph
-- Adding content in behaviors

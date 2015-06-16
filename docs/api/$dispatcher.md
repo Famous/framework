@@ -20,14 +20,14 @@ FamousFramework.scene('example', {
 
 ## API
 
-### .broadcast
+### .broadcast(key, message)
 
 Broadcast a message to descendants in the tree. (For downward messaging.)
 
 Parameters:
 
-* `key {String}` - The event key
-* `message {Any}` - The message to send
+1. `key {String}` - The event key
+2. `message {Any}` - The message to send
 
 Example:
 
@@ -35,14 +35,15 @@ Example:
 $dispatcher.broadcast('foo', { bar: 'baz' });
 ```
 
-### .emit
+
+### .emit(key, message)
 
 Emit a message to ancestors in the tree. (For upward messaging.)
 
 Parameters:
 
-* `key {String}` - The event key
-* `message {Any}` - The message to send
+1. `key {String}` - The event key
+2. `message {Any}` - The message to send
 
 Example:
 
@@ -50,14 +51,15 @@ Example:
 $dispatcher.emit('foo', { bar: 'baz' });
 ```
 
-### .on
+
+### .on(key, callback)
 
 Subscribe to event with the given callback function. All messages of the given event key that target the current component will trigger the callback function.
 
 Parameters:
 
-* `key {String}` - Key of the event to listen to
-* `callback(event) {Function}` - Callback function
+1. `key {String}` - Key of the event to listen to
+2. `callback(event) {Function}` - Callback function
 
 Example:
 
@@ -67,14 +69,15 @@ $dispatcher.on('foo', function(event) {
 });
 ```
 
-### .trigger
+
+### .trigger(key, message)
 
 Trigger an event to send to the current component. (For self messaging.)
 
 Parameters:
 
-* `key {String}` - The event key
-* `message {Any}` - The message to send
+1. `key {String}` - The event key
+2. `message {Any}` - The message to send
 
 Example:
 

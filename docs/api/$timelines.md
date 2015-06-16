@@ -18,83 +18,99 @@ FamousFramework.scene('example', {
 
 ## API
 
-### _.get()
+### .get(name)
 
-Sets the current timeline. To start the timeline, call `.start()` after `.get()`.
+Sets the currently active timeline. To start the timeline, call `.start()` after `.get()`.
 
-**Arguments**
+Parameters:
 
-1. (String) timeline name
+1. `name {String}` - timeline name
 
-**Returns**
+Returns:
+
 _($timelines)_ component's instance of $timelines
 
-**Example:**
+Example:
+
 ```
 $timelines.get('animation-one');
 ```
 
-### _.start()
 
-Plays the current timeline.
+### .start(options)
 
-**Arguments**
+Plays the currently active timeline.
 
-1. (Object) Options object to specify duration + speed of timeline
+Parameters:
 
-**Returns**
+1. `options {Object}` - options object to specify duration + speed of timeline
+
+Returns:
+
 _($timelines)_ component's instance of $timelines
 
-**Example:**
+Example:
+
 ```
 $timelines.get('animation-one').start({ duration: 1000 });
 ```
 
-### _.halt()
 
-Pauses an active timeline.
+### .halt()
 
-**Returns**
+Pauses the currently active timeline.
+
+Returns:
+
 _($timelines)_ component's instance of $timelines
 
-**Example:**
+Example:
+
 ```
 $timelines.get('animation-one').halt();
 ```
 
-### _.resume()
+
+### .resume()
 
 Unpauses an active timeline.
 
-**Returns**
+Returns:
+
 _($timelines)_ component's instance of $timelines
 
-**Example:**
+Example:
+
 ```
 $timelines.get('animation-one').resume();
 ```
 
-### _.rewind()
+
+### .rewind()
 
 Plays a timeline in reverse from the current time.
 
-**Returns**
+Returns:
+
 _($timelines)_ component's instance of $timelines
 
-**Example:**
+Example:
+
 ```
 $timelines.get('animation-one').rewind();
 ```
 
-### _.isPaused()
 
-Returns true/false if the current timeline is paused of not.
+### .isPaused()
 
-**Returns**
+Returns true/false if the current timeline is paused or not.
+
+Returns:
+
 _(Boolean)_ component's instance of $timelines
 
-**Example:**
+Example:
+
 ```
 $timelines.get('animation-one').isPaused();
 ```
-

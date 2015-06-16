@@ -18,82 +18,92 @@ FamousFramework.scene('example', {
 
 ## API
 
-### _.get()
+### .get(key)
 
-**Aliases** _.getState()
+Aliases: `.getState(key)`
 
-**Arguments**
+Parameters:
 
-1. (String|Array) state name or path (in the case of nested state)
+1. `key {String|Array}` state name or path array (in the case of nested state)
 
-**Returns**
+Returns:
+
 _(Value)_ state value
 
-**Example:**
+Example:
+
 ```
 $state.get('height');
 ```
 
-### _.getStateObject()
 
-**Returns**
+### .getStateObject()
+
+Returns:
+
 _(Object)_ component's internal state object
 
-**Example:**
+Example:
+
 ```
 $state.getStateObject();
 ```
 
-### _.getLatestStateChange()
 
-**Returns**
+### .getLatestStateChange()
+
+Returns:
+
 _(Array)_ array with then last state set and the value
 
-**Example:**
+Example:
+
 ```
 $state.getLatestStateChange();
 ```
 
-### _.set()
+
+### .set(key, value, options)
 
 Set component's state.
 
-**Aliases** _.setState()
+Aliases: `.setState()`
 
-**Arguments**
+Parameters:
 
-1. (String|Array) state name of path (in the case of nested state)
+1. `key {String|Array}` - state name of path (in the case of nested state)
+2. `value {Any}` - value to set state to
+3. `options {Object}` - transitions object
 
-2. (Value) value to set state to
+Returns:
 
-3. (Object) transitions object
+_(StateManager)_ component's instance of $state
 
-**Returns**
-_($state)_ component's instance of $state
+Example:
 
-**Example:**
 ```
 $state.set('height', 200, { duration: 1000, curve: 'easeInOut' });
 ```
 
-### _.thenSet()
+
+### .thenSet(key, value, options)
 
 Set component's state after a set.
 
-**Aliases** _.thenSetState()
+Aliases: `.thenSetState()`
 
-**Arguments**
+Parameters:
 
-1. (String|Array) state name of path (in the case of nested state)
+1. `key {String|Array}` - state name of path (in the case of nested state)
+2. `value {Any}` - value to set state to
+3. `options {Object}` - transitions object
 
-2. (Value) value to set state to
+Returns:
 
-3. (Object) transitions object
+_(StateManager)_ component's instance of $state
 
-**Returns**
-_($state)_ component's instance of $state
+Example:
 
-**Example:**
 ```
 $state
     .set('height', 200, { duration: 1000, curve: 'easeInOut' })
