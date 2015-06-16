@@ -1,5 +1,6 @@
 'use strict';
 
+var DataStore = require('./../data-store/data-store');
 var FamousEngine = require('famous');
 var Camera = FamousEngine.components.Camera;
 // This beautiful variable name differentiates the Famous Engine library
