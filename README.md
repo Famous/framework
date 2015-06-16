@@ -8,6 +8,36 @@ The Famous Framework is a new JavaScript framework for creating reusable, compos
 
 - - - -
 
+## Setup &amp; installation
+
+The easiest way to get started is the Famous CLI (via its `framework` branch). Scaffolding is provided because the Famous Framework includes a set of custom local development tools which, while not required to use the framework, make creating components more straightforward. (We'll soon be documenting how to use the framework without any build tools.)
+
+First, make sure you have [Node.js](http://nodejs.org) installed, at least version `0.12`.
+
+Then, to get started, first create a new folder for your project:
+
+    $ mkdir my-new-folder  # create a new folder to hold your code
+    $ cd my-new-folder
+
+Next, install a special version of the Famous CLI:
+
+    $ npm cache clean
+    $ npm install -g 'git://github.com/Famous/famous-cli.git#framework' # Install the CLI.  You may need to 'sudo' this
+
+Then, with the install of the special Famous CLI version complete, run a command to scaffold a new framework project in the directory you created above:
+
+    $ famous framework-scaffold
+    ? Enter a username: bobette-smith
+    ? Enter your component's name: todos
+    ? Does the project name "bobette-smith:todos" look ok? Yes
+    Created framework scaffold in current working directory!
+    $ npm install
+    $ npm run dev
+
+Once the local server and watchers are running, surf to [localhost:1618/](http://localhost:1618/). Changes you make to files within the `components/` folder will trigger automatic reload.
+
+- - - -
+
 ## Why?
 
 With so many world-class JavaScript frameworks out there, why has Famous decided to release its own? In a nutshell:
@@ -47,29 +77,6 @@ Below is an example of what a Famous Framework component looks like. This code l
         states: { rotation: 0 },
         tree: `<node id="box"></node>`
     });
-
-- - - -
-
-## Setup &amp; installation
-
-The easiest way to get started is the Famous CLI (via its `framework` branch). Scaffolding is provided because the Famous Framework includes a set of custom local development tools which, while not required to use the framework, make creating components more straightforward. (We'll soon be documenting how to use the framework without any build tools.)
-
-First, make sure you have [Node.js](http://nodejs.org) installed, at least version `0.12`.
-
-Then, to get started, simply follow these instructions:
-
-    $ mkdir my-new-folder  # create a new folder to hold your code
-    $ cd my-new-folder
-    $ npm install -g 'git://github.com/Famous/famous-cli.git#framework' # Install the CLI.  You may need to 'sudo' this
-    $ famous framework-scaffold
-    ? Enter a username: bobette-smith
-    ? Enter your component's name: todos
-    ? Does the project name "bobette-smith:todos" look ok? Yes
-    Created framework scaffold in current working directory!
-    $ npm install
-    $ npm run dev
-
-Once the local server and watchers are running, surf to [localhost:1618/](http://localhost:1618/). Changes you make to files within the `components/` folder will trigger automatic reload. 
 
 - - - -
 
