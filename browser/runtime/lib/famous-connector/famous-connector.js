@@ -10,6 +10,7 @@ var FamousEngineCoreFamousEngine = FamousEngine.core.FamousEngine;
 FamousEngineCoreFamousEngine.init();
 
 var COMPONENT_PREFIX = '__famousFramework-';
+var CAMERA_NODE_KEY = COMPONENT_PREFIX + 'camera-node__';
 var ROOT_NODE_KEY = COMPONENT_PREFIX + 'root-node__';
 
 var RENDERING_COMPONENTS = {
@@ -37,6 +38,21 @@ function createRoot(selector) {
     }
     return DataStore.getComponent(ROOT_NODE_KEY);
 }
+
+/**
+ * Get the camera in the scene. The camera is a singleton and is attached
+ * to the root node. If a camera doesn't exist one will be attached to the
+ * root node.
+ * @method  getCamera
+ * @return  {Camera}   A Famous Camera instance.
+ */
+function getCamera() {
+    if (!DataStore.hasComponent(CAMERA_NODE_KEY)) {
+        var rootNode = DataStore.getComponent(ROOT_NODE_KEY);
+        var camera = new Camera(rootNode);
+        DataStore.registerComponent(CAMERA_NODE_KEY, camera);
+    }
+    return DataStore.getComponent(CAMERA_NODE_KEY);
 }
 
 function attachAttributes(famousFrameworkComponent, domComponent) {
@@ -84,6 +100,7 @@ module.exports = {
     decorateComponent: decorateComponent,
     FamousEngine: FamousEngine, // The root of the Famous Engine library
     FamousEngineCoreFamousEngine: FamousEngineCoreFamousEngine,
+    getCamera: getCamera,
     Transitionable: require('famous/transitions/Transitionable'),
     Curves: require('famous/transitions/Curves')
 };
