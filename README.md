@@ -39,20 +39,6 @@ Once the local server and watchers are running, surf to [localhost:1618/](http:/
 
 - - - -
 
-## Why?
-
-With so many world-class JavaScript frameworks out there, why has Famous decided to release its own? In a nutshell:
-
-* **Reusability / interchangability.** The Famous Framework is built around powerful constraints and a declarative syntax that make it possible for components to be reused and interchanged.
-
-* **Application consistency.** In an ecosystem where widgets/applications/utilities all follow the same guidelines, developers and designers both reap the benefits: less trial and error when attempting to integrate with others' projects.
-
-* **Integration with existing web standards.** Although our integration is far from complete, from the beginning we've aimed to design and build the framework around existing web standards.
-
-* **Static analyzability:** Components that follow the constraints established by the Famous Framework can be staticaly analyzed, which hints at some exciting possibilities for tools and services that could be built on top.
-
-- - - -
-
 ## Example
 
 Below is an example of what a Famous Framework component looks like. This code lives in a file `bobette-smith/nifty-demo/nifty-demo.js`. (The convention of only lowercase letters and hyphens is important to stick to.)
@@ -84,6 +70,20 @@ Below is an example of what a Famous Framework component looks like. This code l
         },
         tree: `<node id="box"></node>`
     });
+
+- - - -
+
+## Why?
+
+With so many world-class JavaScript frameworks out there, why has Famous decided to release its own? In a nutshell:
+
+* **Reusability / interchangability.** The Famous Framework is built around powerful constraints and a declarative syntax that make it possible for components to be reused and interchanged.
+
+* **Application consistency.** In an ecosystem where widgets/applications/utilities all follow the same guidelines, developers and designers both reap the benefits: less trial and error when attempting to integrate with others' projects.
+
+* **Integration with existing web standards.** Although our integration is far from complete, from the beginning we've aimed to design and build the framework around existing web standards.
+
+* **Static analyzability:** Components that follow the constraints established by the Famous Framework can be staticaly analyzed, which hints at some exciting possibilities for tools and services that could be built on top.
 
 - - - -
 
