@@ -84,7 +84,7 @@ Looking under the hood, behaviors are just messages sent to descendant component
         `
     });
 
-Here, since `node` exposes a `$public` event named `size` in its events object, it will respond to this event and modify the internal state. For more about custom or `$public` events, see the [events section](events.md).
+Here, since `node` exposes a [`$public`](https://github.com/Famous/framework/blob/develop/docs/guides/events.md#private-vs-public-events) event named `size` in its events object, it will respond to this event and modify the internal state. For more about custom or `$public` events, see the [events section](events.md).
 
 ## Applying behaviors to oneself
 
