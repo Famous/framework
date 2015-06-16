@@ -23,8 +23,8 @@
     "bootstrap": "rm -rf $PWD/dev/workspace/v1 && node dev/dev.js local-only-bootstrap --sourceDirectory=$PWD/lib/core-components --blocksDirectory=$PWD/dev/workspace --port=1618",
     "build-runtime": "node dev/build-runtime.js build-runtime",
     "watch-runtime": "watchify lib/index.js -t [ envify --FF_ASSET_READ_HOST http://localhost:1618 ] -o dev/workspace/famous-framework.bundle.js --debug --verbose",
-    "develop-component": "node dev/dev.js develop-component --blocksDirectory=$PWD/Dev/workspace --port=1618",
-    "publish-component": "node dev/dev.js publish-component --blocksDirectory=$PWD/Dev/workspace",
+    "develop-component": "node dev/dev.js develop-component --blocksDirectory=$PWD/dev/workspace --port=1618",
+    "publish-component": "node dev/dev.js publish-component --blocksDirectory=$PWD/dev/workspace",
     "test": "node dev/test.js",
     "lint": "eslint --ignore-path .eslintignore ."
   },
