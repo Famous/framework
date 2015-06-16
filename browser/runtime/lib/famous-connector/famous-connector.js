@@ -1,9 +1,10 @@
 'use strict';
 
+var FamousEngine = require('famous');
 var Camera = FamousEngine.components.Camera;
 // This beautiful variable name differentiates the Famous Engine library
 // from the Famous Engine module that the Famous Engine library contains.
-var FamousEngineCoreFamousEngine = require('famous/core/FamousEngine');
+var FamousEngineCoreFamousEngine = FamousEngine.core.FamousEngine;
 
 FamousEngineCoreFamousEngine.init();
 
@@ -71,7 +72,7 @@ module.exports = {
     attachDOMElement: attachDOMElement,
     createRoot: createRoot,
     decorateComponent: decorateComponent,
-    FamousEngine: require('famous'), // The root of the Famous Engine library
+    FamousEngine: FamousEngine, // The root of the Famous Engine library
     FamousEngineCoreFamousEngine: FamousEngineCoreFamousEngine,
     Transitionable: require('famous/transitions/Transitionable'),
     Curves: require('famous/transitions/Curves')
