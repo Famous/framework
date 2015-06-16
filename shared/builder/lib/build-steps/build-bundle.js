@@ -5,7 +5,6 @@ var Envify = require('envify/custom');
 var Fs = require('fs');
 var Lodash = require('lodash');
 var Path = require('path');
-var Temp = require('temp');
 
 var BuildHelpers = require('./../build-helpers');
 var EsprimaHelpers = require('./../esprima-helpers');
@@ -130,12 +129,14 @@ function browserifyFrameworkLibrary(info, cb) {
     var b = Browserify(inputFile);
     b.transform(Envify({ FF_ASSET_READ_HOST: this.options.codeManagerAssetReadHost }));
     b.bundle(function(err, buf) {
+        if (err) console.error('build-bundle: ', err);
         cb(null, buf.toString());
     });
 }
 
 function buildBundleExecutableString(info, cb) {
     browserifyFrameworkLibrary.call(this, info, function(err, browserifiedLibrary) {
+        if (err) console.error('build-bundle: ', err);
         cb(null, [   
             browserifiedLibrary, '\n',
             copyright(),

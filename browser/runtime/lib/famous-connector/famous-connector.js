@@ -10,8 +10,6 @@ var FamousEngineCoreFamousEngine = FamousEngine.core.FamousEngine;
 FamousEngineCoreFamousEngine.init();
 
 var COMPONENT_PREFIX = '__famousFramework-';
-var CAMERA_NODE_KEY = COMPONENT_PREFIX + 'camera-node__';
-var ROOT_NODE_KEY = COMPONENT_PREFIX + 'root-node__';
 
 var RENDERING_COMPONENTS = {
     'DOMElement': require('famous/dom-renderables/DOMElement'),

@@ -15,7 +15,7 @@ function saveBundle(info, cb) {
         else {
             cb(bundleSaveErr);
         }
-    }.bind(this));
+    });
 }
 
 module.exports = saveBundle;

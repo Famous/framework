@@ -308,7 +308,7 @@ function getCamera(selector) {
 
 function registerCamera(selector, camera) {
     if (!ROOT_SCENES[selector]) {
-        throw new Error('A Famous Scene with selector `' + selector + '` has not been created.')
+        throw new Error('A Famous Scene with selector `' + selector + '` has not been created.');
     }
     ROOT_SCENES[selector].camera = camera;
 }
