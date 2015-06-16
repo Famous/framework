@@ -33,26 +33,26 @@ function addChild(famousNode, Constructor) {
  * @param   {String}    selector  The query selector used to create the root Scene.
  */
 function createRoot(selector) {
-    if (!DataStore.hasComponent(ROOT_NODE_KEY)) {
-        DataStore.registerComponent(ROOT_NODE_KEY, FamousEngineCoreFamousEngine.createScene(selector));
-    }
-    return DataStore.getComponent(ROOT_NODE_KEY);
+     var scene = FamousEngineCoreFamousEngine.createScene(selector);
+     DataStore.registerRootScene(selector, scene);
+     return scene.addChild();
 }
 
 /**
- * Get the camera in the scene. The camera is a singleton and is attached
- * to the root node. If a camera doesn't exist one will be attached to the
- * root node.
+ * Get the camera in the scene. There is 0 or 1 camera's attached to each
+ * executed component. If a camera doesn't exist, one will be attached.
+ *
  * @method  getCamera
  * @return  {Camera}   A Famous Camera instance.
  */
-function getCamera() {
-    if (!DataStore.hasComponent(CAMERA_NODE_KEY)) {
-        var rootNode = DataStore.getComponent(ROOT_NODE_KEY);
-        var camera = new Camera(rootNode);
-        DataStore.registerComponent(CAMERA_NODE_KEY, camera);
+function getCamera(famousFrameworkComponent) {
+    var rootSelector = famousFrameworkComponent.rootSelector;
+    if (!DataStore.getCamera(rootSelector)) {
+        var rootScene = DataStore.getRootScene(rootSelector);
+        var camera = new Camera(rootScene);
+        DataStore.registerCamera(rootSelector, camera);
     }
-    return DataStore.getComponent(CAMERA_NODE_KEY);
+    return DataStore.getCamera(rootSelector);
 }
 
 function attachAttributes(famousFrameworkComponent, domComponent) {

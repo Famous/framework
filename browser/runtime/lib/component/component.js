@@ -32,6 +32,7 @@ function Component(domNode, surrogateRoot, parent) {
     this.name = domNode.tagName.toLowerCase();
     this.uid = VirtualDOM.getUID(domNode);
     this.tag = VirtualDOM.getTag(domNode);
+    this.rootSelector = parent.rootSelector;
     this.dependencies = DataStore.getDependencies(this.name, this.tag);
     this.definition = DataStore.getModuleDefinition(this.name, this.tag);
     this.timelineSpec = DataStore.getTimelines(this.name, this.tag);
@@ -56,7 +57,7 @@ function Component(domNode, surrogateRoot, parent) {
     this.blockControlFlow = false;
     this.events = new Events(this.definition.events, this.name, this.dependencies, this.getRootNode());
 
-    DataStore.registerComponent(this.uid, this);
+    DataStore.registerFamousFrameworkComponent(this.uid, this);
     this._setEventListeners();
     this._initialize();
     this._createExpandedBlueprintObserver(this.tree.getExpandedBlueprint());
@@ -398,7 +399,8 @@ Component.executeComponent = function executeComponent(name, tag, selector) {
     VirtualDOM.setUID(baseNode);
     return new Component(baseNode, null, {
         tree: topLevelTree,
-        famousNode: FamousConnector.createRoot(selector).addChild()
+        famousNode: FamousConnector.createRoot(selector),
+        rootSelector: selector
     });
 };
 

@@ -81,7 +81,7 @@ famous:core:dom-element
             depth: 2000
  */
 Behaviors.cameraBehavior = function cameraBehavior(behavior, component) {
-    var camera = FamousConnector.getCamera();
+    var camera = FamousConnector.getCamera(component);
     var payload = Behaviors.getPayload(behavior, component);
     if (!Array.isArray(payload)) {
         payload = [payload];

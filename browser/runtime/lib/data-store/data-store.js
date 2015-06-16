@@ -5,6 +5,9 @@ var ObjUtils = require('./../../../utilities/object');
 // A FamousFramework Application with a Famo.us Context
 var EXECUTED_COMPONENTS = {};
 
+// FamousEngine scenes
+var ROOT_SCENES = {};
+
 // A component is an instantiated FamousFramework module.
 var COMPONENTS = {};
 
@@ -212,20 +215,20 @@ function getComponent(uid) {
     return COMPONENTS[uid];
 }
 
-function hasComponent(uid) {
+function hasFamousFrameworkComponent(uid) {
     return !!getComponent(uid);
 }
 
-function saveComponent(uid, component) {
+function saveFamousFrameworkComponent(uid, component) {
     COMPONENTS[uid] = component;
 }
 
-function registerComponent(uid, component) {
-    if (hasComponent(uid)) {
+function registerFamousFrameworkComponent(uid, component) {
+    if (hasFamousFrameworkComponent(uid)) {
         throw new Error('Component with UID `' + uid + '` already exists!');
     }
     else {
-        saveComponent(uid, component);
+        saveFamousFrameworkComponent(uid, component);
     }
 }
 
@@ -289,22 +292,47 @@ function getCustomFamousNodeConstructor(constuctorName) {
     }
 }
 
+function getRootScene(selector) {
+    return ROOT_SCENES[selector].scene;
+}
+
+function registerRootScene(selector, scene) {
+    ROOT_SCENES[selector] = {};
+    ROOT_SCENES[selector].scene = scene;
+    ROOT_SCENES[selector].camera = null;
+}
+
+function getCamera(selector) {
+    return ROOT_SCENES[selector].camera;
+}
+
+function registerCamera(selector, camera) {
+    if (!ROOT_SCENES[selector]) {
+        throw new Error('A Famous Scene with selector `' + selector + '` has not been created.')
+    }
+    ROOT_SCENES[selector].camera = camera;
+}
+
 module.exports = {
-    hasComponent: hasComponent,
     getAttachments: getAttachments,
+    getCamera: getCamera,
     getComponent: getComponent,
     getConfig: getConfig,
-    getDependencies: getDependencies,
-    getExecutedComponent: getExecutedComponent,
     getCustomFamousNodeConstructor: getCustomFamousNodeConstructor,
+    getDependencies: getDependencies,
     getDOMWrapper: getDOMWrapper,
+    getExecutedComponent: getExecutedComponent,
     getModuleDefinition: getModuleDefinition,
     getModuleOptions: getModuleOptions,
+    getRootScene: getRootScene,
     getTimelines: getTimelines,
-    registerComponent: registerComponent,
+    hasFamousFrameworkComponent: hasFamousFrameworkComponent,
+    registerCamera: registerCamera,
     registerCustomFamousNodeConstructors: registerCustomFamousNodeConstructors,
     registerDOMWrapper: registerDOMWrapper,
+    registerFamousFrameworkComponent: registerFamousFrameworkComponent,
     registerModule: registerModule,
+    registerRootScene: registerRootScene,
     saveDependencies: saveDependencies,
     saveExecutedComponent: saveExecutedComponent,
     setAttachment: setAttachment
