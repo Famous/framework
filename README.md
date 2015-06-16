@@ -61,8 +61,12 @@ Below is an example of what a Famous Framework component looks like. This code l
         behaviors: {
             '#box': {
                 'size': [100, 100],
-                'style': { 'background-color': '#40b2e8' },
-                'rotation-z': function(rotation) { return rotation; }
+                'style': {
+                    'background-color': '#40b2e8'
+                },
+                'rotation-z': function(rotation) {
+                    return rotation;
+                }
             }
         },
         events: {
@@ -75,7 +79,9 @@ Below is an example of what a Famous Framework component looks like. This code l
                 }
             }
         },
-        states: { rotation: 0 },
+        states: {
+            rotation: 0
+        },
         tree: `<node id="box"></node>`
     });
 
