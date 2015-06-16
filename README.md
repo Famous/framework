@@ -23,7 +23,7 @@ Next, install a special version of the Famous CLI:
 
     $ npm cache clean
     $ npm install -g 'git://github.com/Famous/famous-cli.git#framework'
-    # ^ This install the Famous CLI. You may need to 'sudo' this
+    # ^ This installs the Famous CLI. You may need to 'sudo' this
 
 Then, with the install of the special Famous CLI version complete, run a command to scaffold a new framework project in the directory you created above:
 
