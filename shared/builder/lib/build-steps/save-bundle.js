@@ -9,14 +9,13 @@ function saveBundle(info, cb) {
         if (!bundleSaveErr) {
             console.log(Chalk.gray('famous'), Chalk.green('ok'), 'Built bundle ' + info.name + ' ~> ' + info.bundleVersionRef);
             console.log(Chalk.gray('famous'), '  ', 'Bundle URL:', Chalk.magenta(info.bundleURL));
-            // console.log(Chalk.gray('famous'), '  ', 'Fullscreen page URL:', Chalk.magenta(info.bundleExecutablePageURL));
 
             cb(null, info);
         }
         else {
             cb(bundleSaveErr);
         }
-    });
+    }.bind(this));
 }
 
 module.exports = saveBundle;

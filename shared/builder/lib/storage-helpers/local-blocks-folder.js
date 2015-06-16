@@ -7,6 +7,7 @@ var Lodash = require('lodash');
 var Mkdirp = require('mkdirp');
 var Path = require('path');
 
+var BundleCollection = require('./bundle-collection');
 var Extra = require('./extra');
 var FileHelpers = require('./file-helpers');
 var PathingHelpers = require('./pathing');
@@ -205,8 +206,6 @@ function saveAssets(baseDir, info, finish) {
 }
 
 function saveBundle(baseDir, info, finish) {
-    var bundleFiles = [];
-
     // If a bundle version ref has already been assigned, that's because we
     // have already saved to Code Manager and we have an 'official'
     // ref that we want to refer to this build with.
@@ -214,25 +213,7 @@ function saveBundle(baseDir, info, finish) {
     var bundleRelPath = PathingHelpers.buildAssetPath.call(this, info.name, bundleRef, this.options.bundleAssetPath, true);
     var parcelRelPath = PathingHelpers.buildAssetPath.call(this, info.name, bundleRef, this.options.parcelAssetPath, true);
 
-    bundleFiles.push({
-        path: this.options.bundleAssetPath,
-        content: info.bundleString
-    });
-    bundleFiles.push({
-        path: this.options.parcelAssetPath,
-        content: JSON.stringify(info.parcelHash, null, 4)
-    });
-    if (!this.options.doSkipExecutableBuild) {
-        bundleFiles.push({
-            path: this.options.bundleIndexPath,
-            content: info.bundleIndexString
-        });
-        bundleFiles.push({
-            path: this.options.bundleExecutablePath,
-            content: info.bundleExecutableString
-        });
-    }
-    bundleFiles = bundleFiles.concat(info.assetSaveableFiles);
+    var bundleFiles = BundleCollection.build.call(this, info, info.files);
 
     Async.each(bundleFiles, function(file, cb) {
 
@@ -248,7 +229,7 @@ function saveBundle(baseDir, info, finish) {
         info.bundleVersionRef = bundleRef;
         info.bundlePath = bundleRelPath;
         info.bundleURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, this.options.bundleAssetPath);
-        // info.bundleExecutablePageURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, this.options.frameworkExecutablePageAssetPath);
+        info.bundleExecutablePageURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, this.options.bundleIndexPath);
         info.parcelPath = parcelRelPath;
         info.parcelURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleRef, this.options.parcelAssetPath);
         finish(null, info);

@@ -8,6 +8,7 @@ var Path = require('path');
 var Request = require('request');
 
 var BuildHelpers = require('./../build-helpers');
+var BundleCollection = require('./bundle-collection');
 var PathingHelpers = require('./pathing');
 
 var SHA_LENGTH = 64;
@@ -289,27 +290,7 @@ function saveBundle(versionWriteHost, info, cb) {
 
     authenticateAsWriteable.call(this, info, config, function(authErr, isWriteable, userInfo) {
         if (isWriteable) {
-
-            var bundleFiles = [];
-            bundleFiles.push({
-                path: this.options.bundleAssetPath,
-                content: info.bundleString
-            });
-            bundleFiles.push({
-                path: this.options.parcelAssetPath,
-                content: JSON.stringify(info.parcelHash, null, 4)
-            });
-            if (!this.options.doSkipExecutableBuild) {
-                bundleFiles.push({
-                    path: this.options.bundleIndexPath,
-                    content: info.bundleIndexString
-                });
-                bundleFiles.push({
-                    path: this.options.bundleExecutablePath,
-                    content: info.bundleExecutableString
-                });
-            }
-            bundleFiles = bundleFiles.concat(info.assetSaveableFiles);
+            var bundleFiles = BundleCollection.build.call(this, info, info.assetSaveableFiles);
 
             // Since code manager is essentially a wrapper service over git, there's no way
             // to append files to an existing version, which means that after we've
@@ -323,7 +304,7 @@ function saveBundle(versionWriteHost, info, cb) {
                     info.bundleVersionRef = bundleVersionRef;
                     info.bundlePath = PathingHelpers.buildAssetPath.call(this, info.name, bundleVersionRef, this.options.bundleAssetPath, true);
                     info.bundleURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleVersionRef, this.options.bundleAssetPath);
-                    // info.bundleExecutablePageURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleVersionRef, this.options.frameworkExecutablePageAssetPath);
+                    info.bundleExecutablePageURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleVersionRef, this.options.bundleIndexPath);
                     info.parcelPath = PathingHelpers.buildAssetPath.call(this, info.name, bundleVersionRef, this.options.parcelAssetPath, true);
                     info.parcelURL = PathingHelpers.buildAssetURL.call(this, info.name, bundleVersionRef, this.options.parcelAssetPath);
                     cb(null, info);
