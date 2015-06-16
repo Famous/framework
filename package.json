@@ -43,7 +43,7 @@
     "express": "^4.12.4",
     "famous": "Famous/engine",
     "form-data": "matthewtoast/node-form-data#master",
-    "jsdom": "^5.4.3",
+    "jsdom": "3.1.2",
     "less": "^2.5.1",
     "livereload": "^0.3.7",
     "lodash": "^3.9.3",
