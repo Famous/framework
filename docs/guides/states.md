@@ -63,23 +63,6 @@ The above will transition the state value `foo` from `0` to `3` smoothly over th
 
 See the [easing curves table](http://famous.org/learn/easing-curves.html) for a full list of curves.
 
-## Chaining operations
-
-For convenience, an API for chaining and performing multiple operations on individual state values is provided as well.
-
-    // states are { foo: 0 }
-    $state.chain('foo')
-          .add(1)
-          .subtract(2)
-          .multiply(3)
-          .divide(4);
-
-    // states are { baz: 'hello' }
-    $state.chain('baz')
-          .toUpper()
-          .toLower()
-          .concat(' world!');
-
 ## Chaining transitions
 
 If you want to transition a state value after some state value has completed a transition, use the `.thenSet()` method:
@@ -88,21 +71,6 @@ If you want to transition a state value after some state value has completed a t
           .thenSet('bar', 2, { duration: 5000 })
           .thenSet('baz', 3.14);
 
-## Adding custom methods
-
-You can also add your own operations and functions using the `.addOperator()` method on the `$state` instance:
-
-    $state.addOperator('factorial', function(num) {
-        var factorial = 1;
-        for (var i = 1; i <= num; i++) {
-            factorial = factorial * num;
-        }
-        return factorial;
-    });
-
-    // Your new operator is accessible via `.chain`:
-    // states are { foo: 10 }
-    $state.chain('foo').factorial();  // `foo` is now 3628800
 
 ## Complex / nested state values (arrays and objects)
 
