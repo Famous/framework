@@ -49,6 +49,11 @@ $state.getStateObject();
 **Returns**
 _(Array)_ array with then last state set and the value
 
+**Example:**
+```
+$state.getLatestStateChange();
+```
+
 ### _.set()
 
 Set component's state.
