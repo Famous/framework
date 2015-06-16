@@ -64,7 +64,7 @@ The `$state` object gives event functions access to the collection of values tha
 
 To emit a custom event message, you'll need to dependency-inject a `$dispatcher` instance into your event function:
 
-    BEST.scene('foo:bar', 'HEAD', {
+    FamousFramework.component('foo:bar', 'HEAD', {
         events: {
             '$public': {
                 'something': function($dispatcher) {
@@ -76,7 +76,7 @@ To emit a custom event message, you'll need to dependency-inject a `$dispatcher`
 
 Scenes can listen to messages emitted by any component declared in their tree.
 
-    BEST.scene('my:scene', 'HEAD', {
+    FamousFramework.component('my:scene', 'HEAD', {
         events: {
             '#foo': {
                 // This will run any time a tree node matching '#foo'
@@ -139,7 +139,7 @@ When you apply a behavior to some node in your scene's `tree`, you're really jus
 
 Take this example of a scene that is applying a `'size'` behavior to a `ui-element` component:
 
-    BEST.scene('my:scene', 'HEAD', {
+    FamousFramework.component('my:scene', 'HEAD', {
         behaviors: {
             '#el': {
                 'size': function(){ return [200, 200]; }
@@ -152,7 +152,7 @@ Take this example of a scene that is applying a `'size'` behavior to a `ui-eleme
 
 As it turns out, the `ui-element` component (a.k.a. `famous:core:ui-element`) defines a event called `'size'` that it makes accessible to parent components. Its implementation looks (roughly) like this:
 
-    BEST.scene('famous:core:ui-element', 'HEAD', {
+    FamousFramework.component('famous:core:ui-element', 'HEAD', {
         events: {
             // '$public' is a special event group name that says
             // "I am exposing these functions to other components"

@@ -16,7 +16,7 @@ Before we go into the details, add the following code to your events object:
 	            'post-load': function($dispatcher, $state){
 	                      var zPosArray = $state.get('positionZ')
 	                console.log(zPosArray, zPosArray.length , 'pre')
-	                $dispatcher.broadcast('looper')
+	                $dispatcher.trigger('looper')
 	                var zPosArray = $state.get('positionZ')
 	            }
 	        },
@@ -28,7 +28,7 @@ Before we go into the details, add the following code to your events object:
 	                    $state.set(['positionZ', i], oldValue - 1)
 	                };
 	                setTimeout(function(){    
-	                        $dispatcher.broadcast('looper')
+	                        $dispatcher.trigger('looper')
 	                }, 16)
 	            }
 	        }

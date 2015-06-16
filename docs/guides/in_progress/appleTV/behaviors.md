@@ -8,11 +8,11 @@ Now that our scene is created in `apple-tv.html` we have a structure where we ca
                     
 Below, we dissect an empty framework component. Note how we already included a reference to the tree we built in the last section: `apple-tv.html`.  This will import our tree into the Framework component.
      
-                        //    ↓ path to your project
-    FamousFramework.scene('famous-demos:apple-tv', {
+                             //    ↓ path to your project
+    FamousFramework.component('famous-demos:apple-tv', {
 	    behaviors: {},          // ← all of our behaviors go here
-	    events: { },              // ← all of our events go here 
-	    states: { },               // ← our states will go here
+	    events: {},              // ← all of our events go here 
+	    states: {},               // ← our states will go here
 	    tree: 'apple-tv.html'  // ← we reference our tree here
 	})
 	
