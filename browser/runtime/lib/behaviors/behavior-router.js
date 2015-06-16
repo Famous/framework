@@ -4,6 +4,7 @@ var Behaviors = require('./behaviors');
 var Logger = require('./../logger/logger');
 var VirtualDOM = require('../virtual-dom/virtual-dom');
 
+var CAMERA_KEY = '$camera';
 var COMPONENT_DELIM = ':';
 var IF_KEY = '$if';
 var INVERTED_BEHAVIOR_KEYS = ['$index', '$repeatPayload'];
@@ -12,6 +13,10 @@ var SELF_KEY = '$self';
 var YIELD_KEY = '$yield';
 
 var CONTROL_FLOW_KEYS = [IF_KEY, REPEAT_KEY, YIELD_KEY];
+
+function isCameraSelector(selector) {
+    return selector === CAMERA_KEY;
+}
 
 function isSelfSelector(selector) {
     return selector === SELF_KEY;
@@ -66,6 +71,9 @@ function route(behavior, component) {
             }
 
             Behaviors.invertedBehavior(behavior, component, getTargets(component, behavior.selector));
+        }
+        else if (isCameraSelector(behavior.selector)) {
+            Behaviors.cameraBehavior(behavior, component);
         }
         else {
             if (isSelfSelector(behavior.selector)) {
