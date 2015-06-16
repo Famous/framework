@@ -1,7 +1,6 @@
 #Famous Framework Guides
 
-Welcome to the Famous Framework guides. The Famous Framework is a new JavaScript framework for creating reusable, composable, and interchangeable UI widgets and applications. It's declarative, functional, and built on the [Famous Engine](https://github.com/Famous/engine). We are excited to make it available as open source under an MIT license for the first time as part of an early public beta.
-
+Welcome to the Famous Framework guides. These guides will teach you how to build more consistent, modular, and extensible Famous applications and widgets using the Famous Framework.
 
 ##Introduction
 
@@ -11,14 +10,14 @@ The framework’s architecture is based on a pattern we call BEST, which stands 
 
 ##Start learning
 
-To get started, visit the [download & install section](getting-started.md) or jump straight into the [Hello Framework](HelloFramework.md) section. The sections are organized to start at the basics and then gradually increase in complexity as you move towards the bottom of the navigation pane.
+We suggest visting the [Hello Framework](HelloFramework.md) section first and then working your way down the navigation pane. If you'd like to dive straight into a new Framework seed project visit the [getting started](getting-started.md) section. The guides are organized to start at the basics and then gradually increase in complexity as you move towards the bottom of the navigation pane.
 
  If you're stuck, head over to our slack channel ([see: the Support section for details](famous.org/support) ) or shoot us an email at [learn@famo.us](mailto:learn@famo.us) with any questions, comments or concerns.  
  
 
-FYI guides are currenty in progress
 
-Tracking progress here (internal only):
+
+_FYI guides are currenty in progress. We are currently tracking progress here (internal only)_:
 https://famous.quip.com/haCPA9hElVak
 
 ##Table of contents
@@ -28,7 +27,6 @@ https://famous.quip.com/haCPA9hElVak
 - [Hello Framework](hello-framework.md)
 - [Getting Started](getting-started.md)
 - [Core Concepts](core-concepts.md)
-- [Structure & Anatomy](structure-and-anatomy.md)
 
 ### Essentials
 - [Behaviors](behaviors.md)
