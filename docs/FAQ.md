@@ -1,5 +1,9 @@
 # FAQ
 
+**Why isn't my module rebuilding when I change a child component?**
+
+Our local watchers and build tools do not support automatically tracing and re-building the _dependants_ of a given component. If you've made a change to a dependency of your component, you also need to re-save the component itself (the _dependant_) to pick up the latest from the dependency that was saved. Think of this like `npm install`-ing the latest version of a module you depend on. We are hoping to provide some tools soon that make this process smoother.
+
 **How can I use module loading in my component?**
 
 While there's no restriction that prevents module loading syntax in your component files &mdash; e.g. using `require('foo')` or `import` &mdash; the current implementation of Famous Framework doesn't automatically install/bundle these modules for you. The workaround for using module loading in the meantime is to pre-build your project and _then_ feed the built file through the Famous Framework build pipeline. (We understand that this is inconvenient, and a fix is coming soon.)
