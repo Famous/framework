@@ -37,6 +37,8 @@ Then, with the install of the special Famous CLI version complete, run a command
 
 Once the local server and watchers are running, surf to [localhost:1618/](http://localhost:1618/). Changes you make to files within the `components/` folder will trigger automatic reload.
 
+(Note: The reason you need to type in a username during the setup process is just an initial gesture toward an integration between Famous Framework and Famous Hub. Currently, during the scaffold process, it's only used to generate a namespaced folder structure for your project.)
+
 - - - -
 
 ## Example
