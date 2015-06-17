@@ -100,7 +100,7 @@ var options = {
     defaultExtends: ['famous:core:node'],
     defaultImports: {
         'famous:core': [ 'node' ],
-        'famous:events': [ 'click', 'change', 'dblclick', 'input', 'keydown', 'keypress', 'keyup', 'mousedown', 'mousemove', 'mouseenter', 'mouseleave', 'mouseout', 'mouseover', 'mouseup', 'size-change', 'parent-size-change', 'touchstart', 'touchmove', 'touchend', 'wheel' ]
+        'famous:events': [ 'click', 'change', 'dblclick', 'drag', 'input', 'keydown', 'keypress', 'keyup', 'mousedown', 'mousemove', 'mouseenter', 'mouseleave', 'mouseout', 'mouseover', 'mouseup', 'size-change', 'parent-size-change', 'touchstart', 'touchmove', 'touchend', 'wheel' ]
     },
     frameworkFilename: Path.join('.famous', 'framework.json'),
     dependenciesKeyName: 'dependencies', // e.g. FamousFramework.scene(...).config({dependencies:{...}})
