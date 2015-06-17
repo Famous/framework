@@ -39,6 +39,10 @@ Once the local server and watchers are running, surf to [localhost:1618/](http:/
 
 (Note: The reason you need to type in a username during the setup process is just an initial gesture toward an integration between Famous Framework and Famous Hub. Currently, during the scaffold process, it's only used to generate a namespaced folder structure for your project.)
 
+### A note about Windows support
+
+The Famous Framework local development tools and CLI install process were initially created for Mac OSX systems. We're making compatibility with other operating systems a top priority, coming soon.
+
 - - - -
 
 ## Example
