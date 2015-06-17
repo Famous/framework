@@ -41,7 +41,7 @@
     "esprima": "2.2.0",
     "estraverse": "4.1.0",
     "express": "4.12.4",
-    "famous": "Famous/engine#v0.5.2",
+    "famous": "Famous/engine#b518234caf9dc91672ecb6a12e5cd48e8c3d37c2",
     "form-data": "matthewtoast/node-form-data#v0.2.1",
     "jsdom": "3.1.2",
     "less": "2.5.1",
