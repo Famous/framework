@@ -28,9 +28,9 @@ Next, install a special version of the Famous CLI:
 Then, with the install of the special Famous CLI version complete, run a command to scaffold a new framework project in the directory you created above:
 
     $ famous framework-scaffold
-    ? Enter a username: bobette-smith
+    ? Enter a username: jane-doe
     ? Enter your component's name: todos
-    ? Does the project name "bobette-smith:todos" look ok? Yes
+    ? Does the project name "jane-doe:todos" look ok? Yes
     Created framework scaffold in current working directory!
     $ npm install
     $ npm run dev
@@ -41,9 +41,9 @@ Once the local server and watchers are running, surf to [localhost:1618/](http:/
 
 ## Example
 
-Below is an example of what a Famous Framework component looks like. This code lives in a file `bobette-smith/nifty-demo/nifty-demo.js`. (The convention of only lowercase letters and hyphens is important to stick to.)
+Below is an example of what a Famous Framework component looks like. This code lives in a file `jane-doe/nifty-demo/nifty-demo.js`. (The convention of only lowercase letters and hyphens is important to stick to.)
 
-    FamousFramework.component('bobette-smith:nifty-demo', {
+    FamousFramework.component('jane-doe:nifty-demo', {
         behaviors: {
             '#box': {
                 'size': [100, 100],
