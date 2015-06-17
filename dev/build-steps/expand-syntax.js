@@ -6,6 +6,8 @@ var BuildHelpers = require('./../build-helpers/build-helpers');
 var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
 var PathingHelpers = require('./../storage-helpers/pathing');
 
+var conf = require('./../conf');
+
 var PIPE = '|';
 
 var BEHAVIOR_STR = 'behavior';
@@ -16,34 +18,34 @@ var IDENTITY_STR = 'identity';
 function interpolateAssetStrings(moduleName, moduleVersionRef, moduleDefinitionAST) {
     EsprimaHelpers.eachStringLiteral(moduleDefinitionAST, function(stringValue, node) {
         var fullPath;
-        var moduleCDNMatch = BuildHelpers.stringToModuleCDNMatch.call(this, stringValue);
+        var moduleCDNMatch = BuildHelpers.stringToModuleCDNMatch(stringValue);
         if (moduleCDNMatch) {
             var assetModuleName = moduleCDNMatch.value.split(PIPE)[1] || moduleName;
-            fullPath = PathingHelpers.buildAssetURL.call(this, assetModuleName, moduleVersionRef, '');
+            fullPath = PathingHelpers.buildAssetURL(assetModuleName, moduleVersionRef, '');
             node.value = stringValue.split(moduleCDNMatch.match).join(fullPath);
         }
         else {
             var matches = 0;
-            BuildHelpers.eachAssetStringMatchInString.call(this, stringValue, function(match, replaced) {
-                fullPath = PathingHelpers.buildAssetURL.call(this, moduleName, moduleVersionRef, replaced);
+            BuildHelpers.eachAssetStringMatchInString(stringValue, function(match, replaced) {
+                fullPath = PathingHelpers.buildAssetURL(moduleName, moduleVersionRef, replaced);
                 stringValue = stringValue.split(match).join(fullPath);
                 matches++;
-            }.bind(this));
+            });
             if (matches > 0) {
                 node.value = stringValue;
             }
         }
-    }.bind(this));
+    });
 }
 
 function expandBehaviorsObject(behaviorsAST) {
     EsprimaHelpers.eachObjectProperty(behaviorsAST, function(_0, _1, _2, valueObj) {
         EsprimaHelpers.eachObjectProperty(valueObj, function(keyName, _1, subValueVal, subValueObj, eventProp) {
-            if (EsprimaHelpers.isStringLiteral(subValueObj) && subValueVal.match(this.options.behaviorSetterRegex)) {
+            if (EsprimaHelpers.isStringLiteral(subValueObj) && subValueVal.match(conf.get('behaviorSetterRegex'))) {
                 eventProp.value = buildFunctionAST(keyName, subValueVal, behaviorFnStringTemplate, errorFnTemplate, BEHAVIOR_STR);
             }
-        }.bind(this));
-    }.bind(this));
+        });
+    });
 }
 
 function behaviorFnStringTemplate(stateName) {
@@ -158,31 +160,31 @@ function expandEventsObject(eventsAST) {
     EsprimaHelpers.eachObjectProperty(eventsAST, function(keyName, _1, valueVal, valueObj, eventProp) {
         if (EsprimaHelpers.isLiteral(valueObj)) {
             // Whitelist of event string values are processed on client
-            if (!(valueVal in this.options.reservedEventValues)) {
+            if (!(valueVal in conf.get('reservedEventValues'))) {
                 eventProp.value = buildFunctionAST(keyName, valueVal, eventFnStringTemplate, errorFnTemplate, EVENT_STR);
             }
         }
         else if (EsprimaHelpers.isObjectExpression(valueObj)) {
-            if (keyName !== this.options.passThroughKey) {
-                expandEventsObject.call(this, valueObj);
+            if (keyName !== conf.get('passThroughKey')) {
+                expandEventsObject(valueObj);
             }
         }
-    }.bind(this));
+    });
 }
 
 function processSyntacticSugar(moduleName, moduleDefinitionAST, moduleConfigAST) {
     EsprimaHelpers.eachObjectProperty(moduleDefinitionAST, function(facetName, _1, _2, valueObj) {
-        if (facetName === this.options.behaviorsFacetKeyName) {
-            expandBehaviorsObject.call(this, valueObj);
+        if (facetName === conf.get('behaviorsFacetKeyName')) {
+            expandBehaviorsObject(valueObj);
         }
-        else if (facetName === this.options.eventsFacetKeyName) {
-            expandEventsObject.call(this, valueObj);
+        else if (facetName === conf.get('eventsFacetKeyName')) {
+            expandEventsObject(valueObj);
         }
-    }.bind(this));
+    });
 }
 
 function buildExtensionsArray(info, moduleName, configObject) {
-    var extensions = configObject.extends || this.options.defaultExtends;
+    var extensions = configObject.extends || conf.get('defaultExtends');
     var result = [];
     for (var i = 0; i < extensions.length; i++) {
         result.push({
@@ -198,12 +200,13 @@ function buildOptionsArgAST(info, moduleName) {
     var configObject = EsprimaHelpers.getObjectValue(info.moduleConfigASTs[moduleName] || { properties: [] });
     optionsObject.dependencies = info.dereffedDependencyTable;
     optionsObject.famousNodeConstructorName = configObject.famousNodeConstructorName || '';
-    optionsObject.extensions = buildExtensionsArray.call(this, info, moduleName, configObject);
+    optionsObject.extensions = buildExtensionsArray(info, moduleName, configObject);
 
     var optionsJSON = JSON.stringify(optionsObject);
     var optionsString = '(' + optionsJSON + ')';
     var optionsAST = EsprimaHelpers.parse(optionsString);
     var optionsExpr = optionsAST.body[0].expression;
+
     return optionsExpr;
 }
 
@@ -214,8 +217,8 @@ function expandLibraryInvocation(info, moduleName, libraryInvocation) {
     // Make the version ref the second argument to FamousFramework.scene(...)
     // since the client-side uses the ref internally for managing objects
     var moduleNameArgAST = EsprimaHelpers.buildStringLiteralAST(moduleName);
-    var versionRefArgAST = EsprimaHelpers.buildStringLiteralAST(info.versionRef || this.options.defaultDependencyVersion);
-    var optionsArgAST = buildOptionsArgAST.call(this, info, moduleName);
+    var versionRefArgAST = EsprimaHelpers.buildStringLiteralAST(info.versionRef || conf.get('defaultDependencyVersion'));
+    var optionsArgAST = buildOptionsArgAST(info, moduleName);
     var definitionArgAST = info.moduleDefinitionASTs[moduleName] || EsprimaHelpers.EMPTY_OBJECT_EXPRESSION;
 
     libraryInvocation.arguments[0] = moduleNameArgAST;
@@ -229,6 +232,7 @@ function isAttachmentInvocation(node, libNamespace, libWhitelist) {
         if (EsprimaHelpers.isMemberExpression(node.callee)) {
             var calleeObject = node.callee.object;
             var calleeProperty = node.callee.property;
+
             if (EsprimaHelpers.isIdentifier(calleeObject)) {
                 if (EsprimaHelpers.isIdentifier(calleeProperty)) {
                     return (calleeObject.name === libNamespace) && (calleeProperty.name in libWhitelist);
@@ -241,45 +245,55 @@ function isAttachmentInvocation(node, libNamespace, libWhitelist) {
 
 function findAttachmentInvocations(entrypointAST) {
     var attachmentInvocations = [];
+
     EsprimaHelpers.traverse(entrypointAST, function(node, parent) {
-        if (isAttachmentInvocation.call(this, node, this.options.libraryMainNamespace, this.options.attachmentIdentifiers)) {
+        if (isAttachmentInvocation(node, conf.get('libraryMainNamespace'), conf.get('attachmentIdentifiers'))) {
             if (node.arguments) {
                 attachmentInvocations.push(node);
             }
         }
-    }.bind(this));
+    });
+
     return attachmentInvocations;
 }
 
 function expandAttachmentSyntax(info, ast) {
-    var attachmentInvocations = findAttachmentInvocations.call(this, ast);
+    var attachmentInvocations = findAttachmentInvocations(ast);
+
     for (var i = 0; i < attachmentInvocations.length; i++) {
         var attachmentInvocation = attachmentInvocations[i];
-        attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.versionRef || this.options.defaultDependencyVersion));
+
+        attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.versionRef || conf.get('defaultDependencyVersion')));
         attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.name));
     }
 }
 
 function inlineJavaScriptFile(info, file) {
     var parsedContent = EsprimaHelpers.parse(file.content);
-    expandAttachmentSyntax.call(this, info, parsedContent);
+
+    expandAttachmentSyntax(info, parsedContent);
+
     for (var i = parsedContent.body.length - 1; i > 0; i--) {
         var bodyExpr = parsedContent.body[i];
+
         info.entrypointAST.body.unshift(bodyExpr);
     }
 }
 
 function expandSyntax(info, cb) {
     var moduleName;
+
     for (moduleName in info.moduleDefinitionASTs) {
         var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
         var moduleConfigAST = info.moduleConfigASTs[moduleName];
-        interpolateAssetStrings.call(this, moduleName, ((info.versionRef || info.explicitVersion) || this.options.defaultDependencyVersion), moduleDefinitionAST);
-        processSyntacticSugar.call(this, moduleName, moduleDefinitionAST, moduleConfigAST);
+
+        interpolateAssetStrings(moduleName, ((info.versionRef || info.explicitVersion) || conf.get('defaultDependencyVersion')), moduleDefinitionAST);
+        processSyntacticSugar(moduleName, moduleDefinitionAST, moduleConfigAST);
     }
+
     for (moduleName in info.libraryInvocations) {
         var libraryInvocation = info.libraryInvocations[moduleName];
-        expandLibraryInvocation.call(this, info, moduleName, libraryInvocation);
+        expandLibraryInvocation(info, moduleName, libraryInvocation);
     }
 
     // Accumulate a list of files that have been inlined so
@@ -288,17 +302,21 @@ function expandSyntax(info, cb) {
 
     // Includes without the path expansion
     var includes = BuildHelpers.buildIncludesArray(info, true);
+
     for (var i = 0; i < info.files.length; i++) {
+
         var file = info.files[i];
         var extname = Path.extname(file.path);
+
         if (extname === '.js') {
             var basename = Path.basename(file.path, extname);
-            var entrypointBasename = BuildHelpers.moduleNameToEntrypointBasename.call(this, info.name);
+            var entrypointBasename = BuildHelpers.moduleNameToEntrypointBasename(info.name);
+
             // We don't want to inline a file into itself.
             if (basename !== entrypointBasename) {
                 // Only push files that are explicitly 'includes' into the bundle
                 if (includes.indexOf(file.path) !== -1) {
-                    inlineJavaScriptFile.call(this, info, file);
+                    inlineJavaScriptFile(info, file);
                     inlinedFiles.push(file.path);
                 }
             }
@@ -306,7 +324,8 @@ function expandSyntax(info, cb) {
     }
 
     info.inlinedFiles = inlinedFiles;
-    cb(null, info);
+
+    return cb(null, info);
 }
 
 module.exports = expandSyntax;

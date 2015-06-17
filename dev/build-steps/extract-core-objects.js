@@ -31,19 +31,19 @@ function extractMethodChain(chain, node, parent) {
 function extractModuleConfigASTs(entrypointAST) {
     var moduleConfigASTs = {};
     EsprimaHelpers.eachChainedMethodCall(entrypointAST, function(methodName, methodArgs, node, parent) {
-        if (methodName === this.options.configMethodIdentifier) {
+        if (methodName === conf.get('configMethodIdentifier')) {
             var methodChain = extractMethodChain([], node, parent);
             var propNames = Lodash.map(methodChain, function(meth) {
                 return meth.prop;
             });
-            var doesChainFromIdentifier = propNames.indexOf(this.options.libraryMainNamespace) !== -1;
+            var doesChainFromIdentifier = propNames.indexOf(conf.get('libraryMainNamespace')) !== -1;
             if (doesChainFromIdentifier) {
                 var firstCall = methodChain[methodChain.length - 2];
                 var firstArgs = firstCall.args;
                 if (firstArgs) {
-                    var moduleName = firstArgs[this.options.indexOfModuleNameArgument].value;
+                    var moduleName = firstArgs[conf.get('indexOfModuleNameArgument')].value;
                     if (node.arguments) {
-                         var configAST = node.arguments[this.options.indexOfModuleConfigArgument];
+                         var configAST = node.arguments[conf.get('indexOfModuleConfigArgument')];
                          if (configAST) {
                             moduleConfigASTs[moduleName] = configAST;
                          }
@@ -51,7 +51,7 @@ function extractModuleConfigASTs(entrypointAST) {
                 }
             }
         }
-    }.bind(this));
+    });
     return moduleConfigASTs;
 }
 
@@ -72,14 +72,16 @@ function isASTNodeALibraryInvocation(node, libNamespace, libWhitelist) {
 
 function findLibraryInvocations(entrypointAST) {
     var libraryInvocations = {};
+
     EsprimaHelpers.traverse(entrypointAST, function(node, parent) {
-        if (isASTNodeALibraryInvocation(node, this.options.libraryMainNamespace, this.options.libraryInvocationIdentifiers)) {
+        if (isASTNodeALibraryInvocation(node, conf.get('libraryMainNamespace'), conf.get('libraryInvocationIdentifiers'))) {
             if (node.arguments) {
-                var moduleName = node.arguments[this.options.indexOfModuleNameArgument].value;
+                var moduleName = node.arguments[conf.get('indexOfModuleNameArgument')].value;
                 libraryInvocations[moduleName] = node;
             }
         }
-    }.bind(this));
+    });
+
     return libraryInvocations;
 }
 
@@ -88,7 +90,8 @@ function extractModuleDefinitionArg(argsAST) {
         return EsprimaHelpers.EMPTY_OBJECT_EXPRESSION; // Fallback in case no object is present
     }
 
-    var moduleDefinition = argsAST[this.options.indexOfModuleDefinitionArgument];
+    var moduleDefinition = argsAST[conf.get('indexOfModuleDefinitionArgument')];
+
     if (moduleDefinition.type !== 'ObjectExpression') {
         console.warn(Chalk.gray('famous'), Chalk.yellow('warn'), 'Incorrect args to `FamousFramework.scene` were given');
     }
@@ -98,10 +101,10 @@ function extractModuleDefinitionArg(argsAST) {
 
 function extractModuleDefinitionASTs(entrypointAST) {
     var moduleDefinitions = {};
-    var libraryInvocations = findLibraryInvocations.call(this, entrypointAST);
+    var libraryInvocations = findLibraryInvocations(entrypointAST);
     for (var moduleName in libraryInvocations) {
         var libraryInvocation = libraryInvocations[moduleName];
-        var moduleDefinition = extractModuleDefinitionArg.call(this, libraryInvocation.arguments);
+        var moduleDefinition = extractModuleDefinitionArg(libraryInvocation.arguments);
         moduleDefinitions[moduleName] = moduleDefinition;
     }
     return moduleDefinitions;
@@ -118,8 +121,8 @@ function extractEntrypointAST(info) {
 }
 
 function findEntrypointFile(moduleName, files) {
-    var entrypointBasename = BuildHelpers.moduleNameToEntrypointBasename.call(this, moduleName);
-    var entrypointExtnames = this.options.entrypointExtnames;
+    var entrypointBasename = BuildHelpers.moduleNameToEntrypointBasename(moduleName);
+    var entrypointExtnames = conf.get('entrypointExtnames');
     return Lodash.find(files, function(file) {
         var extname = Path.extname(file.path);
         if (extname in entrypointExtnames) {
@@ -140,8 +143,8 @@ function getRawConfigObjects(configASTs) {
 
 function extractCodeManagerConfig(files) {
     var configFile = Lodash.find(files, function(file) {
-        return file.path === this.options.authConfigFilePath;
-    }.bind(this));
+        return file.path === conf.get('authConfigFilePath');
+    });
 
     if (configFile) {
         try {
@@ -170,7 +173,7 @@ function getExplicitDependencies(info) {
 
         // Some explicit deps/refs may live in the config object
         var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST);
-        var inlineDependencyTable = configObject[this.options.dependenciesKeyName] || {};
+        var inlineDependencyTable = configObject[conf.get('dependenciesKeyName')] || {};
         for (depName in inlineDependencyTable) {
             depRef = inlineDependencyTable[depName];
             explicitDependencies[depName] = depRef;
@@ -193,8 +196,8 @@ function getExplicitDependencies(info) {
 
 function getFrameworkInfo(info) {
     var frameworkFile = Lodash.find(info.files, function(file) {
-        return file.path === this.options.frameworkFilename;
-    }.bind(this));
+        return file.path === conf.get('frameworkFilename');
+    });
 
     var frameworkFileHash;
 
@@ -214,16 +217,17 @@ function getFrameworkInfo(info) {
 }
 
 function extractCoreObjects(info, cb) {
-    info.codeManagerConfig = extractCodeManagerConfig.call(this, info.files);
-    info.entrypointFile = findEntrypointFile.call(this, info.name, info.files);
-    info.entrypointAST = extractEntrypointAST.call(this, info);
-    info.libraryInvocations = findLibraryInvocations.call(this, info.entrypointAST);
-    info.moduleDefinitionASTs = extractModuleDefinitionASTs.call(this, info.entrypointAST);
-    info.moduleConfigASTs = extractModuleConfigASTs.call(this, info.entrypointAST);
+    info.codeManagerConfig = extractCodeManagerConfig(info.files);
+    info.entrypointFile = findEntrypointFile(info.name, info.files);
+    info.entrypointAST = extractEntrypointAST(info);
+    info.libraryInvocations = findLibraryInvocations(info.entrypointAST);
+    info.moduleDefinitionASTs = extractModuleDefinitionASTs(info.entrypointAST);
+    info.moduleConfigASTs = extractModuleConfigASTs(info.entrypointAST);
     info.moduleConfigs = getRawConfigObjects(info.moduleConfigASTs);
-    info.frameworkInfo = getFrameworkInfo.call(this, info);
-    info.explicitDependencies = getExplicitDependencies.call(this, info);
-    cb(null, info);
+    info.frameworkInfo = getFrameworkInfo(info);
+    info.explicitDependencies = getExplicitDependencies(info);
+
+    return cb(null, info);
 }
 
 module.exports = extractCoreObjects;

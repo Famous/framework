@@ -9,6 +9,8 @@ var Path = require('path');
 var BuildHelpers = require('./../build-helpers/build-helpers');
 var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
 
+var conf = require('./../conf');
+
 var NEWLINE = '\n';
 var NEWLINE_REGEXP = /\n/g;
 var TAB = '    '; // 4 spaces!
@@ -81,14 +83,14 @@ function buildRegistrationBlocks(info) {
             return regObj.entrypoint;
         }
         else {
-            // This AWFUL HACK is to correct a sort of 'off-by-one' error wherein the BUNDLE
+            // The AWFUL HACK below is to correct a sort of 'off-by-one' error wherein the BUNDLE
             // contents we want to load actually point to a previously established VERSION
             // that we previously saved in code manager
             var origEntrypoint = regObj.entrypoint;
             var versionRefTheyHave = regObj.version;
             var versionRefWeHave = info.dereffedDependencyTable[regObj.name];
 
-            // HACK If for some reason we don't have a verion ref for this item, we pretty
+            // HACK If for some reason we don't have a verion ref for the item, we pretty
             // much have no choice but to fall back to the original without the swap we
             // would normally do above
             if (versionRefWeHave) {
@@ -127,7 +129,7 @@ var PROJECT_DIR = Path.join(__dirname, '..', '..');
 function browserifyFrameworkLibrary(info, cb) {
     var inputFile = Path.join(PROJECT_DIR, 'lib', 'index.js');
     var b = Browserify(inputFile);
-    b.transform(Envify({ FF_ASSET_READ_HOST: this.options.codeManagerAssetReadHost }));
+    b.transform(Envify({ FF_ASSET_READ_HOST: conf.get('codeManagerAssetReadHost') }));
     b.bundle(function(err, buf) {
         if (err) {
             cb(err);
@@ -139,7 +141,7 @@ function browserifyFrameworkLibrary(info, cb) {
 }
 
 function buildBundleExecutableString(info, cb) {
-    browserifyFrameworkLibrary.call(this, info, function(err, browserifiedLibrary) {
+    browserifyFrameworkLibrary(info, function(err, browserifiedLibrary) {
         if (err) {
             cb(err);
         }
@@ -185,13 +187,16 @@ function buildEntrypointString(info) {
     }
     catch (entrypointBuildErr) {
         // Dear developer:
-        // To get insight into what may have failed, try uncommenting this
+        // To get insight into what may have failed, try uncommenting the
         // block and inspecting what all of the nodes in the AST are.
+        //
         // EsprimaHelpers.traverse(info.entrypointAST, function(node) {
         //     console.log(node);
         // });
+
         console.error('Esprima says:', entrypointBuildErr);
         console.error('Failed to build `' + info.name + '` (' + info.versionRef + ') entrypoint; this is most likely a problem with the framework build tool');
+
         return 'console.error("The build of `' + info.name + '` (' + info.versionRef + ') failed; this is most likely a problem with the framework build tool");';
     }
 }
@@ -199,6 +204,7 @@ function buildEntrypointString(info) {
 function buildParcelHash(info) {
     var includes = BuildHelpers.buildIncludesArray(info);
     var dependencies = normalizeDependenciesFound(info.dependenciesFound);
+
     return {
         name: info.name,
         version: info.explicitVersion || info.versionRef,
@@ -215,25 +221,27 @@ function buildBundle(info, cb) {
     // case, fall back to the dependency version so that the bundles don't have
     // a bunch of "undefined" versions listed
     if (!info.versionRef && !info.explicitVersion) {
-        info.versionRef = this.options.defaultDependencyVersion;
+        info.versionRef = conf.get('defaultDependencyVersion');
     }
 
-    info.parcelHash = buildParcelHash.call(this, info);
-    info.bundleString = buildBundleString.call(this, info);
+    info.parcelHash = buildParcelHash(info);
+    info.bundleString = buildBundleString(info);
 
-    if (!this.options.doSkipExecutableBuild) {
-        info.bundleIndexString = buildBundleIndexString.call(this, info);    
-        buildBundleExecutableString.call(this, info, function(err, bundleExecutableString) {
+    if (!conf.get('doSkipExecutableBuild')) {
+        info.bundleIndexString = buildBundleIndexString(info);    
+
+        return buildBundleExecutableString(info, function(err, bundleExecutableString) {
             if (err) {
                 return cb(err);
             }
+
             info.bundleExecutableString = bundleExecutableString;
-            cb(null, info);
+
+            return cb(null, info);
         });
     }
-    else {
-        cb(null, info);
-    }
+
+    return cb(null, info);
 }
 
 module.exports = buildBundle;

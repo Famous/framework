@@ -6,12 +6,12 @@ function loadDependencies(info, cb) {
     StorageHelpers.loadDependencies.call(this, info, function(err, dependenciesFound) {
         if (err) {
             console.error(err);
-            cb(err, info);
+            return cb(err, info);
         }
-        else {
-            info.dependenciesFound = dependenciesFound;
-            cb(null, info);
-        }
+
+        info.dependenciesFound = dependenciesFound;
+
+        return cb(null, info);
     });
 }
 

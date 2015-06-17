@@ -6,18 +6,23 @@ var Lodash = require('lodash');
 var BuildHelpers = require('./../build-helpers/build-helpers');
 var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
 
+var conf = require('./../conf');
+
 var ALL_SELECTOR = '*';
 
 function getValidDependenciesOnly(dependencies) {
     var validDependencies = [];
+
     for (var i = 0; i < dependencies.length; i++) {
         var depName = dependencies[i];
+
         // Anything that doesn't have at least one ':' in it can be assumed to not
         // be a dependency, since we should have expanded these in a previous step
-        if (depName.indexOf(this.options.componentDelimiter) !== -1) {
+        if (depName.indexOf(conf.get('componentDelimiter')) !== -1) {
             validDependencies.push(depName);
         }
     }
+
     return validDependencies;
 }
 
@@ -31,12 +36,12 @@ function findDependencyKeys(objectAST, dependenciesList) {
     EsprimaHelpers.eachObjectProperty(objectAST, function(_0, _1, _2, selectorObject, propObj) {
         if (selectorObject) {
             EsprimaHelpers.eachObjectProperty(selectorObject, function(keyName){
-                if (BuildHelpers.doesStringLookLikeDependency.call(this, keyName)) {
-                    dependenciesList.push(BuildHelpers.dependencyStringToModuleName.call(this, keyName));
+                if (BuildHelpers.doesStringLookLikeDependency(keyName)) {
+                    dependenciesList.push(BuildHelpers.dependencyStringToModuleName(keyName));
                 }
-            }.bind(this));
+            });
         }
-    }.bind(this));
+    });
 }
 
 function findDependencies(info, cb) {
@@ -51,28 +56,32 @@ function findDependencies(info, cb) {
         // Collect dependencies from the definition objects.
         var treeValue;
         EsprimaHelpers.eachObjectProperty(moduleDefinitionAST, function(keyName, _1, actualValue, valueObject) {
-            if (keyName === this.options.treeFacetKeyName) {
+            if (keyName === conf.get('treeFacetKeyName')) {
                 treeValue = actualValue;
             }
             else {
                 if (EsprimaHelpers.isObjectExpression(valueObject)) {
                     // `states` object cannot have any dependencies
-                    if (keyName === this.options.behaviorsFacetKeyName || keyName === this.options.eventsFacetKeyName) {
-                        findDependencyKeys.call(this, valueObject, dependenciesList);
+                    if (keyName === conf.get('behaviorsFacetKeyName') || keyName === conf.get('eventsFacetKeyName')) {
+                        findDependencyKeys(valueObject, dependenciesList);
                     }
                 }
             }
-        }.bind(this));
+        });
 
         // Collect dependencies from the tree object
         if (treeValue) {
+
             var virtualDOM = Jsdom.jsdom(treeValue);
             var doc = virtualDOM.defaultView.document;
             var elements = doc.querySelectorAll(ALL_SELECTOR);
+
             for (i = 0; i < elements.length; i++) {
                 var element = elements[i];
+
                 var name = element.tagName.toLowerCase();
-                if (BuildHelpers.doesStringLookLikeDependency.call(this, name)) {
+
+                if (BuildHelpers.doesStringLookLikeDependency(name)) {
                     dependenciesList.push(name);
                 }
             }
@@ -93,7 +102,9 @@ function findDependencies(info, cb) {
         //
         // TODO: again, use the pre-built config object instead of re-traversing the AST
         var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST);
-        var extensions = configObject.extends || this.options.defaultExtends;
+
+        var extensions = configObject.extends || conf.get('defaultExtends');
+
         for (i = 0; i < extensions.length; i++) {
             dependenciesList.push(extensions[i]);
         }
@@ -102,17 +113,19 @@ function findDependencies(info, cb) {
     // Finally, push any gathered dependencies into the table object
     var uniqDependencies = Lodash.uniq(dependenciesList);
 
-    var validDependencies = getValidDependenciesOnly.call(this, uniqDependencies);
+    var validDependencies = getValidDependenciesOnly(uniqDependencies);
 
     for (i = 0; i < validDependencies.length; i++) {
         var dependencyName = validDependencies[i];
+
         if (!dependencyTable[dependencyName]) {
-            dependencyTable[dependencyName] = this.options.defaultDependencyVersion;
+            dependencyTable[dependencyName] = conf.get('defaultDependencyVersion');
         }
     }
 
     info.dependencyTable = dependencyTable;
-    cb(null, info);
+
+    return cb(null, info);
 }
 
 module.exports = findDependencies;

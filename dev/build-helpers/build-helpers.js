@@ -3,22 +3,24 @@
 var Lodash = require('lodash');
 var Path = require('path');
 
+var conf = require('./../conf');
+
 var BLANK = '';
 var PIPE = '|';
 var FSLASH = '/';
 var STRING_TYPE = 'string';
 
 function dependencyStringToModuleName(str) {
-    var parts = moduleNameToModuleNameSegments.call(this, str);
+    var parts = moduleNameToModuleNameSegments(str);
     var head = parts.slice(0, parts.length - 1);
-    var moduleName = head.join(this.options.componentDelimiter);
+    var moduleName = head.join(conf.get('componentDelimiter'));
     return moduleName;
 }
 
 function doesStringLookLikeDependency(str) {
     // Object keys might be numbers, so we have to check here.
     if (typeof str === STRING_TYPE) {
-        return str.indexOf(this.options.componentDelimiter) !== -1;  
+        return str.indexOf(conf.get('componentDelimiter')) !== -1;  
     }
     else {
         return false;
@@ -26,22 +28,22 @@ function doesStringLookLikeDependency(str) {
 }
 
 function eachDependencyStringInString(str, iterator) {
-    var matches = str.match(this.options.dependencyRegexp);
+    var matches = str.match(conf.get('dependencyRegexp'));
     for (var i = 0; i < matches.length; i++) {
-        if (!(matches[i] in this.options.dependencyBlacklist)) {
+        if (!(matches[i] in conf.get('dependencyBlacklist'))) {
             iterator(matches[i]);
         }
     }
 }
 
 function eachAssetStringMatchInString(str, iterator) {
-    var matches = str.match(this.options.assetRegexp) || [];
+    var matches = str.match(conf.get('assetRegexp')) || [];
     for (var i = 0; i < matches.length; i++) {
         var match = matches[i];
         var tmpStr = match + BLANK;
-        tmpStr = tmpStr.replace(this.options.assetPrefixRegexp, BLANK)
-                 .replace(this.options.assetSuffixRegexp, BLANK)
-                 .replace(this.options.componentDelimiterRegexp, FSLASH)
+        tmpStr = tmpStr.replace(conf.get('assetPrefixRegexp'), BLANK)
+                 .replace(conf.get('assetSuffixRegexp'), BLANK)
+                 .replace(conf.get('componentDelimiterRegexp'), FSLASH)
                  .replace(PIPE, FSLASH);
         iterator(match, tmpStr);
     }
@@ -49,21 +51,21 @@ function eachAssetStringMatchInString(str, iterator) {
 
 function doesFileLookLikeAsset(fileObject) {
     var extname = Path.extname(fileObject.path);
-    return !!this.options.assetTypes[extname];
+    return !!conf.get('assetTypes')[extname];
 }
 
 function doesFileLookLikeBinary(fileObject) {
     var extname = Path.extname(fileObject.path);
-    return !!this.options.binaryTypes[extname];
+    return !!conf.get('binaryTypes')[extname];
 }
 
 function moduleNameToEntrypointBasename(moduleName) {
-    var moduleNameParts = moduleNameToModuleNameSegments.call(this, moduleName);
+    var moduleNameParts = moduleNameToModuleNameSegments(moduleName);
     return moduleNameParts[moduleNameParts.length - 1];
 }
 
 function moduleNameToModuleNameSegments(moduleName) {
-  return moduleName.split(this.options.componentDelimiter);
+  return moduleName.split(conf.get('componentDelimiter'));
 }
 
 function importsObjectToFlatImportsObject(importsObj) {
@@ -71,23 +73,23 @@ function importsObjectToFlatImportsObject(importsObj) {
     for (var selector in importsObj) {
         var array = importsObj[selector];
         for (var i = 0; i < array.length; i++) {
-            flatImports[array[i]] = selector + this.options.componentDelimiter + array[i];
+            flatImports[array[i]] = selector + conf.get('componentDelimiter') + array[i];
         }
     }
     return flatImports;
 }
 
 function moduleNamespaceAndBasenameToModuleName(moduleNamespace, moduleEntrypointBasename) {
-    return moduleNamespace + this.options.componentDelimiter + moduleEntrypointBasename;
+    return moduleNamespace + conf.get('componentDelimiter') + moduleEntrypointBasename;
 }
 
 function stringToModuleCDNMatch(string) {
-    var matches = string.match(this.options.moduleCDNRegexp);
+    var matches = string.match(conf.get('moduleCDNRegexp'));
     if (matches) {
         return {
             match: matches,
-            value: matches[0].replace(this.options.assetPrefixRegexp, BLANK)
-                             .replace(this.options.assetSuffixRegexp, BLANK)
+            value: matches[0].replace(conf.get('assetPrefixRegexp'), BLANK)
+                             .replace(conf.get('assetSuffixRegexp'), BLANK)
         };
     }
     else {
@@ -137,7 +139,7 @@ function buildIncludesArray(info, skipURLExpansion) {
 }
 
 function moduleNameToNamespace(moduleName) {
-    return Lodash.first(moduleName.split(this.options.componentDelimiter));
+    return Lodash.first(moduleName.split(conf.get('componentDelimiter')));
 }
 
 module.exports = {

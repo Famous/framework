@@ -4,21 +4,22 @@ var Lodash = require('lodash');
 
 var StorageHelpers = require('./../storage-helpers/storage-helpers');
 
+var conf = require('./../conf');
+
 function saveAssets(info, cb) {
     info.assetSaveableFiles = Lodash.reject(info.files, function(file) {
-        return !!(file.path in this.options.assetBlacklist);
-    }.bind(this));
+        return !!(file.path in conf.get('assetBlacklist'));
+    });
 
     // The storage helpers will append the necessary data to the info
     // object, e.g. info.versionRef, etc.
-    StorageHelpers.saveAssets.call(this, info, function(saveErr) {
-        if (!saveErr) {
-            // console.log('Built version `' + info.name + '` (' + info.versionRef + ') to ' + info.versionPath);
-            cb(null, info);
-        }
-        else {
+    StorageHelpers.saveAssets(info, function(saveErr) {
+        if (saveErr) {
             console.error(saveErr);
         }
+
+        // console.log('Built version `' + info.name + '` (' + info.versionRef + ') to ' + info.versionPath);
+        return cb(null, info);
     });
 }
 

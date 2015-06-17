@@ -2,26 +2,36 @@
 
 var Path = require('path');
 
+var conf = require('./../conf');
+
+function assetMapper(file) {
+    return {
+        path: Path.join(conf.get('bundleBasePath'), file.path),
+        content: file.content
+    };
+}
+
 function build(info, assetFiles) {
     var collection = [];
 
     collection.push({
-        path: this.options.bundleAssetPath,
+        path: conf.get('bundleAssetPath'),
         content: info.bundleString
     });
 
     collection.push({
-        path: this.options.parcelAssetPath,
+        path: conf.get('parcelAssetPath'),
         content: JSON.stringify(info.parcelHash, null, 4)
     });
 
-    if (!this.options.doSkipExecutableBuild) {
+    if (!conf.get('doSkipExecutableBuild')) {
         collection.push({
-            path: this.options.bundleIndexPath,
+            path: conf.get('bundleIndexPath'),
             content: info.bundleIndexString
         });
+
         collection.push({
-            path: this.options.bundleExecutablePath,
+            path: conf.get('bundleExecutablePath'),
             content: info.bundleExecutableString
         });
     }
@@ -30,12 +40,7 @@ function build(info, assetFiles) {
     // ones we built specifically for the bundle, but make sure to
     // prefix them with the ~bundles directory so relative pathing
     // works
-    collection = collection.concat(assetFiles.map(function(file) {
-        return {
-            path: Path.join(this.options.bundleBasePath, file.path),
-            content: file.content
-        };
-    }.bind(this)));
+    collection = collection.concat(assetFiles.map(assetMapper));
 
     return collection;
 }
