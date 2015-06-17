@@ -9,7 +9,7 @@ var Path = require('path');
 var BuildHelpers = require('./../build-helpers/build-helpers');
 var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 var NEWLINE = '\n';
 var NEWLINE_REGEXP = /\n/g;
@@ -129,7 +129,7 @@ var PROJECT_DIR = Path.join(__dirname, '..', '..');
 function browserifyFrameworkLibrary(info, cb) {
     var inputFile = Path.join(PROJECT_DIR, 'lib', 'index.js');
     var b = Browserify(inputFile);
-    b.transform(Envify({ FF_ASSET_READ_HOST: conf.get('codeManagerAssetReadHost') }));
+    b.transform(Envify({ FF_ASSET_READ_HOST: Config.get('codeManagerAssetReadHost') }));
     b.bundle(function(err, buf) {
         if (err) {
             cb(err);
@@ -221,13 +221,13 @@ function buildBundle(info, cb) {
     // case, fall back to the dependency version so that the bundles don't have
     // a bunch of "undefined" versions listed
     if (!info.versionRef && !info.explicitVersion) {
-        info.versionRef = conf.get('defaultDependencyVersion');
+        info.versionRef = Config.get('defaultDependencyVersion');
     }
 
     info.parcelHash = buildParcelHash(info);
     info.bundleString = buildBundleString(info);
 
-    if (!conf.get('doSkipExecutableBuild')) {
+    if (!Config.get('doSkipExecutableBuild')) {
         info.bundleIndexString = buildBundleIndexString(info);    
 
         return buildBundleExecutableString(info, function(err, bundleExecutableString) {

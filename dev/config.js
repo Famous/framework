@@ -1,12 +1,12 @@
+var Lodash = require('lodash');
 var Path = require('path');
-var nconf = require('nconf');
 
 // Although this builder isn't completely isomorphic yet, at some point
 // soon we are going to support running the build process in the browser
 // too, which this checks for.
 var IS_IN_BROWSER = (typeof window !== 'undefined');
 
-var DEFAULTS = {
+var options = {
     // Persistence and stateful service references
     localRawSourceFolder: null, // The folder where local components are being actively developed
     localBlocksFolder: null, // The folder where block version (and bundles) are stored
@@ -124,9 +124,17 @@ var DEFAULTS = {
     treeFacetKeyName: 'tree'
 };
 
-DEFAULTS.assetBlacklist = {};
-DEFAULTS.assetBlacklist[Path.join('.famous', '.config')] = true;
+options.assetBlacklist = {};
+options.assetBlacklist[Path.join('.famous', '.config')] = true;
 
-nconf.defaults(DEFAULTS);
-
-module.exports = nconf;
+module.exports = {
+    get: function(key) {
+        return options[key];
+    },
+    set: function(key, value) {
+        options[key] = value;
+    },
+    assign: function(others) {
+        options = Lodash.assign(Lodash.clone(options || {}), Lodash.clone(others || {}));
+    }
+};

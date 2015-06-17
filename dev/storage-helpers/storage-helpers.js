@@ -8,15 +8,15 @@ var LocalBlocksFolder = require('./local-blocks-folder');
 var LocalBlocksCacheFolder = require('./local-blocks-cache-folder');
 var Hub = require('./hub');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 function derefDependencies(depReferenceTable, cb) {
-    if (!conf.get('codeManagerVersionInfoHost')) {
+    if (!Config.get('codeManagerVersionInfoHost')) {
         // Just return the normal reference table for now
         return cb(null, depReferenceTable);
     }
 
-    Hub.derefDependencies(conf.get('codeManagerVersionInfoHost'), depReferenceTable, cb);
+    Hub.derefDependencies(Config.get('codeManagerVersionInfoHost'), depReferenceTable, cb);
 }
 
 function loadDependencies(info, cb) {
@@ -33,28 +33,28 @@ function loadDependencies(info, cb) {
     var dependenciesFound = {};
     var loadAttemptActions = [];
 
-    if (conf.get('doLoadDependenciesFromBrowser')) {
+    if (Config.get('doLoadDependenciesFromBrowser')) {
         loadAttemptActions.push(Browser.loadDependenciesFromBrowser);
     }
     else {
-        if (conf.get('localBlocksFolder') || conf.get('localRawSourceFolder')) {
+        if (Config.get('localBlocksFolder') || Config.get('localRawSourceFolder')) {
             loadAttemptActions.push(LocalBlocksFolder.loadDependencies.bind(null,
-                conf.get('localBlocksFolder'),
-                conf.get('localRawSourceFolder')
+                Config.get('localBlocksFolder'),
+                Config.get('localRawSourceFolder')
             ));
         }
 
-        if (conf.get('localBlocksCacheFolder')) {
+        if (Config.get('localBlocksCacheFolder')) {
             loadAttemptActions.push(LocalBlocksCacheFolder.loadDependencies.bind(null,
-                conf.get('localBlocksCacheFolder')
+                Config.get('localBlocksCacheFolder')
             ));
         }
     }
 
-    if (conf.get('codeManagerAssetReadHost') || conf.get('codeManagerVersionInfoHost')) {
+    if (Config.get('codeManagerAssetReadHost') || Config.get('codeManagerVersionInfoHost')) {
         loadAttemptActions.push(Hub.loadDependencies.bind(null,
-            conf.get('codeManagerAssetReadHost'),
-            conf.get('codeManagerVersionInfoHost')
+            Config.get('codeManagerAssetReadHost'),
+            Config.get('codeManagerVersionInfoHost')
         ));
     }
 
@@ -77,15 +77,15 @@ function loadDependencies(info, cb) {
 function saveAssets(info, cb) {
     var saveAssetsActions = [];
 
-    if (conf.get('codeManagerAssetWriteHost') && conf.get('doWriteToCodeManager')) {
+    if (Config.get('codeManagerAssetWriteHost') && Config.get('doWriteToCodeManager')) {
         saveAssetsActions.push(Hub.saveAssets.bind(null,
-            conf.get('codeManagerAssetWriteHost')
+            Config.get('codeManagerAssetWriteHost')
         ));
     }
 
-    if (conf.get('localBlocksFolder')) {
+    if (Config.get('localBlocksFolder')) {
         saveAssetsActions.push(LocalBlocksFolder.saveAssets.bind(null,
-            conf.get('localBlocksFolder')
+            Config.get('localBlocksFolder')
         ));
     }
 
@@ -97,15 +97,15 @@ function saveAssets(info, cb) {
 function saveBundle(info, cb) {
     var saveBundleActions = [];
 
-    if (conf.get('codeManagerAssetWriteHost') && conf.get('doWriteToCodeManager')) {
+    if (Config.get('codeManagerAssetWriteHost') && Config.get('doWriteToCodeManager')) {
         saveBundleActions.push(Hub.saveBundle.bind(null,
-            conf.get('codeManagerAssetWriteHost')
+            Config.get('codeManagerAssetWriteHost')
         ));
     }
 
-    if (conf.get('localBlocksFolder')) {
+    if (Config.get('localBlocksFolder')) {
         saveBundleActions.push(LocalBlocksFolder.saveBundle.bind(null,
-            conf.get('localBlocksFolder')
+            Config.get('localBlocksFolder')
         ));
     }
 

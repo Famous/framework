@@ -6,7 +6,7 @@ var Mkdirp = require('mkdirp');
 var Path = require('path');
 var Chalk = require('chalk');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 function logFormattedDeps(depTable) {
     for (var depName in depTable) {
@@ -26,19 +26,19 @@ function freezeDependencies(info, cb) {
     }
 
     frameworkFile = Lodash.find(info.files, function(file) {
-        return file.path === conf.get('frameworkFilename');
+        return file.path === Config.get('frameworkFilename');
     });
 
     // If no dependencies file exists, add it to the collection so it
     // gets saved along with everything else during persistence
     if (!frameworkFile) {
         frameworkFile = {
-            path: conf.get('frameworkFilename')
+            path: Config.get('frameworkFilename')
         };
         info.files.push(frameworkFile);
     }
 
-    if (conf.get('doFreezeDependencies')) {
+    if (Config.get('doFreezeDependencies')) {
         // And set the file's content to the JSON of the dependencies
         // that we've resolved in a previous step
         frameworkFile.content = JSON.stringify({
@@ -77,7 +77,13 @@ function freezeDependencies(info, cb) {
             return cb(mkdirErr);
         }
 
-        return Fs.writeFile(frameworkFilePath, frameworkFile.content, conf.get('fileOptions'), cb);
+        return Fs.writeFile(frameworkFilePath, frameworkFile.content, Config.get('fileOptions'), function(writeFileErr) {
+            if (writeFileErr) {
+                return cb(writeFileErr);
+            }
+
+            return cb(null, info);
+        });
     });
 }
 

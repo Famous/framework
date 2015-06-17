@@ -4,11 +4,11 @@ var Lodash = require('lodash');
 
 var StorageHelpers = require('./../storage-helpers/storage-helpers');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 function saveAssets(info, cb) {
     info.assetSaveableFiles = Lodash.reject(info.files, function(file) {
-        return !!(file.path in conf.get('assetBlacklist'));
+        return !!(file.path in Config.get('assetBlacklist'));
     });
 
     // The storage helpers will append the necessary data to the info

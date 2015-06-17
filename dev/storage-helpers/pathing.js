@@ -1,6 +1,6 @@
 'use strict';
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 var PIPE = '|';
 var SLASH = '/';
@@ -32,26 +32,26 @@ function persistencePathMethod(route) {
 }
 
 function buildVersionPath(moduleName, moduleVersion, makeRelative) {
-    return persistencePathTemplate(conf.get('codeManagerVersionGetRoute'), {
-        apiVersion: conf.get('codeManagerApiVersion'),
+    return persistencePathTemplate(Config.get('codeManagerVersionGetRoute'), {
+        apiVersion: Config.get('codeManagerApiVersion'),
         blockIdOrName: moduleName,
         versionRefOrTag: moduleVersion
     }, !!makeRelative);
 }
 
 function buildVersionInfoURL(moduleName, moduleVersion) {
-    var versionPath = persistencePathTemplate(conf.get('codeManagerVersionGetRoute'), {
-        apiVersion: conf.get('codeManagerApiVersion'),
+    var versionPath = persistencePathTemplate(Config.get('codeManagerVersionGetRoute'), {
+        apiVersion: Config.get('codeManagerApiVersion'),
         blockIdOrName: moduleName,
         versionRefOrTag: moduleVersion
     }, true);
 
-    return conf.get('codeManagerVersionInfoHost') + SLASH + versionPath;
+    return Config.get('codeManagerVersionInfoHost') + SLASH + versionPath;
 }
 
 function buildAssetPath(moduleName, moduleVersion, assetPath, makeRelative) {
-    return persistencePathTemplate(conf.get('codeManagerAssetGetRoute'), {
-        apiVersion: conf.get('codeManagerApiVersion'),
+    return persistencePathTemplate(Config.get('codeManagerAssetGetRoute'), {
+        apiVersion: Config.get('codeManagerApiVersion'),
         blockIdOrName: moduleName,
         versionRefOrTag: moduleVersion,
         assetPath: assetPath
@@ -61,32 +61,32 @@ function buildAssetPath(moduleName, moduleVersion, assetPath, makeRelative) {
 function buildAssetURL(moduleName, moduleVersion, assetPath) {
     var assetPathRelative = buildAssetPath(moduleName, moduleVersion, assetPath, true);
 
-    return conf.get('codeManagerAssetReadHost') + SLASH + assetPathRelative;
+    return Config.get('codeManagerAssetReadHost') + SLASH + assetPathRelative;
 }
 
 function getBlockCreateMethod() {
-    return persistencePathMethod(conf.get('codeManagerBlockCreateRoute'));
+    return persistencePathMethod(Config.get('codeManagerBlockCreateRoute'));
 }
 
 function getVersionCreateMethod() {
-    return persistencePathMethod(conf.get('codeManagerVersionCreateRoute'));
+    return persistencePathMethod(Config.get('codeManagerVersionCreateRoute'));
 }
 
 function getVersionGetMethod() {
-    return persistencePathMethod(conf.get('codeManagerVersionGetRoute'));
+    return persistencePathMethod(Config.get('codeManagerVersionGetRoute'));
 }
 
 function buildBlockCreateURI() {
-    return conf.get('codeManagerAssetWriteHost') + '/v1/blocks';
+    return Config.get('codeManagerAssetWriteHost') + '/v1/blocks';
 }
 
 function getVersionCreateURI(blockName) {
-    var pathRelative = persistencePathTemplate(conf.get('codeManagerVersionCreateRoute'), {
-        apiVersion: conf.get('codeManagerApiVersion'),
+    var pathRelative = persistencePathTemplate(Config.get('codeManagerVersionCreateRoute'), {
+        apiVersion: Config.get('codeManagerApiVersion'),
         blockIdOrName: blockName
     });
 
-    return conf.get('codeManagerAssetWriteHost') + pathRelative;
+    return Config.get('codeManagerAssetWriteHost') + pathRelative;
 }
 
 function getVersionPath(blockName, versionRef) {
@@ -96,34 +96,34 @@ function getVersionPath(blockName, versionRef) {
 function getVersionURL(blockName, versionRef) {
     var versionPath = getVersionPath(blockName, versionRef);
 
-    return conf.get('codeManagerAssetReadHost') + SLASH + versionPath;
+    return Config.get('codeManagerAssetReadHost') + SLASH + versionPath;
 }
 
 /**
  * Pathing for auth-related actions
  */
 function getAuthStatusMethod() {
-    return persistencePathMethod(conf.get('authStatusRoute'));
+    return persistencePathMethod(Config.get('authStatusRoute'));
 }
 
 function getUserInfoMethod() {
-    return persistencePathMethod(conf.get('authUserInfoRoute'));
+    return persistencePathMethod(Config.get('authUserInfoRoute'));
 }
 
 function getAuthStatusURI() {
-    var pathRelative = persistencePathTemplate(conf.get('authStatusRoute'), {
-        apiVersion: conf.get('authApiVersion')
+    var pathRelative = persistencePathTemplate(Config.get('authStatusRoute'), {
+        apiVersion: Config.get('authApiVersion')
     });
 
-    return conf.get('authHost') + pathRelative;
+    return Config.get('authHost') + pathRelative;
 }
 
 function getUserInfoURI() {
-    var pathRelative = persistencePathTemplate(conf.get('authUserInfoRoute'), {
-        apiVersion: conf.get('authApiVersion')
+    var pathRelative = persistencePathTemplate(Config.get('authUserInfoRoute'), {
+        apiVersion: Config.get('authApiVersion')
     });
 
-    return conf.get('authHost') + pathRelative;
+    return Config.get('authHost') + pathRelative;
 }
 
 module.exports = {

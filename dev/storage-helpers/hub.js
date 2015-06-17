@@ -11,7 +11,7 @@ var BuildHelpers = require('./../build-helpers/build-helpers');
 var BundleCollection = require('./bundle-collection');
 var PathingHelpers = require('./pathing');
 
-var conf = require('./../conf');
+var config = require('./../config');
 
 var SHA_LENGTH = 64;
 var SHA_REGEXP = /^([a-zA-Z0-9])+$/i;
@@ -28,7 +28,7 @@ function loadDependency(assetReadHost, versionInfoHost, dependencyTuple, cb) {
     var dependencyName = dependencyTuple[0];
     var dependencyVersion = dependencyTuple[1];
     var dependencyParcelBaseURL = PathingHelpers.buildVersionInfoURL(dependencyName, dependencyVersion);
-    var dependencyParcelURL = dependencyParcelBaseURL + Path.sep + 'assets' + Path.sep + conf.get('parcelAssetPath');
+    var dependencyParcelURL = dependencyParcelBaseURL + Path.sep + 'assets' + Path.sep + Config.get('parcelAssetPath');
 
     Request({
         method: 'GET',
@@ -47,7 +47,7 @@ function loadDependency(assetReadHost, versionInfoHost, dependencyTuple, cb) {
 function loadDependencies(assetReadHost, versionInfoHost, dependenciesWanted, dependenciesFound, cb) {
     var refTuples = Lodash.pairs(dependenciesWanted);
 
-    Async.map(refTuples, loadDependency(assetReadHost, versionInfoHost), function(depLoadErr, parcelsLoaded) {
+    Async.map(refTuples, loadDependency.bind(null, assetReadHost, versionInfoHost), function(depLoadErr, parcelsLoaded) {
         if (depLoadErr) {
             return cb(null, dependenciesWanted, dependenciesFound);
         }
@@ -167,13 +167,13 @@ function authenticateAsWriteable(info, config, cb) {
 
 function contentTypeForFile(file) {
     var extname = Path.extname(file.path);
-    return conf.get('contentTypeMap[extname] || conf.get('contentTypeFallback;
+    return Config.get('contentTypeMap')[extname] || Config.get('contentTypeFallback');
 }
 
 function getBlockNameWithoutUsername(name) {
-    var nameParts = name.split(conf.get('componentDelimiter'));
+    var nameParts = name.split(Config.get('componentDelimiter'));
     var nameTail = Lodash.tail(nameParts);
-    return nameTail.join(conf.get('componentDelimiter'));
+    return nameTail.join(Config.get('componentDelimiter'));
 }
 
 function createVersionWithFiles(blockId, config, files, cb) {
@@ -307,11 +307,11 @@ function saveBundle(versionWriteHost, info, cb) {
             var bundleVersionRef = parsedVersionBody.version.ref;
 
             info.bundleVersionRef = bundleVersionRef;
-            info.bundlePath = PathingHelpers.buildAssetPath(info.name, bundleVersionRef, conf.get('bundleAssetPath'), true);
-            info.bundleURL = PathingHelpers.buildAssetURL(info.name, bundleVersionRef, conf.get('bundleAssetPath'));
-            info.bundleExecutablePageURL = PathingHelpers.buildAssetURL(info.name, bundleVersionRef, conf.get('bundleIndexPath'));
-            info.parcelPath = PathingHelpers.buildAssetPath(info.name, bundleVersionRef, conf.get('parcelAssetPath'), true);
-            info.parcelURL = PathingHelpers.buildAssetURL(info.name, bundleVersionRef, conf.get('parcelAssetPath'));
+            info.bundlePath = PathingHelpers.buildAssetPath(info.name, bundleVersionRef, Config.get('bundleAssetPath'), true);
+            info.bundleURL = PathingHelpers.buildAssetURL(info.name, bundleVersionRef, Config.get('bundleAssetPath'));
+            info.bundleExecutablePageURL = PathingHelpers.buildAssetURL(info.name, bundleVersionRef, Config.get('bundleIndexPath'));
+            info.parcelPath = PathingHelpers.buildAssetPath(info.name, bundleVersionRef, Config.get('parcelAssetPath'), true);
+            info.parcelURL = PathingHelpers.buildAssetURL(info.name, bundleVersionRef, Config.get('parcelAssetPath'));
 
             return cb(null, info);
         });

@@ -5,7 +5,7 @@ var Lodash = require('lodash');
 var AssetCompilers = require('./../asset-compilers/asset-compilers');
 var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 function linkFacets(info, cb) {
     for (var moduleName in info.moduleDefinitionASTs) {
@@ -30,7 +30,7 @@ function linkFacets(info, cb) {
                     // Unlike other properties in the definition, the tree object is
                     // an HTML string, and so it should be written as a string literal,
                     // not parsed as JavaScript
-                    if (facetName === conf.get('treeFacetKeyName')) {
+                    if (facetName === Config.get('treeFacetKeyName')) {
                         facetProp.value = EsprimaHelpers.buildStringLiteralAST(facetContent);
                     }
                     else {

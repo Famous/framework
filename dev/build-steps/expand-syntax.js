@@ -6,7 +6,7 @@ var BuildHelpers = require('./../build-helpers/build-helpers');
 var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
 var PathingHelpers = require('./../storage-helpers/pathing');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 var PIPE = '|';
 
@@ -41,7 +41,7 @@ function interpolateAssetStrings(moduleName, moduleVersionRef, moduleDefinitionA
 function expandBehaviorsObject(behaviorsAST) {
     EsprimaHelpers.eachObjectProperty(behaviorsAST, function(_0, _1, _2, valueObj) {
         EsprimaHelpers.eachObjectProperty(valueObj, function(keyName, _1, subValueVal, subValueObj, eventProp) {
-            if (EsprimaHelpers.isStringLiteral(subValueObj) && subValueVal.match(conf.get('behaviorSetterRegex'))) {
+            if (EsprimaHelpers.isStringLiteral(subValueObj) && subValueVal.match(Config.get('behaviorSetterRegex'))) {
                 eventProp.value = buildFunctionAST(keyName, subValueVal, behaviorFnStringTemplate, errorFnTemplate, BEHAVIOR_STR);
             }
         });
@@ -160,12 +160,12 @@ function expandEventsObject(eventsAST) {
     EsprimaHelpers.eachObjectProperty(eventsAST, function(keyName, _1, valueVal, valueObj, eventProp) {
         if (EsprimaHelpers.isLiteral(valueObj)) {
             // Whitelist of event string values are processed on client
-            if (!(valueVal in conf.get('reservedEventValues'))) {
+            if (!(valueVal in Config.get('reservedEventValues'))) {
                 eventProp.value = buildFunctionAST(keyName, valueVal, eventFnStringTemplate, errorFnTemplate, EVENT_STR);
             }
         }
         else if (EsprimaHelpers.isObjectExpression(valueObj)) {
-            if (keyName !== conf.get('passThroughKey')) {
+            if (keyName !== Config.get('passThroughKey')) {
                 expandEventsObject(valueObj);
             }
         }
@@ -174,17 +174,17 @@ function expandEventsObject(eventsAST) {
 
 function processSyntacticSugar(moduleName, moduleDefinitionAST, moduleConfigAST) {
     EsprimaHelpers.eachObjectProperty(moduleDefinitionAST, function(facetName, _1, _2, valueObj) {
-        if (facetName === conf.get('behaviorsFacetKeyName')) {
+        if (facetName === Config.get('behaviorsFacetKeyName')) {
             expandBehaviorsObject(valueObj);
         }
-        else if (facetName === conf.get('eventsFacetKeyName')) {
+        else if (facetName === Config.get('eventsFacetKeyName')) {
             expandEventsObject(valueObj);
         }
     });
 }
 
 function buildExtensionsArray(info, moduleName, configObject) {
-    var extensions = configObject.extends || conf.get('defaultExtends');
+    var extensions = configObject.extends || Config.get('defaultExtends');
     var result = [];
     for (var i = 0; i < extensions.length; i++) {
         result.push({
@@ -217,7 +217,7 @@ function expandLibraryInvocation(info, moduleName, libraryInvocation) {
     // Make the version ref the second argument to FamousFramework.scene(...)
     // since the client-side uses the ref internally for managing objects
     var moduleNameArgAST = EsprimaHelpers.buildStringLiteralAST(moduleName);
-    var versionRefArgAST = EsprimaHelpers.buildStringLiteralAST(info.versionRef || conf.get('defaultDependencyVersion'));
+    var versionRefArgAST = EsprimaHelpers.buildStringLiteralAST(info.versionRef || Config.get('defaultDependencyVersion'));
     var optionsArgAST = buildOptionsArgAST(info, moduleName);
     var definitionArgAST = info.moduleDefinitionASTs[moduleName] || EsprimaHelpers.EMPTY_OBJECT_EXPRESSION;
 
@@ -247,7 +247,7 @@ function findAttachmentInvocations(entrypointAST) {
     var attachmentInvocations = [];
 
     EsprimaHelpers.traverse(entrypointAST, function(node, parent) {
-        if (isAttachmentInvocation(node, conf.get('libraryMainNamespace'), conf.get('attachmentIdentifiers'))) {
+        if (isAttachmentInvocation(node, Config.get('libraryMainNamespace'), Config.get('attachmentIdentifiers'))) {
             if (node.arguments) {
                 attachmentInvocations.push(node);
             }
@@ -263,7 +263,7 @@ function expandAttachmentSyntax(info, ast) {
     for (var i = 0; i < attachmentInvocations.length; i++) {
         var attachmentInvocation = attachmentInvocations[i];
 
-        attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.versionRef || conf.get('defaultDependencyVersion')));
+        attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.versionRef || Config.get('defaultDependencyVersion')));
         attachmentInvocation.arguments.unshift(EsprimaHelpers.buildStringLiteralAST(info.name));
     }
 }
@@ -287,7 +287,7 @@ function expandSyntax(info, cb) {
         var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
         var moduleConfigAST = info.moduleConfigASTs[moduleName];
 
-        interpolateAssetStrings(moduleName, ((info.versionRef || info.explicitVersion) || conf.get('defaultDependencyVersion')), moduleDefinitionAST);
+        interpolateAssetStrings(moduleName, ((info.versionRef || info.explicitVersion) || Config.get('defaultDependencyVersion')), moduleDefinitionAST);
         processSyntacticSugar(moduleName, moduleDefinitionAST, moduleConfigAST);
     }
 

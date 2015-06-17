@@ -4,10 +4,10 @@ var Chalk = require('chalk');
 
 var StorageHelpers = require('./../storage-helpers/storage-helpers');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 function derefDependencies(info, cb) {
-    if (conf.get('doSkipDependencyDereferencing')) {
+    if (Config.get('doSkipDependencyDereferencing')) {
         // The downstream functions expect a 'dereffedDependencyTable' which is
         // basically a table with all of the "true" dependency versions as keys
         info.dereffedDependencyTable = info.dependencyTable;

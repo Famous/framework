@@ -6,6 +6,8 @@ var Lodash = require('lodash');
 var BuildHelpers = require('./../build-helpers/build-helpers');
 var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
 
+var Config = require('./../config');
+
 var QUOTE = '\'';
 var EXTENDS_KEY = 'extends';
 
@@ -50,7 +52,7 @@ function expandObjectKeyShorthands(facetName, facetObj, imports, depth) {
         // i.e. behaviors that bypass the normal eventing conduit via a syntax such
         // as 'famous:foo:bar:behavior-blah' -- we don't do the imports conversion
         // here since it will raise an error on the client anyway.
-        if (facetName !== conf.get('behaviorsFacetKeyName') || depth < 2) {
+        if (facetName !== Config.get('behaviorsFacetKeyName') || depth < 2) {
             for (var importNamespace in imports) {
                 var importItems = imports[importNamespace];
                 for (var i = 0; i < importItems.length; i++) {
@@ -88,12 +90,12 @@ function expandImportsShorthand(info, cb) {
 
         // Step 1: Get a simplified (complete) imports object.
         var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST || { properties: [] });
-        var imports = Lodash.defaults(configObject[conf.get('importsKeyName')] || {}, conf.get('defaultImports'));
+        var imports = Lodash.defaults(configObject[Config.get('importsKeyName')] || {}, Config.get('defaultImports'));
 
         // Step 2: Replace shorthand references in the object keys
         var treeNode;
         EsprimaHelpers.eachObjectProperty(moduleDefinitionAST, function(facetName, _1, _2, valueObj) {
-            if (facetName === conf.get('treeFacetKeyName')) {
+            if (facetName === Config.get('treeFacetKeyName')) {
                 treeNode = valueObj;
             }
             else if (EsprimaHelpers.isObjectExpression(valueObj)) {

@@ -6,7 +6,7 @@ var Lodash = require('lodash');
 var BuildHelpers = require('./../build-helpers/build-helpers');
 var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 var ALL_SELECTOR = '*';
 
@@ -18,7 +18,7 @@ function getValidDependenciesOnly(dependencies) {
 
         // Anything that doesn't have at least one ':' in it can be assumed to not
         // be a dependency, since we should have expanded these in a previous step
-        if (depName.indexOf(conf.get('componentDelimiter')) !== -1) {
+        if (depName.indexOf(Config.get('componentDelimiter')) !== -1) {
             validDependencies.push(depName);
         }
     }
@@ -56,13 +56,13 @@ function findDependencies(info, cb) {
         // Collect dependencies from the definition objects.
         var treeValue;
         EsprimaHelpers.eachObjectProperty(moduleDefinitionAST, function(keyName, _1, actualValue, valueObject) {
-            if (keyName === conf.get('treeFacetKeyName')) {
+            if (keyName === Config.get('treeFacetKeyName')) {
                 treeValue = actualValue;
             }
             else {
                 if (EsprimaHelpers.isObjectExpression(valueObject)) {
                     // `states` object cannot have any dependencies
-                    if (keyName === conf.get('behaviorsFacetKeyName') || keyName === conf.get('eventsFacetKeyName')) {
+                    if (keyName === Config.get('behaviorsFacetKeyName') || keyName === Config.get('eventsFacetKeyName')) {
                         findDependencyKeys(valueObject, dependenciesList);
                     }
                 }
@@ -103,7 +103,7 @@ function findDependencies(info, cb) {
         // TODO: again, use the pre-built config object instead of re-traversing the AST
         var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST);
 
-        var extensions = configObject.extends || conf.get('defaultExtends');
+        var extensions = configObject.extends || Config.get('defaultExtends');
 
         for (i = 0; i < extensions.length; i++) {
             dependenciesList.push(extensions[i]);
@@ -119,7 +119,7 @@ function findDependencies(info, cb) {
         var dependencyName = validDependencies[i];
 
         if (!dependencyTable[dependencyName]) {
-            dependencyTable[dependencyName] = conf.get('defaultDependencyVersion');
+            dependencyTable[dependencyName] = Config.get('defaultDependencyVersion');
         }
     }
 

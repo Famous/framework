@@ -2,11 +2,11 @@
 
 var Path = require('path');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 function assetMapper(file) {
     return {
-        path: Path.join(conf.get('bundleBasePath'), file.path),
+        path: Path.join(Config.get('bundleBasePath'), file.path),
         content: file.content
     };
 }
@@ -15,23 +15,23 @@ function build(info, assetFiles) {
     var collection = [];
 
     collection.push({
-        path: conf.get('bundleAssetPath'),
+        path: Config.get('bundleAssetPath'),
         content: info.bundleString
     });
 
     collection.push({
-        path: conf.get('parcelAssetPath'),
+        path: Config.get('parcelAssetPath'),
         content: JSON.stringify(info.parcelHash, null, 4)
     });
 
-    if (!conf.get('doSkipExecutableBuild')) {
+    if (!Config.get('doSkipExecutableBuild')) {
         collection.push({
-            path: conf.get('bundleIndexPath'),
+            path: Config.get('bundleIndexPath'),
             content: info.bundleIndexString
         });
 
         collection.push({
-            path: conf.get('bundleExecutablePath'),
+            path: Config.get('bundleExecutablePath'),
             content: info.bundleExecutableString
         });
     }

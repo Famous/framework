@@ -18,10 +18,11 @@ var saveAssets = require('./build-steps/save-assets');
 var saveFrameworkInfo = require('./build-steps/save-framework-info');
 var saveBundle = require('./build-steps/save-bundle');
 
-var conf = require('./conf');
+var Config = require('./config');
 
 function Builder(options) {
-    conf.overrides(options || {});
+    Config.assign(options || {});
+    Config.set('buildModuleFunction', this.buildModule.bind(this));
 }
 
 Builder.prototype.buildModule = function(info, finish) {
@@ -36,6 +37,7 @@ Builder.prototype.buildModule = function(info, finish) {
     }
 
     var subRoutines = [];
+
     subRoutines.push(preprocessFiles);
     subRoutines.push(extractCoreObjects);
     subRoutines.push(linkFacets);
@@ -44,18 +46,22 @@ Builder.prototype.buildModule = function(info, finish) {
     subRoutines.push(derefDependencies);
     subRoutines.push(freezeDependencies);
     subRoutines.push(loadDependencies);
-    if (conf.get('doSkipAssetSaveStep')) {
+
+    if (!Config.get('doSkipAssetSaveStep')) {
         // Note: Skipping here may assume that already have
         // an 'explicitVersion' set, since only saving assets
         // can give us the version ref for the component.
         subRoutines.push(saveAssets);
         subRoutines.push(saveFrameworkInfo);
     }
+
     subRoutines.push(expandSyntax);
     subRoutines.push(buildBundle);
-    if (conf.get('doSkipBundleSaveStep')) {
+
+    if (!Config.get('doSkipBundleSaveStep')) {
         subRoutines.push(saveBundle);
     }
+
     Async.seq.apply(Async, subRoutines)(info, function(err, result) {
         finish(err, result);
     });

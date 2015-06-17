@@ -3,7 +3,7 @@
 var Lodash = require('lodash');
 var Path = require('path');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 var BLANK = '';
 var PIPE = '|';
@@ -13,14 +13,14 @@ var STRING_TYPE = 'string';
 function dependencyStringToModuleName(str) {
     var parts = moduleNameToModuleNameSegments(str);
     var head = parts.slice(0, parts.length - 1);
-    var moduleName = head.join(conf.get('componentDelimiter'));
+    var moduleName = head.join(Config.get('componentDelimiter'));
     return moduleName;
 }
 
 function doesStringLookLikeDependency(str) {
     // Object keys might be numbers, so we have to check here.
     if (typeof str === STRING_TYPE) {
-        return str.indexOf(conf.get('componentDelimiter')) !== -1;  
+        return str.indexOf(Config.get('componentDelimiter')) !== -1;  
     }
     else {
         return false;
@@ -28,22 +28,22 @@ function doesStringLookLikeDependency(str) {
 }
 
 function eachDependencyStringInString(str, iterator) {
-    var matches = str.match(conf.get('dependencyRegexp'));
+    var matches = str.match(Config.get('dependencyRegexp'));
     for (var i = 0; i < matches.length; i++) {
-        if (!(matches[i] in conf.get('dependencyBlacklist'))) {
+        if (!(matches[i] in Config.get('dependencyBlacklist'))) {
             iterator(matches[i]);
         }
     }
 }
 
 function eachAssetStringMatchInString(str, iterator) {
-    var matches = str.match(conf.get('assetRegexp')) || [];
+    var matches = str.match(Config.get('assetRegexp')) || [];
     for (var i = 0; i < matches.length; i++) {
         var match = matches[i];
         var tmpStr = match + BLANK;
-        tmpStr = tmpStr.replace(conf.get('assetPrefixRegexp'), BLANK)
-                 .replace(conf.get('assetSuffixRegexp'), BLANK)
-                 .replace(conf.get('componentDelimiterRegexp'), FSLASH)
+        tmpStr = tmpStr.replace(Config.get('assetPrefixRegexp'), BLANK)
+                 .replace(Config.get('assetSuffixRegexp'), BLANK)
+                 .replace(Config.get('componentDelimiterRegexp'), FSLASH)
                  .replace(PIPE, FSLASH);
         iterator(match, tmpStr);
     }
@@ -51,12 +51,12 @@ function eachAssetStringMatchInString(str, iterator) {
 
 function doesFileLookLikeAsset(fileObject) {
     var extname = Path.extname(fileObject.path);
-    return !!conf.get('assetTypes')[extname];
+    return !!Config.get('assetTypes')[extname];
 }
 
 function doesFileLookLikeBinary(fileObject) {
     var extname = Path.extname(fileObject.path);
-    return !!conf.get('binaryTypes')[extname];
+    return !!Config.get('binaryTypes')[extname];
 }
 
 function moduleNameToEntrypointBasename(moduleName) {
@@ -65,7 +65,7 @@ function moduleNameToEntrypointBasename(moduleName) {
 }
 
 function moduleNameToModuleNameSegments(moduleName) {
-  return moduleName.split(conf.get('componentDelimiter'));
+  return moduleName.split(Config.get('componentDelimiter'));
 }
 
 function importsObjectToFlatImportsObject(importsObj) {
@@ -73,23 +73,23 @@ function importsObjectToFlatImportsObject(importsObj) {
     for (var selector in importsObj) {
         var array = importsObj[selector];
         for (var i = 0; i < array.length; i++) {
-            flatImports[array[i]] = selector + conf.get('componentDelimiter') + array[i];
+            flatImports[array[i]] = selector + Config.get('componentDelimiter') + array[i];
         }
     }
     return flatImports;
 }
 
 function moduleNamespaceAndBasenameToModuleName(moduleNamespace, moduleEntrypointBasename) {
-    return moduleNamespace + conf.get('componentDelimiter') + moduleEntrypointBasename;
+    return moduleNamespace + Config.get('componentDelimiter') + moduleEntrypointBasename;
 }
 
 function stringToModuleCDNMatch(string) {
-    var matches = string.match(conf.get('moduleCDNRegexp'));
+    var matches = string.match(Config.get('moduleCDNRegexp'));
     if (matches) {
         return {
             match: matches,
-            value: matches[0].replace(conf.get('assetPrefixRegexp'), BLANK)
-                             .replace(conf.get('assetSuffixRegexp'), BLANK)
+            value: matches[0].replace(Config.get('assetPrefixRegexp'), BLANK)
+                             .replace(Config.get('assetSuffixRegexp'), BLANK)
         };
     }
     else {
@@ -139,7 +139,7 @@ function buildIncludesArray(info, skipURLExpansion) {
 }
 
 function moduleNameToNamespace(moduleName) {
-    return Lodash.first(moduleName.split(conf.get('componentDelimiter')));
+    return Lodash.first(moduleName.split(Config.get('componentDelimiter')));
 }
 
 module.exports = {

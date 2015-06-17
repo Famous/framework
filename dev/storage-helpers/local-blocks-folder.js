@@ -13,12 +13,13 @@ var FileHelpers = require('./file-helpers');
 var PathingHelpers = require('./pathing');
 var BuildHelpers = require('./../build-helpers/build-helpers');
 
-var conf = require('./../conf');
+var Config = require('./../config');
 
 var NO_ASSET_PATH = ''; // e.g. if we just want to get the folder where version files are contained
 
 function buildModule(options, cb) {
-    var 
+    var fn = Config.get('buildModuleFunction');
+    return fn(options, cb);
 }
 
 function buildFromBlocksFolder(localBlocksFolder, attemptInfo, cb) {
@@ -52,7 +53,7 @@ function buildFromRawSourceFolder(localRawSourceFolder, attemptInfo, cb) {
         return cb(null, attemptInfo);
     }
 
-    var componentPathRel = attemptInfo.name.split(conf.get('componentDelimiter')).join(Path.sep);
+    var componentPathRel = attemptInfo.name.split(Config.get('componentDelimiter')).join(Path.sep);
     var componentPathAbs = Path.join(localRawSourceFolder, componentPathRel);
 
     FileHelpers.readFilesRecursive(componentPathAbs, function(readFilesErr, versionFilesFound) {
@@ -77,11 +78,11 @@ function attemptToBuildDependenciesLocally(localBlocksFolder, localRawSourceFold
     var attemptInfo = { name: dependencyName, explicitVersion: dependencyVersion };
 
     if (localBlocksFolder) {
-        attemptActions.push(buildFromBlocksFolder.bind(this, localBlocksFolder));
+        attemptActions.push(buildFromBlocksFolder.bind(null, localBlocksFolder));
     }
 
     if (localRawSourceFolder) {
-        attemptActions.push(buildFromRawSourceFolder.bind(this, localRawSourceFolder));
+        attemptActions.push(buildFromRawSourceFolder.bind(null, localRawSourceFolder));
     }
 
     Async.seq.apply(Async, attemptActions)(attemptInfo, function(loadErr, populatedAttemptInfo) {
@@ -97,7 +98,7 @@ function attemptToBuildDependenciesLocally(localBlocksFolder, localRawSourceFold
 // it's useful to try to recursively build components that may
 // be missing. ABANDON HOPE ALL YE WHO ENTER HERE
 function maybeAttemptToBootstrapComponentsLocally(localBlocksFolder, localRawSourceFolder, dependencyName, dependencyVersion, cb) {
-    if (conf.get('doAttemptToBuildDependenciesLocally') && (localBlocksFolder || localRawSourceFolder)) {
+    if (Config.get('doAttemptToBuildDependenciesLocally') && (localBlocksFolder || localRawSourceFolder)) {
         console.log(Chalk.gray('famous'), 'Let\'s try to bootstrap ' + dependencyName + ' ~> ' + dependencyVersion + ' locally...');
 
         return attemptToBuildDependenciesLocally(localBlocksFolder, localRawSourceFolder, dependencyName, dependencyVersion, function(localBuildErr, localBuildInfo) {
@@ -118,11 +119,11 @@ function loadDependencies(localBlocksFolder, localRawSourceFolder, dependenciesW
 
     Async.map(dependencyKeys, function(dependencyName, cb) {
         var dependencyVersion = dependenciesMissing[dependencyName];
-        var parcelRelPath = PathingHelpers.buildAssetPath(dependencyName, dependencyVersion, conf.get('parcelAssetPath'), true);
+        var parcelRelPath = PathingHelpers.buildAssetPath(dependencyName, dependencyVersion, Config.get('parcelAssetPath'), true);
 
         if (localBlocksFolder) {
             var parcelAbsPath = Path.join(localBlocksFolder, parcelRelPath);
-            Fs.readFile(parcelAbsPath, conf.get('fileOptions'), function(parcelReadErr, parcelJSONData) {
+            Fs.readFile(parcelAbsPath, Config.get('fileOptions'), function(parcelReadErr, parcelJSONData) {
                 if (!parcelReadErr && parcelJSONData) {
                     // The parcel hash is an object that looks like this:
                     // {name:'',version:'',includes:[],dependencies:[]}
@@ -182,7 +183,7 @@ function saveAssets(baseDir, info, finish) {
     // attempt to write to that version folder. This can occur in the
     // case that we are recursively building out the dependencies
     // for a given module.
-    var versionRef = info.versionRef || info.explicitVersion || conf.get('defaultDependencyVersion');
+    var versionRef = info.versionRef || info.explicitVersion || Config.get('defaultDependencyVersion');
     var versionRelPath = PathingHelpers.buildAssetPath(info.name, versionRef, NO_ASSET_PATH, true);
     var versionAbsPath = Path.join(baseDir, versionRelPath);
 
@@ -203,12 +204,12 @@ function saveAssets(baseDir, info, finish) {
         var baseDir = Path.dirname(fullPath);
 
         Mkdirp(baseDir, function(mkdirErr) {
-            Fs.writeFile(fullPath, fileData, conf.get('fileOptions'), function(fileWriteErr) {
+            Fs.writeFile(fullPath, fileData, Config.get('fileOptions'), function(fileWriteErr) {
                 cb(null);
             });
         });
 
-    }.bind(this), function(versionSaveErr) {
+    }, function(versionSaveErr) {
 
         info.versionRef = versionRef;
         info.versionPath = versionRelPath;
@@ -223,9 +224,9 @@ function saveBundle(baseDir, info, finish) {
     // If a bundle version ref has already been assigned, that's because we
     // have already saved to Code Manager and we have an 'official'
     // ref that we want to refer to this build with.
-    var bundleRef = info.bundleVersionRef || info.explicitVersion || conf.get('defaultDependencyVersion');
-    var bundleRelPath = PathingHelpers.buildAssetPath(info.name, bundleRef, conf.get('bundleAssetPath'), true);
-    var parcelRelPath = PathingHelpers.buildAssetPath(info.name, bundleRef, conf.get('parcelAssetPath'), true);
+    var bundleRef = info.bundleVersionRef || info.explicitVersion || Config.get('defaultDependencyVersion');
+    var bundleRelPath = PathingHelpers.buildAssetPath(info.name, bundleRef, Config.get('bundleAssetPath'), true);
+    var parcelRelPath = PathingHelpers.buildAssetPath(info.name, bundleRef, Config.get('parcelAssetPath'), true);
 
     var bundleFiles = BundleCollection.build(info, info.files);
 
@@ -236,21 +237,21 @@ function saveBundle(baseDir, info, finish) {
         var baseDirFull = Path.dirname(absPath);
 
         Mkdirp(baseDirFull, function(mkdirErr) {
-            Fs.writeFile(absPath, file.content, conf.get('fileOptions'), cb);
-        }.bind(this));
+            Fs.writeFile(absPath, file.content, Config.get('fileOptions'), cb);
+        });
 
-    }.bind(this), function(bundleSaveErr) {
+    }, function(bundleSaveErr) {
 
         info.bundleVersionRef = bundleRef;
         info.bundlePath = bundleRelPath;
-        info.bundleURL = PathingHelpers.buildAssetURL(info.name, bundleRef, conf.get('bundleAssetPath'));
-        info.bundleExecutablePageURL = PathingHelpers.buildAssetURL(info.name, bundleRef, conf.get('bundleIndexPath'));
+        info.bundleURL = PathingHelpers.buildAssetURL(info.name, bundleRef, Config.get('bundleAssetPath'));
+        info.bundleExecutablePageURL = PathingHelpers.buildAssetURL(info.name, bundleRef, Config.get('bundleIndexPath'));
         info.parcelPath = parcelRelPath;
-        info.parcelURL = PathingHelpers.buildAssetURL(info.name, bundleRef, conf.get('parcelAssetPath'));
+        info.parcelURL = PathingHelpers.buildAssetURL(info.name, bundleRef, Config.get('parcelAssetPath'));
         
         return finish(null, info);
 
-    }.bind(this));
+    });
 }
 
 module.exports = {

@@ -7,6 +7,8 @@ var Path = require('path');
 var BuildHelpers = require('./../build-helpers/build-helpers');
 var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
 
+var Config = require('./../config');
+
 function extractMethodChain(chain, node, parent) {
     if (EsprimaHelpers.isCallExpression(node)) {
         chain.push({ args: node.arguments });
@@ -31,19 +33,19 @@ function extractMethodChain(chain, node, parent) {
 function extractModuleConfigASTs(entrypointAST) {
     var moduleConfigASTs = {};
     EsprimaHelpers.eachChainedMethodCall(entrypointAST, function(methodName, methodArgs, node, parent) {
-        if (methodName === conf.get('configMethodIdentifier')) {
+        if (methodName === Config.get('configMethodIdentifier')) {
             var methodChain = extractMethodChain([], node, parent);
             var propNames = Lodash.map(methodChain, function(meth) {
                 return meth.prop;
             });
-            var doesChainFromIdentifier = propNames.indexOf(conf.get('libraryMainNamespace')) !== -1;
+            var doesChainFromIdentifier = propNames.indexOf(Config.get('libraryMainNamespace')) !== -1;
             if (doesChainFromIdentifier) {
                 var firstCall = methodChain[methodChain.length - 2];
                 var firstArgs = firstCall.args;
                 if (firstArgs) {
-                    var moduleName = firstArgs[conf.get('indexOfModuleNameArgument')].value;
+                    var moduleName = firstArgs[Config.get('indexOfModuleNameArgument')].value;
                     if (node.arguments) {
-                         var configAST = node.arguments[conf.get('indexOfModuleConfigArgument')];
+                         var configAST = node.arguments[Config.get('indexOfModuleConfigArgument')];
                          if (configAST) {
                             moduleConfigASTs[moduleName] = configAST;
                          }
@@ -74,9 +76,9 @@ function findLibraryInvocations(entrypointAST) {
     var libraryInvocations = {};
 
     EsprimaHelpers.traverse(entrypointAST, function(node, parent) {
-        if (isASTNodeALibraryInvocation(node, conf.get('libraryMainNamespace'), conf.get('libraryInvocationIdentifiers'))) {
+        if (isASTNodeALibraryInvocation(node, Config.get('libraryMainNamespace'), Config.get('libraryInvocationIdentifiers'))) {
             if (node.arguments) {
-                var moduleName = node.arguments[conf.get('indexOfModuleNameArgument')].value;
+                var moduleName = node.arguments[Config.get('indexOfModuleNameArgument')].value;
                 libraryInvocations[moduleName] = node;
             }
         }
@@ -90,7 +92,7 @@ function extractModuleDefinitionArg(argsAST) {
         return EsprimaHelpers.EMPTY_OBJECT_EXPRESSION; // Fallback in case no object is present
     }
 
-    var moduleDefinition = argsAST[conf.get('indexOfModuleDefinitionArgument')];
+    var moduleDefinition = argsAST[Config.get('indexOfModuleDefinitionArgument')];
 
     if (moduleDefinition.type !== 'ObjectExpression') {
         console.warn(Chalk.gray('famous'), Chalk.yellow('warn'), 'Incorrect args to `FamousFramework.scene` were given');
@@ -122,7 +124,7 @@ function extractEntrypointAST(info) {
 
 function findEntrypointFile(moduleName, files) {
     var entrypointBasename = BuildHelpers.moduleNameToEntrypointBasename(moduleName);
-    var entrypointExtnames = conf.get('entrypointExtnames');
+    var entrypointExtnames = Config.get('entrypointExtnames');
     return Lodash.find(files, function(file) {
         var extname = Path.extname(file.path);
         if (extname in entrypointExtnames) {
@@ -143,7 +145,7 @@ function getRawConfigObjects(configASTs) {
 
 function extractCodeManagerConfig(files) {
     var configFile = Lodash.find(files, function(file) {
-        return file.path === conf.get('authConfigFilePath');
+        return file.path === Config.get('authConfigFilePath');
     });
 
     if (configFile) {
@@ -173,7 +175,7 @@ function getExplicitDependencies(info) {
 
         // Some explicit deps/refs may live in the config object
         var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST);
-        var inlineDependencyTable = configObject[conf.get('dependenciesKeyName')] || {};
+        var inlineDependencyTable = configObject[Config.get('dependenciesKeyName')] || {};
         for (depName in inlineDependencyTable) {
             depRef = inlineDependencyTable[depName];
             explicitDependencies[depName] = depRef;
@@ -196,7 +198,7 @@ function getExplicitDependencies(info) {
 
 function getFrameworkInfo(info) {
     var frameworkFile = Lodash.find(info.files, function(file) {
-        return file.path === conf.get('frameworkFilename');
+        return file.path === Config.get('frameworkFilename');
     });
 
     var frameworkFileHash;

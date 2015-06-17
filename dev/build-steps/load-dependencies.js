@@ -3,7 +3,7 @@
 var StorageHelpers = require('./../storage-helpers/storage-helpers');
 
 function loadDependencies(info, cb) {
-    StorageHelpers.loadDependencies.call(this, info, function(err, dependenciesFound) {
+    StorageHelpers.loadDependencies(info, function(err, dependenciesFound) {
         if (err) {
             console.error(err);
             return cb(err, info);
