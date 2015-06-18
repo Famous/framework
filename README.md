@@ -1,4 +1,4 @@
-# Famous Framework (beta)
+# Famous Framework (early beta)
 
 The Famous Framework is a new JavaScript framework for creating reusable, composable, and interchangeable UI widgets and applications. It's declarative, functional, and built on the [Famous Engine](https://github.com/Famous/engine). We are excited to make it available as open source under an MIT license for the first time as part of an early public beta.
 
@@ -14,12 +14,12 @@ The easiest way to get started is the Famous CLI (via its `framework` branch). S
 
 First, make sure you have [Node.js](http://nodejs.org) installed, at least version `0.12`.
 
-Then, to get started, first create a new folder for your project:
+Then, to get started, create a new folder for your project:
 
-    $ mkdir my-new-folder # Create a new folder to hold your code
+    $ mkdir my-new-folder # A new folder to hold your code
     $ cd my-new-folder
 
-Next, install a special version of the Famous CLI:
+Next, install a special version of the Famous CLI (the `framework` branch):
 
     $ npm cache clean
     $ npm install -g 'git://github.com/Famous/famous-cli.git#framework'
@@ -39,9 +39,9 @@ Once the local server and watchers are running, surf to [localhost:1618/](http:/
 
 (Note: The reason you need to type in a username during the setup process is just an initial gesture toward an integration between Famous Framework and Famous Hub. Currently, during the scaffold process, it's only used to generate a namespaced folder structure for your project.)
 
-### A note about Windows support
+### Windows support
 
-The Famous Framework local development tools and CLI install process were initially created for Mac OSX systems. We're making compatibility with other operating systems a top priority, coming soon.
+Installation is not currently working on Windows. Fixing this is a top priority and the progress is being tracked in the following GitHub Issue: https://github.com/Famous/framework/issues/17
 
 - - - -
 
