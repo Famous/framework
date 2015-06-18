@@ -67,8 +67,6 @@ var options = {
     authUserInfoRoute: 'GET|default|/:apiVersion/users',
     authStatusRoute: 'GET|default|/:apiVersion/status',
 
-
-
     bundleBasePath: '~bundles',
     bundleAssetPath: Path.join('~bundles', 'bundle.js'), // Complete file that the client knows how to process
     parcelAssetPath: Path.join('~bundles', 'parcel.json'), // Data and dependencies object used for dependency gathering
