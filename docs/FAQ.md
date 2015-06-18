@@ -16,7 +16,7 @@ This feature is coming very soon. You'll be able to refer to others components b
 
 **How can I publish my component?**
 
-This feature is coming very soon. When it's available, we'l provide a full guide on how to publish your component, tag your pushes with versions, etc.
+This feature is coming very soon. When it's available, we'll provide a full guide on how to publish your component, tag your pushes with versions, etc.
 
 **Can a component query/read the states of a descendant?**
 
