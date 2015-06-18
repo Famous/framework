@@ -1,6 +1,6 @@
 {
   "name": "famous-framework",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "A modern take on building reusable components and maintainable applications",
   "keywords": [
     "famous",
@@ -10,6 +10,7 @@
   "repository": "Famous/framework",
   "bugs": "https://github.com/Famous/framework/issues",
   "private": true,
+  "main": "lib/index.js",
   "authors": [
     "Zack Brown <zack@famo.us>",
     "Matthew Trost <matthew@famo.us>",
@@ -18,14 +19,14 @@
     "Jordan Papaleo <jordan@famo.us>",
     "Larry Gordon <lg@famo.us>"
   ],
+  "bin": {
+    "famous-framework": "bin/famous-framework.js"
+  },
   "scripts": {
-    "dev": "npm run watch-runtime & npm run bootstrap",
-    "bootstrap": "rm -rf $PWD/dev/workspace/v1 && node dev/dev.js local-only-bootstrap --sourceDirectory=$PWD/lib/core-components --blocksDirectory=$PWD/dev/workspace --port=1618",
-    "build-runtime": "node dev/build-runtime.js build-runtime",
-    "watch-runtime": "watchify lib/index.js -t [ envify --FF_ASSET_READ_HOST http://localhost:1618 ] -o dev/workspace/famous-framework.bundle.js --debug --verbose",
-    "develop-component": "node dev/dev.js develop-component --blocksDirectory=$PWD/dev/workspace --port=1618",
-    "publish-component": "node dev/dev.js publish-component --blocksDirectory=$PWD/dev/workspace",
-    "test": "node dev/test.js",
+    "dev": "npm run watch-runtime & npm run local-only-bootstrap",
+    "local-only-bootstrap": "node bin/famous-framework.js local-only-bootstrap --sourceDirectory=lib/core-components --blocksDirectory=dev/workspace --port=1618",
+    "watch-runtime": "node bin/famous-framework.js watch-runtime --serverHost=http://localhost:1618 --inputFile=lib/index.js --outputFile=dev/workspace/famous-framework.bundle.js",
+    "test": "node bin/famous-framework.js test-runtime && node bin/famous-framework.js test-state-manager && node bin/famous-framework.js test-utilities",
     "lint": "eslint --ignore-path .eslintignore ."
   },
   "dependencies": {
