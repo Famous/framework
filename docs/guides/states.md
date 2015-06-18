@@ -12,7 +12,7 @@ State values are stored as properties in the component's states object:
         }
     });
 
-Behaviors functions respond to changes in these defined states. When a state value (e.g. `clickCount`) is listed as a parameter to a behavior function, that function will be called whenever that value changes. 
+Behavior functions respond to changes in these defined states. When a state value (e.g. `clickCount`) is listed as a parameter to a behavior function, that function will be called whenever that value changes. 
 
     FamousFramework.component('example', {
         behaviors: {
@@ -79,12 +79,12 @@ States can store any JSON-serializable value including arrays and objects. Array
 If you wish to access a single value within a states array, the `.get()` method accepts the state name and the index you wish to access passed to it in an array:
     
      // states are: { stateArray: ['blue','red','green'] }
-     $state.get(['stateArray', 1])  // returns 'red'
+     $state.get(['stateArray', 1]);  // returns 'red'
 
 Similar to the `.get()` method, you can set a single value in a states array by passing the `.set()` method an array with the name and target index as its first parameter and the new value as the second: 
 
     // states are: { stateArray: ['blue','red','green'] }
-    $state.set(['stateArray', 2], 'purple')
+    $state.set(['stateArray', 2], 'purple');
     // after, states are: { stateArray: ['blue','red','purple']} 
 
 For objects, the API is very similar, except instead of using the element index integer, you use a string for the name of the property key:
