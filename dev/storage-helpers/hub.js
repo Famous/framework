@@ -28,7 +28,7 @@ function loadDependency(assetReadHost, versionInfoHost, dependencyTuple, cb) {
     var dependencyName = dependencyTuple[0];
     var dependencyVersion = dependencyTuple[1];
     var dependencyParcelBaseURL = PathingHelpers.buildVersionInfoURL(dependencyName, dependencyVersion);
-    var dependencyParcelURL = dependencyParcelBaseURL + Path.sep + 'assets' + Path.sep + Config.get('parcelAssetPath');
+    var dependencyParcelURL = dependencyParcelBaseURL + '/assets/' + Config.get('parcelAssetPath');
 
     Request({
         method: 'GET',
@@ -209,7 +209,7 @@ function createVersionWithFiles(blockId, config, files, cb) {
 
     Lodash.each(files, function(file) {
         versionPostForm.append('files[]', file.content, {
-            filename: file.path,
+            filename: file.path.replace(Path.sep, '/'), // Convert possible Windows path syntax to URL syntax
             type: contentTypeForFile(file)
         });
     });

@@ -2,6 +2,7 @@
 
 var Async = require('async');
 var Fs = require('fs');
+var Path = require('path');
 var ReaddirRecursive = require('recursive-readdir');
 
 function readFilesRecursive(baseDir, finish) {
@@ -22,7 +23,7 @@ function readFilesRecursive(baseDir, finish) {
                 filePath = filePath.replace(baseDir, '');
                 // Remove the preceding slash since the users of this
                 // function downstream expect the path to be relative
-                if (filePath[0] === '/') {
+                if (filePath[0] === Path.sep) {
                     filePath = filePath.slice(1, filePath.length);
                 }
                 resultsArray.push({

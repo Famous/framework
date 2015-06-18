@@ -10,7 +10,6 @@ var Builder = require('./../builder');
 
 var BLANK = '';
 var DOUBLE_DOT = '..';
-var SLASH = '/';
 
 function Assistant(options) {
     this.setOptions(options);
@@ -52,7 +51,7 @@ Assistant.prototype.buildAll = function(baseDir, subDir, cb) {
 Assistant.prototype.buildSingle = function(baseDir, subDir, cb) {
     var moduleName;
     if (subDir.length > 0) {
-         moduleName = subDir.split(SLASH).join(this.options.componentDelimiter);
+         moduleName = subDir.split(Path.sep).join(this.options.componentDelimiter);
     }
     else {
         // If the subdir string was empty, we should assume that the baseDir
@@ -124,7 +123,7 @@ Assistant.prototype.buildRecursive = function(baseDir, subDir, finish) {
 
 Assistant.prototype.isPushableDir = function(dir) {
     var isPushable = true;
-    var dirParts = dir.split(SLASH);
+    var dirParts = dir.split(Path.sep);
     for (var i = 0; i < dirParts.length; i++) {
         var dirPart = dirParts[i];
         if (dirPart in this.options.folderBlacklist) {
@@ -185,7 +184,7 @@ Assistant.prototype.getModuleDir = function(bottomDir, dir) {
         return dir;
     }
     else {
-        if (dir === bottomDir || (dir + SLASH) === bottomDir) {
+        if (dir === bottomDir || (dir + Path.sep) === bottomDir) {
             return false;
         }
         else {
@@ -239,7 +238,7 @@ Assistant.prototype.watchDirectoryRecursive = function(baseDir, subDir, doRebuil
                 });
             }
             else {
-                var moduleRelativeDir = moduleFullDir.replace(baseDir, BLANK).replace(/^\//, '');
+                var moduleRelativeDir = moduleFullDir.replace(baseDir, BLANK).replace(/^\//, '').replace(/^\\/, '');
                 this.buildSingle(baseDir, moduleRelativeDir, function(err, result) {
                     if (err) {
                         console.error('assistant:', err);

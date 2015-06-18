@@ -55,17 +55,17 @@ var options = {
     doSkipExecutableBuild: true,
 
     codeManagerApiVersion: 'v1',
-    codeManagerAssetGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath',
-    codeManagerBlockCreateRoute: 'POST|default|/:apiVersion/blocks',
-    codeManagerBlockGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName',
-    codeManagerVersionCreateRoute: 'POST|multipart/form-data|/:apiVersion/blocks/:blockIdOrName/versions',
-    codeManagerVersionUpdateRoute: 'PUT|multipart/form-data|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag',
-    codeManagerVersionGetRoute: 'GET|default|/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag',
+    codeManagerAssetGetRoute: 'GET|default|' + '/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag/assets/:assetPath'.replace('/', Path.sep),
+    codeManagerBlockCreateRoute: 'POST|default|' + '/:apiVersion/blocks'.replace('/', Path.sep),
+    codeManagerBlockGetRoute: 'GET|default|' + '/:apiVersion/blocks/:blockIdOrName'.replace('/', Path.sep),
+    codeManagerVersionCreateRoute: 'POST|multipart/form-data|' + '/:apiVersion/blocks/:blockIdOrName/versions'.replace('/', Path.sep),
+    codeManagerVersionUpdateRoute: 'PUT|multipart/form-data|' + '/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag'.replace('/', Path.sep),
+    codeManagerVersionGetRoute: 'GET|default|' + '/:apiVersion/blocks/:blockIdOrName/versions/:versionRefOrTag'.replace('/', Path.sep),
 
     authApiVersion: 'v1',
     authConfigFilePath: Path.join('.famous', '.config'),
-    authUserInfoRoute: 'GET|default|/:apiVersion/users',
-    authStatusRoute: 'GET|default|/:apiVersion/status',
+    authUserInfoRoute: 'GET|default|' + '/:apiVersion/users'.replace('/', Path.sep),
+    authStatusRoute: 'GET|default|' + '/:apiVersion/status'.replace('/', Path.sep),
 
     bundleBasePath: '~bundles',
     bundleAssetPath: Path.join('~bundles', 'bundle.js'), // Complete file that the client knows how to process
@@ -86,7 +86,7 @@ var options = {
     contentTypeMap: { '.css': 'text/css', '.eot': 'application/vnd.ms-fontobject', '.gif': 'image/gif', '.html': 'text/html', '.htm': 'text/html', '.ico': 'image/x-icon', '.jpeg': 'image/jpeg', '.jpg': 'image/jpeg', '.js': 'application/javascript', '.json': 'application/json', '.markdown': 'text/x-markdown', '.md': 'text/x-markdown', '.otf': 'font/opentype', '.png': 'image/png', '.svg': 'image/svg+xml', '.ttf': 'application/octet-stream', '.txt': 'text/plain', '.woff': 'application/x-font-woff', '.woff2': 'application/font-woff2', '.xhtml': 'text/html', '.xml': 'application/xml' },
 
     // Parsing / processing
-    assetRegexp: /\{\{@[a-zA-Z0-9\:\/\|\.-]+\}\}/ig,
+    assetRegexp: /\{\{@[a-zA-Z0-9\:\/\\\|\.-]+\}\}/ig,
     assetPrefixRegexp: /\}\}$/,
     assetSuffixRegexp: /^\{\{@/,
     attachmentIdentifiers: { 'attach': true },

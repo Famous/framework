@@ -1,9 +1,11 @@
 'use strict';
 
+var Path = require('path');
+
 var Config = require('./../config');
 
 var PIPE = '|';
-var SLASH = '/';
+var FSLASH = '/';
 var ROUTE_VAR_PREFIX = ':'; // Follows the Rails convention
 
 function persistencePathTemplate(route, locals, makeRelative) {
@@ -16,8 +18,8 @@ function persistencePathTemplate(route, locals, makeRelative) {
     }
 
     if (makeRelative) {
-        // Remove the preceding slash if there is one.
-        if (mainRoute[0] === SLASH) {
+        // Remove the preceding path separator if there is one.
+        if (mainRoute[0] === Path.sep) {
             mainRoute = mainRoute.slice(1, mainRoute.length);
         }
     }
@@ -46,7 +48,7 @@ function buildVersionInfoURL(moduleName, moduleVersion) {
         versionRefOrTag: moduleVersion
     }, true);
 
-    return Config.get('codeManagerVersionInfoHost') + SLASH + versionPath;
+    return Config.get('codeManagerVersionInfoHost') + FSLASH + versionPath.replace(Path.sep, FSLASH);
 }
 
 function buildAssetPath(moduleName, moduleVersion, assetPath, makeRelative) {
@@ -61,7 +63,7 @@ function buildAssetPath(moduleName, moduleVersion, assetPath, makeRelative) {
 function buildAssetURL(moduleName, moduleVersion, assetPath) {
     var assetPathRelative = buildAssetPath(moduleName, moduleVersion, assetPath, true);
 
-    return Config.get('codeManagerAssetReadHost') + SLASH + assetPathRelative;
+    return Config.get('codeManagerAssetReadHost') + FSLASH + assetPathRelative.replace(Path.sep, FSLASH);
 }
 
 function getBlockCreateMethod() {
@@ -86,7 +88,7 @@ function getVersionCreateURI(blockName) {
         blockIdOrName: blockName
     });
 
-    return Config.get('codeManagerAssetWriteHost') + pathRelative;
+    return Config.get('codeManagerAssetWriteHost') + pathRelative.replace(Path.sep, FSLASH);
 }
 
 function getVersionPath(blockName, versionRef) {
@@ -96,7 +98,7 @@ function getVersionPath(blockName, versionRef) {
 function getVersionURL(blockName, versionRef) {
     var versionPath = getVersionPath(blockName, versionRef);
 
-    return Config.get('codeManagerAssetReadHost') + SLASH + versionPath;
+    return Config.get('codeManagerAssetReadHost') + FSLASH + versionPath.replace(Path.sep, FSLASH);
 }
 
 /**
@@ -115,7 +117,7 @@ function getAuthStatusURI() {
         apiVersion: Config.get('authApiVersion')
     });
 
-    return Config.get('authHost') + pathRelative;
+    return Config.get('authHost') + pathRelative.replace(Path.sep, FSLASH);
 }
 
 function getUserInfoURI() {
@@ -123,7 +125,7 @@ function getUserInfoURI() {
         apiVersion: Config.get('authApiVersion')
     });
 
-    return Config.get('authHost') + pathRelative;
+    return Config.get('authHost') + pathRelative.replace(Path.sep, FSLASH);
 }
 
 module.exports = {
