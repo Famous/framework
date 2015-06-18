@@ -9,6 +9,7 @@ var exec = Child_Process.exec;
 var Express = require('express');
 var Fs = require('fs');
 var Livereload = require('livereload');
+var Ncp = require('ncp').ncp
 var Path = require('path');
 var Program = require('commander');
 var Watchify = require('watchify');
@@ -23,6 +24,17 @@ var livereloadOptions = {
     exclusions: [/\\node_modules\//,/\\.git\//,/\\.svn\//,/\\.hg\//],
     interval: 1000
 };
+
+Program.command('copy-core-components')
+    .option('-d, --destinationFolder [destinationFolder]')
+    .action(function(info) {
+        var coreComponentsFolder = Path.join(__dirname, '..', 'lib', 'core-components', 'famous');
+        Ncp(coreComponentsFolder, info.destinationFolder, function(copyErr) {
+            if (copyErr) {
+                return console.error('Couldn\'t copy core components!');
+            }
+        });
+    });
 
 Program.command('watch-runtime')
     .option('-i, --inputFile [inputFile]')
