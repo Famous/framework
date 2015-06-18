@@ -194,40 +194,60 @@ Assistant.prototype.getModuleDir = function(bottomDir, dir) {
     }
 };
 
-Assistant.prototype.watchDirectory = function(baseDir, subDir) {
+Assistant.prototype.watchDirectory = function(baseDir, subDir, doRebuildEverythingOnChange) {
     var watchDir = Path.join(baseDir, subDir);
     var watcher = Chokidar.watch(watchDir, {
         ignored: this.options.chokidarIgnored,
         ignoreInitial: true
     });
+    var timerInterval = (doRebuildEverythingOnChange) ? 5000 : 1000;
     var handler = Lodash.debounce(function(event, filename) {
-        this.buildSingle(baseDir, subDir, function(err, result) {
-            if (err) {
-                console.error('assistant:', err);
-            }
-        });
-    }.bind(this), 500);
-    watcher.on('all', handler);
-};
-
-Assistant.prototype.watchDirectoryRecursive = function(baseDir, subDir) {
-    var watchDir = Path.join(baseDir, subDir);
-    var watcher = Chokidar.watch(watchDir, {
-        ignored: this.options.chokidarIgnored,
-        ignoreInitial: true
-    });
-    var handler = Lodash.debounce(function(event, filename) {
-        var fileChangedDir = Path.dirname(filename);
-        var moduleFullDir = this.getModuleDir(baseDir, fileChangedDir);
-        if (moduleFullDir) {
-            var moduleRelativeDir = moduleFullDir.replace(baseDir, BLANK).replace(/^\//, '');
-            this.buildSingle(baseDir, moduleRelativeDir, function(err, result) {
+        if (doRebuildEverythingOnChange) {
+            this.buildAll(baseDir, '', function(err) {
                 if (err) {
                     console.error('assistant:', err);
                 }
             });
         }
-    }.bind(this), 1000);
+        else {
+            this.buildSingle(baseDir, subDir, function(err) {
+                if (err) {
+                    console.error('assistant:', err);
+                }
+            });
+        }
+    }.bind(this), timerInterval);
+    watcher.on('all', handler);
+};
+
+Assistant.prototype.watchDirectoryRecursive = function(baseDir, subDir, doRebuildEverythingOnChange) {
+    var watchDir = Path.join(baseDir, subDir);
+    var watcher = Chokidar.watch(watchDir, {
+        ignored: this.options.chokidarIgnored,
+        ignoreInitial: true
+    });
+    var timerInterval = (doRebuildEverythingOnChange) ? 5000 : 1000;
+    var handler = Lodash.debounce(function(event, filename) {
+        var fileChangedDir = Path.dirname(filename);
+        var moduleFullDir = this.getModuleDir(baseDir, fileChangedDir);
+        if (moduleFullDir) {
+            if (doRebuildEverythingOnChange) {
+                this.buildAll(baseDir, '', function(err, result) {
+                    if (err) {
+                        console.error('assistant:', err);
+                    }
+                });
+            }
+            else {
+                var moduleRelativeDir = moduleFullDir.replace(baseDir, BLANK).replace(/^\//, '');
+                this.buildSingle(baseDir, moduleRelativeDir, function(err, result) {
+                    if (err) {
+                        console.error('assistant:', err);
+                    }
+                });
+            }
+        }
+    }.bind(this), timerInterval);
     watcher.on('all', handler);
 };
 

@@ -54,6 +54,7 @@ Program.command('local-only-bootstrap')
     .description('Bootstrap local development, recursively building _only local_ components')
     .option('-s, --sourceDirectory [sourceDirectory]')
     .option('-b, --blocksDirectory [blocksDirectory]')
+    .option('-r, --rebuildEverythingOnChange [rebuildEverythingOnChange]')
     .option('-p, --port [port]')
     .action(function(info) {
         var assistant = new Assistant({
@@ -66,9 +67,11 @@ Program.command('local-only-bootstrap')
             }
         });
 
+        var doRebuildEverythingOnChange = info.rebuildEverythingOnChange === 'yes';
+
         assistant.buildAll(info.sourceDirectory, '', function(buildAllErr) {
             if (!buildAllErr) {
-                assistant.watchDirectoryRecursive(info.sourceDirectory, '');
+                assistant.watchDirectoryRecursive(info.sourceDirectory, '', doRebuildEverythingOnChange);
 
                 var livereloadServer = Livereload.createServer(livereloadOptions);
                 livereloadServer.watch([info.blocksDirectory]);
