@@ -98,7 +98,20 @@ var options = {
     defaultExtends: ['famous:core:node'],
     defaultImports: {
         'famous:core': [ 'node' ],
-        'famous:events': [ 'click', 'change', 'dblclick', 'drag', 'input', 'keydown', 'keypress', 'keyup', 'mousedown', 'mousemove', 'mouseenter', 'mouseleave', 'mouseout', 'mouseover', 'mouseup', 'size-change', 'parent-size-change', 'touchstart', 'touchmove', 'touchend', 'wheel' ]
+        'famous:events': [
+            // FamousEngine supported events
+            'abort', 'beforeinput', 'blur', 'click', 'compositionend', 'compositionstart',
+            'compositionupdate', 'dblclick', 'focus', 'focusin', 'focusout', 'input',
+            'keydown', 'keyup', 'mousedown', 'mouseenter', 'mouseleave', 'mousemove', 'mouseout',
+            'mouseover', 'mouseup', 'scroll', 'select', 'wheel', 'touchcancel',
+            'touchend', 'touchmove ', 'touchstart',
+
+            // Gestures
+            'drag', 'tap', 'pinch', 'rotate',
+
+            // Size Events
+            'size-change', 'parent-size-change'
+        ]
     },
     frameworkFilename: Path.join('.famous', 'framework.json'),
     dependenciesKeyName: 'dependencies', // e.g. FamousFramework.scene(...).config({dependencies:{...}})
