@@ -97,10 +97,10 @@ Program.command('snapshot-component')
             builderOptions: {
                 localRawSourceFolder: info.sourceDirectory,
                 localBlocksFolder: info.blocksDirectory,
-                codeManagerAssetReadHost: 'https://api-te.famo.us/codemanager',
-                codeManagerAssetWriteHost: 'https://api-te.famo.us/codemanager',
+                codeManagerAssetReadHost: 'https://api-beta.famo.us/codemanager',
+                codeManagerAssetWriteHost: 'https://api-beta.famo.us/codemanager',
                 codeManagerVersionInfoHost: null,
-                authHost: 'https://api-te.famo.us/auth',
+                authHost: 'https://api-beta.famo.us/auth',
                 doWriteToCodeManager: true,
                 doSkipDependencyDereferencing: false,
                 doAttemptToBuildDependenciesLocally: true,
