@@ -39,9 +39,9 @@ Once the local server and watchers are running, surf to [localhost:1618/](http:/
 
 (Note: The reason you need to type in a username during the setup process is just an initial gesture toward an integration between Famous Framework and Famous Hub. Currently, during the scaffold process, it's only used to generate a namespaced folder structure for your project.)
 
-### Windows support
+### Windows
 
-Installation is not currently working on Windows. Fixing this is a top priority and the progress is being tracked in the following GitHub Issue: https://github.com/Famous/framework/issues/17
+Installation is not currently working on Windows. Fixing this is a top priority and the progress is being tracked in the following GitHub Issue: https://github.com/Famous/framework/issues/17. We're beginning to document the necessary steps under [docs/windows-installation](docs/windows-installation.md).
 
 - - - -
 
