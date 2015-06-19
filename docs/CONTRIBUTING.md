@@ -1,5 +1,21 @@
 # Contributing to Famous Framework
 
+## Commits
+
+Prefix all commit messages with one of these labels:
+
+* feat
+* fix
+* docs
+* style
+* refactor
+* perf
+* test
+* chore
+* revert
+
+E.g., `git commit -m "feat: Adds support for something"`.
+
 ## Workflow
 
 We use a Git `rebase`-based workflow approach:

@@ -103,6 +103,12 @@ With so many world-class JavaScript frameworks out there, why has Famous decided
 
 - - - -
 
+## Contributing
+
+Please see our [contributing guidelines](docs/CONTRIBUTING.md).
+
+- - - -
+
 ## License
 
 Copyright (c) 2015 Famous Industries, Inc. MIT license. See LICENSE.txt
