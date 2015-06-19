@@ -79,6 +79,28 @@ Below is an example of what a Famous Framework component looks like. This code l
 
 - - - -
 
+## Deploying (experimental)
+
+We're still refining this process, but we've got a basic workflow available if you want to push your Famous Framework project up to Famous Hub so that it can be shared/embedded.
+
+1.) Make sure you've already registered with Famous Hub (`$ famous register`). You only need to do this one time. If you aren't sure, look for a `.famous/.config` file in your system's home directory.
+
+2.) Make sure the namespace of the component you are developing is the same as the username you registered with. I.e., if your component is `jane-doe:my-component`, your username would need to be `jane-doe` in order to deploy with Famous services.
+
+3.) From the main directory of your project (the root directory in which you originally ran `$ famous framework-scaffold`), take a snapshot of the component that you want to deploy:
+
+```
+$ npm run snapshot-component -- -n jane-doe:my-component
+```
+
+4.) Finally, use the Famous CLI to push the snapshot you took in the last step up to a Famous Container.
+
+```
+$ famous deploy public/jane-doe:my-component
+```
+
+- - - -
+
 ## Why?
 
 With so many world-class JavaScript frameworks out there, why has Famous decided to release its own? In a nutshell:
