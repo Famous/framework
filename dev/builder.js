@@ -11,6 +11,7 @@ var expandSyntax = require('./build-steps/expand-syntax');
 var extractCoreObjects = require('./build-steps/extract-core-objects');
 var freezeDependencies = require('./build-steps/freeze-dependencies');
 var findDependencies = require('./build-steps/find-dependencies');
+var getSystemFiles = require('./build-steps/get-system-files');
 var linkFacets = require('./build-steps/link-facets');
 var loadDependencies = require('./build-steps/load-dependencies');
 var preprocessFiles = require('./build-steps/preprocess-files');
@@ -38,6 +39,7 @@ Builder.prototype.buildModule = function(info, finish) {
 
     var subRoutines = [];
 
+    subRoutines.push(getSystemFiles);
     subRoutines.push(preprocessFiles);
     subRoutines.push(extractCoreObjects);
     subRoutines.push(linkFacets);

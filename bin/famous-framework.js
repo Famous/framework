@@ -15,6 +15,7 @@ var Program = require('commander');
 var Watchify = require('watchify');
 
 var Assistant = require('./../dev/assistant/assistant');
+var Config = require('./../dev/config');
 
 var livereloadOptions = {
     port: 35729,
@@ -83,6 +84,55 @@ Program.command('local-only-bootstrap')
             else {
                 console.log(buildAllErr);
             }
+        });
+    });
+
+Program.command('snapshot-component')
+    .option('-n, --componentName [componentName]')
+    .option('-s, --sourceDirectory [sourceDirectory]')
+    .option('-b, --blocksDirectory [blocksDirectory]')
+    .option('-d, --destinationDirectory [destinationDirectory]')
+    .action(function(info) {
+        var assistant = new Assistant({
+            builderOptions: {
+                localRawSourceFolder: info.sourceDirectory,
+                localBlocksFolder: info.blocksDirectory,
+                codeManagerAssetReadHost: 'https://api-te.famo.us/codemanager',
+                codeManagerAssetWriteHost: 'https://api-te.famo.us/codemanager',
+                codeManagerVersionInfoHost: null,
+                authHost: 'https://api-te.famo.us/auth',
+                doWriteToCodeManager: true,
+                doSkipDependencyDereferencing: false,
+                doAttemptToBuildDependenciesLocally: true,
+                doSkipExecutableBuild: false
+            }
+        });
+
+        var baseDir = info.sourceDirectory;
+        var subDir = info.componentName.split(Config.get('componentDelimiter')).join(Path.sep);
+
+        assistant.buildSingle(baseDir, subDir, function(buildErr, buildInfo) {
+            var destPath = Path.join(info.destinationDirectory, buildInfo.name);
+
+            Fs.mkdir(destPath, function(destDirErr) {
+                if (destDirErr) {
+                    return console.error(destDirErr);
+                }
+
+                var executablePath = Path.join(destPath, 'build.js');
+                Fs.writeFile(executablePath, buildInfo.bundleExecutableString, function(executableWriteErr) {
+                    if (executableWriteErr) {
+                        return console.error(executableWriteErr);
+                    }
+
+                    var indexPath = Path.join(destPath, 'index.html');
+                    Fs.writeFile(indexPath, buildInfo.bundleIndexString, function(indexWriteErr) {
+                        if (indexWriteErr) {
+                            return console.error(indexWriteErr);
+                        }
+                    });
+                });
+            });
         });
     });
 

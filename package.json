@@ -25,6 +25,7 @@
   "scripts": {
     "dev": "npm run watch-runtime & npm run local-only-bootstrap",
     "local-only-bootstrap": "node bin/famous-framework.js local-only-bootstrap --sourceDirectory=lib/core-components --blocksDirectory=dev/workspace --port=1618",
+    "snapshot-component": "node bin/famous-framework.js snapshot-component --sourceDirectory=lib/core-components --blocksDirectory=dev/workspace --destinationDirectory=dev/workspace",
     "watch-runtime": "node bin/famous-framework.js watch-runtime --serverHost=http://localhost:1618 --inputFile=lib/index.js --outputFile=dev/workspace/famous-framework.bundle.js",
     "test": "node bin/famous-framework.js test-runtime && node bin/famous-framework.js test-state-manager && node bin/famous-framework.js test-utilities",
     "lint": "eslint --ignore-path .eslintignore ."
@@ -52,6 +53,7 @@
     "ncp": "2.0.0",
     "node-watch": "0.3.4",
     "nodemon": "1.3.7",
+    "osenv": "^0.1.2",
     "recursive-readdir": "1.2.1",
     "request": "2.57.0",
     "serve": "1.4.0",

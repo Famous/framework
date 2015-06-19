@@ -11,7 +11,7 @@ var BuildHelpers = require('./../build-helpers/build-helpers');
 var BundleCollection = require('./bundle-collection');
 var PathingHelpers = require('./pathing');
 
-var config = require('./../config');
+var Config = require('./../config');
 
 var SHA_LENGTH = 64;
 var SHA_REGEXP = /^([a-zA-Z0-9])+$/i;
@@ -111,9 +111,9 @@ function derefDependencies(versionInfoHost, depRefTable, cb) {
     });
 }
 
-function buildRequestHeaders(config) {
+function buildRequestHeaders(conf) {
     var headers = {};
-    headers[AUTH_TOKEN_HEADER_NAME] = config.authentication_token;
+    headers[AUTH_TOKEN_HEADER_NAME] = conf.authentication_token;
     return headers;
 }
 
@@ -149,12 +149,12 @@ function getUserInfoViaAuthToken(authToken, cb) {
     });
 }
 
-function authenticateAsWriteable(info, config, cb) {
-    if (!config.authentication_token) {
+function authenticateAsWriteable(info, conf, cb) {
+    if (!conf.authentication_token) {
         return cb(new Error('Unable to authenticate without an authentication token'));
     }
 
-    getUserInfoViaAuthToken(config.authentication_token, function(authTokenErr, userInfo) {
+    getUserInfoViaAuthToken(conf.authentication_token, function(authTokenErr, userInfo) {
         if (authTokenErr) {
             return cb(authTokenErr);
         }
@@ -176,7 +176,7 @@ function getBlockNameWithoutUsername(name) {
     return nameTail.join(Config.get('componentDelimiter'));
 }
 
-function createVersionWithFiles(blockId, config, files, cb) {
+function createVersionWithFiles(blockId, conf, files, cb) {
     // Example of request in curl:
     // -X POST
     // -F files[]="@./path/to/file_1;filename=relative/path/for/remote/storage/file_1;type=content/type"
@@ -185,7 +185,7 @@ function createVersionWithFiles(blockId, config, files, cb) {
     var versionPostRequest = Request({
         method: PathingHelpers.getVersionCreateMethod(),
         uri: PathingHelpers.getVersionCreateURI(blockId),
-        headers: buildRequestHeaders(config)
+        headers: buildRequestHeaders(conf)
     }, function(versionCreateErr, versionResp) {
         if (versionCreateErr || versionResp.statusCode > 299) {
             return cb(new Error('Unable to save version'));
@@ -216,7 +216,7 @@ function createVersionWithFiles(blockId, config, files, cb) {
 }
 
 function createBlockIfNeeded(name, info, cb) {
-    var config = info.codeManagerConfig;
+    var conf = info.codeManagerConfig;
     var block = info.frameworkInfo.block;
 
     if (block && block.id) {
@@ -233,7 +233,7 @@ function createBlockIfNeeded(name, info, cb) {
         method: PathingHelpers.getBlockCreateMethod(),
         uri: PathingHelpers.buildBlockCreateURI(),
         body: { block: { name: name, 'public': ARE_BLOCKS_PUBLIC } },
-        headers: buildRequestHeaders(config)
+        headers: buildRequestHeaders(conf)
     }, function(blockCreateReqErr, blockInfo) {
         if (blockCreateReqErr) {
             return cb(blockCreateReqErr);
@@ -244,11 +244,11 @@ function createBlockIfNeeded(name, info, cb) {
 }
 
 function saveAssets(versionWriteHost, info, cb) {
-    var config = info.codeManagerConfig;
+    var conf = info.codeManagerConfig;
 
-    authenticateAsWriteable(info, config, function(authErr, isWriteable, userInfo) {
+    authenticateAsWriteable(info, conf, function(authErr, isWriteable, userInfo) {
         if (!isWriteable) {
-            return cb(authErr || new Error('Block found to be unwriteable'));
+            return cb(authErr || new Error('Block not writeable'));
         }
 
         var blockNameWithUsername = info.name;
@@ -265,7 +265,7 @@ function saveAssets(versionWriteHost, info, cb) {
                 id: blockInfo.block.id
             };
 
-            createVersionWithFiles(blockInfo.block.id, config, info.assetSaveableFiles, function(versionCreateErr, versionCreateResponse) {
+            createVersionWithFiles(blockInfo.block.id, conf, info.assetSaveableFiles, function(versionCreateErr, versionCreateResponse) {
                 if (versionCreateErr) {
                     return cb(versionCreateErr);
                 }
@@ -284,11 +284,11 @@ function saveAssets(versionWriteHost, info, cb) {
 }
 
 function saveBundle(versionWriteHost, info, cb) {
-    var config = info.codeManagerConfig;
+    var conf = info.codeManagerConfig;
 
-    authenticateAsWriteable(info, config, function(authErr, isWriteable, userInfo) {
+    authenticateAsWriteable(info, conf, function(authErr, isWriteable, userInfo) {
         if (authErr || !isWriteable) {
-            return cb(authErr || new Error('Bundle not found to be writeable'));
+            return cb(authErr || new Error('Bundle not writeable'));
         }
 
         var bundleFiles = BundleCollection.build(info, info.assetSaveableFiles);
@@ -298,7 +298,7 @@ function saveBundle(versionWriteHost, info, cb) {
         // saved the initial version (to get the ref), we need to save yet another
         // version which will contain the bundle data (itself pointing to the
         // previous version created).
-        createVersionWithFiles(info.name, config, bundleFiles, function(versionCreateErr, versionCreateResponse) {
+        createVersionWithFiles(info.name, conf, bundleFiles, function(versionCreateErr, versionCreateResponse) {
             if (versionCreateErr) {
                 return cb(versionCreateErr);
             }

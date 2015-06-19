@@ -143,21 +143,29 @@ function getRawConfigObjects(configASTs) {
     });
 }
 
-function extractCodeManagerConfig(files) {
+function extractCodeManagerConfig(info) {
+    var files = info.files;
+
     var configFile = Lodash.find(files, function(file) {
         return file.path === Config.get('authConfigFilePath');
     });
 
+    var configHash;
     if (configFile) {
         try {
-            return JSON.parse(configFile.content);
+            configHash = JSON.parse(configFile.content);
         }
         catch (e) {
-            return {};
+            configHash = null;
         }
     }
+    
+    if (configHash) {
+        return configHash;
+    }
     else {
-        return {};
+        // Fallback to the global info if we were able to retrieve any
+        return info.globalFamousInfo || {};
     }
 }
 
@@ -219,7 +227,7 @@ function getFrameworkInfo(info) {
 }
 
 function extractCoreObjects(info, cb) {
-    info.codeManagerConfig = extractCodeManagerConfig(info.files);
+    info.codeManagerConfig = extractCodeManagerConfig(info);
     info.entrypointFile = findEntrypointFile(info.name, info.files);
     info.entrypointAST = extractEntrypointAST(info);
     info.libraryInvocations = findLibraryInvocations(info.entrypointAST);
