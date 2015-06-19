@@ -1,0 +1,5 @@
+h1.loading {
+    transition: opacity 1000ms ease-out;
+    -webkit-transition: opacity 1000ms ease-out;
+    -moz-transition: opacity 1000ms ease-out;
+}

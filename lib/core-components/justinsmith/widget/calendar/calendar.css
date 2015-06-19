@@ -1,0 +1,50 @@
+table.days {
+    margin:0 auto;
+}
+
+table.days td {
+    width:50px;
+    height:50px;
+    background:#222;
+    text-align:center;
+    cursor:pointer;
+    font-size:22px;
+    font-weight: bold;
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select:none;
+}
+
+table.days td.spacer, table.days td.spacer:hover {
+    border:none;
+    background:none
+}
+
+table.days td.active {
+    color:#40b2e8;
+}
+
+table.days td:hover {
+    color:#fff;
+    background:#40b2e8;
+}
+
+.previous button {
+    cursor:pointer;
+    background:transparent;
+    border:none;
+    border-top: 15px solid transparent;
+    border-right: 25px solid #40b2e8;
+    border-bottom: 15px solid transparent;
+}
+
+.next button {
+    cursor:pointer;
+    background:transparent;
+    border:none;
+    border-top: 15px solid transparent;
+    border-left: 25px solid #40b2e8;
+    border-bottom: 15px solid transparent;
+}

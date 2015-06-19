@@ -1,0 +1,33 @@
+<node class="container">
+
+    <!-- Show/hide the widget list -->
+    <node class="add"></node>
+
+    <!-- Show/hide the widget remove buttons -->
+    <node class="remove"></node>
+
+    <!-- The widget list dropdown -->
+    <node class="available-widgets-list">
+        <node class="widget-list-item"></node>
+    </node>
+
+    <!-- The widget dashboard -->
+    <node class="dashboard">
+        <node class="dashboard-item clock">
+            <node class="remove-dashboard-item"></node>
+            <justinsmith:widget:clock></justinsmith:widget:clock>
+        </node>
+        <node class="dashboard-item calendar">
+            <node class="remove-dashboard-item"></node>
+            <justinsmith:widget:calendar></justinsmith:widget:calendar>
+        </node>
+        <node class="dashboard-item weather">
+            <node class="remove-dashboard-item"></node>
+            <justinsmith:widget:weather></justinsmith:widget:weather>
+        </node>
+        <node class="dashboard-item stocks">
+            <node class="remove-dashboard-item"></node>
+            <justinsmith:widget:stocks></justinsmith:widget:stocks>
+        </node>
+    </node>
+</node>

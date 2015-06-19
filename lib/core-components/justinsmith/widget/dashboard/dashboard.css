@@ -1,0 +1,28 @@
+[draggable] {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    /* Required to make elements draggable in old WebKit */
+    -khtml-user-drag: element;
+    -webkit-user-drag: element;
+}
+
+.widget-list-item div {
+    transition: all 100ms ease-out;
+    -webkit-transition: all 100ms ease-out
+    -moz-transition: all 100ms ease-out
+    -o-transition: all 100ms ease-out
+}
+
+.widget-list-item img {
+    border-radius: 10px;
+}
+
+.widget-list-item div:hover {
+    transform:scale(1.1);
+    -moz-transform:scale(1.1);
+    -webkit-transform:scale(1.1);
+    -o-transform:scale(1.1);
+    -ms-transform:scale(1.1);
+}

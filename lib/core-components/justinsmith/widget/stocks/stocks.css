@@ -1,0 +1,50 @@
+.text-box input {
+    width:100%;
+    height:100%;
+    font-size:38px;
+    border-radius: 10px;
+    border: none,
+    border-bottom: 1px solid black,
+}
+
+.ticker-item:hover {
+    background:red;
+}
+
+.chart {
+    width:455px;
+    height:240px;
+    /*background:url(https://www.google.com/finance/getchart?q=GOOG) 0px -12px no-repeat;  */
+    border:4px solid #40b2e8;
+    border-radius:20px;
+    position:absolute;
+    bottom:0;
+    margin: 20px;
+}
+
+.ticker-detail h2 {
+    margin:35px 0 0 30px;
+    font-size:40px;
+    font-weight: normal;
+}
+
+.ticker-detail h3 {
+    margin:0 0 0 30px;
+    font-size:20px;
+    font-weight: normal;
+}
+
+.ticker-detail h4 {
+    position:absolute;
+    top:0;
+    right:0;
+    font-size:60px;
+    line-height:0;
+    margin-right:30px
+}
+
+h3.none-selected {
+    font-size:40px;
+    text-align:center;
+    margin-top:150px;
+}
