@@ -31,10 +31,12 @@ Program.command('copy-core-components')
     .option('-d, --destinationFolder [destinationFolder]')
     .action(function(info) {
         var coreComponentsFolder = Path.join(__dirname, '..', 'lib', 'core-components', 'famous');
-        Ncp(coreComponentsFolder, info.destinationFolder, function(copyErr) {
-            if (copyErr) {
-                return console.error('Couldn\'t copy core components!');
-            }
+        Fs.rmdir(info.destinationFolder, function(rmErr) {
+            Ncp(coreComponentsFolder, info.destinationFolder, function(copyErr) {
+                if (copyErr) {
+                    return console.error('Couldn\'t copy core components!');
+                }
+            });
         });
     });
 
@@ -125,6 +127,10 @@ Program.command('snapshot-component')
         var subDir = info.componentName.split(Config.get('componentDelimiter')).join(Path.sep);
 
         assistant.buildSingle(baseDir, subDir, function(buildErr, buildInfo) {
+            if (buildErr) {
+                console.error(buildErr);
+            }
+
             var destPath = Path.join(info.destinationDirectory, buildInfo.name);
 
             Mkdirp(destPath, function(destDirErr) {
@@ -132,13 +138,13 @@ Program.command('snapshot-component')
 
                 Fs.writeFile(executablePath, buildInfo.bundleExecutableString, {flags:'w'}, function(executableWriteErr) {
                     if (executableWriteErr) {
-                        return console.error(executableWriteErr);
+                        console.error(executableWriteErr);
                     }
 
                     var indexPath = Path.join(destPath, 'index.html');
                     Fs.writeFile(indexPath, buildInfo.bundleIndexString, {flags:'w'}, function(indexWriteErr) {
                         if (indexWriteErr) {
-                            return console.error(indexWriteErr);
+                            console.error(indexWriteErr);
                         }
                     });
                 });
