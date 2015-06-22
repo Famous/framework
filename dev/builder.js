@@ -2,7 +2,6 @@
 
 var Async = require('async');
 var Chalk = require('chalk');
-var Lodash = require('lodash');
 
 var buildBundle = require('./build-steps/build-bundle');
 var derefDependencies = require('./build-steps/deref-dependencies');

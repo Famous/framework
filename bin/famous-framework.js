@@ -9,7 +9,7 @@ var exec = Child_Process.exec;
 var Express = require('express');
 var Fs = require('fs');
 var Livereload = require('livereload');
-var Ncp = require('ncp').ncp
+var Ncp = require('ncp').ncp;
 var Path = require('path');
 var Program = require('commander');
 var Watchify = require('watchify');
@@ -45,9 +45,15 @@ Program.command('watch-runtime')
         var b = Browserify(info.inputFile, { cache: {}, packageCache: {} });
         var w = Watchify(b);
         w.transform(Envify({ FF_ASSET_READ_HOST: info.serverHost }));
-        function bundle() { w.bundle().pipe(Fs.createWriteStream(info.outputFile)); }
-        w.on('update', function() { bundle(); });
-        w.on('bytes', function(bytes) { console.log('Wrote ' + bytes + ' bytes to ' + info.outputFile); });
+        function bundle() {
+            w.bundle().pipe(Fs.createWriteStream(info.outputFile));
+        }
+        w.on('update', function() {
+            bundle();
+        });
+        w.on('bytes', function(bytes) {
+            console.log('Wrote ' + bytes + ' bytes to ' + info.outputFile);
+        });
         bundle();
     });
 

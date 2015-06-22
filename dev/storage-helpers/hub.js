@@ -17,7 +17,6 @@ var SHA_LENGTH = 64;
 var SHA_REGEXP = /^([a-zA-Z0-9])+$/i;
 var ARE_BLOCKS_PUBLIC = true;
 var AUTH_TOKEN_HEADER_NAME = 'X-AUTHENTICATION-TOKEN';
-var AUTH_STATUS_IS_SIGNED_IN_CODE = 204;
 var FAMOUS_USER_ID_HEADER_NAME = 'x-famous-user-id';
 
 function loadDependency(assetReadHost, versionInfoHost, dependencyTuple, cb) {
