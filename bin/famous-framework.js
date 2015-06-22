@@ -9,6 +9,7 @@ var exec = Child_Process.exec;
 var Express = require('express');
 var Fs = require('fs');
 var Livereload = require('livereload');
+var Mkdirp = require('mkdirp');
 var Ncp = require('ncp').ncp;
 var Path = require('path');
 var Program = require('commander');
@@ -126,25 +127,23 @@ Program.command('snapshot-component')
         assistant.buildSingle(baseDir, subDir, function(buildErr, buildInfo) {
             var destPath = Path.join(info.destinationDirectory, buildInfo.name);
 
-            Fs.mkdir(destPath, function(destDirErr) {
-                if (destDirErr) {
-                    return console.error(destDirErr);
-                }
-
+            Mkdirp(destPath, function(destDirErr) {
                 var executablePath = Path.join(destPath, 'build.js');
-                Fs.writeFile(executablePath, buildInfo.bundleExecutableString, function(executableWriteErr) {
+
+                Fs.writeFile(executablePath, buildInfo.bundleExecutableString, {flags:'w'}, function(executableWriteErr) {
                     if (executableWriteErr) {
                         return console.error(executableWriteErr);
                     }
 
                     var indexPath = Path.join(destPath, 'index.html');
-                    Fs.writeFile(indexPath, buildInfo.bundleIndexString, function(indexWriteErr) {
+                    Fs.writeFile(indexPath, buildInfo.bundleIndexString, {flags:'w'}, function(indexWriteErr) {
                         if (indexWriteErr) {
                             return console.error(indexWriteErr);
                         }
                     });
                 });
             });
+
         });
     });
 
