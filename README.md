@@ -6,7 +6,7 @@ The Famous Framework is a new JavaScript framework for creating reusable, compos
 
 - - - -
 
-**IMPORTANT:** This project is in an early phase and under active development; expect bugs and breaking changes to occur. To submit a bug report, please use [GitHub Issues](https://github.com/Famous/framework/issues). For questions and general support, join our [Slack channel](https://famous-community.slack.com/messages/framework/). **We strongly recommend that you read this README before starting. Also see http://famous.github.io/framework/ for a general intro.**
+**IMPORTANT:** This project is in an early phase and under active development; expect bugs and breaking changes to occur. To submit a bug report, please use [GitHub Issues](https://github.com/Famous/framework/issues). For questions and general support, join our [Slack channel](https://famous-community.slack.com/messages/framework/).
 
 - - - -
 
@@ -14,9 +14,7 @@ The Famous Framework is a new JavaScript framework for creating reusable, compos
 
 The easiest way to get started is the Famous CLI (via its `framework` branch). Scaffolding is provided because the Famous Framework includes a set of custom local development tools which, while not required to use the framework, make creating components more straightforward. (We'll soon be documenting how to use the framework without any build tools.)
 
-First, make sure you have [Node.js](http://nodejs.org) installed, at least version `0.12`.
-
-Then, to get started, create a new folder for your project:
+First, **make sure you have [Node.js](http://nodejs.org) installed, at least version `0.12`.** (We hope to support Node.js `0.10` in the near future.) Then, to get started, create a new folder for your project:
 
     $ mkdir my-new-folder # A new folder to hold your code
     $ cd my-new-folder
