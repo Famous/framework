@@ -2,7 +2,7 @@
 
 The Famous Framework is a new JavaScript framework for creating reusable, composable, and interchangeable UI widgets and applications.  It balances declarative with imperative and functional with stateful, and it's built on top of the [Famous Engine](https://github.com/Famous/engine). We are excited to make it available as open source under an MIT license for the first time as part of a public alpha.
 
-Read more about the Framework in our in-depth [introductory blog post](//blog.famous.org).
+**Read more about the Framework in our in-depth [introductory blog post](//blog.famous.org).**
 
 - - - -
 
