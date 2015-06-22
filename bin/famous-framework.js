@@ -13,6 +13,7 @@ var Mkdirp = require('mkdirp');
 var Ncp = require('ncp').ncp;
 var Path = require('path');
 var Program = require('commander');
+var Rimraf = require('rimraf');
 var Watchify = require('watchify');
 
 var Assistant = require('./../dev/assistant/assistant');
@@ -31,7 +32,7 @@ Program.command('copy-core-components')
     .option('-d, --destinationFolder [destinationFolder]')
     .action(function(info) {
         var coreComponentsFolder = Path.join(__dirname, '..', 'lib', 'core-components', 'famous');
-        Fs.rmdir(info.destinationFolder, function(rmErr) {
+        Rimraf(info.destinationFolder, function(rmErr) {
             Ncp(coreComponentsFolder, info.destinationFolder, function(copyErr) {
                 if (copyErr) {
                     return console.error('Couldn\'t copy core components!');
@@ -68,37 +69,40 @@ Program.command('local-only-bootstrap')
     .option('-w, --watchAfterBuild [watchAfterBuild]')
     .option('-p, --port [port]')
     .action(function(info) {
-        var assistant = new Assistant({
-            builderOptions: {
-                localRawSourceFolder: info.sourceDirectory,
-                localBlocksFolder: info.blocksDirectory,
-                codeManagerAssetReadHost: 'http://localhost:' + info.port,
-                doSkipDependencyDereferencing: true,
-                doAttemptToBuildDependenciesLocally: true
-            }
-        });
+        Rimraf(Path.join(info.blocksDirectory, 'v1'), function(rmErr) {
+            var assistant = new Assistant({
+                builderOptions: {
+                    localRawSourceFolder: info.sourceDirectory,
+                    localBlocksFolder: info.blocksDirectory,
+                    codeManagerAssetReadHost: 'http://localhost:' + info.port,
+                    doSkipDependencyDereferencing: true,
+                    doAttemptToBuildDependenciesLocally: true,
+                    doBuildDependenciesFromLocalBlocksFolder: false
+                }
+            });
 
-        var doRebuildEverythingOnChange = info.rebuildEverythingOnChange === 'yes';
+            var doRebuildEverythingOnChange = info.rebuildEverythingOnChange === 'yes';
 
-        assistant.buildAll(info.sourceDirectory, '', function(buildAllErr) {
-            if (!buildAllErr) {
-                if (info.watchAfterBuild === 'no') {
-                    console.log('Done!');
+            assistant.buildAll(info.sourceDirectory, '', function(buildAllErr) {
+                if (!buildAllErr) {
+                    if (info.watchAfterBuild === 'no') {
+                        console.log('Done!');
+                    }
+                    else {
+                        assistant.watchDirectoryRecursive(info.sourceDirectory, '', doRebuildEverythingOnChange);
+
+                        var livereloadServer = Livereload.createServer(livereloadOptions);
+                        livereloadServer.watch([info.blocksDirectory]);
+
+                        var server = Express();
+                        server.use(Express.static(info.blocksDirectory));
+                        server.listen(info.port);
+                    }
                 }
                 else {
-                    assistant.watchDirectoryRecursive(info.sourceDirectory, '', doRebuildEverythingOnChange);
-
-                    var livereloadServer = Livereload.createServer(livereloadOptions);
-                    livereloadServer.watch([info.blocksDirectory]);
-
-                    var server = Express();
-                    server.use(Express.static(info.blocksDirectory));
-                    server.listen(info.port);
+                    console.log(buildAllErr);
                 }
-            }
-            else {
-                console.log(buildAllErr);
-            }
+            });
         });
     });
 

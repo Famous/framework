@@ -56,6 +56,7 @@
     "osenv": "^0.1.2",
     "recursive-readdir": "1.2.1",
     "request": "2.57.0",
+    "rimraf": "^2.4.0",
     "serve": "1.4.0",
     "stylus": "0.51.1",
     "temp": "0.8.3",

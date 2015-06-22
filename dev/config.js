@@ -41,6 +41,12 @@ var options = {
     // on every change. (As opposed to doing constant re-resolution.)
     doFreezeDependencies: false,
 
+    // If a local blocks folder exists, try to build dependencies from
+    // that folder. Note that this can sometimes have unexpected (annoying) affects
+    // essentially due to caching: You will be loading data that may have
+    // been built in previous saves.
+    doBuildDependenciesFromLocalBlocksFolder: true,
+
     // If no dependency for a given component can be found, fallback to
     // 'HEAD' which in code-manager world essentially means "the latest"
     // and which in local-raw-source world essentially means "whatever is"

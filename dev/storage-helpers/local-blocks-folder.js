@@ -77,7 +77,7 @@ function attemptToBuildDependenciesLocally(localBlocksFolder, localRawSourceFold
     var attemptActions = [];
     var attemptInfo = { name: dependencyName, explicitVersion: dependencyVersion };
 
-    if (localBlocksFolder) {
+    if (localBlocksFolder && Config.get('doBuildDependenciesFromLocalBlocksFolder')) {
         attemptActions.push(buildFromBlocksFolder.bind(null, localBlocksFolder));
     }
 
