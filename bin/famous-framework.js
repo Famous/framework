@@ -62,6 +62,7 @@ Program.command('local-only-bootstrap')
     .option('-s, --sourceDirectory [sourceDirectory]')
     .option('-b, --blocksDirectory [blocksDirectory]')
     .option('-r, --rebuildEverythingOnChange [rebuildEverythingOnChange]')
+    .option('-w, --watchAfterBuild [watchAfterBuild]')
     .option('-p, --port [port]')
     .action(function(info) {
         var assistant = new Assistant({
@@ -78,14 +79,19 @@ Program.command('local-only-bootstrap')
 
         assistant.buildAll(info.sourceDirectory, '', function(buildAllErr) {
             if (!buildAllErr) {
-                assistant.watchDirectoryRecursive(info.sourceDirectory, '', doRebuildEverythingOnChange);
+                if (info.watchAfterBuild === 'no') {
+                    console.log('Done!');
+                }
+                else {
+                    assistant.watchDirectoryRecursive(info.sourceDirectory, '', doRebuildEverythingOnChange);
 
-                var livereloadServer = Livereload.createServer(livereloadOptions);
-                livereloadServer.watch([info.blocksDirectory]);
+                    var livereloadServer = Livereload.createServer(livereloadOptions);
+                    livereloadServer.watch([info.blocksDirectory]);
 
-                var server = Express();
-                server.use(Express.static(info.blocksDirectory));
-                server.listen(info.port);
+                    var server = Express();
+                    server.use(Express.static(info.blocksDirectory));
+                    server.listen(info.port);
+                }
             }
             else {
                 console.log(buildAllErr);
