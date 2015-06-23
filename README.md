@@ -21,7 +21,11 @@ First, **make sure you have [Node.js](http://nodejs.org) installed, at least ver
 
 Next, install the Famous CLI (if you haven't already):
 
-    npm install -g famous-cli
+    $ npm install -g famous-cli
+
+Next, register with Famous to establish your username (if you haven't already):
+
+    $ famous register
 
 Then, scaffold a new framework project in the directory:
 
