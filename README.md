@@ -23,7 +23,7 @@ Next, install the Famous CLI (if you haven't already):
 
     npm install -g famous-cli
 
-Then, rscaffold a new framework project in the directory:
+Then, scaffold a new framework project in the directory:
 
     $ famous framework-scaffold
     ? Enter your component's name: todos
