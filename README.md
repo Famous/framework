@@ -12,32 +12,27 @@ The Famous Framework is a new JavaScript framework for creating reusable, compos
 
 ## Setup &amp; installation
 
-The easiest way to get started is the Famous CLI (via its `framework` branch). Scaffolding is provided because the Famous Framework includes a set of custom local development tools which, while not required to use the framework, make creating components more straightforward. (We'll soon be documenting how to use the framework without any build tools.)
+The easiest way to get started is the Famous CLI. Scaffolding is provided because the Famous Framework includes a set of custom local development tools which, while not required to use the framework, make creating components more straightforward. (We'll soon be documenting how to use the framework without any build tools.)
 
 First, **make sure you have [Node.js](http://nodejs.org) installed, at least version `0.12`.** (We hope to support Node.js `0.10` in the near future.) Then, to get started, create a new folder for your project:
 
     $ mkdir my-new-folder # A new folder to hold your code
     $ cd my-new-folder
 
-Next, install a special version of the Famous CLI (the `framework` branch):
+Next, install the Famous CLI (if you haven't already):
 
-    $ npm cache clean
-    $ npm install -g 'git://github.com/Famous/famous-cli.git#framework'
-    # ^ This installs the Famous CLI. You may need to 'sudo' this
+    npm install -g famous-cli
 
-Then, with the install of the special Famous CLI version complete, run a command to scaffold a new framework project in the directory you created above:
+Then, rscaffold a new framework project in the directory:
 
     $ famous framework-scaffold
-    ? Enter a username: jane-doe
     ? Enter your component's name: todos
     ? Does the project name "jane-doe:todos" look ok? Yes
-    Created framework scaffold in current working directory!
-    $ npm install
+    Installing npm dependencies and running setup tasks...
+    (Lots of installation messages here)
     $ npm run dev
 
 Once the local server and watchers are running, surf to [localhost:1618/](http://localhost:1618/). Changes you make to files within the `components/` folder will trigger automatic reload.
-
-(Note: The reason you need to type in a username during the setup process is just an initial gesture toward an integration between Famous Framework and Famous Hub. Currently, during the scaffold process, it's only used to generate a namespaced folder structure for your project.)
 
 ### Windows
 
@@ -81,23 +76,13 @@ Below is an example of what a Famous Framework component looks like. This code l
 
 ## Deploying (experimental)
 
-We're still refining this process, but we've got a basic workflow available if you want to push your Famous Framework project up to Famous Hub so that it can be shared/embedded.
-
-1.) Make sure you've already registered with Famous Hub (`$ famous register`). You only need to do this one time. If you aren't sure, look for a `.famous/.config` file in your system's home directory.
-
-2.) Make sure the namespace of the component you are developing is the same as the username you registered with. I.e., if your component is `jane-doe:my-component`, your username would need to be `jane-doe` in order to deploy with Famous services.
-
-3.) From the main directory of your project (the root directory in which you originally ran `$ famous framework-scaffold`), take a snapshot of the component that you want to deploy:
+From the directory that you created via the `famous framework-scaffold` command (see above), you should be able to run:
 
 ```
-$ npm run snapshot-component -- -n jane-doe:my-component
+$ famous deploy
 ```
 
-4.) Finally, use the Famous CLI to push the snapshot you took in the last step up to a Famous Container.
-
-```
-$ famous deploy public/jane-doe:my-component
-```
+This will push your project up to a Famous container, and create an embed code for sharing.
 
 - - - -
 
