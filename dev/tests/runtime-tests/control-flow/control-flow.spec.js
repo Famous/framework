@@ -8,7 +8,7 @@ var VirtualDOM = require('./../../../../lib/virtual-dom/virtual-dom');
 var VirtualDomStub = require('./../helpers/virtual-dom-stub');
 
 
-var CONTROL_FLOW_CONSTANTS = require('../../lib/control-flow/control-flow-utils').CONSTANTS;
+var CONTROL_FLOW_CONSTANTS = require('./../../../../lib/control-flow/control-flow-utils').CONSTANTS;
 var IF_KEY = CONTROL_FLOW_CONSTANTS.IF_KEY;
 
 test('----- Control Flow', function(t) {
