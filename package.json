@@ -28,6 +28,11 @@
     "snapshot-component": "node bin/famous-framework.js snapshot-component --sourceDirectory=lib/core-components --blocksDirectory=dev/workspace --destinationDirectory=dev/workspace",
     "watch-runtime": "node bin/famous-framework.js watch-runtime --serverHost=http://localhost:1618 --inputFile=lib/index.js --outputFile=dev/workspace/famous-framework.bundle.js",
     "test": "node bin/famous-framework.js test-runtime && node bin/famous-framework.js test-state-manager && node bin/famous-framework.js test-utilities",
+    "test-builder": "browserify dev/tests/builder-tests/*.spec.js | tap-closer | smokestack",
+    "test-esprima-heper": "browserify dev/tests/esprima-helper-tests/*.spec.js | tap-closer | smokestack",
+    "test-runtime": "browserify dev/tests/runtime-tests/**/*.spec.js | tap-closer | smokestack",
+    "test-state-manager": "browserify dev/tests/state-manager-tests/*.spec.js | tap-closer | smokestack",
+    "test-utilities": "browserify dev/tests/utilities-tests/*.spec.js | tap-closer | smokestack",
     "lint": "eslint --ignore-path .eslintignore ."
   },
   "dependencies": {
