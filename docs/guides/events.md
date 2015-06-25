@@ -158,3 +158,19 @@ As it turns out, the `node` base component defines a event called `'size'` that 
 Whenever `example`'s behavior `'size'` is fired, the framework instantiates a new message with the behavior's return value as the message's contents. It then routes the message to all nodes in the tree that match the `'#el'` selector.
 
 If any of those matching target nodes expose a "public" event that matches the message's name (`'size'`), then that event will be fired, with the injected `$payload` argument given to represent the value of the message's contents.
+
+## Event Injectables
+
+[`$dispatcher`](https://github.com/Famous/framework/blob/develop/docs/api/%24dispatcher.md)
+
+[`$event`](https://github.com/Famous/framework/blob/develop/docs/api/%24event.md)
+
+[`$index`](https://github.com/Famous/framework/blob/develop/docs/api/%24index.md)
+
+[`$payload`](https://github.com/Famous/framework/blob/develop/docs/api/%24payload.md)
+
+[`$repeatPayload`](https://github.com/Famous/framework/blob/develop/docs/api/%24repeatPayload.md)
+
+[`$state`](https://github.com/Famous/framework/blob/develop/docs/api/%24state.md)
+
+[`$timelines`](https://github.com/Famous/framework/blob/develop/docs/api/%24timelines.md)
