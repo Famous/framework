@@ -1,9 +1,7 @@
 'use strict';
 
 var Babel = require('babel');
-var Less = require('less');
 var Path = require('path');
-var Stylus = require('stylus');
 
 var COMPILERS = {};
 
@@ -24,28 +22,6 @@ COMPILERS['.js'] = function(source, cb) {
     cb(null, result.code);
 };
 
-COMPILERS['.less'] = function(source, cb) {
-    Less.render(source, function(err, output) {
-        if (!err) {
-            cb(null, output.css);
-        }
-        else {
-            cb(err);
-        }
-    });
-};
-
-COMPILERS['.stylus'] = function(source, cb) {
-    Stylus.render(source, {}, function(err, css) {
-        if (!err) {
-            cb(null, css);
-        }
-        else {
-            cb(err);
-        }
-    });
-};
-
 COMPILERS['.html'] = function(source, cb) {
     cb(null, source);
 };
@@ -60,19 +36,14 @@ COMPILERS['.css'] = function(source, cb) {
 var ALIASES = {
     '.es': '.js',
     '.es6': '.js',
-    '.es7': '.js',
-    '.styl': '.stylus'
+    '.es7': '.js'
 };
 
 // The extname each type would normally get after compilation
 var COMPILATION_EXTNAME_MAPPING = {
-    '.coffee': '.js',
     '.es': '.js',
     '.es6': '.js',
-    '.es7': '.js',
-    '.less': '.css',
-    '.styl': '.css',
-    '.stylus': '.css'
+    '.es7': '.js'
 };
 
 for (var aliasExtname in ALIASES) {
