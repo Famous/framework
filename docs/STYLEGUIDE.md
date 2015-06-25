@@ -49,7 +49,7 @@ behaviors: {
         'unselectable': true
     },
     'div' : {
-        'text-content': function(numberOfClicks) {
+        'content': function(numberOfClicks) {
             return numberOfClicks;
         }
     }
