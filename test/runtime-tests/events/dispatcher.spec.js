@@ -1,8 +1,8 @@
 'use strict';
 
 var test = require('tape');
-var Dispatcher = require('./../../../../lib/events/dispatcher');
-var VirtualDOM = require('./../../../../lib/virtual-dom/virtual-dom');
+var Dispatcher = require('./../../../lib/events/dispatcher');
+var VirtualDOM = require('./../../../lib/virtual-dom/virtual-dom');
 var VirtualDOMStub = require('./../helpers/virtual-dom-stub');
 
 var CONSTANTS = VirtualDOMStub.stubOneInfo;

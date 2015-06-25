@@ -1,7 +1,7 @@
 'use strict';
 
 var test = require('tape');
-var functionParser = require('./../../../lib/utilities/function-parser');
+var functionParser = require('./../../lib/utilities/function-parser');
 var getParameterNames = functionParser.getParameterNames;
 
 var fn = function(one, two, three, four) {};

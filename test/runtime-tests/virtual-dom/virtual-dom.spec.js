@@ -1,7 +1,7 @@
 'use strict';
 
 var test = require('tape');
-var VirtualDOM = require('./../../../../lib/virtual-dom/virtual-dom');
+var VirtualDOM = require('./../../../lib/virtual-dom/virtual-dom');
 var VirtualDomStub = require('./../helpers/virtual-dom-stub');
 
 /*

@@ -2,8 +2,8 @@
 
 window.Famous = require('famous');
 var test = require('tape');
-var FamousFramework = require('./../../../../lib');
-var DataStore = require('./../../../../lib/data-store/data-store');
+var FamousFramework = require('./../../../lib');
+var DataStore = require('./../../../lib/data-store/data-store');
 
 test('----- FamousFramework', function(t) {
     t.plan(1);

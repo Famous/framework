@@ -157,32 +157,4 @@ Program.command('snapshot-component')
         });
     });
 
-function execAndLog(cmd) {
-    exec(cmd, function(err, stdout, stderr) {
-        if (err) {
-            console.error(err);
-        }
-        console.log(stdout);
-        console.log(stderr);
-    });
-}
-
-Program.command('test-runtime').action(function() {
-    var testPath = Path.join(__dirname, "tests", "runtime-tests", "**", "*.spec.js");
-    var testCmd = "browserify " + testPath + " -t [ envify ] -d | tap-closer | smokestack";
-    execAndLog(testCmd);
-});
-
-Program.command('test-state-manager').action(function () {
-    var testPath = Path.join(__dirname, "tests", "state-manager-tests", "*.spec.js");
-    var testCmd = "browserify " + testPath + " | tap-closer | smokestack";
-    execAndLog(testCmd);
-});
-
-Program.command('test-utilities').action(function() {
-    var testPath = Path.join(__dirname, "tests", "utilities-tests", "*.spec.js");
-    var testCmd = "browserify " + testPath + " | tap-closer | smokestack";
-    execAndLog(testCmd);
-});
-
 Program.parse(process.argv);

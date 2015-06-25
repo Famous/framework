@@ -2,9 +2,9 @@
 
 var test = require('tape');
 var VirtualDomStub = require('./../helpers/virtual-dom-stub');
-var ControlFlow = require('./../../../../lib/control-flow/control-flow');
+var ControlFlow = require('./../../../lib/control-flow/control-flow');
 
-var CONTROL_FLOW_CONSTANTS = require('./../../../../lib/control-flow/control-flow-utils').CONSTANTS;
+var CONTROL_FLOW_CONSTANTS = require('./../../../lib/control-flow/control-flow-utils').CONSTANTS;
 var REPEAT_INFO_KEY = CONTROL_FLOW_CONSTANTS.REPEAT_INFO_KEY;
 var REPEAT_PAYLOAD_KEY = CONTROL_FLOW_CONSTANTS.REPEAT_PAYLOAD_KEY;
 var CONTROL_FLOW_ACTION_KEY = CONTROL_FLOW_CONSTANTS.CONTROL_FLOW_ACTION_KEY;

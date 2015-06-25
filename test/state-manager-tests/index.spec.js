@@ -5,7 +5,7 @@ var famous = require('famous');
 var Node = famous.core.Node;
 var Transitionable = famous.transitions.Transitionable;
 
-var StateManager = require('./../../../lib/state-manager/state-manager');
+var StateManager = require('./../../lib/state-manager/state-manager');
 
 var fixtures = require('./fixtures');
 var clone = fixtures.clone;

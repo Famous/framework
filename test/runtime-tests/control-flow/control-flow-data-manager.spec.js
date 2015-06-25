@@ -1,9 +1,9 @@
 'use strict';
 var test = require('tape');
-var ControlFlowDataManager = require('./../../../../lib/control-flow/control-flow-data-manager');
+var ControlFlowDataManager = require('./../../../lib/control-flow/control-flow-data-manager');
 var VirtualDomStub = require('./../helpers/virtual-dom-stub');
 
-var CONTROL_FLOW_CONSTANTS = require('./../../../../lib/control-flow/control-flow-utils').CONSTANTS;
+var CONTROL_FLOW_CONSTANTS = require('./../../../lib/control-flow/control-flow-utils').CONSTANTS;
 var IF_KEY = CONTROL_FLOW_CONSTANTS.IF_KEY;
 var REPEAT_KEY = CONTROL_FLOW_CONSTANTS.REPEAT_KEY;
 var YIELD_KEY = CONTROL_FLOW_CONSTANTS.YIELD_KEY;

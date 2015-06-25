@@ -1,14 +1,14 @@
 'use strict';
 var test = require('tape');
 
-var Behaviors = require('./../../../../lib/behaviors/behaviors');
-var ControlFlow = require('./../../../../lib/control-flow/control-flow');
-var ControlFlowDataMngr = require('./../../../../lib/control-flow/control-flow-data-manager');
-var VirtualDOM = require('./../../../../lib/virtual-dom/virtual-dom');
+var Behaviors = require('./../../../lib/behaviors/behaviors');
+var ControlFlow = require('./../../../lib/control-flow/control-flow');
+var ControlFlowDataMngr = require('./../../../lib/control-flow/control-flow-data-manager');
+var VirtualDOM = require('./../../../lib/virtual-dom/virtual-dom');
 var VirtualDomStub = require('./../helpers/virtual-dom-stub');
 
 
-var CONTROL_FLOW_CONSTANTS = require('./../../../../lib/control-flow/control-flow-utils').CONSTANTS;
+var CONTROL_FLOW_CONSTANTS = require('./../../../lib/control-flow/control-flow-utils').CONSTANTS;
 var IF_KEY = CONTROL_FLOW_CONSTANTS.IF_KEY;
 
 test('----- Control Flow', function(t) {

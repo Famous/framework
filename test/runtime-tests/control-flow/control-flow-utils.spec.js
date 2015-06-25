@@ -2,8 +2,8 @@
 
 var test = require('tape');
 
-var ControlFlowUtils = require('./../../../../lib/control-flow/control-flow-utils');
-var VirtualDOM = require('./../../../../lib/virtual-dom/virtual-dom');
+var ControlFlowUtils = require('./../../../lib/control-flow/control-flow-utils');
+var VirtualDOM = require('./../../../lib/virtual-dom/virtual-dom');
 var VirtualDomStub = require('./../helpers/virtual-dom-stub');
 
 var CONSTANTS = ControlFlowUtils.CONSTANTS;

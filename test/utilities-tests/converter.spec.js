@@ -2,7 +2,7 @@
 
 var test = require('tape');
 
-var converter = require('./../../../lib/utilities/converter');
+var converter = require('./../../lib/utilities/converter');
 
 var toSalty = converter.sweetToSalty;
 var toSweet = converter.saltyToSweet;
