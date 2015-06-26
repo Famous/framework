@@ -100,9 +100,7 @@ Here, we set the state's `positionX` value to `250` over a 1000ms period immedia
 `$lifecycle` events include:
 
 - `'post-load'`
-- `'pre-load'`
 - `'pre-unload'`
-- `'post-unload'`
 
 ## Private vs. public events
 
