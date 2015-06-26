@@ -81,6 +81,37 @@ Components can listen to messages emitted by any component declared in their tre
         tree: `<node id="foo"></node>`
     });
 
+## Size change events
+
+Size change event group allows you to listen for changes in a component's size or a component's  
+parent's size. To access these events, target an element in your tree as a selector.
+
+    FamousFramework.component('example', {
+        events: {
+            '.child-square': {
+                'size-change': function($event) {
+                    var ownSize = $event.value;
+                    // The child-square's new width is ownSize[0]
+                    // The child-square's new height is ownSize[1]
+                },
+                'parent-size-change': function($event) {
+                    var parentSize = $event.value;
+                    // The parent-square's new width is parentSize[0]
+                    // The parent-square's new height is parentSize[1]
+                }
+            }
+        },
+        tree: `
+            <node class="parent-square">
+                <node class="child-square"></node>
+            </node>
+        `
+    });
+
+Size change events include:
+- `'size-change'`
+- `'parent-size-change'`
+
 ## $lifecycle events
 
 The `$lifecycle` event group allows you to listen for special events throughout the life of a component. To access these events, provide `'$lifecycle'` as a selector to the events object instead of a selector.
