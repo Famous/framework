@@ -5,61 +5,43 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Famous Framework (workspace)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="favicon.ico?t=1">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-    <link href='assets/fonts.css' rel='stylesheet' type='text/css'>
-    <link href='assets/reset.min.css' rel='stylesheet' type='text/css'>
-    <link href='assets/search.css' rel='stylesheet' type='text/css'>
+    <link href="assets/reset.min.css" rel="stylesheet" type="text/css">
+    <link href="assets/fonts.css" rel="stylesheet" type="text/css">
+    <link href="assets/main.css" rel="stylesheet" type="text/css">
     <script>document.write('<script src="http://'+(location.host||'localhost').split(':')[0]+':35729/livereload.js?snipver=1"></'+'script>');</script>
-    <style type="text/css">
-        /* container specific rules */
-        html, body {
-            background: #444444;
-            font-family: 'Lato', Helvetica, Arial, sans-serif;
-        }
-        #famous-framework-stage {
-            height: 100%;
-            position: relative;
-            -webkit-transition: opacity ease-in 0.3s;
-            transition: opacity ease-in 0.3s;
-            width: 100%;
-            z-index: 1;
-        }
-
-        #famous-framework-components-search {
-            /*display: none;*/
-        }
-        [unresolved] {
-            opacity: 0;
-            display: block;
-            overflow: hidden;
-        }
-    </style>
 </head>
-
 <body>
-<div id="famous-framework-components-search">
-    <button class="famous-framework-components-search-btn"></button>
-    <button class="famous-framework-components-search-dropdown"></button>
-    <form>
-        <input type="text" name="ff" placeholder="hello-famous">
-        <ul>
-            <li>animation-timeline</li>
-            <li>animation-timeline-cue</li>
-            <li>attach-webgl</li>
-            <li>click-event</li>
-            <li>clickable-square</li>
-            <li>hello-famous</li>
-            <li>lifecycle</li>
-            <li>repeat</li>
-            <li>templating</li>
-        </ul>
-    </form>
-</div>
-
-<div id="famous-framework-stage" unresolved></div>
-
-<script type="text/javascript" src="famous-framework.bundle.js"></script>
-<script type="text/javascript" src="assets/query-string.js"></script>
-<script type="text/javascript" src="assets/search.js"></script>
+    <div id="famous-framework-components-search">
+        <button class="famous-framework-components-search-btn"></button>
+        <button class="famous-framework-components-search-dropdown"></button>
+        <form>
+            <input type="text" name="ff" placeholder="clickable-square">
+            <ul>
+                <li>animation-timeline</li>
+                <li>animation-timeline-queue</li>
+                <li>attach-webgl</li>
+                <li>clickable-square</li>
+                <li>dynamic-list</li>
+                <li>lifecycle</li>
+                <li>repeat-color-wheel</li>
+                <li>widget-dashboard:dashboard</li>
+            </ul>
+        </form>
+    </div>
+    <div id="famous-framework-stage" unresolved></div>
+    <div id="nav">
+        <button id="prev-button">
+            <span>&larr; Prev</span>
+        </button>
+        <div id="current-module-name-box"><span id="current-module-name-span"></span></div>
+        <button id="next-button">
+            <span>Next &rarr;</span>
+        </button>
+    </div>
+    <script type="text/javascript" src="famous-framework.bundle.js"></script>
+    <script type="text/javascript" src="assets/query-string.js"></script>
+    <script type="text/javascript" src="assets/search.js"></script>
 </body>
 </html>
