@@ -1,12 +1,17 @@
 'use strict';
 
+var Async = require('async');
 var Babel = require('babel');
+var Lodash = require('lodash');
 var Path = require('path');
+
+var Helpers = require('./helpers/helpers');
 
 var COMPILERS = {};
 
 COMPILERS['.js'] = function(source, cb) {
     var result;
+
     try {
         result = Babel.transform(source, {
             // Don't give a name to anonymous functions because then naming collisions
@@ -19,15 +24,18 @@ COMPILERS['.js'] = function(source, cb) {
     catch (err) {
         return cb(err);
     }
+
     cb(null, result.code);
 };
 
 COMPILERS['.html'] = function(source, cb) {
     cb(null, source);
 };
+
 COMPILERS['.json'] = function(source, cb) {
     cb(null, source);
 };
+
 COMPILERS['.css'] = function(source, cb) {
     cb(null, source);
 };
@@ -47,8 +55,7 @@ var COMPILATION_EXTNAME_MAPPING = {
 };
 
 for (var aliasExtname in ALIASES) {
-    var compilerExtname = ALIASES[aliasExtname];
-    COMPILERS[aliasExtname] = COMPILERS[compilerExtname];
+    COMPILERS[aliasExtname] = COMPILERS[ALIASES[aliasExtname]];
 }
 
 function hasCompilerFor(extname) {
@@ -58,7 +65,9 @@ function hasCompilerFor(extname) {
 function compiledPath(path) {
     var extname = Path.extname(path);
     var basename = Path.basename(path, extname);
+
     var remappedExtname = COMPILATION_EXTNAME_MAPPING[extname];
+
     if (remappedExtname) {
         if (remappedExtname !== extname) {
             // e.g. foo.less -> foo.less.css
@@ -75,6 +84,7 @@ function compiledPath(path) {
 
 function compileSource(source, path, cb) {
     var extname = Path.extname(path);
+
     if (hasCompilerFor(extname)) {
         COMPILERS[extname](source, function(err, result) {
             if (err) {
@@ -90,14 +100,45 @@ function compileSource(source, path, cb) {
         });
     }
     else {
-        cb(null, {
+        return cb(null, {
             path: compiledPath(path),
             content: source
         });
     }
 }
 
-module.exports = {
-    compiledPath: compiledPath,
-    compileSource: compileSource
-};
+function compileFile(file, cb) {
+    if (Helpers.doesFileLookLikeStaticAsset(file)) {
+        return cb(null, file);
+    }
+
+    return compileSource(file.content.toString(), file.path, cb);
+}
+
+function mergeCompiledFiles(rawFiles, compiledFiles) {
+    for (var i = 0; i < compiledFiles.length; i++) {
+        var compiledFile = compiledFiles[i];
+
+        var existingFile = Lodash.find(rawFiles, { path: compiledFile.path });
+
+        if (existingFile) {
+            // Overwrite the existing file with compiled content
+            // in the case that the compiled file path is the same,
+            // e.g. foo.js -> foo.js
+            existingFile.content = compiledFile.content;
+        }
+        else {
+            rawFiles.push(compiledFile);
+        }
+    }
+}
+
+function preprocessAssets(name, files, data, finish) {
+    Async.map(files, compileFile, function(compileErr, compiledFiles) {
+        mergeCompiledFiles(files, compiledFiles);
+
+        return finish(null, name, files, data);
+    });
+}
+
+module.exports = preprocessAssets;

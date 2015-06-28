@@ -10,27 +10,23 @@
     var searchScenesOptions = searchScenes.querySelectorAll('li');
     var prevButtonEl = document.getElementById('prev-button');
     var nextButtonEl = document.getElementById('next-button');
+    var iframe = document.getElementById('iframe');
     var stage = document.getElementById('famous-framework-stage');
+
+    var SAFE_NAMESPACE_DELIMITER = '~';
+    var COMPONENT_DELIMITER = ':';
 
     var DEFAULT_MODULE = 'famous-demos:clickable-square';
     var currentModule = DEFAULT_MODULE;
-
-    function moduleScriptURL(name) {
-        var hyphenated = name.split(':').join('-');
-        return 'build/' + hyphenated + '/' + hyphenated + '.bundle.js';
-    }
 
     function updateCurrentModule(name) {
         currentModule = name;
         modSpan.innerText = name;
         searchInput.value = name;
-        window.history.pushState(currentModule, 'Famous Framework (workspace)', '?ff=' + name);
+        window.history.pushState(name, 'Famous Framework (workspace)', '?ff=' + name);
 
-        var script = document.createElement('script');
-        script.onload = function() { FamousFramework.deploy(name, 'HEAD', '#famous-framework-stage'); };
-        script.setAttribute('type', 'text/javascript');
-        script.setAttribute('src', moduleScriptURL(name));
-        document.head.appendChild(script);
+        var delimitedSafe = name.split(COMPONENT_DELIMITER).join(SAFE_NAMESPACE_DELIMITER);
+        iframe.setAttribute('src', 'build/' + delimitedSafe + '/index.html');
     }
 
     searchBtn.addEventListener('click', function() {

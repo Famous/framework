@@ -3,21 +3,21 @@
 var Jsdom = require('jsdom');
 var Lodash = require('lodash');
 
-var BuildHelpers = require('./../build-helpers/build-helpers');
-var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
-
-var Config = require('./../config');
+var Helpers = require('./helpers/helpers');
+var EsprimaHelpers = require('./helpers/esprima');
+var Config = require('./config/config');
 
 var QUOTE = '\'';
 var EXTENDS_KEY = 'extends';
 
-var nativeElmementsRegex = /^(a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdi|bdo|bgsound|big|blink|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|content|data|datalist|dd|decorator|del|details|dfn|dir|div|dl|dt|element|em|embed|fieldset|figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|header|hgroup|hr|html|i|iframe|img|input|ins|isindex|kbd|keygen|label|legend|li|link|listing|main|map|mark|marquee|menu|menuitem|meta|meter|nav|nobr|noframes|noscript|object|ol|optgroup|option|output|p|param|plaintext|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|shadow|small|source|spacer|span|strike|strong|style|sub|summary|sup|table|tbody|td|template|textarea|tfoot|th|thead|time|title|tr|track|tt|u|ul|var|video|wbr|xmp)$/gi;
+var NATIVE_ELEMENTS_REGEXP = /^(a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdi|bdo|bgsound|big|blink|blockquote|body|br|button|canvas|caption|center|cite|code|col|colgroup|content|data|datalist|dd|decorator|del|details|dfn|dir|div|dl|dt|element|em|embed|fieldset|figcaption|figure|font|footer|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|header|hgroup|hr|html|i|iframe|img|input|ins|isindex|kbd|keygen|label|legend|li|link|listing|main|map|mark|marquee|menu|menuitem|meta|meter|nav|nobr|noframes|noscript|object|ol|optgroup|option|output|p|param|plaintext|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|shadow|small|source|spacer|span|strike|strong|style|sub|summary|sup|table|tbody|td|template|textarea|tfoot|th|thead|time|title|tr|track|tt|u|ul|var|video|wbr|xmp)$/gi;
 
 function fixChildNode(node, tree, imports, doc) {
     fixTree(node, imports, doc);
 
     var lowercaseTagName = node.tagName.toLowerCase();
-    var isNativeTag = !!lowercaseTagName.match(nativeElmementsRegex);
+
+    var isNativeTag = !!lowercaseTagName.match(NATIVE_ELEMENTS_REGEXP);
 
     if (!isNativeTag) {
         var newTagName = imports[lowercaseTagName] || node.tagName;
@@ -55,10 +55,13 @@ function expandObjectKeyShorthands(facetName, facetObj, imports, depth) {
         if (facetName !== Config.get('behaviorsFacetKeyName') || depth < 2) {
             for (var importNamespace in imports) {
                 var importItems = imports[importNamespace];
+
                 for (var i = 0; i < importItems.length; i++) {
                     var importItem = importItems[i];
+
                     if (keyName === importItem) {
-                        var newKey = BuildHelpers.moduleNamespaceAndBasenameToModuleName(importNamespace, importItem);
+                        var newKey = Helpers.moduleNamespaceAndBasenameToModuleName(importNamespace, importItem);
+
                         property.key.value = newKey;
                         property.key.raw = QUOTE + newKey + QUOTE;
                     }
@@ -72,9 +75,11 @@ function expandExtendsShorthand(facetArray, imports) {
     EsprimaHelpers.eachArrayElement(facetArray, function(elementValue, elementObject){
         for (var importNamespace in imports) {
             var importItems = imports[importNamespace];
+
             for (var i = 0; i < importItems.length; i++) {
                 if (importItems[i] === elementValue) {
-                    var expandedExtends = BuildHelpers.moduleNamespaceAndBasenameToModuleName(importNamespace, elementValue);
+                    var expandedExtends = Helpers.moduleNamespaceAndBasenameToModuleName(importNamespace, elementValue);
+
                     elementObject.value = expandedExtends;
                     elementObject.raw = QUOTE + expandedExtends + QUOTE;
                 }
@@ -83,10 +88,15 @@ function expandExtendsShorthand(facetArray, imports) {
     });
 }
 
-function expandImportsShorthand(info, cb) {
-    for (var moduleName in info.moduleDefinitionASTs) {
-        var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
-        var moduleConfigAST = info.moduleConfigASTs[moduleName];
+/**
+ * E.g., we need to look for occurrences of strings like
+ * 'node' and <node> and convert them to 'famous:core:node'
+ * and '<famous:core:node>' etc.
+ */
+function expandImports(name, files, data, finish) {
+    for (var moduleName in data.moduleDefinitionASTs) {
+        var moduleDefinitionAST = data.moduleDefinitionASTs[moduleName];
+        var moduleConfigAST = data.moduleConfigASTs[moduleName];
 
         // Step 1: Get a simplified (complete) imports object.
         var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST || { properties: [] });
@@ -111,14 +121,14 @@ function expandImportsShorthand(info, cb) {
         if (treeNode) {
             var virtualDOM = Jsdom.jsdom(treeNode.value);
             var doc = virtualDOM.defaultView.document;
-            var flatImports = BuildHelpers.importsObjectToFlatImportsObject(imports);
+            var flatImports = Helpers.importsObjectToFlatImportsObject(imports);
             var newTree = fixTree(doc.body, flatImports, doc);
             treeNode.value = newTree;
         }
 
         // Step 4: Expand values in extends array from configuration object
         if (moduleConfigAST) {
-            EsprimaHelpers.eachObjectProperty(info.moduleConfigASTs[moduleName], function(keyName, _1, _2, valueObj) {
+            EsprimaHelpers.eachObjectProperty(data.moduleConfigASTs[moduleName], function(keyName, _1, _2, valueObj) {
                 if (keyName === EXTENDS_KEY) {
                     expandExtendsShorthand(valueObj, imports);
                 }
@@ -126,7 +136,7 @@ function expandImportsShorthand(info, cb) {
         }
     }
 
-    return cb(null, info);
+    return finish(null, name, files, data);
 }
 
-module.exports = expandImportsShorthand;
+module.exports = expandImports;

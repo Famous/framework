@@ -1,6 +1,6 @@
 {
   "name": "famous-framework",
-  "version": "0.11.3",
+  "version": "0.12.0",
   "description": "A modern take on building reusable components and maintainable applications",
   "keywords": [
     "famous",
@@ -23,10 +23,9 @@
     "famous-framework": "bin/famous-framework.js"
   },
   "scripts": {
-    "dev": "npm run watch-runtime & npm run local-only-bootstrap",
-    "local-only-bootstrap": "node bin/famous-framework.js local-only-bootstrap --sourceDirectory=lib/core-components --blocksDirectory=dev/workspace --port=1618",
-    "snapshot-component": "node bin/famous-framework.js snapshot-component --sourceDirectory=lib/core-components --blocksDirectory=dev/workspace --destinationDirectory=dev/workspace",
-    "watch-runtime": "node bin/famous-framework.js watch-runtime --serverHost=http://localhost:1618 --inputFile=lib/index.js --outputFile=dev/workspace/famous-framework.bundle.js",
+    "dev": "npm run local-only-bootstrap",
+    "local-only-bootstrap": "node bin/famous-framework.js local-only-bootstrap --sourceFolder=lib/core-components --destinationFolder=dev/local-workspace/build --servedFolder=dev/local-workspace --port=1618",
+    "test-build-pipeline": "node test/build-pipeline/*.spec.js",
     "test-runtime": "browserify test/runtime-tests/**/*.spec.js | tap-closer | smokestack",
     "test-state-manager": "browserify test/state-manager-tests/*.spec.js | tap-closer | smokestack",
     "test-utilities": "browserify test/utilities-tests/*.spec.js | tap-closer | smokestack",
@@ -45,7 +44,7 @@
     "esprima": "2.2.0",
     "estraverse": "4.1.0",
     "express": "4.12.4",
-    "famous": "Famous/engine#v0.6.1",
+    "famous": "Famous/engine#v0.6.2",
     "form-data": "matthewtoast/node-form-data#v0.2.1",
     "jsdom": "3.1.2",
     "livereload": "0.3.7",

@@ -1,14 +1,57 @@
 'use strict';
 
+var Async = require('async');
+var Fs = require('fs');
 var Lodash = require('lodash');
 var Path = require('path');
+var ReaddirRecursive = require('recursive-readdir');
 
-var Config = require('./../config');
+var Config = require('./../config/config');
 
-var BLANK = '';
-var PIPE = '|';
-var FSLASH = '/';
+var HTTP_REGEXP = /^https?:\/\//i;
 var STRING_TYPE = 'string';
+
+function readFilesRecursive(baseDir, finish) {
+    ReaddirRecursive(baseDir, function(dirErr, filePaths) {
+        if (dirErr) {
+            return finish(dirErr);
+        }
+
+        Async.map(filePaths, Fs.readFile, function(contentsErr, fileContents) {
+            if (contentsErr) {
+                return finish(contentsErr);
+            }
+
+            var resultsArray = [];
+
+            for (var i = 0; i < fileContents.length; i++) {
+                var filePath = filePaths[i].replace(baseDir, '');
+                var fileContent = fileContents[i];
+
+                // Remove the preceding slash since the users of this
+                // function downstream expect the path to be relative
+                if (filePath[0] === Path.sep) {
+                    filePath = filePath.slice(1, filePath.length);
+                }
+
+                var fileData;
+                if (doesFileLookLikeBinary(filePath)) {
+                    fileData = new Buffer(fileContent).toString('base64');
+                }
+                else {
+                    fileData = fileContent;
+                }
+
+                resultsArray.push({
+                    path: filePath,
+                    content: fileData
+                });
+            }
+
+            return finish(null, resultsArray);
+        });
+    });
+}
 
 function dependencyStringToModuleName(str) {
     var parts = moduleNameToModuleNameSegments(str);
@@ -29,6 +72,7 @@ function doesStringLookLikeDependency(str) {
 
 function eachDependencyStringInString(str, iterator) {
     var matches = str.match(Config.get('dependencyRegexp'));
+
     for (var i = 0; i < matches.length; i++) {
         if (!(matches[i] in Config.get('dependencyBlacklist'))) {
             iterator(matches[i]);
@@ -36,27 +80,12 @@ function eachDependencyStringInString(str, iterator) {
     }
 }
 
-function eachAssetStringMatchInString(str, iterator) {
-    var matches = str.match(Config.get('assetRegexp')) || [];
-    for (var i = 0; i < matches.length; i++) {
-        var match = matches[i];
-        var tmpStr = match + BLANK;
-        tmpStr = tmpStr.replace(Config.get('assetPrefixRegexp'), BLANK)
-                 .replace(Config.get('assetSuffixRegexp'), BLANK)
-                 .replace(Config.get('componentDelimiterRegexp'), FSLASH)
-                 .replace(PIPE, FSLASH);
-        iterator(match, tmpStr);
-    }
-}
-
-function doesFileLookLikeAsset(fileObject) {
-    var extname = Path.extname(fileObject.path);
-    return !!Config.get('assetTypes')[extname];
+function doesFileLookLikeStaticAsset(fileObject) {
+    return !!Config.get('assetTypes')[Path.extname(fileObject.path)];
 }
 
 function doesFileLookLikeBinary(fileObject) {
-    var extname = Path.extname(fileObject.path);
-    return !!Config.get('binaryTypes')[extname];
+    return !!Config.get('binaryTypes')[Path.extname(fileObject.path)];
 }
 
 function moduleNameToEntrypointBasename(moduleName) {
@@ -70,12 +99,15 @@ function moduleNameToModuleNameSegments(moduleName) {
 
 function importsObjectToFlatImportsObject(importsObj) {
     var flatImports = {};
+
     for (var selector in importsObj) {
         var array = importsObj[selector];
+
         for (var i = 0; i < array.length; i++) {
             flatImports[array[i]] = selector + Config.get('componentDelimiter') + array[i];
         }
     }
+
     return flatImports;
 }
 
@@ -83,38 +115,20 @@ function moduleNamespaceAndBasenameToModuleName(moduleNamespace, moduleEntrypoin
     return moduleNamespace + Config.get('componentDelimiter') + moduleEntrypointBasename;
 }
 
-function stringToModuleCDNMatch(string) {
-    var matches = string.match(Config.get('moduleCDNRegexp'));
-    if (matches) {
-        return {
-            match: matches,
-            value: matches[0].replace(Config.get('assetPrefixRegexp'), BLANK)
-                             .replace(Config.get('assetSuffixRegexp'), BLANK)
-        };
-    }
-    else {
-        return null;
-    }
-}
-
-var HTTP_REGEXP = /^https?:\/\//i;
-
-function buildIncludesArray(info, skipURLExpansion) {
-    var versionURL = info.versionURL;
-    var moduleConfigs = info.moduleConfigs;
-    var inlinedFiles = info.inlinedFiles || [];
+function buildIncludesArray(data, skipURLExpansion) {
+    var moduleConfigObjects = data.moduleConfigObjects;
+    var inlinedFiles = data.inlinedFiles || [];
     var includesArray = [];
-    for (var i = 0; i < moduleConfigs.length; i++) {
-        var moduleConfig = moduleConfigs[i];
+
+    for (var i = 0; i < moduleConfigObjects.length; i++) {
+        var moduleConfig = moduleConfigObjects[i];
+
         if (moduleConfig.includes) {
             for (var j = 0; j < moduleConfig.includes.length; j++) {
                 var includeStr = moduleConfig.includes[j];
                 // Someone might want to get the 'raw' includes array without
                 // any expansion e.g. ['foo.js', 'bar.css']
-                // Also don't bother trying to expand the URL if there isn't
-                // a version URL to begin with, since then we'll end up with
-                // a bunch of useless ['undefinedb.css'] includes in the list.
-                if (skipURLExpansion || !versionURL) {
+                if (skipURLExpansion) {
                     includesArray.push(includeStr);
                 }
                 else {
@@ -126,15 +140,14 @@ function buildIncludesArray(info, skipURLExpansion) {
                             includesArray.push(includeStr);
                         }
                         else {
-                            // Note that version URL is an absolute path to the version
-                            // folder on HTTP
-                            includesArray.push(versionURL + includeStr);
+                            console.warn('Ambiguous include string ', includeStr);
                         }
                     }
                 }
             }
         }
     }
+
     return Lodash.uniq(includesArray);
 }
 
@@ -145,15 +158,14 @@ function moduleNameToNamespace(moduleName) {
 module.exports = {
     buildIncludesArray: buildIncludesArray,
     dependencyStringToModuleName: dependencyStringToModuleName,
-    doesFileLookLikeAsset: doesFileLookLikeAsset,
+    doesFileLookLikeStaticAsset: doesFileLookLikeStaticAsset,
     doesFileLookLikeBinary: doesFileLookLikeBinary,
     doesStringLookLikeDependency: doesStringLookLikeDependency,
-    eachAssetStringMatchInString: eachAssetStringMatchInString,
     eachDependencyStringInString: eachDependencyStringInString,
     importsObjectToFlatImportsObject: importsObjectToFlatImportsObject,
     moduleNameToNamespace: moduleNameToNamespace,
     moduleNamespaceAndBasenameToModuleName: moduleNamespaceAndBasenameToModuleName,
     moduleNameToEntrypointBasename: moduleNameToEntrypointBasename,
     moduleNameToModuleNameSegments: moduleNameToModuleNameSegments,
-    stringToModuleCDNMatch: stringToModuleCDNMatch
+    readFilesRecursive: readFilesRecursive
 };

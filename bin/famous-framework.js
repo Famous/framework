@@ -2,159 +2,35 @@
 
 'use strict';
 
-var Browserify = require('browserify');
-var Child_Process = require('child_process');
-var Envify = require('envify/custom');
-var exec = Child_Process.exec;
-var Express = require('express');
-var Fs = require('fs');
-var Livereload = require('livereload');
-var Mkdirp = require('mkdirp');
-var Ncp = require('ncp').ncp;
-var Path = require('path');
 var Program = require('commander');
-var Rimraf = require('rimraf');
-var Watchify = require('watchify');
 
-var Assistant = require('./../dev/assistant/assistant');
-var Config = require('./../dev/config');
-
-var livereloadOptions = {
-    port: 35729,
-    exts: ['html','css','js','png','gif','jpg','coffee','less','json'],
-    applyJSLive: false,
-    applyCSSLive: false,
-    exclusions: [/\\node_modules\//,/\\.git\//,/\\.svn\//,/\\.hg\//],
-    interval: 1000
-};
+var LocalAssistant = require('./../dev/local-assistant/local-assistant');
 
 Program.command('copy-core-components')
     .option('-d, --destinationFolder [destinationFolder]')
     .action(function(info) {
-        var coreComponentsFolder = Path.join(__dirname, '..', 'lib', 'core-components', 'famous');
-        Rimraf(info.destinationFolder, function(rmErr) {
-            Ncp(coreComponentsFolder, info.destinationFolder, function(copyErr) {
-                if (copyErr) {
-                    return console.error('Couldn\'t copy core components!');
-                }
-            });
-        });
+        var la = new LocalAssistant();
+        la.copyCoreComponents(info);
     });
 
 Program.command('watch-runtime')
     .option('-i, --inputFile [inputFile]')
-    .option('-s, --serverHost [serverHost]')
     .option('-o, --outputFile [outputFile]')
     .action(function(info) {
-        var b = Browserify(info.inputFile, { cache: {}, packageCache: {} });
-        var w = Watchify(b);
-        w.transform(Envify({ FF_ASSET_READ_HOST: info.serverHost }));
-        function bundle() {
-            w.bundle().pipe(Fs.createWriteStream(info.outputFile));
-        }
-        w.on('update', function() {
-            bundle();
-        });
-        w.on('bytes', function(bytes) {
-            console.log('Wrote ' + bytes + ' bytes to ' + info.outputFile);
-        });
-        bundle();
+        var la = new LocalAssistant();
+        la.watchRuntime(info);
     });
 
 Program.command('local-only-bootstrap')
-    .description('Bootstrap local development, recursively building _only local_ components')
-    .option('-s, --sourceDirectory [sourceDirectory]')
-    .option('-b, --blocksDirectory [blocksDirectory]')
+    .option('-s, --sourceFolder [sourceFolder]')
+    .option('-d, --destinationFolder [destinationFolder]')
+    .option('-f, --servedFolder [servedFolder]')
     .option('-r, --rebuildEverythingOnChange [rebuildEverythingOnChange]')
     .option('-w, --watchAfterBuild [watchAfterBuild]')
     .option('-p, --port [port]')
     .action(function(info) {
-        Rimraf(Path.join(info.blocksDirectory, 'v1'), function(rmErr) {
-            var assistant = new Assistant({
-                builderOptions: {
-                    localRawSourceFolder: info.sourceDirectory,
-                    localBlocksFolder: info.blocksDirectory,
-                    codeManagerAssetReadHost: 'http://localhost:' + info.port,
-                    doSkipDependencyDereferencing: true,
-                    doAttemptToBuildDependenciesLocally: true,
-                    doBuildDependenciesFromLocalBlocksFolder: false
-                }
-            });
-
-            var doRebuildEverythingOnChange = info.rebuildEverythingOnChange === 'yes';
-
-            assistant.buildAll(info.sourceDirectory, '', function(buildAllErr) {
-                if (!buildAllErr) {
-                    if (info.watchAfterBuild === 'no') {
-                        console.log('Done!');
-                    }
-                    else {
-                        assistant.watchDirectoryRecursive(info.sourceDirectory, '', doRebuildEverythingOnChange);
-
-                        var livereloadServer = Livereload.createServer(livereloadOptions);
-                        livereloadServer.watch([info.blocksDirectory]);
-
-                        var server = Express();
-                        server.use(Express.static(info.blocksDirectory));
-                        server.listen(info.port);
-                    }
-                }
-                else {
-                    console.log(buildAllErr);
-                }
-            });
-        });
-    });
-
-Program.command('snapshot-component')
-    .option('-n, --componentName [componentName]')
-    .option('-s, --sourceDirectory [sourceDirectory]')
-    .option('-b, --blocksDirectory [blocksDirectory]')
-    .option('-d, --destinationDirectory [destinationDirectory]')
-    .action(function(info) {
-        var assistant = new Assistant({
-            builderOptions: {
-                localRawSourceFolder: info.sourceDirectory,
-                localBlocksFolder: info.blocksDirectory,
-                codeManagerAssetReadHost: 'https://api-beta.famo.us/codemanager',
-                codeManagerAssetWriteHost: 'https://api-beta.famo.us/codemanager',
-                codeManagerVersionInfoHost: null,
-                authHost: 'https://api-beta.famo.us/auth',
-                doWriteToCodeManager: true,
-                doSkipDependencyDereferencing: false,
-                doAttemptToBuildDependenciesLocally: true,
-                doSkipExecutableBuild: false
-            }
-        });
-
-        var baseDir = info.sourceDirectory;
-        var subDir = info.componentName.split(Config.get('componentDelimiter')).join(Path.sep);
-
-        assistant.buildSingle(baseDir, subDir, function(buildErr, buildInfo) {
-            if (buildErr) {
-                console.error(buildErr);
-            }
-
-            var destPath = Path.join(info.destinationDirectory, buildInfo.name);
-
-            Mkdirp(destPath, function(destDirErr) {
-                var executablePath = Path.join(destPath, 'build.js');
-
-                Fs.writeFile(executablePath, buildInfo.bundleExecutableString, {flags:'w'}, function(executableWriteErr) {
-                    if (executableWriteErr) {
-                        console.error(executableWriteErr);
-                    }
-
-                    var indexPath = Path.join(destPath, 'index.html');
-                    Fs.writeFile(indexPath, buildInfo.bundleIndexString, {flags:'w'}, function(indexWriteErr) {
-                        if (indexWriteErr) {
-                            console.error(indexWriteErr);
-                        }
-                    });
-                });
-            });
-
-        });
+        var la = new LocalAssistant();
+        la.localOnlyBootstrap(info);
     });
 
 Program.parse(process.argv);

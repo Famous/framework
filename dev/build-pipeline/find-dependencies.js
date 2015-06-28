@@ -3,10 +3,9 @@
 var Jsdom = require('jsdom');
 var Lodash = require('lodash');
 
-var BuildHelpers = require('./../build-helpers/build-helpers');
-var EsprimaHelpers = require('./../esprima-helpers/esprima-helpers');
-
-var Config = require('./../config');
+var BuildHelpers = require('./helpers/helpers');
+var EsprimaHelpers = require('./helpers/esprima');
+var Config = require('./config/config');
 
 var ALL_SELECTOR = '*';
 
@@ -44,14 +43,14 @@ function findDependencyKeys(objectAST, dependenciesList) {
     });
 }
 
-function findDependencies(info, cb) {
+function findDependencies(name, files, data, finish) {
     var dependencyTable = {};
     var dependenciesList = [];
     var i;
 
-    for (var moduleName in info.moduleDefinitionASTs) {
-        var moduleDefinitionAST = info.moduleDefinitionASTs[moduleName];
-        var moduleConfigAST = info.moduleConfigASTs[moduleName] || { properties: [] };
+    for (var moduleName in data.moduleDefinitionASTs) {
+        var moduleDefinitionAST = data.moduleDefinitionASTs[moduleName];
+        var moduleConfigAST = data.moduleConfigASTs[moduleName] || { properties: [] };
 
         // Collect dependencies from the definition objects.
         var treeValue;
@@ -71,7 +70,6 @@ function findDependencies(info, cb) {
 
         // Collect dependencies from the tree object
         if (treeValue) {
-
             var virtualDOM = Jsdom.jsdom(treeValue);
             var doc = virtualDOM.defaultView.document;
             var elements = doc.querySelectorAll(ALL_SELECTOR);
@@ -79,27 +77,16 @@ function findDependencies(info, cb) {
             for (i = 0; i < elements.length; i++) {
                 var element = elements[i];
 
-                var name = element.tagName.toLowerCase();
+                var lowercaseTagName = element.tagName.toLowerCase();
 
-                if (BuildHelpers.doesStringLookLikeDependency(name)) {
-                    dependenciesList.push(name);
+                if (BuildHelpers.doesStringLookLikeDependency(lowercaseTagName)) {
+                    dependenciesList.push(lowercaseTagName);
                 }
             }
         }
 
-        // During the extract core objects phase, we gathered a hash of explicit
-        // dependencies from either the config object (inline) or a
-        // framework.json file that is within the .famous folder
-        for (var depName in info.explicitDependencies) {
-            var depRef = info.explicitDependencies[depName];
-            // Note that we overwrite dependencies previously loaded in here,
-            // meaning only one dependency version per name
-            dependencyTable[depName] = depRef;
-        }
-
         // Check for `extends` key in config, use default extends if key is missing,
         // push values into dependency list
-        //
         // TODO: again, use the pre-built config object instead of re-traversing the AST
         var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST);
 
@@ -123,9 +110,9 @@ function findDependencies(info, cb) {
         }
     }
 
-    info.dependencyTable = dependencyTable;
+    data.dependencyTable = dependencyTable;
 
-    return cb(null, info);
+    return finish(null, name, files, data);
 }
 
 module.exports = findDependencies;

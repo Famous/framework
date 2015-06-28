@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Famous</title>
+    <title>{{componentName}} | Famous Framework</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style type="text/css">
         html, body {
@@ -11,6 +11,7 @@
             height: 100%;
             margin: 0px;
             padding: 0px;
+            font-family: 'Lato', Helvetica, Arial, sans-serif;
         }
         body {
             position: absolute;
@@ -25,6 +26,15 @@
     </style>
 </head>
 <body>
-    <script type="text/javascript" src="build.js"></script>
+    <script type="text/javascript" src="{{frameworkBundleURL}}"></script>
+    <script type="text/javascript" src="{{componentNameSafeDelimited}}.bundle.js"></script>
+    <script type="text/javascript">
+        FamousFramework.deploy(
+            '{{componentName}}',
+            '{{componentVersion}}',
+            'body'
+        );
+    </script>
+    <!-- Copyright (c) 2015 Famous Industries, Inc. -->
 </body>
 </html>
