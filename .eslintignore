@@ -4,8 +4,6 @@ node_modules
 *.bundle.js
 **/core-components/*
 **/test/*
-**/v1/*
 **/fixtures/*
-**/~bundles/**/*
-**/~versions/**/*
 **/*.bundle.js
+**/build/*
