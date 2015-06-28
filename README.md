@@ -78,6 +78,14 @@ Below is an example of what a Famous Framework component looks like. This code l
 
 - - - -
 
+## Documentation
+
+Please see [famous.org/framework](http://famous.org/framework/).
+
+If you want to contribute documentation, see [github.com/Famous/framework-guides](https://github.com/Famous/framework-guides).
+
+- - - -
+
 ## Deploying (experimental)
 
 From the directory that you created via the `famous framework-scaffold` command (see above), you should be able to run:
@@ -114,12 +122,6 @@ With so many world-class JavaScript frameworks out there, why has Famous decided
 
 - - - -
 
-## Contributing
-
-Please see our [contributing guidelines](docs/CONTRIBUTING.md).
-
-- - - -
-
 ## License
 
-Copyright (c) 2015 Famous Industries, Inc. MIT license. See LICENSE.txt
+Copyright (c) 2015 Famous Industries, Inc. MIT license. See LICENSE.txt.
