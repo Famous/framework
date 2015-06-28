@@ -121,7 +121,10 @@ function buildBundleString(name, files, data) {
 }
 
 function buildIndexString(name, file, data) {
-    var rawString = Fs.readFileSync(Path.join(__dirname, 'templates', 'index.html'), Config.get('fileOptions'));
+    // Important: This line needs to remain statically analyzable so it can be
+    // substituted by brfs
+    var rawString = Fs.readFileSync(Path.join(__dirname, 'templates', 'index.html'), 'utf8');
+
     var outString = rawString.split('{{componentNameSafeDelimited}}').join(componentNameSafeDelimited(name));
     outString = outString.split('{{componentName}}').join(name);
     outString = outString.split('{{componentVersion}}').join(Config.get('defaultDependencyVersion'));

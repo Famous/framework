@@ -26,7 +26,7 @@ function buildModule(name, files, options, finish) {
             return finish(pipelineErr);
         }
 
-        console.log('famous-framework: Built ' + name);
+        console.log('famous framework: Built ' + nameOut);
         return finish(null, nameOut, filesOut, dataOut);
     });
 }

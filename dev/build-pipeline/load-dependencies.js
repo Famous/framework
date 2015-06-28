@@ -24,6 +24,21 @@ function loadDependencyFromLocalFileSystem(name, version, cb) {
     });
 }
 
+// Given a name, like 'foo:bar:baz', and a version, like 'HEAD' or
+// '0234jfje923' (the version is really just an arbitrary string key)
+// produce an object that constitutes the complete source code for
+// that component, in the format:
+//   { name: 'foo:bar:baz',
+//     version: 'HEAD',
+//     files: [{path:'baz.js', content:'...'}] }
+// TODO:
+// One strategy here might be to check to see if the contents are
+// in localStorage, and use those if so, otherwise make an XHR to
+// CodeManager.
+function loadDependencyFromBrowser(name, version, cb) {
+    return cb(new Error('Browser dependency loading not yet implemented'));
+}
+
 function loadDependency(dependencyPair, cb) {
     var dependencyName = dependencyPair[0];
     var dependencyVersion = dependencyPair[1];
@@ -38,7 +53,12 @@ function loadDependency(dependencyPair, cb) {
     // The 'version' property is only required in cases where we are
     // trying to load a specific version of a dependency. In most cases
     // we can load whichever one is already available in our store.
-    loadDependencyFromLocalFileSystem(dependencyName, dependencyVersion, cb);
+    if (typeof window === 'undefined') {
+        loadDependencyFromLocalFileSystem(dependencyName, dependencyVersion, cb);
+    }
+    else {
+        loadDependencyFromBrowser(dependencyName, dependencyVersion, cb);
+    }
 }
 
 function loadDependencies(name, files, data, finish) {

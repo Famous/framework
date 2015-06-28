@@ -27,8 +27,9 @@
   },
   "scripts": {
     "dev": "npm run local-only-bootstrap",
+    "browserify-build-pipeline": "browserify dev/build-pipeline/index.js -t brfs",
     "local-only-bootstrap": "node bin/famous-framework.js local-only-bootstrap --sourceFolder=lib/core-components --destinationFolder=dev/local-workspace/build --servedFolder=dev/local-workspace --port=1618",
-    "test-build-pipeline": "node test/build-pipeline/*.spec.js",
+    "test-build-pipeline": "node test/build-pipeline/index.spec.js",
     "test-runtime": "browserify test/runtime-tests/**/*.spec.js | tap-closer | smokestack",
     "test-state-manager": "browserify test/state-manager-tests/*.spec.js | tap-closer | smokestack",
     "test-utilities": "browserify test/utilities-tests/*.spec.js | tap-closer | smokestack",
@@ -37,6 +38,7 @@
   "dependencies": {
     "async": "1.2.1",
     "babel": "5.5.8",
+    "brfs": "^1.4.0",
     "browserify": "10.2.4",
     "chalk": "1.0.0",
     "chokidar": "1.0.3",
