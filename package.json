@@ -22,6 +22,9 @@
   "bin": {
     "famous-framework": "bin/famous-framework.js"
   },
+  "browser": {
+    "jsdom": "./dev/build-pipeline/shims/jsdom.js"
+  },
   "scripts": {
     "dev": "npm run local-only-bootstrap",
     "local-only-bootstrap": "node bin/famous-framework.js local-only-bootstrap --sourceFolder=lib/core-components --destinationFolder=dev/local-workspace/build --servedFolder=dev/local-workspace --port=1618",
