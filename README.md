@@ -80,9 +80,9 @@ Below is an example of what a Famous Framework component looks like. This code l
 
 ## Documentation
 
-Please see [famous.org/framework](http://famous.org/framework/).
+For API docs, reference docs, and guides, please see [famous.org/framework](http://famous.org/framework/).
 
-If you want to contribute documentation, see [github.com/Famous/framework-guides](https://github.com/Famous/framework-guides).
+If you want to contribute to our documentation, or see the latest docs in progress, check out [github.com/Famous/framework-guides](https://github.com/Famous/framework-guides).
 
 - - - -
 
