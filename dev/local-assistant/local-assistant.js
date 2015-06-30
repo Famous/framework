@@ -191,9 +191,12 @@ LocalAssistant.prototype.buildSingle = function(baseDir, subDir, cb) {
 LocalAssistant.prototype.tuplesRecursive = function(tuples, baseDir, subDir, cb) {
     var mainPath = Path.join(baseDir, subDir);
     var entries = Fs.readdirSync(mainPath);
+
     entries.forEach(function(entryPath) {
         var fullEntryPath = Path.join(mainPath, entryPath);
         var entryStat = Fs.lstatSync(fullEntryPath);
+        var entryExtname = Path.extname(fullEntryPath);
+        var entryBasename = Path.basename(fullEntryPath, entryExtname);
 
         if (entryStat.isDirectory()) {
             var partialPath = Path.join(subDir, entryPath);
@@ -204,6 +207,12 @@ LocalAssistant.prototype.tuplesRecursive = function(tuples, baseDir, subDir, cb)
 
             this.tuplesRecursive(tuples, baseDir, partialPath);
         }
+        else {
+            var subDirSegment = Lodash.last(subDir.split(Path.sep));
+            if (subDirSegment === entryBasename && (entryExtname in this.options.entrypointExtnames)) {
+                tuples.push([baseDir, subDir]);
+            }
+        }
     }.bind(this));
 
     if (cb) {
@@ -212,12 +221,21 @@ LocalAssistant.prototype.tuplesRecursive = function(tuples, baseDir, subDir, cb)
 };
 
 LocalAssistant.prototype.buildRecursive = function(baseDir, subDir, finish) {
+    var alreadyBuilt = [];
     this.tuplesRecursive([], baseDir, subDir, function(err, tuples) {
         if (err) {
             console.error(err);
         }
         Async.mapSeries(tuples, function(tuple, cb) {
-            this.buildSingle(tuple[0], tuple[1], cb);
+            // Don't rebuild one that we just built during this run
+            var stringified = JSON.stringify([tuple[0], tuple[1]]);
+            if (alreadyBuilt.indexOf(stringified) === -1) {
+                this.buildSingle(tuple[0], tuple[1], cb);
+                alreadyBuilt.push(stringified);
+            }
+            else {
+                cb();
+            }
         }.bind(this), finish);
     }.bind(this));
 };
@@ -321,23 +339,36 @@ LocalAssistant.prototype.watchDirectory = function(baseDir, subDir, doRebuildEve
     watcher.on('all', handler);
 };
 
-LocalAssistant.prototype.watchDirectoryRecursive = function(baseDir, subDir, doRebuildEverythingOnChange, cb) {
-    var watcher = Chokidar.watch(Path.join(baseDir, subDir), {
+LocalAssistant.prototype.watchDirectoryRecursive = function(baseDir, subDir, options, cb) {
+    var pathToWatch;
+    if (options.triggerEntrypointBuildOnAnyChange) {
+        pathToWatch = baseDir;
+    }
+    else {
+        pathToWatch = Path.join(baseDir, subDir);
+    }
+
+    var watcher = Chokidar.watch(pathToWatch, {
         ignored: this.options.chokidarIgnored,
         ignoreInitial: true
     });
 
     var handler = Lodash.debounce(function(event, filename) {
-        var fileChangedDir = Path.dirname(filename);
-        var moduleFullDir = this.getModuleDir(baseDir, fileChangedDir);
 
-        if (moduleFullDir) {
-            if (doRebuildEverythingOnChange) {
-                this.buildAll(baseDir, '', cb);
-            }
-            else {
-                var moduleRelativeDir = moduleFullDir.replace(baseDir, BLANK).replace(/^\//, '').replace(/^\\/, '');
-                this.buildSingle(baseDir, moduleRelativeDir, cb);
+        if (options.triggerEntrypointBuildOnAnyChange) {
+            this.buildSingle(baseDir, subDir, cb);
+        }
+        else {
+            var fileChangedDir = Path.dirname(filename);
+            var moduleFullDir = this.getModuleDir(baseDir, fileChangedDir);
+            if (moduleFullDir) {
+                if (options.doRebuildEverythingOnChange) {
+                    this.buildAll(baseDir, '', cb);
+                }
+                else {
+                    var moduleRelativeDir = moduleFullDir.replace(baseDir, BLANK).replace(/^\//, '').replace(/^\\/, '');
+                    this.buildSingle(baseDir, moduleRelativeDir, cb);
+                }
             }
         }
     }.bind(this), 1000);
@@ -354,7 +385,13 @@ LocalAssistant.prototype.localOnlyBootstrap = function(info) {
     });
 
     Rimraf(info.destinationFolder, function(rmErr) {
-        this.buildAll(info.sourceFolder, '', function(buildAllErr) {
+        var subDir = '';
+
+        if (info.entrypointModuleName) {
+            subDir = info.entrypointModuleName.split(this.options.componentDelimiter).join(Path.sep);
+        }
+
+        this.buildAll(info.sourceFolder, subDir, function(buildAllErr) {
             if (buildAllErr) {
                 return console.log(buildAllErr);
             }
@@ -363,9 +400,24 @@ LocalAssistant.prototype.localOnlyBootstrap = function(info) {
                 var livereloadServer = Livereload.createServer(this.options.livereloadOptions);
                 var server = Express();
 
-                var doRebuildEverythingOnChange = info.rebuildEverythingOnChange === 'yes';
+                var doRebuildEverythingOnChange = false;
+                if (info.entrypointModuleName) {
+                    doRebuildEverythingOnChange = true;
+                }
+                if (info.rebuildEverythingOnChange === 'yes') {
+                    doRebuildEverythingOnChange = true;
+                }
+                else if (info.rebuildEverythingOnChange === 'no') {
+                    doRebuildEverythingOnChange = false;
+                }
 
-                this.watchDirectoryRecursive(info.sourceFolder, '', doRebuildEverythingOnChange, function(err, result) {
+                var options = {
+                    doRebuildEverythingOnChange: doRebuildEverythingOnChange,
+                    entrypointModuleName: info.entrypointModuleName,
+                    triggerEntrypointBuildOnAnyChange: !!info.entrypointModuleName
+                };
+
+                this.watchDirectoryRecursive(info.sourceFolder, subDir, options, function(err, result) {
                     if (err) {
                         return console.log(err);
                     }
