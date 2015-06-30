@@ -48,6 +48,10 @@ function expandObjectKeyShorthands(facetName, facetObj, imports, depth) {
             expandObjectKeyShorthands(facetName, valueObj, imports, depth + 1);
         }
 
+        if (facetName === Config.get('eventsFacetKeyName') && depth < 2) {
+            var isNativeTag = !!keyName.match(NATIVE_ELEMENTS_REGEXP);
+        }
+
         // Since so-called "direct targeted behaviors" aren't currently supported --
         // i.e. behaviors that bypass the normal eventing conduit via a syntax such
         // as 'famous:foo:bar:behavior-blah' -- we don't do the imports conversion
@@ -59,8 +63,13 @@ function expandObjectKeyShorthands(facetName, facetObj, imports, depth) {
                 for (var i = 0; i < importItems.length; i++) {
                     var importItem = importItems[i];
 
-                    if (keyName === importItem) {
-                        var newKey = Helpers.moduleNamespaceAndBasenameToModuleName(importNamespace, importItem);
+                    var newKey;
+
+                    if (isNativeTag) {
+                        newKey = keyName;
+                    }
+                    else if (keyName === importItem) {
+                        newKey = Helpers.moduleNamespaceAndBasenameToModuleName(importNamespace, importItem);
 
                         property.key.value = newKey;
                         property.key.raw = QUOTE + newKey + QUOTE;
