@@ -1,0 +1,23 @@
+.famous-ui__config-panel__group {
+    margin-bottom: 2em;
+}
+
+.famous-ui__config-panel__group-label {
+    display: block;
+    text-transform: uppercase;
+    text-decoration: underline;
+    font-weight: 200;
+
+    font-family: 'Helvetica Neue', Helvetica, sans-serif;
+    padding-bottom: 5px;
+}
+
+.famous-ui__config-panel__control-label {
+    display: block;
+    font-size: 0.8em;
+}
+
+.famous-ui__config-panel__control {
+    display: block;
+    width: calc(100% - 40px);
+}
