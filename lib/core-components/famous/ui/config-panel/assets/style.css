@@ -7,7 +7,6 @@
     text-transform: uppercase;
     text-decoration: underline;
     font-weight: 200;
-
     font-family: 'Helvetica Neue', Helvetica, sans-serif;
     padding-bottom: 5px;
 }
@@ -15,9 +14,14 @@
 .famous-ui__config-panel__control-label {
     display: block;
     font-size: 0.8em;
+    font-family: 'Helvetica Neue', Helvetica, sans-serif;
+    font-weight: 200;
+    margin-top: 4px;
+    margin-bottom: 10px;
 }
 
 .famous-ui__config-panel__control {
     display: block;
     width: calc(100% - 40px);
+    outline: none !important;
 }
