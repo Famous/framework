@@ -9,6 +9,10 @@
     font-weight: 200;
     font-family: 'Helvetica Neue', Helvetica, sans-serif;
     padding-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 260px;
 }
 
 .famous-ui__config-panel__control-label {
@@ -22,6 +26,6 @@
 
 .famous-ui__config-panel__control {
     display: block;
-    width: calc(100% - 40px);
+    width: calc(100% - 50px);
     outline: none !important;
 }
