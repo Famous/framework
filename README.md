@@ -40,7 +40,7 @@ Once the local server and watchers are running, surf to [localhost:1618/](http:/
 
 ### Windows
 
-Installation is not currently working on Windows. Fixing this is a top priority and the progress is being tracked in the following GitHub Issue: https://github.com/Famous/framework/issues/17. We're beginning to document the necessary steps under [docs/windows-installation](docs/windows-installation.md).
+Installation is not currently working on Windows. Fixing this is a top priority and the progress is being tracked in the following GitHub Issue: https://github.com/Famous/framework/issues/17.
 
 - - - -
 
