@@ -26,6 +26,8 @@ var CORE_COMPONENTS_FOLDER = Path.join(__dirname, '..', '..', 'lib', 'core-compo
 function LocalAssistant(options) {
     this.setOptions(options);
     this.cachedFrameworkBundle = null;
+    this.cachedFrameworkBundleTimeStamp = Date.now();
+    this.cacheTTL = 1000; // milliseconds
 }
 
 LocalAssistant.DEFAULTS = {
@@ -61,7 +63,7 @@ LocalAssistant.prototype.buildFramework = function(cb) {
         standalone: 'FamousFramework'
     });
 
-    if (this.cachedFrameworkBundle) {
+    if (this.cachedFrameworkBundle && (this.cachedFrameworkBundleTimeStamp + this.cacheTTL > Date.now())) {
         return cb(null, this.cachedFrameworkBundle);
     }
     else {
@@ -71,6 +73,7 @@ LocalAssistant.prototype.buildFramework = function(cb) {
             }
 
             this.cachedFrameworkBundle = buf.toString();
+            this.cachedFrameworkBundleTimeStamp = Date.now();
 
             return cb(null, this.cachedFrameworkBundle);
         }.bind(this));
