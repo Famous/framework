@@ -187,6 +187,7 @@ function buildOptionsArgAST(data, moduleName) {
     optionsObject.dependencies = data.dependencyTable;
     optionsObject.famousNodeConstructorName = configObject.famousNodeConstructorName || '';
     optionsObject.extensions = buildExtensionsArray(data, moduleName, configObject);
+    optionsObject.expose = configObject.expose || EsprimaHelpers.EMPTY_OBJECT_EXPRESSION;
 
     var optionsJSON = JSON.stringify(optionsObject);
     var optionsString = '(' + optionsJSON + ')';
