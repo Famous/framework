@@ -77,11 +77,23 @@ function buildCodeBlock(name, version, data) {
     return codeBlock.join(NEWLINE);
 }
 
-function buildCodeBlocks(outArray, name, version, data) {
-    iterateDependenciesIn(data, function(depName, depVersion, depFiles, depData) {
-        buildCodeBlocks(outArray, depName, depVersion, depData);
-    });
-    outArray.push(buildCodeBlock(name, version, data));
+function nameVersionKey(name, version) {
+    return name + '~' + version;
+}
+
+function buildCodeBlocks(outArray, depsAdded, name, version, data) {
+    var depKeys = Object.keys(data.dependencyTable);
+    if (depKeys.length > 0) {
+        iterateDependenciesIn(data, function(depName, depVersion, depFiles, depData) {
+            buildCodeBlocks(outArray, depsAdded, depName, depVersion, depData);
+        });
+        outArray.push(buildCodeBlock(name, version, data));
+        depsAdded.push([name, version]);
+    }
+    else {
+        outArray.unshift(buildCodeBlock(name, version, data));
+        depsAdded.unshift([name, version]);
+    }
     return outArray.join(NEWLINE);
 }
 
@@ -110,14 +122,16 @@ function buildIncludesPrefix(name, version, data) {
 
 function buildBundleString(name, files, data) {
     var version = Config.get('defaultDependencyVersion');
-    return [
+    var depsAdded = [];
+    var output = [
         copyright(),
         '"use strict";',
         buildIncludesPrefix(name, version, data),
-        indent(buildCodeBlocks([], name, version, data)),
+        indent(buildCodeBlocks([], depsAdded, name, version, data)),
         indent('FamousFramework.markComponentAsReady("' + name + '", "' + version + '");'),
         '});'
     ].join(NEWLINE);
+    return output;
 }
 
 function buildIndexString(name, file, data) {
