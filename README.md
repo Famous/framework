@@ -136,7 +136,7 @@ Our `develop` branch is the main development branch. All commits should be submi
     $ npm run local-only-bootstrap
     # Wait a few seconds while components are built...
 
-A demo page should now be visible at [localhost:1618](http://localhost:1618). Changes to any of our [core components](lib/core-components) or to the [browser runtime](lib) should trigger automatic reload. The framework's build pipeline and tools are located in the [dev] folder.
+A demo page should now be visible at [localhost:1618](http://localhost:1618). Changes to any of our [core components](lib/core-components) or to the [browser runtime](lib) should trigger automatic reload. The framework's build pipeline and tools are located in the [dev](dev) folder.
 
 - - - -
 
