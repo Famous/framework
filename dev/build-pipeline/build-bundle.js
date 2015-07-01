@@ -77,10 +77,6 @@ function buildCodeBlock(name, version, data) {
     return codeBlock.join(NEWLINE);
 }
 
-function nameVersionKey(name, version) {
-    return name + '~' + version;
-}
-
 function buildCodeBlocks(outArray, depsAdded, name, version, data) {
     var depKeys = Object.keys(data.dependencyTable);
     if (depKeys.length > 0) {
