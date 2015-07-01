@@ -122,6 +122,24 @@ With so many world-class JavaScript frameworks out there, why has Famous decided
 
 - - - -
 
+## Contributing
+
+We welcome contributions in the form of [bug reports](https://github.com/famous/framework/issues), [documentation](https://github.com/Famous/framework-guides), and pull requests. If you want to contribute to Famous Framework codebase, follow these instructions:
+
+1. [Fork the repo](https://github.com/famous/framework/fork)
+2. Keep your fork up to date
+3. Sign our [Contributor License Agreement](http://famous.org/cla/)
+
+Our `develop` branch is the main development branch. All commits should be submitted in the form of pull requests to `develop`. Once you've forked us, clone your fork, and create a new branch for your feature or bug fix. Then, to run locally:
+
+    $ npm install
+    $ npm run local-only-bootstrap
+    # Wait a few seconds while components are built...
+
+A demo page should now be visible at [localhost:1618](http://localhost:1618). Changes to any of our [core components](lib/core-components) or to the [browser runtime](lib) should trigger automatic reload. The framework's build pipeline and tools are located in the [dev] folder.
+
+- - - -
+
 ## License
 
 Copyright (c) 2015 Famous Industries, Inc. MIT license. See LICENSE.txt.
