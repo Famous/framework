@@ -46,5 +46,18 @@
     </div>
     <script type="text/javascript" src="assets/query-string.js"></script>
     <script type="text/javascript" src="assets/search.js"></script>
+    <script type="text/javascript">
+        var iframe = document.getElementById('iframe');
+        FamousFramework = {
+            message: function(domSelector, componentSelector, key, value) {
+                iframe.contentWindow.postMessage({
+                    domSelector: domSelector,
+                    componentSelector: componentSelector,
+                    key: key,
+                    value: value
+                }, '*');
+            }
+        };
+    </script>
 </body>
 </html>

@@ -35,6 +35,23 @@
             'body'
         );
     </script>
+    <script type="text/javascript">
+        window.addEventListener('message', receiveMessage, false);
+        function receiveMessage(postMessageEvent) {
+            var data = postMessageEvent.data;
+            if (data.domSelector &&
+                data.componentSelector &&
+                data.key &&
+                data.value) {
+                FamousFramework.message(
+                    data.domSelector,
+                    data.componentSelector,
+                    data.key,
+                    data.value
+                );
+            }
+        }
+    </script>
     <!-- Copyright (c) 2015 Famous Industries, Inc. -->
 </body>
 </html>
