@@ -30,19 +30,15 @@
     }
 
     searchBtn.addEventListener('click', function() {
-        if (searchContainer.className === '') {
-            searchContainer.className = 'active';
+        searchContainer.classList.toggle('active');
+        if (searchContainer.classList.contains('active')) {
             searchInput.focus();
             searchInput.select();
-        }
-        else {
-            searchContainer.className = '';
         }
     });
 
     searchDropdown.addEventListener('click', function() {
-        if (searchContainer.className === 'active') searchContainer.className = 'active expanded';
-        else searchContainer.className = 'active';
+        searchContainer.classList.toggle('expanded');
     });
 
     [].forEach.call(searchScenesOptions, function(li) {
