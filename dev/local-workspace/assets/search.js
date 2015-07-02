@@ -5,6 +5,7 @@
     var searchContainer = document.getElementById('famous-framework-components-search');
     var searchBtn = searchContainer.querySelector('.famous-framework-components-search-btn');
     var searchDropdown = searchContainer.querySelector('.famous-framework-components-search-dropdown');
+    var searchForm = searchContainer.querySelector('form');
     var searchScenes = searchContainer.querySelector('ul');
     var searchInput = searchContainer.querySelector('input');
     var searchScenesOptions = searchScenes.querySelectorAll('li');
@@ -40,6 +41,12 @@
     searchDropdown.addEventListener('click', function() {
         searchContainer.classList.toggle('expanded');
     });
+
+    searchForm.onsubmit = function() {
+        updateCurrentModule(searchInput.value);
+        searchContainer.classList.remove('active');
+        return false;
+    };
 
     [].forEach.call(searchScenesOptions, function(li) {
         li.addEventListener('click', function(event) {
