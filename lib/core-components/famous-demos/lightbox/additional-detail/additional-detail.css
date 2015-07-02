@@ -1,0 +1,28 @@
+.lightbox-title {
+    color: white;
+    font-family: sans-serif;
+    padding-bottom: 20px;
+    float: left;
+}
+
+.lightbox-spanish-title {
+    font-family: sans-serif;
+    font-style: italic;
+    color: #ccc;
+    float: left;
+    clear: both;
+}
+
+.lightbox-tag-title {
+    font-family: sans-serif;
+    color: #93CFB5;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.lightbox-tag-content {
+    font-family: sans-serif;
+    display: inline-block;
+    font-size: 10px;
+    color: white;
+}
