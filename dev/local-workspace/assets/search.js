@@ -44,6 +44,8 @@
     [].forEach.call(searchScenesOptions, function(li) {
         li.addEventListener('click', function(event) {
             updateCurrentModule(event.currentTarget.textContent);
+            searchContainer.classList.remove('active');
+            searchContainer.classList.remove('expanded');
         });
     });
 
