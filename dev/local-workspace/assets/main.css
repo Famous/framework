@@ -4,6 +4,18 @@ html, body {
     font-family: 'Lato', Helvetica, Arial, sans-serif;
 }
 
+body.hide-navigation #famous-framework-stage {
+    height: 100%;
+}
+
+body.hide-navigation #nav {
+    visibility: hidden;
+}
+
+body.hide-search #famous-framework-components-search {
+    visibility: hidden;
+}
+
 #famous-framework-stage {
     height: 90%;
     position: relative;

@@ -24,7 +24,28 @@
         currentModule = name;
         modSpan.innerText = name;
         searchInput.value = name;
-        window.history.pushState(name, 'Famous Framework (workspace)', '?ff=' + name);
+
+        var searchStr = '?ff=' + name;
+
+        if ('navigation' in QUERY) {
+            if (QUERY.navigation === true) {
+                document.body.classList.remove('hide-navigation');
+            } else if (QUERY.navigation === false) {
+                document.body.classList.add('hide-navigation');
+            }
+            searchStr += '&navigation=' + QUERY.navigation.toString();
+        }
+
+        if ('search' in QUERY) {
+            if (QUERY.search === true) {
+                document.body.classList.remove('hide-search');
+            } else if (QUERY.search === false) {
+                document.body.classList.add('hide-search');
+            }
+            searchStr += '&search=' + QUERY.search.toString();
+        }
+
+        window.history.pushState(name, 'Famous Framework (workspace)', searchStr);
 
         var delimitedSafe = name.split(COMPONENT_DELIMITER).join(SAFE_NAMESPACE_DELIMITER);
         iframe.setAttribute('src', 'build/' + delimitedSafe + '/index.html');
