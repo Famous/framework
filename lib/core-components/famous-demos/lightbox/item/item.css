@@ -56,3 +56,7 @@
     display: block;
     /*margin-bottom: 0.2em;*/
 }
+
+.search-lightbox__title {
+    color: white;
+}
