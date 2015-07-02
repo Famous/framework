@@ -17,14 +17,42 @@
     font-size: 18px;
 }
 
-.overlay-title {
+.goya-lightbox__thumb__title {
     color: #57FFB6;
     text-transform: uppercase;
 }
 
-.overlay-date {
+.goya-lightbox__thumb__year {
     padding-top: 20px;
     color: white;
 }
 
+.goya-lightbox__title--english,
+.goya-lightbox__title-spanish {
+    display: block;
+    font-size: 1em;
+}
 
+.goya-lightbox__title--english {
+    margin-bottom: 0.6em;
+    color: white;
+}
+
+.goya-lightbox__title--spanish {
+    color: gray;
+    font-style: italic;
+    margin-bottom: 1em;
+}
+
+.goya-lightbox__detail__heading {
+    color: #57FFB6;
+    text-transform: uppercase;
+    display: block;
+    /*margin-bottom: 0.2em;*/
+}
+
+.goya-lightbox__detail__content {
+    color: white;
+    display: block;
+    /*margin-bottom: 0.2em;*/
+}
