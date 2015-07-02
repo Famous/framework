@@ -1,3 +1,8 @@
+.lightbox-item, .image-node {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
 .overlay-text {
     padding-top: 126px;
     padding-left: 20px;
