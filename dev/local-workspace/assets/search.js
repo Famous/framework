@@ -25,23 +25,16 @@
         modSpan.innerText = name;
         searchInput.value = name;
 
-        var searchStr = '?ff=' + name;
+        var showNavigation = 'navigation' in QUERY ? QUERY.navigation : true;
+        var showSearch = 'search' in QUERY ? QUERY.search : true;
+        document.body.classList[showNavigation ? 'add' : 'remove']('show-navigation');
+        document.body.classList[showSearch ? 'add' : 'remove']('show-search');
 
+        var searchStr = '?ff=' + name;
         if ('navigation' in QUERY) {
-            if (QUERY.navigation === true) {
-                document.body.classList.remove('hide-navigation');
-            } else if (QUERY.navigation === false) {
-                document.body.classList.add('hide-navigation');
-            }
             searchStr += '&navigation=' + QUERY.navigation.toString();
         }
-
         if ('search' in QUERY) {
-            if (QUERY.search === true) {
-                document.body.classList.remove('hide-search');
-            } else if (QUERY.search === false) {
-                document.body.classList.add('hide-search');
-            }
             searchStr += '&search=' + QUERY.search.toString();
         }
 

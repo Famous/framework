@@ -4,20 +4,20 @@ html, body {
     font-family: 'Lato', Helvetica, Arial, sans-serif;
 }
 
-body.hide-navigation #famous-framework-stage {
-    height: 100%;
+body.show-navigation #famous-framework-stage {
+    height: 90%;
 }
 
-body.hide-navigation #nav {
-    visibility: hidden;
+body.show-navigation #nav {
+    visibility: visible;
 }
 
-body.hide-search #famous-framework-components-search {
-    visibility: hidden;
+body.show-search #famous-framework-components-search {
+    visibility: visible;
 }
 
 #famous-framework-stage {
-    height: 90%;
+    height: 100%;
     position: relative;
     -webkit-transition: opacity ease-in 0.3s;
     transition: opacity ease-in 0.3s;
@@ -32,7 +32,7 @@ body.hide-search #famous-framework-components-search {
 }
 
 #famous-framework-components-search {
-    /*display: none;*/
+    visibility: hidden;
 }
 
 [unresolved] {
@@ -209,6 +209,7 @@ body.hide-search #famous-framework-components-search {
     background-color: black;
     height: 10%;
     width: 100%;
+    visibility: hidden;
 }
 
 #next-button,
