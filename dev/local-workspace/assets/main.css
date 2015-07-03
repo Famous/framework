@@ -26,6 +26,7 @@ body.show-search #famous-framework-components-search {
 }
 
 #iframe {
+    display: block;
     width: 100%;
     height: 100%;
     overflow: scroll;
@@ -207,8 +208,10 @@ body.show-search #famous-framework-components-search {
 
 #nav {
     background-color: black;
+    bottom: 0;
     height: 10%;
     width: 100%;
+    position: absolute;
     visibility: hidden;
 }
 
