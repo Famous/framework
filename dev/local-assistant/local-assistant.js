@@ -6,7 +6,10 @@ var Chokidar = require('chokidar');
 var Express = require('express');
 var Fs = require('fs');
 var Livereload = require('livereload');
-var Lodash = require('lodash');
+var assign = require('lodash.assign');
+var clone = require('lodash.clone');
+var debounce = require('lodash.debounce');
+var last = require('lodash.last');
 var Mkdirp = require('mkdirp');
 var Ncp = require('ncp').ncp;
 var Path = require('path');
@@ -53,7 +56,7 @@ LocalAssistant.DEFAULTS = {
 };
 
 LocalAssistant.prototype.setOptions = function(options) {
-    this.options = Lodash.assign(Lodash.clone(LocalAssistant.DEFAULTS), Lodash.clone(options || {}));
+    this.options = assign(clone(LocalAssistant.DEFAULTS), clone(options || {}));
 };
 
 LocalAssistant.prototype.buildFramework = function(cb) {
@@ -211,7 +214,7 @@ LocalAssistant.prototype.tuplesRecursive = function(tuples, baseDir, subDir, cb)
             this.tuplesRecursive(tuples, baseDir, partialPath);
         }
         else {
-            var subDirSegment = Lodash.last(subDir.split(Path.sep));
+            var subDirSegment = last(subDir.split(Path.sep));
             if (subDirSegment === entryBasename && (entryExtname in this.options.entrypointExtnames)) {
                 tuples.push([baseDir, subDir]);
             }
@@ -330,7 +333,7 @@ LocalAssistant.prototype.watchDirectory = function(baseDir, subDir, doRebuildEve
         ignoreInitial: true
     });
 
-    var handler = Lodash.debounce(function(event, filename) {
+    var handler = debounce(function(event, filename) {
         if (doRebuildEverythingOnChange) {
             this.buildAll(baseDir, '', cb);
         }
@@ -356,7 +359,7 @@ LocalAssistant.prototype.watchDirectoryRecursive = function(baseDir, subDir, opt
         ignoreInitial: true
     });
 
-    var handler = Lodash.debounce(function(event, filename) {
+    var handler = debounce(function(event, filename) {
 
         if (options.triggerEntrypointBuildOnAnyChange) {
             this.buildSingle(baseDir, subDir, cb);

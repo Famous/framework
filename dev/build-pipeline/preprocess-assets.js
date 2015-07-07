@@ -2,7 +2,7 @@
 
 var Async = require('async');
 var Babel = require('babel');
-var Lodash = require('lodash');
+var find = require('lodash.find');
 var Path = require('path');
 
 var Helpers = require('./helpers/helpers');
@@ -119,7 +119,7 @@ function mergeCompiledFiles(rawFiles, compiledFiles) {
     for (var i = 0; i < compiledFiles.length; i++) {
         var compiledFile = compiledFiles[i];
 
-        var existingFile = Lodash.find(rawFiles, { path: compiledFile.path });
+        var existingFile = find(rawFiles, { path: compiledFile.path });
 
         if (existingFile) {
             // Overwrite the existing file with compiled content

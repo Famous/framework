@@ -1,7 +1,7 @@
 'use strict';
 
 var Jsdom = require('jsdom');
-var Lodash = require('lodash');
+var defaults = require('lodash.defaults');
 
 var Helpers = require('./helpers/helpers');
 var EsprimaHelpers = require('./helpers/esprima');
@@ -109,7 +109,7 @@ function expandImports(name, files, data, finish) {
 
         // Step 1: Get a simplified (complete) imports object.
         var configObject = EsprimaHelpers.getObjectValue(moduleConfigAST || { properties: [] });
-        var imports = Lodash.defaults(configObject[Config.get('importsKeyName')] || {}, Config.get('defaultImports'));
+        var imports = defaults(configObject[Config.get('importsKeyName')] || {}, Config.get('defaultImports'));
 
         // Step 2: Replace shorthand references in the object keys
         var treeNode;

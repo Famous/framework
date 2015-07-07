@@ -1,7 +1,7 @@
 'use strict';
 
 var Async = require('async');
-var Lodash = require('lodash');
+var each = require('lodash.foreach');
 
 function buildDependency(name, version, files, originalData, cb) {
     return Async.waterfall([
@@ -39,7 +39,7 @@ function buildDependencyTuple(tuple, cb) {
 }
 
 function buildDependencies(name, files, data, finish) {
-    Lodash.each(data.dependencyTuples, function(tuple) {
+    each(data.dependencyTuples, function(tuple) {
         // Pass the original 'data' object through in case we
         // need to add anything to the recursive build process
         tuple.push(data);

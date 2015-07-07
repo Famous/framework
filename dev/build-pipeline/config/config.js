@@ -1,6 +1,7 @@
 'use strict';
 
-var Lodash = require('lodash');
+var assign = require('lodash.assign');
+var clone = require('lodash.clone');
 
 var options = {
     localSourceFolder: null,
@@ -64,6 +65,6 @@ module.exports = {
         options[key] = value;
     },
     assign: function(others) {
-        options = Lodash.assign(Lodash.clone(options || {}), Lodash.clone(others || {}));
+        options = assign(clone(options || {}), clone(others || {}));
     }
 };
