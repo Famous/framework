@@ -20,7 +20,7 @@
     var DEFAULT_MODULE = 'famous-demos:clickable-square';
     var currentModule = DEFAULT_MODULE;
 
-    function updateCurrentModule(name) {
+    function updateCurrentModule(name, pushState) {
         currentModule = name;
         modSpan.innerText = name;
         searchInput.value = name;
@@ -38,7 +38,9 @@
             searchStr += '&search=' + QUERY.search.toString();
         }
 
-        window.history.pushState(name, 'Famous Framework (workspace)', searchStr);
+        if (pushState) {
+            window.history.pushState(name, 'Famous Framework (workspace)', searchStr);
+        }
 
         var delimitedSafe = name.split(COMPONENT_DELIMITER).join(SAFE_NAMESPACE_DELIMITER);
         iframe.setAttribute('src', 'build/' + delimitedSafe + '/index.html');
@@ -57,14 +59,14 @@
     });
 
     searchForm.onsubmit = function() {
-        updateCurrentModule(searchInput.value);
+        updateCurrentModule(searchInput.value, true);
         searchContainer.classList.remove('active');
         return false;
     };
 
     [].forEach.call(searchScenesOptions, function(li) {
         li.addEventListener('click', function(event) {
-            updateCurrentModule(event.currentTarget.textContent);
+            updateCurrentModule(event.currentTarget.textContent, true);
             searchContainer.classList.remove('active');
             searchContainer.classList.remove('expanded');
         });
@@ -76,10 +78,10 @@
         if (query.split(':').length < 2) {
             query = 'famous-demos:' + query;
         }
-        updateCurrentModule(query);
+        updateCurrentModule(query, false);
     }
     else {
-        updateCurrentModule(DEFAULT_MODULE);
+        updateCurrentModule(DEFAULT_MODULE, false);
     }
 
     // Hack to mask FOUC when using align
@@ -142,7 +144,7 @@
         var indexOfCurrent = browsableModules.indexOf(currentModule);
         var indexOfNext = (indexOfCurrent + 1) % browsableModules.length;
         currentModule = browsableModules[indexOfNext];
-        updateCurrentModule(currentModule);
+        updateCurrentModule(currentModule, true);
     });
 
     prevButtonEl.addEventListener('click', function(clickEvent) {
@@ -152,6 +154,6 @@
             indexOfPrev = browsableModules.length - 1;
         }
         currentModule = browsableModules[indexOfPrev];
-        updateCurrentModule(currentModule);
+        updateCurrentModule(currentModule, true);
     });
 }());
