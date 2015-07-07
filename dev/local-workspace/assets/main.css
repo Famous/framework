@@ -213,6 +213,7 @@ body.show-search #famous-framework-components-search {
     width: 100%;
     position: absolute;
     visibility: hidden;
+    font-size: 24px;
 }
 
 #next-button,
@@ -226,6 +227,7 @@ body.show-search #famous-framework-components-search {
     height: 100%;
     outline: none;
     width: 33.3%;
+    font-size: 24px;
 }
 
 #current-module-name-box {
