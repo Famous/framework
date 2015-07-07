@@ -1,7 +1,7 @@
 'use strict';
 
 var Jsdom = require('jsdom');
-var Lodash = require('lodash');
+var uniq = require('lodash.uniq');
 
 var BuildHelpers = require('./helpers/helpers');
 var EsprimaHelpers = require('./helpers/esprima');
@@ -98,7 +98,7 @@ function findDependencies(name, files, data, finish) {
     }
 
     // Finally, push any gathered dependencies into the table object
-    var uniqDependencies = Lodash.uniq(dependenciesList);
+    var uniqDependencies = uniq(dependenciesList);
 
     var validDependencies = getValidDependenciesOnly(uniqDependencies);
 

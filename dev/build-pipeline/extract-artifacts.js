@@ -1,6 +1,7 @@
 'use strict';
 
-var Lodash = require('lodash');
+var find = require('lodash.find');
+var map = require('lodash.map');
 var Path = require('path');
 
 var Helpers = require('./helpers/helpers');
@@ -35,7 +36,7 @@ function extractModuleConfigASTs(entrypointAST) {
         if (methodName === Config.get('configMethodIdentifier')) {
             var methodChain = extractMethodChain([], node, parent);
 
-            var propNames = Lodash.map(methodChain, function(meth) {
+            var propNames = map(methodChain, function(meth) {
                 return meth.prop;
             });
 
@@ -137,7 +138,7 @@ function findEntrypointFile(moduleName, files) {
     var entrypointBasename = Helpers.moduleNameToEntrypointBasename(moduleName);
     var entrypointExtnames = Config.get('entrypointExtnames');
 
-    return Lodash.find(files, function(file) {
+    return find(files, function(file) {
         var extname = Path.extname(file.path);
 
         if (extname in entrypointExtnames) {
@@ -150,7 +151,7 @@ function findEntrypointFile(moduleName, files) {
 }
 
 function getRawConfigObjects(configASTs) {
-    return Lodash.map(configASTs, function(configAST) {
+    return map(configASTs, function(configAST) {
         return EsprimaHelpers.getObjectValue(configAST);
     });
 }

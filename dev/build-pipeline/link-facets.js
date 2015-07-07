@@ -1,6 +1,6 @@
 'use strict';
 
-var Lodash = require('lodash');
+var find = require('lodash.find');
 
 var EsprimaHelpers = require('./helpers/esprima');
 var Config = require('./config/config');
@@ -21,7 +21,7 @@ function linkFacets(name, files, data, finish) {
         EsprimaHelpers.eachStringProperty(data.moduleDefinitionASTs[moduleName], function(facetName, _1, facetValue, _2, facetProp) {
             // Skip if the facet value is just plain empty
             if (facetValue && facetValue.length > 2) {
-                var facetFile = Lodash.find(files, { path: facetValue });
+                var facetFile = find(files, { path: facetValue });
 
                 if (facetFile) {
                     var facetContent = facetFile.content;

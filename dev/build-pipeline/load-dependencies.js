@@ -1,7 +1,8 @@
 'use strict';
 
 var Async = require('async');
-var Lodash = require('lodash');
+var pairs = require('lodash.pairs');
+var select = require('lodash.filter');
 var Path = require('path');
 
 var Helpers = require('./helpers/helpers');
@@ -62,10 +63,10 @@ function loadDependency(dependencyPair, cb) {
 }
 
 function loadDependencies(name, files, data, finish) {
-    var dependencyPairsAll = Lodash.pairs(data.dependencyTable);
+    var dependencyPairsAll = pairs(data.dependencyTable);
 
     // Don't load any dependencies that have already been loaded
-    var dependencyPairs = Lodash.select(dependencyPairsAll, function(pair) {
+    var dependencyPairs = select(dependencyPairsAll, function(pair) {
         if (data.dependenciesLoaded && data.dependenciesLoaded[pair[0]] && data.dependenciesLoaded[pair[0]][pair[1]]) {
             return false;
         }

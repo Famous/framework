@@ -2,7 +2,8 @@
 
 var Async = require('async');
 var Fs = require('fs');
-var Lodash = require('lodash');
+var uniq = require('lodash.uniq');
+var first = require('lodash.first');
 var Path = require('path');
 var ReaddirRecursive = require('recursive-readdir');
 
@@ -148,11 +149,11 @@ function buildIncludesArray(data, skipURLExpansion) {
         }
     }
 
-    return Lodash.uniq(includesArray);
+    return uniq(includesArray);
 }
 
 function moduleNameToNamespace(moduleName) {
-    return Lodash.first(moduleName.split(Config.get('componentDelimiter')));
+    return first(moduleName.split(Config.get('componentDelimiter')));
 }
 
 module.exports = {
