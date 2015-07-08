@@ -29,6 +29,7 @@ Program.command('local-only-bootstrap')
     .option('-r, --rebuildEverythingOnChange [rebuildEverythingOnChange]')
     .option('-w, --watchAfterBuild [watchAfterBuild]')
     .option('-p, --port [port]')
+    .option('-l, --deploy [deploy]')
     .action(function(info) {
         var la = new LocalAssistant();
         la.localOnlyBootstrap(info);

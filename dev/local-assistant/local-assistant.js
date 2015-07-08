@@ -30,6 +30,8 @@ function LocalAssistant(options) {
     this.setOptions(options);
     this.cachedFrameworkBundle = null;
     this.cachedFrameworkBundleTimeStamp = Date.now();
+    this.componentFiles = {};
+
     this.cacheTTL = 1000; // milliseconds
 }
 
@@ -192,6 +194,17 @@ LocalAssistant.prototype.buildSingle = function(baseDir, subDir, cb) {
     var files = [];
     this.pushFilesToArray(files, baseDir, subDir, BLANK);
     this.buildModule(moduleName, files, cb);
+
+    if (this.options.deploy) {
+        this.componentFiles[moduleName] = { files: [] };
+
+        for (var i = 0; i < files.length; i++) {
+            this.componentFiles[moduleName].files.push({
+                path: files[i].path,
+                content: files[i].content.toString()
+            });
+        }
+    }
 };
 
 LocalAssistant.prototype.tuplesRecursive = function(tuples, baseDir, subDir, cb) {
@@ -387,7 +400,9 @@ LocalAssistant.prototype.localOnlyBootstrap = function(info) {
 
     this.setOptions({
         sourceFolder: info.sourceFolder,
-        destinationFolder: info.destinationFolder
+        destinationFolder: info.destinationFolder,
+        deploy: info.deploy,
+        entrypointModuleName: info.entrypointModuleName
     });
 
     Rimraf(info.destinationFolder, function(rmErr) {
@@ -438,7 +453,18 @@ LocalAssistant.prototype.localOnlyBootstrap = function(info) {
                 return console.log('famous framework: Finished! Serving at http://localhost:' + info.port);
             }
             else {
-                return console.log('famous framework: Finished!');
+                if (this.options.deploy) {
+                    this.writeComponentsJSON(function(err) {
+                        if (err) {
+                            return console.log(err);
+                        }
+
+                        return console.log('famous framework: Finished!');
+                    });
+                }
+                else {
+                    return console.log('famous framework: Finished!');
+                }
             }
         }.bind(this));
     }.bind(this));
@@ -474,5 +500,15 @@ LocalAssistant.prototype.copyCoreComponents = function(info) {
         });
     });
 };
+
+LocalAssistant.prototype.writeComponentsJSON = function(cb) {
+    var subDir = this.options.entrypointModuleName.split(this.options.componentDelimiter).join(SAFE_NAMESPACE_DELIMITER);
+
+    return Fs.writeFile(
+        this.options.destinationFolder + '/' + subDir + '/components.json',
+        JSON.stringify(this.componentFiles),
+        cb
+    );
+}
 
 module.exports = LocalAssistant;
