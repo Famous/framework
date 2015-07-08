@@ -9,7 +9,6 @@
   "license": "MIT",
   "repository": "Famous/framework",
   "bugs": "https://github.com/Famous/framework/issues",
-  "private": true,
   "main": "lib/index.js",
   "authors": [
     "Zack Brown <zack@famo.us>",
