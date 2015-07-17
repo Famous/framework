@@ -1,6 +1,6 @@
 # Famous Framework (alpha)
 
-The Famous Framework is a new JavaScript framework for creating reusable, composable, and interchangeable UI widgets and applications.  It balances declarative with imperative and functional with stateful, and it's built on top of the [Famous Engine](https://github.com/Famous/engine). We are excited to make it available as open source under an MIT license for the first time as part of a public alpha.
+The Famous Framework is a new JavaScript framework for creating reusable, composable, and interchangeable UI widgets and applications. It balances declarative with imperative and functional with stateful, and it's built on top of the [Famous Engine](https://github.com/Famous/engine). We are excited to make it available as open source under the MIT license for the first time as part of a public alpha.
 
 **Read more about the Framework in our in-depth [introductory blog post](//blog.famous.org).**
 
@@ -102,13 +102,13 @@ This will push your project up to a Famous container, and create an embed code f
 
 With so many world-class JavaScript frameworks out there, why has Famous decided to release its own? In a nutshell:
 
-* **Reusability / interchangability.** The Famous Framework is built around powerful constraints and a declarative syntax that make it possible for components to be reused and interchanged.
+* **Reusability / interchangeability.** The Famous Framework is built around powerful constraints and a declarative syntax that make it possible for components to be reused and interchanged.
 
 * **Application consistency.** In an ecosystem where widgets/applications/utilities all follow the same guidelines, developers and designers both reap the benefits: less trial and error when attempting to integrate with others' projects.
 
 * **Integration with existing web standards.** Although our integration is far from complete, from the beginning we've aimed to design and build the framework around existing web standards.
 
-* **Static analyzability:** Components that follow the constraints established by the Famous Framework can be staticaly analyzed, which hints at some exciting possibilities for tools and services that could be built on top.
+* **Static analyzability:** Components that follow the constraints established by the Famous Framework can be statically analyzed, which hints at some exciting possibilities for tools and services that could be built on top.
 
 - - - -
 
