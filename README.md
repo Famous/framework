@@ -47,7 +47,7 @@ If your local dev server is currently running, stop it now. The restart it with:
 
     $ npm run dev -- -e my-name:my-component
 
-Now surf to [localhost:1618/](http://localhost:1618/).
+Now surf to [localhost:1618/?ff=my-name:my-component](http://localhost:1618/?ff=my-name:my-component). (Note the query string in the URL.)
 
 Changes you make to that file should trigger automatic reload.
 
