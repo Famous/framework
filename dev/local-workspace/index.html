@@ -13,51 +13,8 @@
     <script>document.write('<script src="http://'+(location.host||'localhost').split(':')[0]+':35729/livereload.js?snipver=1"></'+'script>');</script>
 </head>
 <body>
-    <div id="famous-framework-components-search">
-        <button class="famous-framework-components-search-btn"></button>
-        <button class="famous-framework-components-search-dropdown"></button>
-        <form>
-            <input type="text" name="ff" placeholder="clickable-square">
-            <ul>
-                <li>animation-timeline</li>
-                <li>animation-timeline-queue</li>
-                <li>attach-webgl</li>
-                <li>clickable-square</li>
-                <li>dynamic-list</li>
-                <li>lifecycle</li>
-                <li>repeat-color-wheel</li>
-                <li>widget-dashboard:dashboard</li>
-            </ul>
-        </form>
-    </div>
-    <div id="famous-framework-stage" unresolved>
-        <iframe id="iframe" src=""></iframe>
-    </div>
-    <div id="nav">
-        <button id="prev-button">
-            <span>&larr; Prev</span>
-        </button>
-        <div id="current-module-name-box">
-            <span id="current-module-name-span"></span>
-        </div>
-        <button id="next-button">
-            <span>Next &rarr;</span>
-        </button>
-    </div>
+    <iframe id="iframe" src=""></iframe>
     <script type="text/javascript" src="assets/query-string.js"></script>
     <script type="text/javascript" src="assets/search.js"></script>
-    <script type="text/javascript">
-        var iframe = document.getElementById('iframe');
-        FamousFramework = {
-            message: function(domSelector, componentSelector, key, value) {
-                iframe.contentWindow.postMessage({
-                    domSelector: domSelector,
-                    componentSelector: componentSelector,
-                    key: key,
-                    value: value
-                }, '*');
-            }
-        };
-    </script>
 </body>
 </html>
